@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT: Data &amp; Model Inventory | TRPA</title>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230072CE'/><path d='M4 24 L12 11 L18 19 L22 13 L28 24 Z' fill='%23fff'/></svg>" />
+
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+
+  <!-- AG Grid Community (pinned to 31.3.2: v33+ Theming API drops the legacy quartz CSS) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-olive:#B5A64C;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;
+      --trpa-ice:#B4CBE8;--gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;padding:.85rem 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:4px solid var(--trpa-blue);}
+    header.app-header .agency{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85;}
+    header.app-header h1{font-size:1.2rem;font-weight:700;line-height:1.2;}
+    header.app-header a.back{color:#fff;text-decoration:none;font-size:.8rem;border:1px solid rgba(255,255,255,.4);padding:.3rem .7rem;border-radius:6px;white-space:nowrap;}
+    header.app-header a.back:hover{background:rgba(255,255,255,.12);}
+    main{max-width:1280px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    .intro{font-size:.95rem;color:var(--gray-text);max-width:95ch;margin-bottom:1.1rem;}
+    .intro code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .kpi-card{background:#fff;border-radius:8px;padding:.9rem 1.2rem;flex:1;min-width:130px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
+    .kpi-card .kpi-value{font-size:1.8rem;font-weight:700;color:var(--trpa-navy);line-height:1;}
+    .kpi-card .kpi-label{font-size:.74rem;color:var(--gray-text);margin-top:.35rem;}
+    .kpi-card.live{border-top-color:var(--trpa-forest);} .kpi-card.building{border-top-color:var(--trpa-earth);}
+    .kpi-card.needed{border-top-color:var(--trpa-brick);} .kpi-card.external{border-top-color:var(--trpa-purple);}
+    calcite-tabs{--calcite-color-brand:var(--trpa-blue);}
+    .tab-body{padding:1.25rem 0 .5rem;}
+    .lead{font-size:.92rem;color:var(--gray-text);max-width:95ch;margin-bottom:1rem;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.85rem;}
+    .toolbar input.qf{flex:1;min-width:240px;padding:.5rem .75rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.9rem;color:var(--trpa-navy);}
+    .toolbar input.qf:focus{outline:none;border-color:var(--trpa-blue);box-shadow:0 0 0 2px rgba(0,114,206,.18);}
+    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-blue);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
+    .grid-wrap{width:100%;}
+    .pill{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11px;font-weight:600;white-space:nowrap;}
+    a.endpoint{color:var(--trpa-blue);text-decoration:none;font-size:12px;word-break:break-all;}
+    a.endpoint:hover{text-decoration:underline;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;}
+    .card{background:#fff;border-radius:8px;padding:1rem 1.2rem 1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--c,var(--trpa-blue));}
+    .card h3{font-size:.98rem;font-weight:700;margin-bottom:.55rem;}
+    .card .row{font-size:.84rem;margin-bottom:.4rem;display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap;}
+    .card .row .lab{min-width:0;flex:1;}
+    .readiness{font-size:.8rem;color:var(--gray-text);margin-top:.5rem;border-top:1px dashed #e0e4ea;padding-top:.5rem;}
+    footer.app-footer{max-width:1280px;margin:0 auto;padding:1.25rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.82rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div>
+      <div class="agency">Tahoe Regional Planning Agency &middot; Task 3.3 Risk Index Tool</div>
+      <h1>PROTECT: Data &amp; Model Inventory</h1>
+    </div>
+    <a class="back" href="index.html">&larr; Risk Index hub</a>
+  </header>
+
+  <main>
+    <p class="intro">
+      Data-readiness tracker for the Risk Index Tool. Each layer is mapped to a TRPA REST endpoint and
+      an availability status (Live / Building / Needed / External). TRPA services live at
+      <code>https://maps.trpa.org/server/rest/services</code>. Confirm the layer index per service
+      (<code>?f=pjson</code>) before wiring it into the tool.
+    </p>
+
+    <section class="kpi-row">
+      <div class="kpi-card"><div class="kpi-value">33</div><div class="kpi-label">Data layers</div></div>
+      <div class="kpi-card live"><div class="kpi-value">7</div><div class="kpi-label">Live TRPA REST</div></div>
+      <div class="kpi-card building"><div class="kpi-value">5</div><div class="kpi-label">Building</div></div>
+      <div class="kpi-card needed"><div class="kpi-value">6</div><div class="kpi-label">Needed</div></div>
+      <div class="kpi-card external"><div class="kpi-value">15</div><div class="kpi-label">External</div></div>
+      <div class="kpi-card"><div class="kpi-value">21</div><div class="kpi-label">Models &amp; tools</div></div>
+    </section>
+
+    <calcite-tabs scale="m">
+      <calcite-tab-nav slot="title-group">
+        <calcite-tab-title selected>Data Inventory</calcite-tab-title>
+        <calcite-tab-title>Model Inventory</calcite-tab-title>
+        <calcite-tab-title>Index Readiness</calcite-tab-title>
+      </calcite-tab-nav>
+
+      <!-- DATA INVENTORY -->
+      <calcite-tab selected>
+        <div class="tab-body">
+          <p class="lead">Filter by VAST component or endpoint status, or quick-search across all fields. Endpoint links open the live TRPA service.</p>
+          <div class="toolbar">
+            <input id="inv-qf" class="qf" type="text" placeholder="Quick search the data inventory..." aria-label="Quick search" />
+            <calcite-button id="inv-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+          </div>
+          <div id="inv-grid" class="ag-theme-quartz grid-wrap"></div>
+        </div>
+      </calcite-tab>
+
+      <!-- MODEL INVENTORY -->
+      <calcite-tab>
+        <div class="tab-body">
+          <p class="lead">Modeling platforms and disruption-risk tools. RA2CE, Volpe RDR, and the Overture street network are Andy's exploratory workstream.</p>
+          <div class="toolbar">
+            <input id="mdl-qf" class="qf" type="text" placeholder="Quick search models..." aria-label="Quick search models" />
+            <calcite-button id="mdl-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+          </div>
+          <div id="mdl-grid" class="ag-theme-quartz grid-wrap"></div>
+        </div>
+      </calcite-tab>
+
+      <!-- INDEX READINESS -->
+      <calcite-tab>
+        <div class="tab-body">
+          <p class="lead">
+            How each VAST sub-index maps to data layers and their endpoint status. This is the gating
+            view for the MVP: Phase 1 can demo with the two best-covered sub-indices while the gaps are
+            built out.
+          </p>
+          <div class="card-grid" id="readiness-mount"></div>
+        </div>
+      </calcite-tab>
+    </calcite-tabs>
+  </main>
+
+  <footer class="app-footer">
+    <p><strong>Status legend.</strong> <span class="pill" style="background:#4A61181A;color:#4A6118;border:1px solid #4A611855;">Live</span> TRPA REST endpoint exists now &middot; <span class="pill" style="background:#B47E001A;color:#B47E00;border:1px solid #B47E0055;">Building</span> TRPA standing it up &middot; <span class="pill" style="background:#9C3E271A;color:#9C3E27;border:1px solid #9C3E2755;">Needed</span> not created yet &middot; <span class="pill" style="background:#7B6A8A1A;color:#7B6A8A;border:1px solid #7B6A8A55;">External</span> non-TRPA source.</p>
+    <p>Source: <code>PROTECT_DataModel_Inventory.xlsx</code> + live <code>maps.trpa.org</code> services (confirmed 2026-05-21). Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const BASE = "https://maps.trpa.org/server/rest/services";
+
+    // element, component, endpointStatus, endpoint (relative to BASE or ""), source, useCase
+    const inv = [
+      ["Existing Plans","Adaptive Capacity","External","","TRPA Internal / EIP Tracker","Aligns plan with existing priorities; baseline unit costs."],
+      ["Existing Treatments","Adaptive Capacity","Needed","","TFFT (Tahoe Fire & Fuels Team)","Updates fuel models so treated areas aren't double-counted."],
+      ["FEMA Risk Baseline","Exposure","External","","FEMA National Risk Index","FHWA-recommended baseline community risk profile."],
+      ["Historical Hazards","Sensitivity","Live","/Vegetation_Burn_Severity/MapServer","Fire / Avalanche_Zones / Streams_and_Flood_Zone / Veg_Burn_Severity","Ground-truths predictive models (multiple TRPA hazard services)."],
+      ["Safety & Crashes","Vulnerability","External","","UC Berkeley TIMS / NDOT","Baseline network fragility, evacuation bottlenecks."],
+      ["Vulnerable Comms.","Asset Value","Live","/Transportation_Equity_Analysis_Tessellation/FeatureServer","TRPA Equity Study / Census","Defines Community Priority Zones (Justice40 multiplier)."],
+      ["Strategic Com. Assets","Asset Value","Live","/Emergency_Services/MapServer","TRPA Emergency_Services + HIFLD Open","Protects access to hospitals, shelters, schools (HIFLD fills gaps)."],
+      ["Emergency Staging","Asset Value","External","","FAA / HIFLD Open","Aerial firefighting / command / airlift staging."],
+      ["Strategic Transport","Asset Value","Needed","","HIFLD Open / State DOTs","Fuel stations, EV chargers, plow depots."],
+      ["Freight & Supply","Asset Value","External","","FHWA FAF5 / State DOTs","Critical supply-chain routes."],
+      ["Mobility & Routing","Asset Value","External","","StreetLight Data","Pinch-point analysis (TRPA has SaaS access)."],
+      ["Tourist Surges","Asset Value","External","","Placer.ai","Peak-season population surge / evacuation demand (TRPA has access)."],
+      ["Transit Operations","Asset Value","Building","","TRPA Transit / TTD / TART","Folds into the consolidated Assets service."],
+      ["Active Transport","Asset Value","Building","","TRPA GIS (Assets service)","Non-motorized routes; folds into Assets service."],
+      ["Road Network","Adaptive Capacity","Live","/Transportation_SMART/FeatureServer","TRPA GIS / NDOT / Caltrans","Foundational routing graph (confirm layer index)."],
+      ["Built-Environment","Asset Value","External","","CA Structure Graph","Structure-to-structure fire spread; route-blocking hubs."],
+      ["Cascading Assets","Asset Value","Needed","","HIFLD Secure (via DHS)","Power / telecom for Black Sky scenarios."],
+      ["ITS & Early Warning","Adaptive Capacity","Needed","","Caltrans / NDOT / AlertTahoe","DMS, RWIS, cameras; Task 4.1 warning strategy."],
+      ["NBS Suitability","Exposure","Building","","TRPA / Climate Engine","Where Nature-Based Solutions work."],
+      ["Wildfire Exposure","Exposure","Live","/Forest_Health_Composition_Age/MapServer","TRPA Forest Health / Vegetation + CA Forest Observatory","Baseline fuelscapes (modeled pathways via XyloPlan are separate)."],
+      ["Dynamic Fire Model","Exposure","External","","XyloPlan / Land Tender","Fire pathways / ember spread (procurement, Explore)."],
+      ["Carbon Tracking","Asset Value","External","","CTrees","Carbon storage benefits for grant scoring."],
+      ["Geohazards & Topo","Exposure","Needed","","OpenTopography / RAMMS","LiDAR + runout zones for avalanche/landslide (modeling)."],
+      ["Seismic & Dams","Exposure","External","","USGS / CA DWR / NDEM","Faults, liquefaction, dam inundation."],
+      ["Hydrology & Scour","Exposure","Live","/Streams_and_Flood_Zone/MapServer","TRPA flood zones + USGS StreamStats / HEC-RAS","Flood zones live; scour/velocity modeling external."],
+      ["Stormwater & IDF","Sensitivity","Live","/BMP_Status/MapServer","TRPA BMP_Status + NOAA Atlas 14","BMP capacity live; rainfall IDF from NOAA."],
+      ["Asset Condition","Sensitivity","Needed","","Request: Caltrans / NDOT","Bridge health, culvert flow capacity (the key sensitivity gap)."],
+      ["Climate: Wind","Sensitivity","External","","Climate Engine / USFS","Wind strike zones near roads."],
+      ["Climate: Heat/Freeze","Exposure","External","","Cal-Adapt API","Asphalt rutting, freeze-thaw, joint stress."],
+      ["Climate: Subsidence","Exposure","External","","USDA SSURGO / Drought.gov","Shrink-swell soils; road slumping."],
+      ["Climate: Seiche","Exposure","Building","","TRPA Bathymetry / Wind Models","Shoreline routes (Hwy 28/50) wave undercutting."],
+      ["Economic Impact","Asset Value","External","","Caltrans Econ Analysis","VTTS / detour costs for BCA."],
+      ["WEPP Erosion / Sediment","Exposure","Building","","USDA WEPP / WEPPcloud","Post-fire soil erosion, sediment, and runoff; should be a TRPA service. Feeds debris-flow and flood exposure."]
+    ];
+
+    // model, category, task, cost, access, owner
+    const models = [
+      ["RA2CE","Disruption-Risk Tool (candidate)","Task 3.2 / 3.3","Free","Open source (Deltares, Python)","Andy: exploring + scripting"],
+      ["Volpe RDR","Disruption-Risk Tool (candidate)","Task 3.2 / 3.3","Free","USDOT Volpe; heavy data/effort","Andy: exploring + scripting"],
+      ["Overture Street Network","Base Network","Task 3.2 / 3.3","Free","Overture Maps data","Andy: built (base net for RA2CE/Volpe)"],
+      ["StreetLight Data","Evacuation & Mobility","Task 3.2 & 4.2","High","Proprietary SaaS","TRPA has access"],
+      ["Replica","Evacuation & Mobility","Task 3.2 & 4.2","High","Proprietary SaaS","Alternative to StreetLight"],
+      ["XyloPlan","Dynamic Wildfire","Task 3.2, 3.4 & 4.2","High","Commercial license","Procurement (Explore)"],
+      ["Vibrant Planet Land Tender","Dynamic Wildfire","Task 3.2, 3.4 & 4.2","High","Commercial license","Avoided-loss / treatment ROI"],
+      ["WIFIRE","Dynamic Wildfire","Task 3.2, 3.4 & 4.2","Free","Academic / open (UC San Diego)","Open alternative"],
+      ["HEC-RAS (USACE)","Hydrology, Scour & Flood","Task 3.2","Free","Public desktop","Needs hydrologic engineering"],
+      ["USGS StreamStats","Hydrology, Scour & Flood","Task 3.2","Free","Public web tool / API","Peak streamflow"],
+      ["RAMMS::Avalanche","Geohazards & Mass Movement","Task 3.2","~$3k-$5k","Commercial (WSL Switzerland)","Avalanche/landslide runout"],
+      ["r.avaflow","Geohazards & Mass Movement","Task 3.2","Free","Open source (R/GRASS)","High coding effort"],
+      ["FHWA VAST","Risk Index & Scoring","Task 3.2 & 3.3","Free","Public FHWA download","Mathematical blueprint for the index"],
+      ["FEMA National Risk Index","Risk Index & Scoring","Task 3.2 & 3.3","Free","Public data / API","Baseline scoring"],
+      ["Cal-Adapt","Climate Projections","Task 3.2","Free","Public API","Authoritative for state grants"],
+      ["Climate Engine","Climate Projections","Task 3.2","Freemium","Web free; bulk API paid","gridMET wind, soil moisture"],
+      ["ASCE 7 Hazard Tool","Climate Projections","Task 3.2","Freemium","Free lookups; paid reports","Wind gust return periods"],
+      ["FHWA FAF5","Economics, BCA & Freight","Task 3.4","Free","Public FHWA tool","Freight movement"],
+      ["Caltrans BCA Tool","Economics, BCA & Freight","Task 3.4","Free","Public state resource","VTTS / detour costs"],
+      ["CTrees","Economics, BCA & Freight","Task 3.4","Freemium","Portal free; layers paid","Carbon sequestration"],
+      ["WEPP","Hydrology & Erosion","Task 3.2","Free","USDA FS / WEPPcloud (open)","Post-fire erosion & sediment; planned TRPA service"]
+    ];
+
+    const componentColor={Exposure:"#E87722",Sensitivity:"#B47E00","Asset Value":"#0072CE","Adaptive Capacity":"#4A6118",Vulnerability:"#9C3E27"};
+    const statusColor={Live:"#4A6118",Building:"#B47E00",Needed:"#9C3E27",External:"#7B6A8A"};
+    function pill(t,c){c=c||"#555";return '<span class="pill" style="background:'+c+'1A;color:'+c+';border:1px solid '+c+'55;">'+t+'</span>';}
+    // AG Grid 31.3.2 here ignores cellRenderer output; color grid cells via cellStyle (which works).
+    function colorCell(map){return p=>{const c=(typeof map==="function")?map(p.value):map[p.value];return c?{color:c,background:c+"14",fontWeight:"600"}:null;};}
+    function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+    const invRows = inv.map(r=>({element:r[0],component:r[1],endpointStatus:r[2],endpoint:r[3]?BASE+r[3]:"",source:r[4],useCase:r[5]}));
+    const mdlRows = models.map(r=>({model:r[0],category:r[1],task:r[2],cost:r[3],access:r[4],owner:r[5]}));
+
+    const invCols=[
+      {field:"element",headerName:"Data Element",minWidth:170,width:190,wrapText:true,autoHeight:true,filter:"agTextColumnFilter"},
+      {field:"component",headerName:"VAST Component",minWidth:140,width:150,filter:"agTextColumnFilter",floatingFilter:true,cellStyle:colorCell(componentColor)},
+      {field:"endpointStatus",headerName:"Availability",minWidth:110,width:120,filter:"agTextColumnFilter",floatingFilter:true,cellStyle:colorCell(statusColor)},
+      {field:"endpoint",headerName:"REST Service",minWidth:220,width:260,wrapText:true,autoHeight:true,filter:"agTextColumnFilter",sort:"asc",
+        comparator:(a,b)=>{a=a||"";b=b||"";if(a===b)return 0;if(!a)return 1;if(!b)return -1;return a.localeCompare(b);},
+        valueFormatter:p=>p.value?p.value.replace(BASE+"/",""):"-",
+        cellStyle:p=>p.value?{color:"#0072CE",cursor:"pointer",textDecoration:"underline",wordBreak:"break-all"}:{color:"#aab2bd"},
+        onCellClicked:p=>{ if(p.value) window.open(p.value,"_blank","noopener"); }},
+      {field:"source",headerName:"Source",minWidth:150,width:180,wrapText:true,autoHeight:true,filter:"agTextColumnFilter"},
+      {field:"useCase",headerName:"Use / notes",flex:1,minWidth:230,wrapText:true,autoHeight:true,filter:"agTextColumnFilter"}
+    ];
+    const mdlCols=[
+      {field:"model",headerName:"Model / Platform",minWidth:170,width:200,wrapText:true,autoHeight:true,filter:"agTextColumnFilter"},
+      {field:"category",headerName:"Category",minWidth:160,width:200,wrapText:true,autoHeight:true,filter:"agTextColumnFilter",floatingFilter:true},
+      {field:"task",headerName:"Task",minWidth:110,width:130,filter:"agTextColumnFilter"},
+      {field:"cost",headerName:"Cost",minWidth:90,width:100,filter:"agTextColumnFilter"},
+      {field:"access",headerName:"Access",minWidth:170,width:200,wrapText:true,autoHeight:true,filter:"agTextColumnFilter"},
+      {field:"owner",headerName:"Owner / status",flex:1,minWidth:180,wrapText:true,autoHeight:true,filter:"agTextColumnFilter"}
+    ];
+
+    const invDiv=document.querySelector("#inv-grid");
+    const mdlDiv=document.querySelector("#mdl-grid");
+
+    function makeGrid(div,cols,rows){
+      agGrid.createGrid(div,{
+        columnDefs:cols,rowData:rows,
+        defaultColDef:{sortable:true,resizable:true,filter:true},
+        pagination:false,domLayout:"autoHeight",
+        onGridReady:e=>{div.__api=e.api;}
+      });
+    }
+    function wire(qf,btn,div,file){
+      document.getElementById(qf).addEventListener("input",e=>{if(div.__api)div.__api.setGridOption("quickFilterText",e.target.value);});
+      document.getElementById(btn).addEventListener("click",()=>{if(div.__api)div.__api.exportDataAsCsv({fileName:file});});
+    }
+
+    // Index readiness cards
+    const readiness=[
+      {sub:"A. Exposure",c:"#E87722",rows:[["Wildfire","Live"],["Flooding","Live"],["Avalanche","Live"],["Landslide / Debris Flow","Needed"],["Earthquake","External"],["Wind","External"],["Seiche","Building"]],note:"Fire, flood, and avalanche zones are live; landslide/debris-flow runout (RAMMS) and earthquake are the gaps."},
+      {sub:"B. Sensitivity",c:"#B47E00",rows:[["Equity multiplier","Live"],["Stormwater / BMP","Live"],["Pavement age","Building"],["Asset condition (bridge/culvert)","Needed"]],note:"Equity is live; asset condition (Caltrans/NDOT) is the critical missing input."},
+      {sub:"C. Asset Value",c:"#0072CE",rows:[["Demographics","Live"],["Strategic / emergency assets","Live"],["Transit & active transport","Building"],["Freight","External"],["Cascading power/telecom","Needed"]],note:"Good coverage; cascading-asset (HIFLD Secure) data is the gap for Black Sky scenarios."},
+      {sub:"C. Adaptive Capacity",c:"#4A6118",rows:[["Road network","Live"],["Network redundancy / detours","Building"],["Emergency staging (airports)","External"]],note:"Reverse-scored. Redundancy comes from Andy's Overture network run through RA2CE / Volpe RDR."},
+      {sub:"D. Master PROTECT Index",c:"#003B71",rows:[["Combine A + B + C","Needed"]],note:"Phase 1 MVP can demo with the two best-covered sub-indices (Asset Value + Sensitivity) while gaps are built."}
+    ];
+    document.getElementById("readiness-mount").innerHTML = readiness.map(s=>
+      '<div class="card" style="--c:'+s.c+'"><h3>'+esc(s.sub)+'</h3>'+
+      s.rows.map(r=>'<div class="row"><span class="lab">'+esc(r[0])+'</span>'+pill(r[1],statusColor[r[1]])+'</div>').join("")+
+      '<div class="readiness">'+esc(s.note)+'</div></div>'
+    ).join("");
+
+    function init(){
+      if(!window.agGrid){setTimeout(init,60);return;}
+      makeGrid(invDiv,invCols,invRows);
+      makeGrid(mdlDiv,mdlCols,mdlRows);
+      wire("inv-qf","inv-export",invDiv,"PROTECT_Data_Inventory.csv");
+      wire("mdl-qf","mdl-export",mdlDiv,"PROTECT_Model_Inventory.csv");
+      function fitIfVisible(d){if(d.__api&&d.getBoundingClientRect().width>0)d.__api.sizeColumnsToFit();}
+      const tabs=document.querySelector("calcite-tabs");
+      if(tabs)tabs.addEventListener("calciteTabChange",()=>{setTimeout(()=>[invDiv,mdlDiv].forEach(fitIfVisible),60);});
+      window.addEventListener("resize",()=>[invDiv,mdlDiv].forEach(fitIfVisible));
+    }
+    if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",init);}else{init();}
+  })();
+  </script>
+</body>
+</html>

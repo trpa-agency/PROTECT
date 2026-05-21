@@ -1,9 +1,13 @@
 # PROTECT
 
-TRPA's repository for the **PROTECT** transportation resilience risk tool
-(Task 3.3 Risk Index & Resilience Improvement Tool). It scores transportation
-assets against natural hazards as **Risk = Vulnerability &times; Criticality**,
-starting from a confirmed list of hazard-asset pairs.
+TRPA's repository for the **PROTECT** transportation resilience work (FHWA *Promoting Resilient
+Operations for Transformative, Efficient, and Cost-saving Transportation* grant). This repo focuses
+on **Task 3 (Resilience Improvement Plan)**, specifically the **Task 3.3 Interactive Risk Index
+Mapping Tool** and the vulnerability assessment scoping behind it.
+
+The risk index follows the **FHWA VAST framework**: four sub-indices (Exposure, Sensitivity, Asset
+Value, and Adaptive Capacity, reverse-scored) combine into a Master PROTECT Index, weighted alongside
+Criticality.
 
 ## What's in this repo
 
@@ -12,34 +16,36 @@ PROTECT/
 ├── data/                   # input data, intermediate files (empty for now)
 ├── docs/                   # methodology and build notes (empty for now)
 ├── html/
-│   └── index.html          # Hazard x Asset Pair Matrix: interactive single-file page (Calcite + AG Grid)
+│   └── index.html          # Task 3 reference hub: pairs, data inventory, framework (Calcite + AG Grid)
 ├── scripts/                # ETL / analysis scripts (empty for now)
-├── Hazard_Asset_Pairs.md   # source-of-record matrix doc (markdown)
+├── Hazard_Asset_Pairs.md   # plain-text source-of-record for the pairs + framework
 ├── CLAUDE.md               # project context for Claude
 ├── LICENSE
 └── README.md
 ```
 
-## The Hazard x Asset Pair Matrix
+## The reference hub
 
-[`html/index.html`](html/index.html) is the interactive version of the matrix,
-built on the standard TRPA dashboard stack:
+[`html/index.html`](html/index.html) (v0.3) is a single-file page on the standard TRPA dashboard
+stack (Calcite Components 5, AG Grid, Open Sans, TRPA Blue). Four tabs:
 
-- **Calcite Components 5.0** for the page shell and tabbed layout
-- **AG Grid Community** for the sortable, filterable, exportable pair matrix
-- **TRPA brand**: Open Sans, TRPA Blue / Navy, agency earth-tone palette
+1. **Pair Matrix** - hazard-asset pairs tagged by impact type and advance status, with exposure and
+   sensitivity inputs, plus an assets x hazards coverage grid. Quick search + CSV export.
+2. **Data Inventory** - 32 data elements mapped to VAST components and TRPA acquisition status, plus
+   a 17-row model/tool inventory and the composite-index architecture.
+3. **Framework & Methods** - the FHWA VAST framework, sub-indices, sensitivity and criticality
+   indicators by asset, assessment approaches, and the RA2CE vs. Volpe RDR tool comparison.
+4. **Open Decisions** - decisions and action items from the scoping doc and the 5/20 VA sync.
 
-Four tabs:
+[`Hazard_Asset_Pairs.md`](Hazard_Asset_Pairs.md) is the plain-text source-of-record for the pairs and
+framework.
 
-1. **Pair Matrix** - the confirmed and TBD hazard-asset pairs, with vulnerability
-   inputs, failure mechanisms, and notes. Quick search and CSV export.
-2. **Vulnerability Approach** - the modeling layers behind each hazard.
-3. **Criticality Scoring** - the network-universal inputs (mirrored from the
-   Dutchess County RIP methodology, plus Tahoe-specific additions).
-4. **Open Items** - decisions outstanding before the next sync.
+## Architecture note
 
-[`Hazard_Asset_Pairs.md`](Hazard_Asset_Pairs.md) remains the plain-text
-source-of-record for the same content.
+The v0.1 tool scoping doc proposes a future two-repo split: `protect-risk-index` (Python ETL) and
+`protect-risk-index-tool` (the HTML dashboard, published via GitHub Pages). For now this single
+`PROTECT` repo serves as the working hub; the split will happen when the Phase 1 MVP build starts
+(target mid-June 2026).
 
 ## Local preview
 
@@ -49,20 +55,17 @@ source-of-record for the same content.
 # then open http://localhost:8011/
 ```
 
-A Claude Code preview config is checked in at `.claude/launch.json` (server
-name `protect`).
+A Claude Code preview config is checked in at `.claude/launch.json` (server name `protect`).
 
 ## Live site
 
-Intended to publish via GitHub Pages from **`main` branch / `/html`** (matching
-the EIP and Reporting repos) once Pages is enabled:
-
-> https://trpa-mason.github.io/PROTECT/
+Hosting is not yet decided (GitHub Pages on `trpa-agency.github.io` vs. a `protect.laketahoeinfo.org`
+subdomain). The tool is an internal review draft until at least Workshop 1; do not publish or commit
+raw internal source documents.
 
 ## Sources
 
+- 5/20/2026 ICF/TRPA VA deck (sensitivity & criticality approach)
 - `PROTECT_DataModel_Inventory.xlsx`
-- `Vulnerability Assessment.docx`
-
-(TRPA / ICF vulnerability assessment working notes. v0.2 supersedes v0.1, the
-32-row inventory matrix.)
+- `PROTECT_RiskIndexTool_Scoping_v0.1.docx` (Task 3.3 tool scoping)
+- `Vulnerability Assessment.docx` (earlier working notes)
