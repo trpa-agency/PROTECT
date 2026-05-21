@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/mbindl/Documents/GitHub/EIP/**)",
+      "Bash(ls -1 html/assets)"
+    ]
+  }
+}

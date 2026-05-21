@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT: Hazard &times; Asset Pair Matrix | TRPA</title>
+
+  <!-- Inline favicon (avoids a 404 in console) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230072CE'/><path d='M4 24 L12 11 L18 19 L22 13 L28 24 Z' fill='%23fff'/></svg>" />
+
+  <!-- Calcite Design System v5.0 -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+
+  <!-- AG Grid Community (pinned to 31.3.2: the v33+ Theming API drops the legacy
+       quartz CSS this page relies on, so pin to the proven version) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <!-- Open Sans (TRPA web font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:    #0072CE;
+      --trpa-navy:    #003B71;
+      --trpa-earth:   #B47E00;
+      --trpa-forest:  #4A6118;
+      --trpa-brick:   #9C3E27;
+      --trpa-olive:   #B5A64C;
+      --trpa-orange:  #E87722;
+      --trpa-purple:  #7B6A8A;
+      --trpa-ice:     #B4CBE8;
+
+      --gray-text:    #5a6577;
+      --gray-border:  #DDDDDD;
+      --page-bg:      #f4f6f9;
+      --white:        #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: var(--trpa-navy);
+      background: var(--page-bg);
+      line-height: 1.55;
+    }
+
+    /* Header */
+    header.app-header {
+      background: var(--trpa-navy);
+      color: var(--white);
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 4px solid var(--trpa-blue);
+    }
+    header.app-header .agency {
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+    header.app-header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    header.app-header .version {
+      background: var(--trpa-blue);
+      color: var(--white);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.5rem 1.75rem 3rem;
+    }
+
+    /* Intro */
+    .intro { margin-bottom: 1.5rem; }
+    .intro .lede {
+      font-size: 1rem;
+      color: var(--trpa-navy);
+      max-width: 90ch;
+    }
+    .intro ul {
+      margin: 0.65rem 0 0 1.1rem;
+      max-width: 90ch;
+    }
+    .intro li { font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.2rem; }
+    .intro strong { color: var(--trpa-navy); }
+
+    /* KPI cards */
+    .kpi-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .kpi-card {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      flex: 1;
+      min-width: 150px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-top: 3px solid var(--trpa-blue);
+    }
+    .kpi-card .kpi-value { font-size: 2rem; font-weight: 700; color: var(--trpa-navy); line-height: 1; }
+    .kpi-card .kpi-label { font-size: 0.78rem; color: var(--gray-text); margin-top: 0.35rem; }
+    .kpi-card.confirmed { border-top-color: var(--trpa-forest); }
+    .kpi-card.tbd       { border-top-color: var(--trpa-earth); }
+
+    /* Tabs surface */
+    calcite-tabs { --calcite-color-brand: var(--trpa-blue); }
+    .tab-body { padding: 1.25rem 0 0.25rem; }
+
+    /* Matrix toolbar */
+    .toolbar {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.85rem;
+    }
+    .toolbar input#hap-quickfilter {
+      flex: 1;
+      min-width: 240px;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--gray-border);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--trpa-navy);
+    }
+    .toolbar input#hap-quickfilter:focus {
+      outline: none;
+      border-color: var(--trpa-blue);
+      box-shadow: 0 0 0 2px rgba(0,114,206,0.18);
+    }
+
+    #hap-grid { width: 100%; }
+    .ag-theme-quartz {
+      --ag-font-family: 'Open Sans', system-ui, sans-serif;
+      --ag-foreground-color: var(--trpa-navy);
+      --ag-header-foreground-color: var(--white);
+      --ag-header-background-color: var(--trpa-blue);
+      --ag-row-hover-color: #eaf3fb;
+      --ag-border-color: #e6e9ee;
+      --ag-font-size: 13px;
+    }
+
+    /* Pills */
+    .pill {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 11px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Vulnerability cards */
+    .vuln-intro, .crit-intro {
+      font-size: 0.92rem;
+      color: var(--gray-text);
+      max-width: 92ch;
+      margin-bottom: 1.1rem;
+    }
+    .vuln-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .vuln-card {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 1rem 1.2rem 1.1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 4px solid var(--c, var(--trpa-blue));
+    }
+    .vuln-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .vuln-card .tag { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-text); }
+    .vuln-card ul { margin-left: 1.05rem; }
+    .vuln-card li { font-size: 0.86rem; margin-bottom: 0.3rem; color: var(--trpa-navy); }
+
+    /* Reference tables (criticality) */
+    .ref-block { margin-bottom: 1.75rem; }
+    .ref-block h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--trpa-navy);
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 2px solid var(--trpa-ice);
+    }
+    table.ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      font-size: 0.86rem;
+    }
+    table.ref-table th {
+      background: var(--trpa-navy);
+      color: var(--white);
+      text-align: left;
+      padding: 0.6rem 0.85rem;
+      font-weight: 600;
+    }
+    table.ref-table td {
+      padding: 0.6rem 0.85rem;
+      border-top: 1px solid #eef0f3;
+      vertical-align: top;
+    }
+    table.ref-table tr:nth-child(even) td { background: #fafbfc; }
+    .status-have { color: var(--trpa-forest); font-weight: 600; }
+
+    /* Open items */
+    ol.open-items { margin-left: 1.2rem; max-width: 95ch; }
+    ol.open-items li { margin-bottom: 0.7rem; font-size: 0.9rem; }
+    ol.open-items li strong { color: var(--trpa-navy); }
+
+    /* Footer */
+    footer.app-footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.5rem 1.75rem 2.5rem;
+      border-top: 1px solid var(--gray-border);
+      color: var(--gray-text);
+      font-size: 0.82rem;
+    }
+    footer.app-footer p { margin-bottom: 0.4rem; max-width: 95ch; }
+    footer.app-footer code {
+      background: #eef1f5;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 0.92em;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div>
+      <div class="agency">Tahoe Regional Planning Agency</div>
+      <h1>PROTECT: Hazard &times; Asset Pair Matrix</h1>
+    </div>
+    <span class="version">v0.2</span>
+  </header>
+
+  <main>
+
+    <section class="intro">
+      <p class="lede">
+        Working list of hazard-asset pairs confirmed at the TRPA / ICF vulnerability assessment
+        review. Each row is one unit of analysis: a specific hazard acting on a specific
+        transportation asset, scored as <strong>Risk = Vulnerability &times; Criticality</strong>.
+      </p>
+      <ul>
+        <li><strong>Vulnerability</strong> layers are hazard-specific (for example, XyloPlan for fire, RAMMS for avalanche, FEMA and stormwater for flood).</li>
+        <li><strong>Criticality</strong> layers are network-universal (equity, proximity to services, traffic counts, redundancy, population cut off, basin access routes), applied to every pair.</li>
+      </ul>
+    </section>
+
+    <section class="kpi-row">
+      <div class="kpi-card"><div class="kpi-value">9</div><div class="kpi-label">Hazard &times; Asset pairs</div></div>
+      <div class="kpi-card confirmed"><div class="kpi-value">7</div><div class="kpi-label">Confirmed</div></div>
+      <div class="kpi-card tbd"><div class="kpi-value">2</div><div class="kpi-label">Pending (TBD)</div></div>
+      <div class="kpi-card"><div class="kpi-value">6</div><div class="kpi-label">Hazards covered</div></div>
+      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Asset types (confirmed)</div></div>
+    </section>
+
+    <calcite-tabs scale="m">
+      <calcite-tab-nav slot="title-group">
+        <calcite-tab-title selected>Pair Matrix</calcite-tab-title>
+        <calcite-tab-title>Vulnerability Approach</calcite-tab-title>
+        <calcite-tab-title>Criticality Scoring</calcite-tab-title>
+        <calcite-tab-title>Open Items</calcite-tab-title>
+      </calcite-tab-nav>
+
+      <!-- ── Tab 1: Pair Matrix ── -->
+      <calcite-tab selected>
+        <div class="tab-body">
+          <div class="toolbar">
+            <input id="hap-quickfilter" type="text" placeholder="Quick search across all fields..." aria-label="Quick search" />
+            <calcite-button id="hap-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+          </div>
+          <div id="hap-grid" class="ag-theme-quartz"></div>
+        </div>
+      </calcite-tab>
+
+      <!-- ── Tab 2: Vulnerability Approach ── -->
+      <calcite-tab>
+        <div class="tab-body">
+          <p class="vuln-intro">
+            Per ICF working notes, vulnerability for each hazard is composed from the layers below.
+            These are the same inputs referenced in the Vulnerability Inputs column of the matrix;
+            this tab documents the source for each.
+          </p>
+          <div class="vuln-grid">
+            <div class="vuln-card" style="--c:#E87722">
+              <h3>Fire <span class="tag">Confirmed</span></h3>
+              <ul>
+                <li>Wildfire Severity Probability modeling</li>
+                <li>Soil Burn Severity (USFS / BAER products)</li>
+                <li>Predicted Ember Showers</li>
+                <li>Fire Pathways: XyloPlan / Vibrant Planet Land Tender (procurement open)</li>
+              </ul>
+            </div>
+            <div class="vuln-card" style="--c:#9C3E27">
+              <h3>Landslide / Rockslide <span class="tag">Confirmed</span></h3>
+              <ul>
+                <li>Slope &times; erosion &times; predicted burn severity (combined index)</li>
+                <li>Post-fire debris-flow risk (mandatory per ICF, since fire and landslide are compounding)</li>
+              </ul>
+            </div>
+            <div class="vuln-card" style="--c:#5BA4DD">
+              <h3>Avalanche <span class="tag">Confirmed</span></h3>
+              <ul>
+                <li>RAMMS::Avalanche runout extents and impact pressures (commercial license, about $3,000 to $5,000)</li>
+              </ul>
+            </div>
+            <div class="vuln-card" style="--c:#0072CE">
+              <h3>Flood <span class="tag">Confirmed</span></h3>
+              <ul>
+                <li>FEMA flood layer (baseline)</li>
+                <li>Stormwater drainage capacity (NOAA Atlas 14 IDF vs. BMP capacity)</li>
+                <li>HEC-RAS for stream velocity, scour, and floodplain overtopping where stream data supports it</li>
+              </ul>
+            </div>
+            <div class="vuln-card" style="--c:#003B71">
+              <h3>Winter Weather <span class="tag">TBD pair</span></h3>
+              <ul>
+                <li>Distance from primary / secondary plow routes (proxy for clearance time)</li>
+                <li>Power-loss frequency (historical outage data: HIFLD Secure / utility records)</li>
+              </ul>
+            </div>
+            <div class="vuln-card" style="--c:#7B6A8A">
+              <h3>Wind <span class="tag">TBD pair</span></h3>
+              <ul>
+                <li>gridMET wind speeds + USFS canopy height to define "strike zones"</li>
+                <li>ASCE 7 return periods for structural references</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </calcite-tab>
+
+      <!-- ── Tab 3: Criticality Scoring ── -->
+      <calcite-tab>
+        <div class="tab-body">
+          <p class="crit-intro">
+            Per ICF notes, criticality scoring mirrors the Dutchess County RIP methodology for the
+            inputs we already have, plus a Tahoe-specific layer for network-network metrics.
+            Criticality is network-universal and is applied to every pair.
+          </p>
+
+          <div class="ref-block">
+            <h3>Mirrored from Dutchess County RIP</h3>
+            <table class="ref-table">
+              <thead><tr><th style="width:28%">Input</th><th>TRPA Source</th><th style="width:20%">Status</th></tr></thead>
+              <tbody>
+                <tr><td>Equity score</td><td>TRPA Equity Study / TDC as interim proxy</td><td class="status-have">Have</td></tr>
+                <tr><td>Proximity to public services</td><td>TRPA GIS + HIFLD Open (hospitals, shelters, schools, grocery)</td><td class="status-have">Have</td></tr>
+                <tr><td>Traffic counts</td><td>StreetLight Data / Replica / Placer.ai / AADT (data source decision needed)</td><td class="status-have">Have (multiple options)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="ref-block">
+            <h3>Tahoe-specific additions</h3>
+            <table class="ref-table">
+              <thead><tr><th style="width:28%">Input</th><th>Approach</th><th style="width:20%">Status</th></tr></thead>
+              <tbody>
+                <tr><td>Critical network segments: are there detours if a segment closes?</td><td>StreetLight pinch-point analysis + Python network redundancy script</td><td class="status-have">Have / in development</td></tr>
+                <tr><td>Effective population cut off by segment loss</td><td>Placer.ai surge data; housing density / TAUs</td><td class="status-have">Have (method TBD)</td></tr>
+                <tr><td>Basin Access Routes: only 7 in the basin</td><td>Hard-coded list; binary flag boosting any pair on those routes</td><td class="status-have">Have</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </calcite-tab>
+
+      <!-- ── Tab 4: Open Items ── -->
+      <calcite-tab>
+        <div class="tab-body">
+          <ol class="open-items">
+            <li><strong>Wind pair asset.</strong> Roads, Power &amp; Telecom, or both? Pick before Phase 2.</li>
+            <li><strong>Winter Weather pair asset.</strong> Roads, Power, ITS, or composite? Pick before Phase 2.</li>
+            <li><strong>Traffic count source.</strong> StreetLight, Replica, Placer.ai, or AADT? Affects criticality scoring and BCA. Decide before MVP build.</li>
+            <li><strong>Post-fire landslide compounding.</strong> Single combined Landslide &times; {Culverts/Roads} pair (current approach) or split into pre-fire baseline plus post-fire stressor? Confirm with ICF.</li>
+            <li><strong>Avalanche scope.</strong> Three corridors (Hwy 89, 207, 431) sufficient, or expand to north shore SR-28 slide zones?</li>
+            <li><strong>Effective population method.</strong> Placer.ai surge vs. housing density / TAUs as the primary source.</li>
+            <li><strong>XyloPlan procurement status.</strong> Fire &times; Roads pair is critical-path; what is the contract timeline?</li>
+          </ol>
+        </div>
+      </calcite-tab>
+    </calcite-tabs>
+  </main>
+
+  <footer class="app-footer">
+    <p><strong>Task 3.3 Risk Index &amp; Resilience Improvement Tool.</strong> Version 0.2 supersedes v0.1 (32-row matrix): replaces the broad inventory pull with the tight pair list locked in at the TRPA / ICF vulnerability assessment review.</p>
+    <p>Sources: <code>PROTECT_DataModel_Inventory.xlsx</code>, <code>Vulnerability Assessment.docx</code>.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const pairs = [
+      {id:"FL-01", hazard:"Flood", asset:"Culverts", status:"Confirmed", vulnerability:"FEMA flood layer; stormwater drainage capacity; HEC-RAS where available", failure:"Capacity exceedance; washout; embankment failure", notes:"Asset Condition (Caltrans/NDOT) needed for sensitivity scoring."},
+      {id:"FL-02", hazard:"Flood", asset:"Roads", status:"Confirmed", vulnerability:"FEMA flood layer; stormwater drainage; road elevation vs. inundation depth", failure:"Inundation; pavement undermining; long-duration closure", notes:"Lowland and valley segments most exposed."},
+      {id:"FL-03", hazard:"Flood", asset:"Bridges", status:"Confirmed", vulnerability:"HEC-RAS bridge scour; USGS StreamStats peak streamflow; FEMA floodplain", failure:"Foundation scour; pier undermining; debris jam; deck overtopping", notes:"Bridge condition data request open with Caltrans/NDOT."},
+      {id:"AV-01", hazard:"Avalanche", asset:"Roads", status:"Confirmed", vulnerability:"RAMMS::Avalanche runout simulation; OpenTopography LiDAR", failure:"Runout burial; vehicle entrapment; multi-day closures", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
+      {id:"LS-01", hazard:"Landslide", asset:"Culverts", status:"Confirmed", vulnerability:"Slope + erosion + predicted burn severity; post-fire debris-flow risk", failure:"Culvert blockage / shear-off from debris flow", notes:"Post-fire compounding effect is required per ICF notes."},
+      {id:"LS-02", hazard:"Landslide", asset:"Roads", status:"Confirmed", vulnerability:"Slope + erosion + predicted burn severity; post-fire risk; LiDAR runout", failure:"Slope failure buries lanes; embankment slump; debris flow burial", notes:"Use RAMMS or r.avaflow for runout extents."},
+      {id:"FI-01", hazard:"Fire", asset:"Roads", status:"Confirmed", vulnerability:"Wildfire severity probability; Soil Burn Severity; predicted ember showers; fire pathways (XyloPlan / Land Tender)", failure:"Burn-over closure; downed trees; ember-spotted blockages; smoke visibility cutoff", notes:"XyloPlan procurement is the critical-path dependency."},
+      {id:"WD-01", hazard:"Wind", asset:"TBD", status:"TBD", vulnerability:"gridMET wind + USFS canopy strike zones; ASCE 7 return periods", failure:"Tree blow-down across lanes; power-line breaks (cascading)", notes:"Asset target not yet selected; likely Roads and/or Power & Telecom."},
+      {id:"WS-01", hazard:"Winter Weather / Snow", asset:"TBD", status:"TBD", vulnerability:"Distance from primary/secondary plow routes; historical power-loss frequency; Cal-Adapt snow projections", failure:"Extended closure; plow-depot overrun; loss of power to ITS / signals", notes:"Asset target TBD; candidates: Roads, Power, ITS."}
+    ];
+
+    const statusColor = { "Confirmed":"#4A6118", "TBD":"#B47E00", "Dropped":"#6B7280" };
+    const hazardColor = {
+      "Flood":"#0072CE",
+      "Avalanche":"#5BA4DD",
+      "Landslide":"#9C3E27",
+      "Fire":"#E87722",
+      "Wind":"#7B6A8A",
+      "Winter Weather / Snow":"#003B71"
+    };
+
+    function pill(text, color) {
+      const c = color || "#555";
+      return '<span class="pill" style="background:' + c + '1A; color:' + c + '; border:1px solid ' + c + '55;">' + text + '</span>';
+    }
+
+    const columnDefs = [
+      {field:"id", headerName:"ID", width:92, pinned:"left", filter:"agTextColumnFilter"},
+      {field:"hazard", headerName:"Hazard", width:170, filter:"agTextColumnFilter",
+        cellRenderer: p => pill(p.value, hazardColor[p.value])},
+      {field:"asset", headerName:"Asset", width:120, filter:"agTextColumnFilter"},
+      {field:"status", headerName:"Status", width:120, filter:"agTextColumnFilter",
+        cellRenderer: p => pill(p.value, statusColor[p.value])},
+      {field:"vulnerability", headerName:"Vulnerability Inputs", flex:1.5, minWidth:280, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"},
+      {field:"failure", headerName:"Failure Mechanism", flex:1.2, minWidth:230, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"},
+      {field:"notes", headerName:"Notes", flex:1, minWidth:210, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"}
+    ];
+
+    const gridDiv = document.querySelector("#hap-grid");
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: pairs,
+      defaultColDef: { sortable:true, resizable:true, filter:true },
+      pagination: false,
+      domLayout: "autoHeight",
+      onGridReady: (e) => { gridDiv.__api = e.api; }
+    };
+
+    function wireControls() {
+      const qf = document.getElementById("hap-quickfilter");
+      qf.addEventListener("input", (ev) => {
+        if (gridDiv.__api) gridDiv.__api.setGridOption("quickFilterText", ev.target.value);
+      });
+      const exportBtn = document.getElementById("hap-export");
+      exportBtn.addEventListener("click", () => {
+        if (gridDiv.__api) gridDiv.__api.exportDataAsCsv({ fileName: "PROTECT_Hazard_Asset_Pairs.csv" });
+      });
+    }
+
+    function init() {
+      if (!window.agGrid) { setTimeout(init, 60); return; }
+      agGrid.createGrid(gridDiv, gridOptions);
+      wireControls();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+
+</body>
+</html>
