@@ -11,10 +11,11 @@ deliverable).
 
 The risk index uses the **FHWA VAST framework**: sub-indices Exposure, Sensitivity, Asset Value, and
 Adaptive Capacity (reverse-scored) combine into a Master PROTECT Index, weighted alongside Criticality
-(Sensitivity ~10-20%, Criticality ~30%). Current artifacts (preceding the Phase 1 MVP): a reference
-hub (`html/index.html`, v0.3) with tabs for the hazard-asset pairs, data inventory, framework/methods
-(incl. a hazard impact & sensitivity matrix), and open decisions; plus a data-readiness tracker
-(`html/data-model-inventory.html`) mapping each layer to its TRPA REST endpoint.
+(Sensitivity ~10-20%, Criticality ~30%). Current artifacts: a reference hub (`html/index.html`, v0.3)
+with tabs for the hazard-asset pairs, data inventory, framework/methods (incl. a hazard impact &
+sensitivity matrix), and open decisions; a data-readiness tracker (`html/data-model-inventory.html`)
+mapping each layer to its TRPA REST endpoint; and the **Phase 1 MVP map tool**
+(`html/risk-index-tool.html`) - a map-centric SPA on live TRPA layers.
 
 ## Project context
 
@@ -41,9 +42,11 @@ Base: `https://maps.trpa.org/server/rest/services` (use `/server/`, not `/arcgis
 inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer index per service.
 
 - **Live:** `Transportation_Equity_Analysis_Tessellation` (Equity, FeatureServer), `Demographics`,
-  `Avalanche_Zones`, `Fire`, `Streams_and_Flood_Zone`, `Vegetation_Burn_Severity`, `Transportation`,
-  `Transportation_SMART` (FeatureServer), `Parcels`, `Boundaries`, `Emergency_Services`,
-  `Forest_Health_*`, `Impervious_Surface_*`.
+  `Avalanche_Zones`, `Fire`, `Streams_and_Flood_Zone`, `Vegetation_Burn_Severity`,
+  `Transportation` (sublayers: Transit Network /5, Community Priority Zones /6, Active Transport /3),
+  `Parcels`, `Boundaries`, `Emergency_Services`, `Forest_Health_*`, `Impervious_Surface_*`.
+  Note: `Transportation_SMART` is traffic cameras, not road centerlines; road centerlines are not yet
+  a standalone service (part of the Building Assets service).
 - **Building:** a consolidated **Assets** service (roads/bridges/culverts + condition), packaged
   **Hazards** services, and a **WEPP** erosion/sediment service (post-fire; feeds debris-flow/flood exposure).
 - **Needed (not created):** Landslide, Debris Flow, Earthquake, Wind, Winter Storm hazard layers;
@@ -61,6 +64,7 @@ PROTECT/
 ├── docs/                            # methodology and build notes (empty for now)
 ├── html/index.html                  # v0.3 reference hub (Calcite + AG Grid, TRPA brand)
 ├── html/data-model-inventory.html   # data + model inventory with REST endpoint tracking
+├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK + Plotly + AG Grid)
 ├── scripts/                         # ETL / analysis scripts (empty for now)
 └── Hazard_Asset_Pairs.md            # plain-text source-of-record for pairs + framework
 ```
@@ -79,6 +83,11 @@ PROTECT/
 - **CSV round-trip editing.** Every AG Grid and static data table has an Export CSV button - that is
   how Mason edits this data (export, edit in a spreadsheet, hand the CSV back to apply). Keep one on
   every new grid/table: AG Grids use `api.exportDataAsCsv`; static tables use the `tableToCsv` helper.
+- **ArcGIS + UMD load order.** On any page that loads the ArcGIS Maps SDK alongside Plotly/AG Grid
+  (e.g., `risk-index-tool.html`), load Plotly and AG Grid *before* the ArcGIS `<script>`. ArcGIS's
+  Dojo/AMD loader otherwise makes those UMD bundles register as AMD modules (`Error: multipleDefine`;
+  `window.Plotly` / `window.agGrid` end up undefined and the map fails). Pages without ArcGIS (the hub,
+  the inventory) are unaffected.
 - **`html/index.html` and `Hazard_Asset_Pairs.md` mirror the pair list.** When pairs change, update
   the grid's `pairs` array in the HTML and the markdown table. The 33-element data inventory (32 from
   the workbook + WEPP) lives in the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.
