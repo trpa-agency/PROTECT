@@ -33,8 +33,9 @@ mapping each layer to its TRPA REST endpoint; and the **Phase 1 MVP map tool**
   base network for those models).
 - **MVP build**: the MVP Risk Index Tool is built in this repo's `html/` folder using the TRPA
   dashboard stack (Calcite + ArcGIS Maps SDK + Plotly + AG Grid).
-- **Hosting / visibility**: undecided (trpa-agency.github.io vs. protect.laketahoeinfo.org). Internal
-  review draft only - do NOT commit raw internal source docs (xlsx/docx/pptx) or publish publicly yet.
+- **Hosting / visibility**: GitHub Pages for now (`trpa-agency.github.io/PROTECT`); final home is
+  `data.trpa.gov/PROTECT`. Internal review draft only - do NOT commit raw internal source docs
+  (xlsx/docx/pptx) or publish broadly yet.
 
 ## Data sources (TRPA REST)
 
@@ -51,8 +52,12 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   **Hazards** services, and a **WEPP** erosion/sediment service (post-fire; feeds debris-flow/flood exposure).
 - **Needed (not created):** Landslide, Debris Flow, Earthquake, Wind, Winter Storm hazard layers;
   asset-condition (Caltrans/NDOT request).
-- **External (non-TRPA):** FEMA NRI, HIFLD, Cal-Adapt, Climate Engine, StreetLight, Placer.ai, USGS
-  StreamStats, XyloPlan, RAMMS.
+- **External (non-TRPA):** FEMA NRI, HIFLD, Cal-Adapt, Climate Engine, USGS StreamStats, RAMMS
+  (sole-source). Competitive commercial data vendors (mobility, fire, flood, climate, geohazard, asset
+  condition, multi-peril cat) are NOT named on the public pages - the researched landscape + outreach
+  candidates live in `data/vendors.csv` (gitignored) and the project memory (`reference_data_vendors`).
+  Keep only open-source / public / sole-source tools in the HTML; do not enumerate commercial vendor
+  names in committed files.
 
 The live readiness tracker is `html/data-model-inventory.html`.
 
@@ -74,6 +79,17 @@ PROTECT/
 - **Dashboard stack**: single-file HTML, CDN libraries. Calcite Components (shell/tabs), AG Grid
   (tables), TRPA brand (Open Sans, TRPA Blue / Navy). Pair the `trpa-dashboard-stack` and
   `trpa-brand` skills. No build tools.
+- **Headers = navy / Dark Blue (`#003B71`), white text.** Standardize the page header bar and all
+  table headers on navy: AG Grid (`--ag-header-background-color: var(--trpa-navy)`) and static tables
+  (`table.ref`, `table.matrix`). TRPA Blue (`#0072CE`) is the accent against navy (the version chip,
+  the "Open Risk Index Tool" button) and for KPI card top-borders / links.
+- **Page header treatment matches the `regional-plan-tracking` dashboard suite** (in the
+  `data-visualization` repo): a single clean navy band, no accent stripe. Inside, a centered
+  `.header-content` (max-width = the page's `main`) holds, left to right: the TRPA color logo
+  (`html/trpa-logo-color.png`, the blue Lake Tahoe silhouette, 50-54px tall, links to `trpa.gov`),
+  a `.header-text` block (`.agency` eyebrow + `h1` + `.header-sub` subtitle), and a right-aligned
+  meta cluster (version chip / nav links / MVP badge). Eyebrow and subtitle are TRPA Ice
+  (`#B4CBE8`); the `h1` is white. The blue silhouette on navy is intentional - same as the suite.
 - **AG Grid pinned to 31.3.2.** The v33+ Theming API drops the legacy `ag-theme-quartz` CSS this page
   uses; do not bump without migrating theming. Grids created inside hidden Calcite tabs are re-fit
   (`sizeColumnsToFit`) only when visible (guard on width > 0) to avoid zero-width warnings.

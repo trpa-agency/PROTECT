@@ -59,9 +59,9 @@ A Claude Code preview config is checked in at `.claude/launch.json` (server name
 
 ## Live site
 
-Hosting is not yet decided (GitHub Pages on `trpa-agency.github.io` vs. a `protect.laketahoeinfo.org`
-subdomain). The tool is an internal review draft until at least Workshop 1; do not publish or commit
-raw internal source documents.
+Served via GitHub Pages for now (`https://trpa-agency.github.io/PROTECT/html/index.html`); the final
+home will be `data.trpa.gov/PROTECT`. The tool is an internal review draft until at least Workshop 1;
+do not publish broadly or commit raw internal source documents.
 
 ## Sources
 

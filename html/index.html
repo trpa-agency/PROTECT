@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT: Risk Index &amp; Resilience Tool | TRPA</title>
 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230072CE'/><path d='M4 24 L12 11 L18 19 L22 13 L28 24 Z' fill='%23fff'/></svg>" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
   <!-- Calcite Design System v5.0 -->
   <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
@@ -30,10 +30,16 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
 
-    header.app-header{background:var(--trpa-navy);color:#fff;padding:.85rem 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:4px solid var(--trpa-blue);}
-    header.app-header .agency{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85;}
-    header.app-header h1{font-size:1.25rem;font-weight:700;line-height:1.2;}
-    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;flex-shrink:0;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:54px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.35rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .header-meta{flex-shrink:0;display:flex;align-items:center;gap:.6rem;}
+    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
 
     main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
     .intro{margin-bottom:1.25rem;}
@@ -56,7 +62,7 @@
     .toolbar input.qf{flex:1;min-width:240px;padding:.5rem .75rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.9rem;color:var(--trpa-navy);}
     .toolbar input.qf:focus{outline:none;border-color:var(--trpa-blue);box-shadow:0 0 0 2px rgba(0,114,206,.18);}
 
-    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-blue);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
+    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-navy);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
     .grid-wrap{width:100%;}
 
     .pill{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11px;font-weight:600;white-space:nowrap;}
@@ -101,13 +107,16 @@
 <body>
 
   <header class="app-header">
-    <div>
-      <div class="agency">Tahoe Regional Planning Agency &middot; Task 3 (Resilience Improvement Plan)</div>
-      <h1>PROTECT: Risk Index &amp; Resilience Tool</h1>
-    </div>
-    <div style="display:flex;align-items:center;gap:.6rem;">
-      <a href="risk-index-tool.html" style="background:var(--trpa-blue);color:#fff;text-decoration:none;font-size:.8rem;font-weight:700;padding:.35rem .75rem;border-radius:6px;white-space:nowrap;">Open Risk Index Tool (MVP) &rarr;</a>
-      <span class="version">v0.3</span>
+    <div class="header-content">
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>PROTECT: Risk Index &amp; Resilience Tool</h1>
+        <div class="header-sub">Task 3 &middot; Resilience Improvement Plan</div>
+      </div>
+      <div class="header-meta">
+        <a href="risk-index-tool.html" style="background:var(--trpa-blue);color:#fff;text-decoration:none;font-size:.8rem;font-weight:700;padding:.35rem .75rem;border-radius:6px;white-space:nowrap;">Open Risk Index Tool (MVP) &rarr;</a>
+        <span class="version">v0.3</span>
+      </div>
     </div>
   </header>
 
@@ -132,7 +141,7 @@
       <div class="kpi-card"><div class="kpi-value">8</div><div class="kpi-label">Hazards</div></div>
       <div class="kpi-card"><div class="kpi-value">12</div><div class="kpi-label">Working pairs</div></div>
       <div class="kpi-card"><div class="kpi-value">33</div><div class="kpi-label">Data elements</div></div>
-      <div class="kpi-card"><div class="kpi-value">18</div><div class="kpi-label">Models &amp; tools</div></div>
+      <div class="kpi-card"><div class="kpi-value">14</div><div class="kpi-label">Models &amp; tools</div></div>
       <div class="kpi-card"><div class="kpi-value">4</div><div class="kpi-label">VAST sub-indices</div></div>
     </section>
 
@@ -141,6 +150,7 @@
         <calcite-tab-title selected>Pair Matrix</calcite-tab-title>
         <calcite-tab-title>Data Inventory</calcite-tab-title>
         <calcite-tab-title>Framework &amp; Methods</calcite-tab-title>
+        <calcite-tab-title>Exposure Approach</calcite-tab-title>
         <calcite-tab-title>Open Decisions</calcite-tab-title>
       </calcite-tab-nav>
 
@@ -235,10 +245,10 @@
           <div class="formula"><strong>MDOT (criticality variant):</strong> Risk = (Exposure &times; 60%) + (Criticality &times; 40%)</div>
 
           <div class="card-grid">
-            <div class="card" style="--c:#E87722"><h3>Exposure</h3><p>Where and how intensely a hazard hits an asset.</p><ul><li>Wildfire pathways / ember spread (XyloPlan)</li><li>Flood inundation &amp; scour (HEC-RAS, StreamStats)</li><li>Avalanche / landslide runout (RAMMS)</li><li>Post-fire erosion &amp; sediment (WEPP)</li><li>Wind strike zones, seiche zones</li></ul></div>
+            <div class="card" style="--c:#E87722"><h3>Exposure</h3><p>Where and how intensely a hazard hits an asset.</p><ul><li>Wildfire pathways / ember spread (commercial fire modeling)</li><li>Flood inundation &amp; scour (HEC-RAS, StreamStats)</li><li>Avalanche / landslide runout (RAMMS)</li><li>Post-fire erosion &amp; sediment (WEPP)</li><li>Wind strike zones, seiche zones</li></ul></div>
             <div class="card" style="--c:#B47E00"><h3>Sensitivity</h3><p>How badly the asset (or people) suffer when hit. Weighted ~10-20%.</p><ul><li>Bridge / culvert condition, pavement age</li><li>Equity Study (vulnerable populations), applied as a Justice40 multiplier</li><li>Stormwater / IDF capacity</li></ul></div>
             <div class="card" style="--c:#0072CE"><h3>Asset Value</h3><p>What is at stake at the location.</p><ul><li>Strategic community assets, emergency staging</li><li>Freight tonnage, transit, active transport</li><li>Cascading assets (power, telecom)</li></ul></div>
-            <div class="card" style="--c:#4A6118"><h3>Adaptive Capacity</h3><p>Ability to absorb / reroute. <strong>Reverse-scored</strong>: high capacity = low vulnerability.</p><ul><li>Network redundancy / detour ratios (StreetLight)</li><li>Redundant power (HIFLD)</li><li>Transit hubs, airport ICS proximity</li></ul></div>
+            <div class="card" style="--c:#4A6118"><h3>Adaptive Capacity</h3><p>Ability to absorb / reroute. <strong>Reverse-scored</strong>: high capacity = low vulnerability.</p><ul><li>Network redundancy / detour ratios (commercial mobility data)</li><li>Redundant power (HIFLD)</li><li>Transit hubs, airport ICS proximity</li></ul></div>
           </div>
 
           <h2 class="sec">Sensitivity indicators by asset</h2>
@@ -272,6 +282,18 @@
         </div>
       </calcite-tab>
 
+      <!-- TAB: Exposure Approach -->
+      <calcite-tab>
+        <div class="tab-body">
+          <p class="lead">ICF's exposure approach (4/30 data meeting): indicator-based scoring (0-3 / 0-5) for physical-damage pairs; criticality-focused / qualitative for operational-disruption pairs. A public-first path exists for every hazard; commercial / proprietary options are flagged.</p>
+          <div class="toolbar">
+            <input id="exp-qf" class="qf" type="text" placeholder="Quick search the exposure approach..." aria-label="Quick search exposure" />
+            <calcite-button id="exp-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+          </div>
+          <div id="exp-grid" class="ag-theme-quartz grid-wrap"></div>
+        </div>
+      </calcite-tab>
+
       <!-- TAB 4: Open Decisions -->
       <calcite-tab>
         <div class="tab-body">
@@ -295,18 +317,18 @@
   (function () {
     // ---------- DATA ----------
     const pairs = [
-      {id:"FL-C", hazard:"Flooding", asset:"Culverts", impact:"Physical + cascading", status:"Advancing", exposure:"HEC-RAS scour; USGS StreamStats; FEMA floodplain; NOAA Atlas 14", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"Culvert condition for sensitivity (Caltrans/NDOT request open)."},
-      {id:"FL-R", hazard:"Flooding", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"FEMA flood layer; stormwater drainage; road elevation vs. inundation depth", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
-      {id:"FL-B", hazard:"Flooding", asset:"Bridges", impact:"Physical + cascading", status:"Advancing", exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplain", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition data request open with Caltrans/NDOT."},
-      {id:"AV-R", hazard:"Avalanche", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"RAMMS::Avalanche runout; OpenTopography LiDAR", sensitivity:"Road elevation (no unique sensitivity indicators)", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
-      {id:"LS-C", hazard:"Landslide", asset:"Culverts", impact:"Physical + cascading", status:"Advancing", exposure:"Slope + erosion + predicted burn severity; post-fire debris-flow risk", sensitivity:"Culvert condition, capacity, scour", notes:"Post-fire compounding required per ICF."},
-      {id:"LS-R", hazard:"Landslide", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"Slope + erosion + predicted burn severity; LiDAR runout (RAMMS / r.avaflow)", sensitivity:"Pavement condition, road elevation", notes:"Runout extents via RAMMS or r.avaflow."},
-      {id:"WF-R", hazard:"Wildfire", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"Wildfire severity probability; soil burn severity; ember showers; fire pathways (XyloPlan / Land Tender)", sensitivity:"No unique sensitivity indicators", notes:"XyloPlan procurement is the critical-path dependency."},
-      {id:"DF-C", hazard:"Debris Flow", asset:"Culverts", impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris-flow runout (RAMMS / r.avaflow); slope + burn severity", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; post-fire compounding."},
-      {id:"DF-R", hazard:"Debris Flow", asset:"Roads", impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris-flow runout; slope + burn severity; LiDAR", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20."},
-      {id:"EQ-B", hazard:"Earthquake", asset:"Bridges", impact:"Physical + cascading", status:"Candidate", exposure:"USGS faults; liquefaction; dam inundation", sensitivity:"Seismic retrofit status, bridge condition, age", notes:"Identify bridges needing seismic retrofit."},
-      {id:"WD-R", hazard:"Wind", asset:"Roads", impact:"Operational", status:"Screening", exposure:"gridMET wind + USFS canopy strike zones; ASCE 7 return periods", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:"Asset target TBD: Roads and/or Power & Telecom. Operational-only per 5/20."},
-      {id:"WS-R", hazard:"Winter Storm", asset:"Roads", impact:"Operational", status:"Screening", exposure:"Distance from primary/secondary plow routes; Cal-Adapt snow projections; power-loss frequency", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:"Asset target TBD: Roads / Power / ITS. Operational-only."}
+      {id:"FL-C", hazard:"Flooding", asset:"Culverts", impact:"Physical + cascading", status:"Advancing", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"Culvert condition for sensitivity (Caltrans/NDOT request open)."},
+      {id:"FL-R", hazard:"Flooding", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
+      {id:"FL-B", hazard:"Flooding", asset:"Bridges", impact:"Physical + cascading", status:"Advancing", exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition data request open with Caltrans/NDOT."},
+      {id:"AV-R", hazard:"Avalanche", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout", sensitivity:"Road elevation (no unique sensitivity indicators)", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
+      {id:"LS-C", hazard:"Landslide", asset:"Culverts", impact:"Physical + cascading", status:"Advancing", exposure:"USGS Landslide Susceptibility; CA Geological Survey; post-fire debris-flow", sensitivity:"Culvert condition, capacity, scour", notes:"Post-fire compounding required per ICF."},
+      {id:"LS-R", hazard:"Landslide", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout", sensitivity:"Pavement condition, road elevation", notes:"Runout extents via RAMMS or r.avaflow."},
+      {id:"WF-R", hazard:"Wildfire", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling", sensitivity:"No unique sensitivity indicators", notes:"Fire-modeling procurement is the critical-path dependency."},
+      {id:"DF-C", hazard:"Debris Flow", asset:"Culverts", impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt)", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; post-fire compounding."},
+      {id:"DF-R", hazard:"Debris Flow", asset:"Roads", impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); LiDAR runout; precip", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20."},
+      {id:"EQ-B", hazard:"Earthquake", asset:"Bridges", impact:"Physical + cascading", status:"Candidate", exposure:"USGS Seismic Hazard Maps; ComCat; ShakeMaps", sensitivity:"Seismic retrofit status, bridge condition, age", notes:"Identify bridges needing seismic retrofit."},
+      {id:"WD-R", hazard:"Wind", asset:"Roads", impact:"Operational", status:"Screening", exposure:"gridMET wind (Climate Engine); ASCE 7; criticality-focused (operational)", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:"Asset target TBD: Roads and/or Power & Telecom. Operational-only per 5/20."},
+      {id:"WS-R", hazard:"Winter Storm", asset:"Roads", impact:"Operational", status:"Screening", exposure:"SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm; criticality-focused", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:"Asset target TBD: Roads / Power / ITS. Operational-only."}
     ];
 
     const dataInventory = [
@@ -320,8 +342,8 @@
       {category:"Emergency Staging", element:"Airports (ICS bases), helipads, fairgrounds", component:"Asset Value", type:"Baseline", status:"Free", source:"FAA / HIFLD Open", useCase:"Maps staging areas for aerial firefighting, command, and airlifts."},
       {category:"Strategic Transport", element:"Fuel stations, EV chargers, plow depots", component:"Asset Value", type:"Baseline", status:"Need", source:"HIFLD Open / State DOTs", useCase:"Models fuel availability during gridlock; road-clearing gear survival."},
       {category:"Freight & Supply", element:"Freight tonnage, import/export values", component:"Asset Value", type:"Modeled", status:"Need", source:"FHWA FAF5 / State DOTs", useCase:"Identifies critical supply-chain routes for food/fuel delivery."},
-      {category:"Mobility & Routing", element:"Origin/destination, routing, speed, volumes", component:"Asset Value", type:"Modeled", status:"Have", source:"StreetLight Data", useCase:"Feeds Pinch Point Analysis to show where the network fails."},
-      {category:"Tourist Surges", element:"Point-of-interest visitation, cell pings", component:"Asset Value", type:"Modeled", status:"Have", source:"Placer.ai", useCase:"Estimates peak summer population surges to validate evacuation demand."},
+      {category:"Mobility & Routing", element:"Origin/destination, routing, speed, volumes", component:"Asset Value", type:"Modeled", status:"Have", source:"Commercial mobility / OD data", useCase:"Feeds Pinch Point Analysis to show where the network fails."},
+      {category:"Tourist Surges", element:"Point-of-interest visitation, cell pings", component:"Asset Value", type:"Modeled", status:"Have", source:"Commercial visitation data", useCase:"Estimates peak summer population surges to validate evacuation demand."},
       {category:"Transit Operations", element:"Ridership, route shapes, stop locations", component:"Asset Value", type:"Baseline", status:"Have", source:"TRPA Transit / TTD / TART", useCase:"Defines staging areas for the Transit Evacuation Coordination Strategy."},
       {category:"Active Transport", element:"Bike paths, pedestrian trails, sidewalks", component:"Asset Value", type:"Baseline", status:"Have", source:"TRPA GIS", useCase:"Ensures non-motorized evacuation routes are assessed."},
       {category:"Road Network", element:"Centerlines, functional class, capacity", component:"Adaptive Capacity", type:"Baseline", status:"Have", source:"TRPA GIS / NDOT / Caltrans", useCase:"Foundational routing graph for evacuation capacity."},
@@ -329,16 +351,16 @@
       {category:"Cascading Assets", element:"Power grids, telecom towers, radio", component:"Asset Value", type:"Baseline", status:"Need", source:"HIFLD Secure (via DHS)", useCase:"Runs Black Sky scenarios to see how grid failure disables ITS."},
       {category:"ITS & Early Warning", element:"DMS, RWIS sensors, AlertTahoe cameras", component:"Adaptive Capacity", type:"Baseline", status:"Need", source:"Caltrans / NDOT / AlertTahoe", useCase:"Assesses communication gaps for Task 4.1 Evacuation Warning Strategy."},
       {category:"NBS Suitability", element:"Wetlands, SEZ, soil moisture", component:"Exposure", type:"Mixed", status:"Need/Have", source:"TRPA / Climate Engine", useCase:"Identifies where Nature-Based Solutions will work."},
-      {category:"Wildfire Exposure", element:"Baseline fuelscapes, hazard drivers", component:"Exposure", type:"Modeled", status:"Free", source:"CA Forest Observatory", useCase:"Static baseline inputs to map general fire threats."},
-      {category:"Dynamic Fire Model", element:"Custom fire pathways, behavior simulation", component:"Exposure", type:"Modeled", status:"Explore", source:"XyloPlan / Land Tender", useCase:"Simulates pathways to test fuel-treatment ROI and avoided loss."},
+      {category:"Wildfire Exposure", element:"Baseline fuelscapes, hazard drivers", component:"Exposure", type:"Modeled", status:"Free", source:"Wildfire Risk to Communities; CA Pyregence; CA Forest Observatory", useCase:"Static baseline inputs to map general fire threats."},
+      {category:"Dynamic Fire Model", element:"Custom fire pathways, behavior simulation", component:"Exposure", type:"Modeled", status:"Explore", source:"Commercial fire-behavior modeling", useCase:"Simulates pathways to test fuel-treatment ROI and avoided loss."},
       {category:"Carbon Tracking", element:"Carbon sequestration for NBS", component:"Asset Value", type:"Modeled", status:"Free", source:"CTrees", useCase:"Quantifies carbon storage benefits to boost grant scoring."},
-      {category:"Geohazards & Topo", element:"High-res LiDAR, runout paths", component:"Exposure", type:"Mixed", status:"Need", source:"OpenTopography / RAMMS", useCase:"Calculates spatial runout zones for avalanches/landslides."},
-      {category:"Seismic & Dams", element:"Fault lines, liquefaction, dam inundation", component:"Exposure", type:"Modeled", status:"Free", source:"USGS / CA DWR / NDEM", useCase:"Identifies bridges needing seismic retrofits and routes in dam flood zones."},
-      {category:"Hydrology & Scour", element:"Stream velocity, floodplain overtopping", component:"Exposure", type:"Modeled", status:"Need", source:"USGS StreamStats / HEC-RAS", useCase:"Flags bridges/culverts that will scour or wash out."},
+      {category:"Geohazards & Topo", element:"High-res LiDAR, runout paths", component:"Exposure", type:"Mixed", status:"Need", source:"USGS Landslide Susceptibility; CA Geological Survey; OpenTopography", useCase:"Calculates spatial runout zones for avalanches/landslides."},
+      {category:"Seismic & Dams", element:"Fault lines, liquefaction, dam inundation", component:"Exposure", type:"Modeled", status:"Free", source:"USGS NSHM / ComCat / ShakeMaps; CA DWR (dams)", useCase:"Identifies bridges needing seismic retrofits and routes in dam flood zones."},
+      {category:"Hydrology & Scour", element:"Stream velocity, floodplain overtopping", component:"Exposure", type:"Modeled", status:"Need", source:"USGS StreamStats; NOAA Atlas 14; HEC-RAS; FEMA", useCase:"Flags bridges/culverts that will scour or wash out."},
       {category:"Stormwater & IDF", element:"Peak rainfall intensity vs. BMP capacity", component:"Sensitivity", type:"Modeled", status:"Need", source:"NOAA Atlas 14 / TRPA", useCase:"Checks if roadside BMPs will fail and flush sediment into the lake."},
       {category:"Asset Condition", element:"Bridge health, culvert flow capacity", component:"Sensitivity", type:"Baseline", status:"Need", source:"Request: Caltrans / NDOT", useCase:"Determines if infrastructure can withstand hazards."},
       {category:"Climate: Wind", element:"gridMET wind, canopy height near roads", component:"Sensitivity", type:"Mixed", status:"Need", source:"Climate Engine / USFS", useCase:"Maps strike zones where wind gusts blow down trees."},
-      {category:"Climate: Heat/Freeze", element:"Days >90F, freeze-thaw cycles", component:"Exposure", type:"Modeled", status:"Need", source:"Cal-Adapt API", useCase:"Predicts asphalt rutting, potholing, bridge joint stress."},
+      {category:"Climate: Heat/Freeze", element:"Days >90F, freeze-thaw cycles", component:"Exposure", type:"Modeled", status:"Need", source:"Cal-Adapt / LOCA2 / NASA NEX-GDDP", useCase:"Predicts asphalt rutting, potholing, bridge joint stress."},
       {category:"Climate: Subsidence", element:"Shrink-swell clay soils + drought index", component:"Exposure", type:"Mixed", status:"Need", source:"USDA SSURGO / Drought.gov", useCase:"Identifies roads prone to slumping or cracking pipes."},
       {category:"Climate: Seiche", element:"Wave action + extreme lake levels", component:"Exposure", type:"Modeled", status:"Have/Need", source:"TRPA Bathymetry / Wind Models", useCase:"Identifies shoreline routes (Hwy 28/50) vulnerable to wave undercutting."},
       {category:"Economic Impact", element:"Value of Travel Time Savings (VTTS)", component:"Asset Value", type:"Modeled", status:"Need", source:"Caltrans Econ Analysis", useCase:"Generates BCA by quantifying detour costs if a road closes."},
@@ -346,10 +368,6 @@
     ];
 
     const models = [
-      ["StreetLight Data","Evacuation & Mobility","Task 3.2 & 4.2","High","Proprietary SaaS (TRPA already has access)."],
-      ["Replica","Evacuation & Mobility","Task 3.2 & 4.2","High","Proprietary SaaS."],
-      ["XyloPlan","Dynamic Wildfire & Urban Spread","Task 3.2, 3.4 & 4.2","High","Commercial license. Requires vendor engagement."],
-      ["Vibrant Planet Land Tender","Dynamic Wildfire & Urban Spread","Task 3.2, 3.4 & 4.2","High","Commercial license."],
       ["WIFIRE","Dynamic Wildfire & Urban Spread","Task 3.2, 3.4 & 4.2","Free","Academic / open source (UC San Diego)."],
       ["HEC-RAS (USACE)","Hydrology, Scour & Flood","Task 3.2","Free","Public desktop software. Needs hydrologic engineering skills."],
       ["USGS StreamStats","Hydrology, Scour & Flood","Task 3.2","Free","Public web tool and API."],
@@ -367,10 +385,10 @@
     ];
 
     const indexArch = [
-      ["A. Exposure Index","XyloPlan (fire), HEC-RAS (flood), RAMMS (avalanche), wind strike zones, seiche zones","Maps where the physical hazards are most intense.","#E87722"],
+      ["A. Exposure Index","Fire modeling, HEC-RAS (flood), RAMMS (avalanche), wind strike zones, seiche zones","Maps where the physical hazards are most intense.","#E87722"],
       ["B. Sensitivity Index","Bridge/culvert condition, pavement age, Equity Study (vulnerable pops), freight tonnage","Maps which assets / people break or suffer most if hit.","#B47E00"],
       ["C. Asset Index","Locations of houses, powerlines, water and sewer infrastructure","Quantifies where high-value assets are at risk.","#0072CE"],
-      ["C. Adaptive Capacity Index","StreetLight (detour ratios), HIFLD (redundant power), transit hubs, airport ICS proximity","Reverse-scored: high capacity = low vulnerability.","#4A6118"],
+      ["C. Adaptive Capacity Index","Detour ratios (commercial mobility data), HIFLD (redundant power), transit hubs, airport ICS proximity","Reverse-scored: high capacity = low vulnerability.","#4A6118"],
       ["D. Master PROTECT Index","Sub-Index A + Sub-Index B + Sub-Index C","The single composite map for the Task 3.3 interactive tool.","#003B71"]
     ];
 
@@ -379,14 +397,16 @@
       [2,"Which asset/hazard pairs advance to robust geospatial analysis","TRPA","In progress (before Phase 2)"],
       [3,"Exposure scoring rubric per hazard","TRPA (ICF recs on sens/crit)","In progress"],
       [4,"Analysis grain: road segment, parcel, or both","TRPA","Before MVP build"],
-      [5,"Climate-data sourcing: TRPA purchase vs. add to ICF contract (Fathom flood ~$29,543; RAMMS ~$3k-$5k)","TRPA","Before Phase 2/3"],
+      [5,"Climate-data sourcing: TRPA purchase vs. add to ICF contract (commercial flood data ~$29,500; RAMMS ~$3k-$5k, sole-source)","TRPA","Before Phase 2/3"],
       [6,"ICF endorsement of FHWA VAST structure (4 sub-indices, Master, Justice40 multiplier, Adaptive Capacity reverse)","ICF / TRPA","Confirm at 5/20 sync"],
       [7,"Data hand-off contract: schema, CRS, format, cadence for ICF deliverables","ICF / TRPA","In progress"],
-      [8,"Hosting domain: trpa-agency.github.io vs. protect.laketahoeinfo.org","TRPA","Before SC kickoff"],
-      [9,"Public visibility: internal-only until Workshop 1, partner-restricted, or public","TRPA","Before MVP build"],
-      [10,"Traffic-count source: StreetLight / Replica / Placer.ai / AADT","TRPA","Before MVP build"],
-      [11,"Brand: TRPA agency vs. EIP","TRPA","Before MVP build"],
-      [12,"Wooden-guardrail dataset (Caltrans/NDOT); wildfire data options (TFFT)","TRPA","Data-gathering"]
+      [8,"Public visibility: internal-only until Workshop 1, partner-restricted, or public","TRPA","Before MVP build"],
+      [9,"Traffic-count source: commercial mobility data vs. AADT (vendor selection pending)","TRPA","Before MVP build"],
+      [10,"Prior landslide analysis: what type was previously conducted?","TRPA","Before Phase 2"],
+      [11,"Flood depth method: can TRPA run HEC-RAS, or use simpler flood-extent methods?","TRPA / ICF","Before Phase 2"],
+      [12,"Commercial fire modeling: needed, or do public datasets (WRC, CA Pyregence) suffice?","TRPA / ICF","Before Phase 2"],
+      [13,"Debris-flow modeling: run post-fire HEC-HMS or rely on proxy datasets?","TRPA / ICF","Before Phase 2"],
+      [14,"Wildfire pinch-point dataset: what does it include?","ICF","Define"]
     ];
 
     // ---------- COLOR MAPS ----------
@@ -500,9 +520,54 @@
       ]}))
     ];
 
+    // ---------- EXPOSURE APPROACH (4/30 ICF data meeting) ----------
+    const availColor = {Public:"#4A6118", Proprietary:"#9C3E27", TRPA:"#0072CE", Mixed:"#B47E00", TBD:"#6B7280"};
+    const exposureRows = [
+      {hazard:"Landslide", analysis:"Indicator-based", indicator:"Landslide susceptibility (primary)", dataset:"USGS Landslide Susceptibility Maps", avail:"Public", time:"Historical", notes:"Index 0-100"},
+      {hazard:"Landslide", analysis:"Indicator-based", indicator:"Landslide susceptibility", dataset:"CA Geological Survey (deep-seated)", avail:"Public", time:"Historical", notes:"0-10; California only"},
+      {hazard:"Landslide", analysis:"Indicator-based", indicator:"Long-term precip (future scaling)", dataset:"Cal-Adapt / LOCA2", avail:"Public", time:"Future", notes:"Annual max 60-day precip; needs derivation"},
+      {hazard:"Landslide", analysis:"Indicator-based", indicator:"Runout zones", dataset:"OpenTopography LiDAR + RAMMS", avail:"Mixed", time:"Historical", notes:"LiDAR public; RAMMS sole-source; hypothetical impacts"},
+      {hazard:"Flooding", analysis:"Indicator-based", indicator:"Peak discharge (culvert capacity : peak flow)", dataset:"USGS StreamStats", avail:"Public", time:"Historical", notes:"Basin/gage-level; needs derivation"},
+      {hazard:"Flooding", analysis:"Indicator-based", indicator:"Extreme precipitation", dataset:"NOAA Atlas 14 (or 15)", avail:"Public", time:"Historical", notes:"Precip-frequency estimates"},
+      {hazard:"Flooding", analysis:"Indicator-based", indicator:"Future precipitation", dataset:"Cal-Adapt / LOCA2", avail:"Public", time:"Future", notes:"1-in-100yr derivation"},
+      {hazard:"Flooding", analysis:"Indicator-based", indicator:"Flood depth & extent", dataset:"FEMA Floodplains", avail:"Public", time:"Historical", notes:"Possible data gaps"},
+      {hazard:"Flooding", analysis:"Indicator-based", indicator:"Flood depth & extent", dataset:"USACE HEC-RAS", avail:"Public", time:"Event", notes:"Event-specific routing; needs expertise"},
+      {hazard:"Flooding", analysis:"Indicator-based", indicator:"Flood depth & extent", dataset:"Commercial flood model (proprietary)", avail:"Proprietary", time:"Future", notes:"Potentially cost-prohibitive"},
+      {hazard:"Wildfire", analysis:"Indicator-based", indicator:"Wildfire likelihood", dataset:"Wildfire Risk to Communities", avail:"Public", time:"Historical", notes:"Historical only"},
+      {hazard:"Wildfire", analysis:"Indicator-based", indicator:"Wildfire likelihood (future)", dataset:"CA Pyregence projections", avail:"Public", time:"Future", notes:"California only; needs derivation"},
+      {hazard:"Wildfire", analysis:"Indicator-based", indicator:"Wildfire spread / pathways", dataset:"Commercial fire modeling (proprietary)", avail:"Proprietary", time:"Historical", notes:"Present-day pathways; cost-prohibitive (ICF: needed?)"},
+      {hazard:"Wildfire", analysis:"Indicator-based", indicator:"Change in fire weather", dataset:"Cal-Adapt / NASA NEX-GDDP", avail:"Public", time:"Future", notes:"Fire-weather index derivation"},
+      {hazard:"Debris Flow", analysis:"Indicator-based", indicator:"Extreme precip change", dataset:"Cal-Adapt / LOCA2", avail:"Public", time:"Future", notes:"Precip derivation"},
+      {hazard:"Debris Flow", analysis:"Indicator-based", indicator:"Debris & sediment loads", dataset:"Post-wildfire debris flow (HEC-HMS)", avail:"Public", time:"Event", notes:"Run model; scenario parameterization"},
+      {hazard:"Earthquake", analysis:"Indicator-based", indicator:"Seismic hazard", dataset:"USGS National Seismic Hazard Maps", avail:"Public", time:"Historical", notes:"Future events may be underrepresented"},
+      {hazard:"Earthquake", analysis:"Indicator-based", indicator:"Earthquake likelihood (primary)", dataset:"USGS / ANSS ComCat", avail:"Public", time:"Probabilistic", notes:"Long-term probabilistic"},
+      {hazard:"Earthquake", analysis:"Indicator-based", indicator:"Earthquake magnitude", dataset:"USGS ShakeMaps", avail:"Public", time:"Event", notes:"Scenario-specific"},
+      {hazard:"Avalanche", analysis:"Indicator-based", indicator:"Snow depth / SWE (proxy)", dataset:"SNODAS / SWE", avail:"Public", time:"Historical", notes:"Higher snowpack on avalanche terrain"},
+      {hazard:"Avalanche", analysis:"Indicator-based", indicator:"Snow depth / SWE", dataset:"Topofire SWE", avail:"Public", time:"Historical", notes:"250 m high-res; harder to process"},
+      {hazard:"Avalanche", analysis:"Indicator-based", indicator:"SWE projections (future)", dataset:"Cal-Adapt VIC", avail:"Public", time:"Future", notes:"Daily snowpack derivation"},
+      {hazard:"Avalanche", analysis:"Indicator-based", indicator:"Runout zones", dataset:"OpenTopography LiDAR + RAMMS", avail:"Mixed", time:"Historical", notes:"LiDAR public; RAMMS sole-source"},
+      {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Evacuation routes", dataset:"TRPA Evacuation Route", avail:"TRPA", time:"Historical", notes:"Operational-disruption pairs"},
+      {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Community priority zones", dataset:"TRPA Equity Study / Census", avail:"TRPA", time:"Historical", notes:""},
+      {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Strategic assets / staging / transport", dataset:"HIFLD Open / TRPA GIS / FAA / State DOTs", avail:"Mixed", time:"Historical", notes:""},
+      {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Available detours", dataset:"Commercial mobility data", avail:"Proprietary", time:"Historical", notes:""},
+      {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Wildfire pinch points", dataset:"TBD", avail:"TBD", time:"-", notes:"ICF question: dataset contents?"},
+      {hazard:"Winter Storm", analysis:"Qualitative (criticality)", indicator:"Criticality set + storm likelihood", dataset:"TRPA + HIFLD + commercial mobility + NRI Winter Storm", avail:"Mixed", time:"Historical", notes:"Routes, zones, assets, detours"},
+      {hazard:"Wind", analysis:"Qualitative (criticality)", indicator:"Criticality set", dataset:"TRPA + HIFLD + commercial mobility", avail:"Mixed", time:"Historical", notes:"Routes, zones, assets, detours"}
+    ];
+    const exposureCols = [
+      {field:"hazard", headerName:"Hazard", width:130, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
+      {field:"analysis", headerName:"Analysis", width:160, filter:"agTextColumnFilter"},
+      {field:"indicator", headerName:"Indicator", minWidth:190, width:220, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"},
+      {field:"dataset", headerName:"Dataset", minWidth:200, width:240, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"},
+      {field:"avail", headerName:"Availability", width:130, filter:"agTextColumnFilter", cellStyle:colorCell(availColor)},
+      {field:"time", headerName:"Timeframe", width:120, filter:"agTextColumnFilter"},
+      {field:"notes", headerName:"Notes", flex:1, minWidth:200, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"}
+    ];
+
     const pairDiv = document.querySelector("#pair-grid");
     const invDiv = document.querySelector("#inv-grid");
     const sensDiv = document.querySelector("#sens-grid");
+    const expDiv = document.querySelector("#exp-grid");
 
     function makeGrid(div, columnDefs, rowData, floating){
       agGrid.createGrid(div, {
@@ -542,9 +607,11 @@
       makeGrid(pairDiv, pairCols, pairs, false);
       makeGrid(invDiv, invCols, dataInventory, true);
       agGrid.createGrid(sensDiv, {columnDefs:sensCols, rowData:sensRows, defaultColDef:{sortable:false, resizable:true}, domLayout:"autoHeight", onGridReady:e=>{ sensDiv.__api=e.api; }});
+      makeGrid(expDiv, exposureCols, exposureRows, false);
       wireToolbar("pair-qf", "pair-export", pairDiv, "PROTECT_Hazard_Asset_Pairs.csv");
       wireToolbar("inv-qf", "inv-export", invDiv, "PROTECT_Data_Inventory.csv");
       document.getElementById("sens-export").addEventListener("click", ()=>{ if(sensDiv.__api) sensDiv.__api.exportDataAsCsv({fileName:"PROTECT_Sensitivity_Matrix.csv"}); });
+      wireToolbar("exp-qf", "exp-export", expDiv, "PROTECT_Exposure_Approach.csv");
       wireTableCsv("matrix-export", ()=>document.querySelector("#matrix-mount table"), "PROTECT_Assets_Hazards_Matrix.csv");
       wireTableCsv("model-export", ()=>document.getElementById("model-rows").closest("table"), "PROTECT_Model_Inventory.csv");
       wireTableCsv("index-export", ()=>document.getElementById("index-rows").closest("table"), "PROTECT_Index_Architecture.csv");
@@ -556,10 +623,10 @@
       const tabs = document.querySelector("calcite-tabs");
       if(tabs){
         tabs.addEventListener("calciteTabChange", ()=>{
-          setTimeout(()=>{ [pairDiv, invDiv].forEach(fitIfVisible); }, 60);
+          setTimeout(()=>{ [pairDiv, invDiv, expDiv].forEach(fitIfVisible); }, 60);
         });
       }
-      window.addEventListener("resize", ()=>{ [pairDiv, invDiv].forEach(fitIfVisible); });
+      window.addEventListener("resize", ()=>{ [pairDiv, invDiv, expDiv].forEach(fitIfVisible); });
     }
 
     if(document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", init); } else { init(); }

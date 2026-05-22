@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT: Risk Index Tool (MVP) | TRPA</title>
 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230072CE'/><path d='M4 24 L12 11 L18 19 L22 13 L28 24 Z' fill='%23fff'/></svg>" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
   <!-- Calcite -->
   <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
@@ -35,10 +35,15 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
-    header.app-header{background:var(--trpa-navy);color:#fff;padding:.8rem 1.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:4px solid var(--trpa-blue);flex-wrap:wrap;}
-    header.app-header .agency{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85;}
-    header.app-header h1{font-size:1.2rem;font-weight:700;line-height:1.2;}
-    header.app-header .right{display:flex;align-items:center;gap:.6rem;font-size:.78rem;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.6rem;font-size:.78rem;}
     header.app-header .badge{background:var(--trpa-orange);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
     header.app-header a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:.28rem .65rem;border-radius:6px;white-space:nowrap;}
     header.app-header a:hover{background:rgba(255,255,255,.12);}
@@ -63,7 +68,7 @@
     .chart-card{background:#fff;border-radius:8px;padding:1rem 1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:1rem;}
     .chart-card h3{font-size:1rem;font-weight:600;margin-bottom:.2rem;}
     .chart-card .sub{font-size:.76rem;color:var(--gray-text);margin-bottom:.6rem;}
-    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-blue);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
+    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-navy);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
     .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.7rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.3rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
     h2.sec:first-child{margin-top:0;}
@@ -79,14 +84,17 @@
 <body>
 
   <header class="app-header">
-    <div>
-      <div class="agency">Tahoe Regional Planning Agency &middot; PROTECT Task 3.3</div>
-      <h1>Risk Index Tool</h1>
-    </div>
-    <div class="right">
-      <span class="badge">MVP &middot; Phase 1</span>
-      <a href="#" id="methods-link">Methods</a>
-      <a href="index.html">Reference hub</a>
+    <div class="header-content">
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Risk Index Tool</h1>
+        <div class="header-sub">PROTECT Task 3.3 &middot; Interactive Risk Index</div>
+      </div>
+      <div class="right">
+        <span class="badge">MVP &middot; Phase 1</span>
+        <a href="#" id="methods-link">Methods</a>
+        <a href="index.html">Reference hub</a>
+      </div>
     </div>
   </header>
 
@@ -161,10 +169,10 @@
           <p class="lead">Risk is built from four sub-indices, weighted alongside Criticality (Sensitivity ~10-20%, Criticality ~30%). Adaptive Capacity is reverse-scored (high capacity = low vulnerability).</p>
           <div class="formula"><strong>Master PROTECT Index</strong> = f(Exposure, Sensitivity, Asset Value, Adaptive Capacity) weighted with Criticality</div>
           <div class="card-grid" style="margin-top:1rem;">
-            <div class="card" style="--c:#E87722"><h3>Exposure</h3><ul><li>Wildfire pathways (XyloPlan)</li><li>Flood inundation &amp; scour (HEC-RAS)</li><li>Avalanche / landslide / debris-flow runout (RAMMS)</li><li>Post-fire erosion &amp; sediment (WEPP)</li></ul></div>
+            <div class="card" style="--c:#E87722"><h3>Exposure</h3><ul><li>Wildfire pathways (commercial fire modeling)</li><li>Flood inundation &amp; scour (HEC-RAS)</li><li>Avalanche / landslide / debris-flow runout (RAMMS)</li><li>Post-fire erosion &amp; sediment (WEPP)</li></ul></div>
             <div class="card" style="--c:#B47E00"><h3>Sensitivity</h3><ul><li>Bridge / culvert condition, pavement age</li><li>Equity Study (vulnerable populations, Justice40 multiplier)</li></ul></div>
             <div class="card" style="--c:#0072CE"><h3>Asset Value</h3><ul><li>Strategic / emergency assets, transit</li><li>Freight, cascading power / telecom</li></ul></div>
-            <div class="card" style="--c:#4A6118"><h3>Adaptive Capacity</h3><ul><li>Network redundancy / detours (StreetLight)</li><li>Reverse-scored</li></ul></div>
+            <div class="card" style="--c:#4A6118"><h3>Adaptive Capacity</h3><ul><li>Network redundancy / detours (commercial mobility data)</li><li>Reverse-scored</li></ul></div>
           </div>
           <p class="lead" style="margin-top:1rem;">Full methodology, data inventory, and the hazard impact &amp; sensitivity matrix live in the <a href="index.html" style="color:var(--trpa-blue);font-weight:600;">reference hub</a> and <a href="data-model-inventory.html" style="color:var(--trpa-blue);font-weight:600;">data &amp; model inventory</a>.</p>
         </div>
