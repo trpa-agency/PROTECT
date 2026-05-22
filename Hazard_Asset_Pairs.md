@@ -27,18 +27,18 @@ Status: **Advancing** (locked at the VA review), **Candidate** (added 5/20, unde
 
 | ID | Hazard | Asset | Impact | Status | Exposure inputs | Sensitivity indicators | Notes |
 |----|--------|-------|--------|--------|-----------------|------------------------|-------|
-| FL-C | Flooding | Culverts | PC | Advancing | HEC-RAS scour; USGS StreamStats; FEMA; NOAA Atlas 14 | Culvert condition, scour, capacity, age | Caltrans/NDOT condition request open |
-| FL-R | Flooding | Roads | PC | Advancing | FEMA; stormwater drainage; road elevation vs. inundation | Pavement condition, foundation, elevation, age | Lowland/valley segments most exposed |
+| FL-C | Flooding | Culverts | PC | Advancing | USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA; HEC-RAS scour | Culvert condition, scour, capacity, age | Caltrans/NDOT condition request open |
+| FL-R | Flooding | Roads | PC | Advancing | FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation | Pavement condition, foundation, elevation, age | Lowland/valley segments most exposed |
 | FL-B | Flooding | Bridges | PC | Advancing | HEC-RAS bridge scour; USGS StreamStats; FEMA | Bridge condition, deck, scour criticality, elevation | Bridge condition request open |
-| AV-R | Avalanche | Roads | PC | Advancing | RAMMS::Avalanche runout; OpenTopography LiDAR | Road elevation (no unique sensitivity) | Hwy 89, 207, 431; confirm with NDOT/Caltrans |
-| LS-C | Landslide | Culverts | PC | Advancing | Slope + erosion + burn severity; post-fire debris flow | Culvert condition, capacity, scour | Post-fire compounding required |
-| LS-R | Landslide | Roads | PC | Advancing | Slope + erosion + burn severity; LiDAR runout | Pavement condition, road elevation | RAMMS or r.avaflow runout |
-| WF-R | Wildfire | Roads | PC | Advancing | Wildfire severity; soil burn severity; ember showers; fire pathways (XyloPlan / Land Tender) | No unique sensitivity indicators | XyloPlan procurement on critical path |
-| DF-C | Debris Flow | Culverts | PC | Candidate | Post-fire debris-flow runout; slope + burn severity | Culvert condition, capacity, scour | Split from landslide per 5/20 |
-| DF-R | Debris Flow | Roads | PC | Candidate | Post-fire debris-flow runout; slope + burn severity; LiDAR | Pavement condition, road elevation | Split from landslide per 5/20 |
-| EQ-B | Earthquake | Bridges | PC | Candidate | USGS faults; liquefaction; dam inundation | Seismic retrofit status, bridge condition, age | Bridges needing seismic retrofit |
-| WD-R | Wind | Roads | OP | Screening | gridMET wind + USFS canopy strike zones; ASCE 7 | Operational: tree blow-down, power-line breaks | Asset TBD: Roads and/or Power & Telecom |
-| WS-R | Winter Storm | Roads | OP | Screening | Plow-route distance; Cal-Adapt snow; power-loss frequency | Operational: closure, plow-depot overrun, ITS power loss | Asset TBD: Roads / Power / ITS |
+| AV-R | Avalanche | Roads | PC | Advancing | SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout | Road elevation (no unique sensitivity) | Hwy 89, 207, 431; confirm with NDOT/Caltrans |
+| LS-C | Landslide | Culverts | PC | Advancing | USGS Landslide Susceptibility; CA Geological Survey; post-fire debris flow | Culvert condition, capacity, scour | Post-fire compounding required |
+| LS-R | Landslide | Roads | PC | Advancing | USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout | Pavement condition, road elevation | RAMMS or r.avaflow runout |
+| WF-R | Wildfire | Roads | PC | Advancing | Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling | No unique sensitivity indicators | Fire-modeling procurement on critical path |
+| DF-C | Debris Flow | Culverts | PC | Candidate | Post-fire debris flow (HEC-HMS); CA Pyregence; precip | Culvert condition, capacity, scour | Split from landslide per 5/20 |
+| DF-R | Debris Flow | Roads | PC | Candidate | Post-fire debris flow (HEC-HMS); LiDAR runout; precip | Pavement condition, road elevation | Split from landslide per 5/20 |
+| EQ-B | Earthquake | Bridges | PC | Candidate | USGS Seismic Hazard Maps; ComCat; ShakeMaps | Seismic retrofit status, bridge condition, age | Bridges needing seismic retrofit |
+| WD-R | Wind | Roads | OP | Screening | gridMET wind (Climate Engine); ASCE 7; criticality-focused | Operational: tree blow-down, power-line breaks | Asset TBD: Roads and/or Power & Telecom |
+| WS-R | Winter Storm | Roads | OP | Screening | SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm; criticality-focused | Operational: closure, plow-depot overrun, ITS power loss | Asset TBD: Roads / Power / ITS |
 
 Expanded assets still under screening (no pair locked yet): **Active Transport, Bus Stops, Marinas**.
 
@@ -46,7 +46,7 @@ Expanded assets still under screening (no pair locked yet): **Active Transport, 
 
 ## 2. Vulnerability sub-indices (FHWA VAST)
 
-- **Exposure**: where and how intensely a hazard hits. XyloPlan (fire pathways), HEC-RAS / StreamStats
+- **Exposure**: where and how intensely a hazard hits. Commercial fire-pathway modeling, HEC-RAS / StreamStats
   (flood inundation & scour), RAMMS (avalanche / landslide / debris-flow runout), WEPP (post-fire soil
   erosion and sediment delivery), wind strike zones, seiche zones, seismic / dam inundation.
 - **Sensitivity** (weighted ~10-20 percent): asset fragility. Bridge / culvert condition, pavement
@@ -55,7 +55,7 @@ Expanded assets still under screening (no pair locked yet): **Active Transport, 
 - **Asset Value**: what is at stake. Strategic community assets, emergency staging, freight tonnage,
   transit, active transport, cascading assets (power, telecom).
 - **Adaptive Capacity** (reverse-scored: high capacity = low vulnerability): network redundancy /
-  detour ratios (StreetLight), redundant power (HIFLD), transit hubs, airport ICS proximity.
+  detour ratios (commercial mobility data), redundant power (HIFLD), transit hubs, airport ICS proximity.
 
 ## 3. Criticality indicators
 
@@ -91,6 +91,6 @@ Not reproduced here to avoid divergence.
 
 See the **Open Decisions** tab of the tool. Headline items: disruption-risk tool (RA2CE vs. Volpe RDR),
 which pairs advance to robust geospatial analysis, exposure scoring rubric per hazard, analysis grain
-(segment vs. parcel), climate-data sourcing (TRPA purchase vs. add to ICF contract; Fathom flood data
-about $29,543), ICF endorsement of the VAST structure, data hand-off contract, hosting domain, and
+(segment vs. parcel), climate-data sourcing (TRPA purchase vs. add to ICF contract; commercial flood
+data quoted around $29,500), ICF endorsement of the VAST structure, data hand-off contract, hosting domain, and
 public visibility.

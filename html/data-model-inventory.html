@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT: Data &amp; Model Inventory | TRPA</title>
 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230072CE'/><path d='M4 24 L12 11 L18 19 L22 13 L28 24 Z' fill='%23fff'/></svg>" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
   <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
   <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
@@ -27,10 +27,15 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
-    header.app-header{background:var(--trpa-navy);color:#fff;padding:.85rem 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:4px solid var(--trpa-blue);}
-    header.app-header .agency{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85;}
-    header.app-header h1{font-size:1.2rem;font-weight:700;line-height:1.2;}
-    header.app-header a.back{color:#fff;text-decoration:none;font-size:.8rem;border:1px solid rgba(255,255,255,.4);padding:.3rem .7rem;border-radius:6px;white-space:nowrap;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1280px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:54px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header a.back{flex-shrink:0;color:#fff;text-decoration:none;font-size:.8rem;border:1px solid rgba(255,255,255,.4);padding:.3rem .7rem;border-radius:6px;white-space:nowrap;}
     header.app-header a.back:hover{background:rgba(255,255,255,.12);}
     main{max-width:1280px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
     .intro{font-size:.95rem;color:var(--gray-text);max-width:95ch;margin-bottom:1.1rem;}
@@ -47,7 +52,7 @@
     .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.85rem;}
     .toolbar input.qf{flex:1;min-width:240px;padding:.5rem .75rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.9rem;color:var(--trpa-navy);}
     .toolbar input.qf:focus{outline:none;border-color:var(--trpa-blue);box-shadow:0 0 0 2px rgba(0,114,206,.18);}
-    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-blue);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
+    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-navy);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
     .grid-wrap{width:100%;}
     .pill{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11px;font-weight:600;white-space:nowrap;}
     a.endpoint{color:var(--trpa-blue);text-decoration:none;font-size:12px;word-break:break-all;}
@@ -66,11 +71,14 @@
 <body>
 
   <header class="app-header">
-    <div>
-      <div class="agency">Tahoe Regional Planning Agency &middot; Task 3.3 Risk Index Tool</div>
-      <h1>PROTECT: Data &amp; Model Inventory</h1>
+    <div class="header-content">
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>PROTECT: Data &amp; Model Inventory</h1>
+        <div class="header-sub">Task 3.3 &middot; Risk Index Tool</div>
+      </div>
+      <a class="back" href="index.html">&larr; Risk Index hub</a>
     </div>
-    <a class="back" href="index.html">&larr; Risk Index hub</a>
   </header>
 
   <main>
@@ -87,7 +95,7 @@
       <div class="kpi-card building"><div class="kpi-value">6</div><div class="kpi-label">Building</div></div>
       <div class="kpi-card needed"><div class="kpi-value">6</div><div class="kpi-label">Needed</div></div>
       <div class="kpi-card external"><div class="kpi-value">15</div><div class="kpi-label">External</div></div>
-      <div class="kpi-card"><div class="kpi-value">21</div><div class="kpi-label">Models &amp; tools</div></div>
+      <div class="kpi-card"><div class="kpi-value">17</div><div class="kpi-label">Models &amp; tools</div></div>
     </section>
 
     <calcite-tabs scale="m">
@@ -156,8 +164,8 @@
       ["Emergency Staging","Asset Value","External","","FAA / HIFLD Open","Aerial firefighting / command / airlift staging."],
       ["Strategic Transport","Asset Value","Needed","","HIFLD Open / State DOTs","Fuel stations, EV chargers, plow depots."],
       ["Freight & Supply","Asset Value","External","","FHWA FAF5 / State DOTs","Critical supply-chain routes."],
-      ["Mobility & Routing","Asset Value","External","","StreetLight Data","Pinch-point analysis (TRPA has SaaS access)."],
-      ["Tourist Surges","Asset Value","External","","Placer.ai","Peak-season population surge / evacuation demand (TRPA has access)."],
+      ["Mobility & Routing","Asset Value","External","","Commercial mobility / OD data","Pinch-point analysis: where the network fails (vendor selection pending)."],
+      ["Tourist Surges","Asset Value","External","","Commercial visitation data","Peak-season population surge / evacuation demand (vendor selection pending)."],
       ["Transit Operations","Asset Value","Building","","TRPA Transit / TTD / TART","Folds into the consolidated Assets service."],
       ["Active Transport","Asset Value","Building","","TRPA GIS (Assets service)","Non-motorized routes; folds into Assets service."],
       ["Road Network","Adaptive Capacity","Building","","TRPA GIS / NDOT / Caltrans (Assets service)","Foundational routing graph; part of the consolidated Assets service. (Transportation_SMART is cameras, not centerlines.)"],
@@ -165,8 +173,8 @@
       ["Cascading Assets","Asset Value","Needed","","HIFLD Secure (via DHS)","Power / telecom for Black Sky scenarios."],
       ["ITS & Early Warning","Adaptive Capacity","Needed","","Caltrans / NDOT / AlertTahoe","DMS, RWIS, cameras; Task 4.1 warning strategy."],
       ["NBS Suitability","Exposure","Building","","TRPA / Climate Engine","Where Nature-Based Solutions work."],
-      ["Wildfire Exposure","Exposure","Live","/Forest_Health_Composition_Age/MapServer","TRPA Forest Health / Vegetation + CA Forest Observatory","Baseline fuelscapes (modeled pathways via XyloPlan are separate)."],
-      ["Dynamic Fire Model","Exposure","External","","XyloPlan / Land Tender","Fire pathways / ember spread (procurement, Explore)."],
+      ["Wildfire Exposure","Exposure","Live","/Forest_Health_Composition_Age/MapServer","TRPA Forest Health / Vegetation + CA Forest Observatory","Baseline fuelscapes (modeled fire pathways are a separate commercial input)."],
+      ["Dynamic Fire Model","Exposure","External","","Commercial fire-behavior modeling","Fire pathways / ember spread (vendor selection pending)."],
       ["Carbon Tracking","Asset Value","External","","CTrees","Carbon storage benefits for grant scoring."],
       ["Geohazards & Topo","Exposure","Needed","","OpenTopography / RAMMS","LiDAR + runout zones for avalanche/landslide (modeling)."],
       ["Seismic & Dams","Exposure","External","","USGS / CA DWR / NDEM","Faults, liquefaction, dam inundation."],
@@ -186,10 +194,6 @@
       ["RA2CE","Disruption-Risk Tool (candidate)","Task 3.2 / 3.3","Free","Open source (Deltares, Python)","Andy: exploring + scripting"],
       ["Volpe RDR","Disruption-Risk Tool (candidate)","Task 3.2 / 3.3","Free","USDOT Volpe; heavy data/effort","Andy: exploring + scripting"],
       ["Overture Street Network","Base Network","Task 3.2 / 3.3","Free","Overture Maps data","Andy: built (base net for RA2CE/Volpe)"],
-      ["StreetLight Data","Evacuation & Mobility","Task 3.2 & 4.2","High","Proprietary SaaS","TRPA has access"],
-      ["Replica","Evacuation & Mobility","Task 3.2 & 4.2","High","Proprietary SaaS","Alternative to StreetLight"],
-      ["XyloPlan","Dynamic Wildfire","Task 3.2, 3.4 & 4.2","High","Commercial license","Procurement (Explore)"],
-      ["Vibrant Planet Land Tender","Dynamic Wildfire","Task 3.2, 3.4 & 4.2","High","Commercial license","Avoided-loss / treatment ROI"],
       ["WIFIRE","Dynamic Wildfire","Task 3.2, 3.4 & 4.2","Free","Academic / open (UC San Diego)","Open alternative"],
       ["HEC-RAS (USACE)","Hydrology, Scour & Flood","Task 3.2","Free","Public desktop","Needs hydrologic engineering"],
       ["USGS StreamStats","Hydrology, Scour & Flood","Task 3.2","Free","Public web tool / API","Peak streamflow"],

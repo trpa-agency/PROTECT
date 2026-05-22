@@ -1,0 +1,11 @@
+# Secrets / credentials
+.env
+
+# Procurement-sensitive working file - NOT for the public Pages site.
+# GitHub Pages serves the repo, so anything committed under data/ is reachable by URL.
+data/vendors.csv
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.tmp
