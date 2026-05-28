@@ -1,0 +1,322 @@
+PROTECT index.html -- editable copy
+Last synced: 2026-05-28
+====================================
+Edit text below, then hand back to Copilot to apply changes to the HTML.
+Labels in [brackets] identify where each piece of text lives.
+
+
+=== PAGE HEADER ===
+
+[header / agency eyebrow]
+Tahoe Regional Planning Agency
+
+[header / page title h1]
+PROTECT: Risk Index & Resilience Tool
+
+[header / subtitle]
+Task 3 · Resilience Improvement Plan
+
+[header / nav button]
+Open Risk Index Tool (MVP) →
+
+[header / version chip]
+v0.3
+
+
+=== INTRO ===
+
+[intro / lede paragraph]
+Plan for development of PROTECT Plan Task 3.3 Interactive Risk Index Mapping Tool.
+Includes an initial evaluation of Hazard/Asset pairs, H/A pairs that were selected for further analyses,
+an inventory of existing and needed data sources and information on the modeling approach for developing the risk index
+
+[intro / sources line]
+# Move this to the footer of the page
+Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity & criticality approach), PROTECT_DataModel_Inventory.xlsx, PROTECT_RiskIndexTool_Scoping_v0.1.docx.
+
+
+=== KPI CARDS ==
+(value | label)
+
+6  | Asset types
+8  | Hazards
+18 | Working pairs
+
+
+
+=== TAB TITLES ===
+
+Tab 1: Hazard Asset Pairs
+Tab 2: Data Inventory
+Tab 3: Framework & Methods
+Tab 4: Exposure Approach
+Tab 5: Open Decisions
+
+
+=== TAB 1: PAIR MATRIX ===
+
+[tab1 / lead paragraph]
+Initial evaluation of Hazard Asset Pairs.
+
+[tab1 / search placeholder]
+Quick search across all fields...
+
+[tab1 / matrix section heading]
+Asset and Vulnerability Matrix
+
+[tab1 / matrix lead paragraph]
+Working draft of Infrastructure (I) and Service (S) ratings per asset and hazard. H/M/L = high/medium/low; NE = Not Exposed (the asset would not be built in a location exposed to that hazard by design); "-" = not applicable.
+
+
+=== TAB 2: DATA INVENTORY ===
+
+[tab2 / lead paragraph]
+Data potentially needed for analysis classified by VAST component and TRPA acquisition status. Use the column filters or quick search to narrow; export the filtered set to CSV. For the full data-readiness tracker with live REST endpoints, see Data & Model Inventory.
+
+[tab2 / search placeholder]
+Quick search the data inventory...
+
+[tab2 / model inventory section heading]
+Model & Tool Inventory
+
+[tab2 / model inventory lead]
+Modeling platforms by contract task, with cost band and access constraints.
+
+[tab2 / composite index section heading]
+Composite Index Architecture
+
+# Move this to the bottom of tab 3
+[tab2 / composite index lead]
+Composite-index design: three sub-indices combine into the Master PROTECT Index.
+
+[tab2 / index flow node labels]
+A · Exposure
+B · Sensitivity
+C · Asset / Adaptive Capacity
+D · Master PROTECT Index
+
+
+=== TAB 3: FRAMEWORK & METHODS ===
+
+[tab3 / vast section heading]
+FHWA VAST framework
+
+[tab3 / vast lead paragraph]
+Risk is built from four sub-indices rather than a single vulnerability score. Per ICF guidance, Sensitivity is weighted lightly (~10-20%) and Criticality substantially (~30%, just below Exposure). Example weightings from peer DOT plans:
+
+[tab3 / formula 1]
+MDOT RIP / CMAP: Risk = (Adaptive Capacity x 40%) + (Exposure x 40%) + (Sensitivity x 20%)
+
+[tab3 / formula 2]
+VTrans: Risk = (Criticality x 25%) + (([Exposure x 75%] + [Sensitivity x 25%]) x 75%)
+
+[tab3 / formula 3]
+MDOT (criticality variant): Risk = (Exposure x 60%) + (Criticality x 40%)
+
+--- VAST sub-index cards ---
+
+[tab3 / card / Exposure / heading]
+Exposure
+
+[tab3 / card / Exposure / body]
+Where and how intensely a hazard hits an asset.
+
+[tab3 / card / Exposure / bullets]
+- Wildfire pathways / ember spread (commercial fire modeling)
+- Flood inundation & scour (HEC-RAS, StreamStats)
+- Avalanche / landslide runout (RAMMS)
+- Post-fire erosion & sediment (WEPP)
+- Wind strike zones, seiche zones
+
+[tab3 / card / Sensitivity / heading]
+Sensitivity
+
+[tab3 / card / Sensitivity / body]
+How badly the asset (or people) suffer when hit. Weighted ~10-20%.
+
+[tab3 / card / Sensitivity / bullets]
+- Bridge / culvert condition, pavement age
+- Equity Study (vulnerable populations), applied as a Justice40 multiplier
+- Stormwater / IDF capacity
+
+[tab3 / card / Asset Value / heading]
+Asset Value
+
+[tab3 / card / Asset Value / body]
+What is at stake at the location.
+
+[tab3 / card / Asset Value / bullets]
+- Strategic community assets, emergency staging
+- Freight tonnage, transit, active transport
+- Cascading assets (power, telecom)
+
+[tab3 / card / Adaptive Capacity / heading]
+Adaptive Capacity
+
+[tab3 / card / Adaptive Capacity / body]
+Ability to absorb / reroute. Reverse-scored: high capacity = low vulnerability.
+
+[tab3 / card / Adaptive Capacity / bullets]
+- Network redundancy / detour ratios (commercial mobility data)
+- Redundant power (HIFLD)
+- Transit hubs, airport ICS proximity
+
+--- Sensitivity indicators section ---
+
+[tab3 / sensitivity indicators section heading]
+Sensitivity indicators by asset
+
+[tab3 / card / Roads sensitivity / heading]
+Roads  [source tag: MDOT]
+
+[tab3 / card / Roads sensitivity / bullets]
+- Pavement condition (all)
+- Pavement foundation / permeable sub-base (flooding)
+- Road elevation (flooding)
+- Asset age (all)
+
+[tab3 / card / Bridges sensitivity / heading]
+Bridges  [source tag: MDOT]
+
+[tab3 / card / Bridges sensitivity / bullets]
+- Bridge condition, deck rating / type, material
+- Scour criticality (flooding, debris flow)
+- Bridge elevation (flooding, landslide, debris flow, avalanche)
+- Seismic retrofit (earthquake); channel & water-opening adequacy (flooding)
+
+[tab3 / card / Culverts sensitivity / heading]
+Culverts  [source tag: DCTC]
+
+[tab3 / card / Culverts sensitivity / bullets]
+- Culvert condition (all)
+- Scour (flooding, debris flow, landslide, avalanche)
+- Culvert capacity (debris flow, landslide, avalanche)
+- Age; channel condition (flooding)
+
+[tab3 / card / Active Transit sensitivity / heading]
+Active Transit  [source tag: SF Bay Trail]
+
+[tab3 / card / Active Transit sensitivity / bullets]
+- Paved vs. unpaved trail (all)
+- Elevation (flooding)
+- Trail slope (flooding)
+
+--- Criticality indicators section ---
+
+[tab3 / criticality section heading]
+Criticality indicators
+
+[tab3 / card / Roads criticality / heading]
+Roads  [source tag: DCTC / MWCOG]
+
+[tab3 / card / Roads criticality / bullets]
+- AADT
+- Proximity to strategic community assets
+- Community priority zones (TRPA-developed)
+- Detour length; transit & bike facilities on asset
+
+[tab3 / card / Roads criticality / footnote]
+Bridges & culverts on a segment inherit the road's score.
+
+[tab3 / card / Active Transportation criticality / heading]
+Active Transportation
+
+[tab3 / card / Active Transportation criticality / bullets]
+- Proximity to strategic community assets
+- Community priority zones
+- Proximity to other modes
+- Can accommodate emergency vehicles
+
+[tab3 / card / Bus Stops criticality / heading]
+Bus Stops
+
+[tab3 / card / Bus Stops criticality / bullets]
+- Ridership
+- Community priority zones
+- Proximity to strategic community assets
+- Multi-modal connectivity
+
+[tab3 / card / Bus Stops criticality / footnote]
+Or inherit the road segment's score.
+
+--- Assessment approaches section ---
+
+[tab3 / assessment approaches section heading]
+Assessment approaches
+
+[tab3 / card / Qualitative screening / heading]
+Qualitative screening
+
+[tab3 / card / Qualitative screening / body]
+Qualitatively assess how an asset type may be impacted, driven by sensitivity.
+
+[tab3 / card / Qualitative screening / best for]
+Best for: initial screening to decide which pairs get detailed analysis.
+
+[tab3 / card / Indicator-based / heading]
+Indicator-based
+
+[tab3 / card / Indicator-based / body]
+Asset-level scoring on a 0-3 or 0-5 scale, overlaying hazard data with asset locations to grade exposure.
+
+[tab3 / card / Indicator-based / best for]
+Best for: physical-damage pairs.
+
+[tab3 / card / Criticality-focused / heading]
+Criticality-focused
+
+[tab3 / card / Criticality-focused / body]
+Used where hazard exposure does not vary much geospatially or data is unavailable. Asks which assets are most critical and what happens if they fail.
+
+[tab3 / card / Criticality-focused / best for]
+Best for: operational-disruption pairs.
+
+--- Disruption-risk tool section ---
+
+[tab3 / disruption tool section heading]
+Disruption-risk tool: under evaluation
+
+[tab3 / disruption tool lead paragraph]
+ICF is preparing a pros/cons comparison and level-of-effort for the two candidate engines; TRPA is taking a closer look. Decision needed before the MVP build.
+
+[tab3 / card / RA2CE / heading]
+RA2CE  [source tag: Deltares]
+
+[tab3 / card / RA2CE / bullets]
+- Flexible, Python-based risk & resilience framework
+- Integrates hazard exposure, network criticality, economic impacts
+- Estimates direct damages + indirect disruption costs (detours)
+- Best for custom, analysis-driven workflows; requires user-defined setup
+
+[tab3 / card / Volpe RDR / heading]
+Volpe RDR  [source tag: USDOT Volpe]
+
+[tab3 / card / Volpe RDR / bullets]
+- Tool suite for resilience investment and ROI analysis
+- Models network exposure, disruption, system-performance impacts
+- Quantifies travel, repair cost, and performance impacts; supports prioritization under scenarios
+- Requires significant data, modeling, and implementation effort
+
+
+=== TAB 4: EXPOSURE Datasets ===
+
+[tab4 / lead paragraph]
+Datasets that could be used for modeling Asset Exposure to risk. There are publically available datasets for every hazard; commercial / proprietary options are flagged.
+
+[tab4 / search placeholder]
+Quick search the exposure approach...
+
+
+=== TAB 5: OPEN DECISIONS ===
+
+[tab5 / lead paragraph]
+Open decisions and action items, merged from the v0.1 scoping doc and the 5/20 VA sync. Next ICF/TRPA sync: June 3, 2026. Phase 1 MVP target: mid-June 2026.
+
+
+=== FOOTER ===
+
+[footer / line 1]
+PROTECT = FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 = Resilience Improvement Plan; 3.2 = Risk-Based Vulnerability Assessment; 3.3 = this Interactive Risk Index Mapping Tool.
+
+[footer / line 2]
+Reference hub (v0.3) preceding the Phase 1 MVP. Internal review draft. Not for public distribution.
