@@ -123,64 +123,41 @@
   <main>
     <section class="intro">
       <p class="lede">
-        Working scope for the PROTECT Plan <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>.
-        The risk index follows the <strong>FHWA VAST framework</strong>. Four sub-indices
-        (<strong>Exposure</strong>, <strong>Sensitivity</strong>, <strong>Asset Value</strong>, and
-        <strong>Adaptive Capacity</strong>, reverse-scored) combine into a <strong>Master PROTECT
-        Index</strong>, weighted alongside Criticality. This page tracks the hazard-asset pairs, the data
-        inventory, and the modeling approach feeding that index.
-      </p>
-      <p class="sources">
-        Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity &amp; criticality approach),
-        <code>PROTECT_DataModel_Inventory.xlsx</code>, <code>PROTECT_RiskIndexTool_Scoping_v0.1.docx</code>.
+        Plan for development of PROTECT Plan <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>.
+        Includes an initial evaluation of Hazard/Asset pairs, H/A pairs that were selected for further analyses,
+        an inventory of existing and needed data sources and information on the modeling approach for developing the risk index.
       </p>
     </section>
 
     <section class="kpi-row">
       <div class="kpi-card"><div class="kpi-value">6</div><div class="kpi-label">Asset types</div></div>
       <div class="kpi-card"><div class="kpi-value">8</div><div class="kpi-label">Hazards</div></div>
-      <div class="kpi-card"><div class="kpi-value">12</div><div class="kpi-label">Working pairs</div></div>
-      <div class="kpi-card"><div class="kpi-value">33</div><div class="kpi-label">Data elements</div></div>
-      <div class="kpi-card"><div class="kpi-value">14</div><div class="kpi-label">Models &amp; tools</div></div>
-      <div class="kpi-card"><div class="kpi-value">4</div><div class="kpi-label">VAST sub-indices</div></div>
+      <div class="kpi-card"><div class="kpi-value">18</div><div class="kpi-label">Working pairs</div></div>
     </section>
 
     <calcite-tabs scale="m">
       <calcite-tab-nav slot="title-group">
-        <calcite-tab-title selected>Pair Matrix</calcite-tab-title>
+        <calcite-tab-title selected>Hazard Asset Pairs</calcite-tab-title>
         <calcite-tab-title>Data Inventory</calcite-tab-title>
         <calcite-tab-title>Framework &amp; Methods</calcite-tab-title>
-        <calcite-tab-title>Exposure Approach</calcite-tab-title>
+        <calcite-tab-title>Exposure Datasets</calcite-tab-title>
         <calcite-tab-title>Open Decisions</calcite-tab-title>
       </calcite-tab-nav>
 
       <!-- TAB 1: Pair Matrix -->
       <calcite-tab selected>
         <div class="tab-body">
-          <p class="lead">
-            Hazard-asset pairs in the working list. Each pair is one unit of analysis, tagged by impact type
-            (physical damage + cascading vs. operational only) and advance status. Exposure and sensitivity
-            inputs map to the VAST sub-indices.
-          </p>
+          <p class="lead">Initial evaluation of Hazard Asset Pairs.</p>
           <div class="toolbar">
             <input id="pair-qf" class="qf" type="text" placeholder="Quick search across all fields..." aria-label="Quick search pairs" />
             <calcite-button id="pair-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
           </div>
           <div id="pair-grid" class="ag-theme-quartz grid-wrap"></div>
 
-          <h2 class="sec">Assets &times; Hazards (working coverage)</h2>
-          <p class="matrix-note">
-            Filled cells reflect pairs currently in the working list; blank = not yet paired / under screening.
-            Hazard variability (high / med / low) and impact legend per the 5/20 deck. Expanded assets (Active
-            Transport, Bus Stops, Marinas) are under screening.
-          </p>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="matrix-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
-          <div id="matrix-mount" style="overflow-x:auto;"></div>
-          <div class="legend">
-            <span><span class="sw" style="background:#9C3E27"></span>Physical damage + cascading</span>
-            <span><span class="sw" style="background:#B47E00"></span>Operational only</span>
-            <span><span class="sw" style="background:#eef0f3;border:1px solid #c4ccd6"></span>Not yet paired</span>
-          </div>
+          <h2 class="sec">Asset and Vulnerability Matrix</h2>
+          <p class="lead">Working draft of Infrastructure (<strong>I</strong>) and Service (<strong>S</strong>) ratings per asset and hazard. H/M/L = high/medium/low; NE = Not Exposed (the asset would not be built in a location exposed to that hazard by design); "-" = not applicable.</p>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="sens-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
+          <div id="sens-grid" class="ag-theme-quartz grid-wrap"></div>
         </div>
       </calcite-tab>
 
@@ -188,7 +165,7 @@
       <calcite-tab>
         <div class="tab-body">
           <p class="lead">
-            Data layers feeding the risk index, tagged by VAST component and TRPA acquisition status. Use the
+            Data potentially needed for analysis classified by VAST component and TRPA acquisition status. Use the
             column filters or quick search to narrow; export the filtered set to CSV. For the full
             data-readiness tracker with live REST endpoints, see
             <a href="data-model-inventory.html" style="color:var(--trpa-blue);font-weight:600;">Data &amp; Model Inventory &rarr;</a>
@@ -207,33 +184,12 @@
             <tbody id="model-rows"></tbody>
           </table>
 
-          <h2 class="sec">Composite Index Architecture</h2>
-          <p class="lead">The ArcGIS composite-index design: three sub-indices combine into the Master PROTECT Index.</p>
-          <div class="index-flow">
-            <span class="node" style="--c:#E87722">A &middot; Exposure</span>
-            <span class="arrow">+</span>
-            <span class="node" style="--c:#B47E00">B &middot; Sensitivity</span>
-            <span class="arrow">+</span>
-            <span class="node" style="--c:#0072CE">C &middot; Asset / Adaptive Cap.</span>
-            <span class="arrow">&rarr;</span>
-            <span class="node" style="--c:#003B71">D &middot; Master PROTECT Index</span>
-          </div>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="index-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
-          <table class="ref">
-            <thead><tr><th style="width:24%">Sub-Index</th><th>Inputs</th><th>Output goal</th></tr></thead>
-            <tbody id="index-rows"></tbody>
-          </table>
         </div>
       </calcite-tab>
 
       <!-- TAB 3: Framework & Methods -->
       <calcite-tab>
         <div class="tab-body">
-          <h2 class="sec">Hazard Impact &amp; Sensitivity Matrix</h2>
-          <p class="lead">Working draft of impact (<strong>I</strong>) and sensitivity (<strong>S</strong>) ratings per asset and hazard. H/M/L = high/medium/low; NE = not evaluated; "-" = not applicable. Utilities and Schools are rated as a single value.</p>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="sens-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
-          <div id="sens-grid" class="ag-theme-quartz grid-wrap"></div>
-
           <h2 class="sec">FHWA VAST framework</h2>
           <p class="lead">
             Risk is built from four sub-indices rather than a single vulnerability score. Per ICF guidance,
@@ -279,13 +235,30 @@
             <div class="card" style="--c:#0072CE"><h3>RA2CE <span class="tag">Deltares</span></h3><ul><li>Flexible, Python-based risk &amp; resilience framework</li><li>Integrates hazard exposure, network criticality, economic impacts</li><li>Estimates direct damages + indirect disruption costs (detours)</li><li>Best for custom, analysis-driven workflows; requires user-defined setup</li></ul></div>
             <div class="card" style="--c:#003B71"><h3>Volpe RDR <span class="tag">USDOT Volpe</span></h3><ul><li>Tool suite for resilience investment and ROI analysis</li><li>Models network exposure, disruption, system-performance impacts</li><li>Quantifies travel, repair cost, and performance impacts; supports prioritization under scenarios</li><li>Requires significant data, modeling, and implementation effort</li></ul></div>
           </div>
+
+          <h2 class="sec">Composite Index Architecture</h2>
+          <p class="lead">Composite-index design: three sub-indices combine into the Master PROTECT Index.</p>
+          <div class="index-flow">
+            <span class="node" style="--c:#E87722">A &middot; Exposure</span>
+            <span class="arrow">+</span>
+            <span class="node" style="--c:#B47E00">B &middot; Sensitivity</span>
+            <span class="arrow">+</span>
+            <span class="node" style="--c:#0072CE">C &middot; Asset / Adaptive Capacity</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node" style="--c:#003B71">D &middot; Master PROTECT Index</span>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="index-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
+          <table class="ref">
+            <thead><tr><th style="width:24%">Sub-Index</th><th>Inputs</th><th>Output goal</th></tr></thead>
+            <tbody id="index-rows"></tbody>
+          </table>
         </div>
       </calcite-tab>
 
-      <!-- TAB: Exposure Approach -->
+      <!-- TAB: Exposure Datasets -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">ICF's exposure approach (4/30 data meeting): indicator-based scoring (0-3 / 0-5) for physical-damage pairs; criticality-focused / qualitative for operational-disruption pairs. A public-first path exists for every hazard; commercial / proprietary options are flagged.</p>
+          <p class="lead">Datasets that could be used for modeling Asset Exposure to risk. There are publically available datasets for every hazard; commercial / proprietary options are flagged.</p>
           <div class="toolbar">
             <input id="exp-qf" class="qf" type="text" placeholder="Quick search the exposure approach..." aria-label="Quick search exposure" />
             <calcite-button id="exp-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -311,24 +284,34 @@
   <footer class="app-footer">
     <p><strong>PROTECT</strong> = FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 = Resilience Improvement Plan; 3.2 = Risk-Based Vulnerability Assessment; 3.3 = this Interactive Risk Index Mapping Tool.</p>
     <p>Reference hub (v0.3) preceding the Phase 1 MVP. Internal review draft. Not for public distribution.</p>
+    <p>Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity &amp; criticality approach), <code>PROTECT_DataModel_Inventory.xlsx</code>, <code>PROTECT_RiskIndexTool_Scoping_v0.1.docx</code>.</p>
   </footer>
 
   <script>
   (function () {
     // ---------- DATA ----------
     const pairs = [
-      {id:"FL-C", hazard:"Flooding", asset:"Culverts", impact:"Physical + cascading", status:"Advancing", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"Culvert condition for sensitivity (Caltrans/NDOT request open)."},
-      {id:"FL-R", hazard:"Flooding", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
-      {id:"FL-B", hazard:"Flooding", asset:"Bridges", impact:"Physical + cascading", status:"Advancing", exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition data request open with Caltrans/NDOT."},
-      {id:"AV-R", hazard:"Avalanche", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout", sensitivity:"Road elevation (no unique sensitivity indicators)", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
-      {id:"LS-C", hazard:"Landslide", asset:"Culverts", impact:"Physical + cascading", status:"Advancing", exposure:"USGS Landslide Susceptibility; CA Geological Survey; post-fire debris-flow", sensitivity:"Culvert condition, capacity, scour", notes:"Post-fire compounding required per ICF."},
-      {id:"LS-R", hazard:"Landslide", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout", sensitivity:"Pavement condition, road elevation", notes:"Runout extents via RAMMS or r.avaflow."},
-      {id:"WF-R", hazard:"Wildfire", asset:"Roads", impact:"Physical + cascading", status:"Advancing", exposure:"Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling", sensitivity:"No unique sensitivity indicators", notes:"Fire-modeling procurement is the critical-path dependency."},
-      {id:"DF-C", hazard:"Debris Flow", asset:"Culverts", impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt)", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; post-fire compounding."},
-      {id:"DF-R", hazard:"Debris Flow", asset:"Roads", impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); LiDAR runout; precip", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20."},
-      {id:"EQ-B", hazard:"Earthquake", asset:"Bridges", impact:"Physical + cascading", status:"Candidate", exposure:"USGS Seismic Hazard Maps; ComCat; ShakeMaps", sensitivity:"Seismic retrofit status, bridge condition, age", notes:"Identify bridges needing seismic retrofit."},
-      {id:"WD-R", hazard:"Wind", asset:"Roads", impact:"Operational", status:"Screening", exposure:"gridMET wind (Climate Engine); ASCE 7; criticality-focused (operational)", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:"Asset target TBD: Roads and/or Power & Telecom. Operational-only per 5/20."},
-      {id:"WS-R", hazard:"Winter Storm", asset:"Roads", impact:"Operational", status:"Screening", exposure:"SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm; criticality-focused", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:"Asset target TBD: Roads / Power / ITS. Operational-only."}
+      {id:"FL-R",  hazard:"Flooding",      asset:"Roads",           impact:"Physical + cascading", status:"Advancing",     exposure:"FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
+      {id:"FL-B",  hazard:"Flooding",      asset:"Bridges",         impact:"Physical + cascading", status:"Advancing",     exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition data request open with Caltrans/NDOT."},
+      {id:"FL-AT", hazard:"Flooding",      asset:"Active Transport", impact:"Physical + cascading", status:"Candidate",     exposure:"", sensitivity:"", notes:""},
+      {id:"FL-C",  hazard:"Flooding",      asset:"Culverts",        impact:"Physical + cascading", status:"Not Analyzing", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"Culvert condition for sensitivity (Caltrans/NDOT request open)."},
+      {id:"AV-R",  hazard:"Avalanche",     asset:"Roads",           impact:"Operational",          status:"Advancing",     exposure:"SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout", sensitivity:"Road elevation (no unique sensitivity indicators)", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
+      {id:"AV-B",  hazard:"Avalanche",     asset:"Bridges",         impact:"Physical + cascading", status:"Advancing",     exposure:"", sensitivity:"", notes:""},
+      {id:"LS-R",  hazard:"Landslide",     asset:"Roads",           impact:"Physical + cascading", status:"Advancing",     exposure:"USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout", sensitivity:"Pavement condition, road elevation", notes:"Runout extents via RAMMS or r.avaflow."},
+      {id:"LS-B",  hazard:"Landslide",     asset:"Bridges",         impact:"Physical + cascading", status:"Advancing",     exposure:"", sensitivity:"", notes:""},
+      {id:"LS-C",  hazard:"Landslide",     asset:"Culverts",        impact:"Physical + cascading", status:"Candidate",     exposure:"USGS Landslide Susceptibility; CA Geological Survey; post-fire debris-flow", sensitivity:"Culvert condition, capacity, scour", notes:"Post-fire compounding required per ICF."},
+      {id:"WF-R",  hazard:"Wildfire",      asset:"Roads",           impact:"Physical + cascading", status:"Advancing",     exposure:"Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling", sensitivity:"No unique sensitivity indicators", notes:"Fire-modeling procurement is the critical-path dependency."},
+      {id:"WF-AT", hazard:"Wildfire",      asset:"Active Transport", impact:"Physical + cascading", status:"Advancing",     exposure:"", sensitivity:"", notes:""},
+      {id:"WF-TC", hazard:"Wildfire",      asset:"Transit Centers",  impact:"Physical + cascading", status:"Advancing",     exposure:"", sensitivity:"", notes:""},
+      {id:"WF-M",  hazard:"Wildfire",      asset:"Marinas",          impact:"Physical + cascading", status:"Candidate",     exposure:"", sensitivity:"", notes:""},
+      {id:"DF-C",  hazard:"Debris Flow",   asset:"Culverts",        impact:"Physical + cascading", status:"Not Analyzing", exposure:"Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt)", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; post-fire compounding."},
+      {id:"DF-R",  hazard:"Debris Flow",   asset:"Roads",           impact:"Physical + cascading", status:"Not Analyzing", exposure:"Post-fire debris flow (HEC-HMS); LiDAR runout; precip", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20."},
+      {id:"EQ-B",  hazard:"Earthquake",    asset:"Bridges",         impact:"Physical + cascading", status:"Candidate",     exposure:"USGS Seismic Hazard Maps; ComCat; ShakeMaps", sensitivity:"Seismic retrofit status, bridge condition, age", notes:"Identify bridges needing seismic retrofit."},
+      {id:"EQ-R",  hazard:"Earthquake",    asset:"Roads",           impact:"Physical + cascading", status:"Candidate",     exposure:"", sensitivity:"", notes:""},
+      {id:"WD-R",  hazard:"Wind",          asset:"Roads",           impact:"Operational",          status:"Advancing",     exposure:"gridMET wind (Climate Engine); ASCE 7; criticality-focused (operational)", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:"Asset target TBD: Roads and/or Power & Telecom. Operational-only per 5/20."},
+      {id:"WS-R",  hazard:"Winter Storm",  asset:"Roads",           impact:"Operational",          status:"Advancing",     exposure:"SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm; criticality-focused", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:"Asset target TBD: Roads / Power / ITS. Operational-only."},
+      {id:"WS-AT", hazard:"Winter Storm",  asset:"Active Transport", impact:"Operational",          status:"Candidate",     exposure:"", sensitivity:"", notes:""},
+      {id:"WS-TC", hazard:"Winter Storm",  asset:"Transit Centers",  impact:"Operational",          status:"Advancing",     exposure:"", sensitivity:"", notes:""}
     ];
 
     const dataInventory = [
@@ -411,7 +394,7 @@
 
     // ---------- COLOR MAPS ----------
     const hazardColor = {Flooding:"#0072CE", Avalanche:"#5BA4DD", Landslide:"#9C3E27", Wildfire:"#E87722", "Debris Flow":"#8B5A3C", "Winter Storm":"#003B71", Earthquake:"#B5A64C", Wind:"#7B6A8A"};
-    const statusColor = {Advancing:"#4A6118", Candidate:"#E87722", Screening:"#0072CE", Hold:"#6B7280"};
+    const statusColor = {Advancing:"#4A6118", Candidate:"#E87722", "Not Analyzing":"#6B7280", Screening:"#0072CE", Hold:"#6B7280"};
     const impactColor = {"Physical + cascading":"#9C3E27", "Operational":"#B47E00"};
     const componentColor = {Exposure:"#E87722", Sensitivity:"#B47E00", "Asset Value":"#0072CE", "Adaptive Capacity":"#4A6118", Vulnerability:"#9C3E27"};
     function statusWord(s){ return statusColor[(s||"").split(/[\s/]/)[0]] || "#6B7280"; }
@@ -436,34 +419,6 @@
     document.getElementById("decision-rows").innerHTML = decisions.map(d =>
       "<tr><td>"+d[0]+"</td><td>"+esc(d[1])+"</td><td>"+esc(d[2])+"</td><td>"+esc(d[3])+"</td></tr>"
     ).join("");
-
-    // ---------- ASSETS x HAZARDS MATRIX ----------
-    (function buildMatrix(){
-      const assets = ["Roads","Bridges","Culverts","Active Transport","Bus Stops","Marinas"];
-      const hazards = ["Wildfire","Flooding","Landslide","Debris Flow","Avalanche","Earthquake","Winter Storm","Wind"];
-      const variability = {Wildfire:"med", Flooding:"med", Landslide:"high", "Debris Flow":"high", Avalanche:"high", Earthquake:"med", "Winter Storm":"low", Wind:"low"};
-      const lookup = {};
-      pairs.forEach(p => { lookup[p.asset+"|"+p.hazard] = p; });
-      let html = "<table class='matrix'><thead><tr><th class='asset'>Asset \\ Hazard</th>";
-      hazards.forEach(h => { html += "<th>"+esc(h)+"<span class='vbadge'>"+variability[h]+"</span></th>"; });
-      html += "</tr></thead><tbody>";
-      assets.forEach(a => {
-        html += "<tr><th class='asset'>"+esc(a)+"</th>";
-        hazards.forEach(h => {
-          const p = lookup[a+"|"+h];
-          if(p){
-            const c = impactColor[p.impact] || "#777";
-            const abbr = p.impact === "Operational" ? "OP" : "PC";
-            html += "<td class='cell' style='background:"+c+"' title='"+esc(p.id+": "+p.hazard+" x "+p.asset+" ("+p.impact+", "+p.status+")")+"'>"+abbr+"</td>";
-          } else {
-            html += "<td class='blank'>&middot;</td>";
-          }
-        });
-        html += "</tr>";
-      });
-      html += "</tbody></table>";
-      document.getElementById("matrix-mount").innerHTML = html;
-    })();
 
     // ---------- AG GRIDS ----------
     const pairCols = [
@@ -501,22 +456,26 @@
       {field:"useCase", headerName:"Use Case", flex:1, minWidth:240, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"}
     ];
 
-    // ---------- HAZARD IMPACT (I) / SENSITIVITY (S) MATRIX ----------
-    const ratingMap = {H:"#9C3E27", M:"#B47E00", L:"#4A6118", NE:"#6B7280", Yes:"#E87722", No:"#7B6A8A", Medium:"#B47E00"};
-    const sensAssets = [["Roadway","rd"],["Hospitals","hosp"],["Bridge","br"],["Culvert","cul"],["Power Line","pl"],["Transit","tr"],["Communities","com"],["Traffic Signals","ts"],["Cell Towers","ct"],["Bike Paths","bp"],["Utilities","ut"],["Schools","sch"],["Stormwater","sw"]];
+    // ---------- ASSET AND VULNERABILITY MATRIX ----------
+    const ratingMap = {H:"#9C3E27", M:"#B47E00", L:"#4A6118", NE:"#6B7280"};
+    const sensHazards = [
+      ["Wind","wind"],["Snow","snow"],["Fire","fire"],["Flood","flood"],
+      ["Landslide / Avalanche","ls"],["Earthquake / Seiche","eq"]
+    ];
     const sensRows = [
-      {hazard:"Wind", rd_i:"L",rd_s:"H", hosp_i:"-",hosp_s:"-", br_i:"-",br_s:"L", cul_i:"L",cul_s:"-", pl_i:"H",pl_s:"H", tr_i:"L",tr_s:"M", com_i:"M",com_s:"M", ts_i:"L",ts_s:"L", ct_i:"M",ct_s:"M", bp_i:"-",bp_s:"-", ut_i:"Yes",ut_s:"", sch_i:"No",sch_s:"", sw_i:"L",sw_s:"-"},
-      {hazard:"Snow", rd_i:"L",rd_s:"H", hosp_i:"L",hosp_s:"M", br_i:"M",br_s:"H", cul_i:"L",cul_s:"-", pl_i:"H",pl_s:"H", tr_i:"L",tr_s:"H", com_i:"M",com_s:"H", ts_i:"L",ts_s:"L", ct_i:"L",ct_s:"M", bp_i:"L",bp_s:"H", ut_i:"Yes",ut_s:"", sch_i:"No",sch_s:"", sw_i:"-",sw_s:"-"},
-      {hazard:"Fire", rd_i:"L",rd_s:"H", hosp_i:"H",hosp_s:"H", br_i:"L",br_s:"H", cul_i:"H",cul_s:"M", pl_i:"H",pl_s:"H", tr_i:"M",tr_s:"M", com_i:"H",com_s:"H", ts_i:"H",ts_s:"H", ct_i:"H",ct_s:"H", bp_i:"M",bp_s:"H", ut_i:"Yes",ut_s:"", sch_i:"Yes",sch_s:"", sw_i:"L",sw_s:"-"},
-      {hazard:"Flood", rd_i:"H",rd_s:"H", hosp_i:"NE",hosp_s:"NE", br_i:"H",br_s:"H", cul_i:"H",cul_s:"H", pl_i:"NE",pl_s:"NE", tr_i:"NE",tr_s:"NE", com_i:"NE",com_s:"NE", ts_i:"NE",ts_s:"NE", ct_i:"NE",ct_s:"NE", bp_i:"H",bp_s:"H", ut_i:"Yes",ut_s:"", sch_i:"No",sch_s:"", sw_i:"H",sw_s:"H"},
-      {hazard:"Landslide/Avalanche", rd_i:"H",rd_s:"H", hosp_i:"NE",hosp_s:"NE", br_i:"H",br_s:"H", cul_i:"H",cul_s:"H", pl_i:"H",pl_s:"H", tr_i:"NE",tr_s:"NE", com_i:"H",com_s:"M", ts_i:"H",ts_s:"H", ct_i:"NE",ct_s:"NE", bp_i:"H",bp_s:"H", ut_i:"Yes",ut_s:"", sch_i:"No",sch_s:"", sw_i:"M",sw_s:"M"},
-      {hazard:"Earthquake/Seiche?", rd_i:"L",rd_s:"L", hosp_i:"M",hosp_s:"M", br_i:"M",br_s:"L", cul_i:"M",cul_s:"M", pl_i:"M",pl_s:"M", tr_i:"L",tr_s:"L", com_i:"M",com_s:"M", ts_i:"L",ts_s:"L", ct_i:"L",ct_s:"M", bp_i:"L",bp_s:"L", ut_i:"Medium",ut_s:"", sch_i:"Medium",sch_s:"", sw_i:"L",sw_s:"L"}
+      {asset:"Roadway",    wind_i:"L",wind_s:"H",  snow_i:"L",snow_s:"H",  fire_i:"L",fire_s:"H",  flood_i:"H",flood_s:"H",  ls_i:"H",ls_s:"H",  eq_i:"L",eq_s:"L"},
+      {asset:"Hospitals",  wind_i:"-",wind_s:"-",  snow_i:"L",snow_s:"M",  fire_i:"H",fire_s:"H",  flood_i:"NE",flood_s:"NE",ls_i:"NE",ls_s:"NE",eq_i:"M",eq_s:"M"},
+      {asset:"Bridge",     wind_i:"-",wind_s:"L",  snow_i:"M",snow_s:"H",  fire_i:"L",fire_s:"H",  flood_i:"H",flood_s:"H",  ls_i:"H",ls_s:"H",  eq_i:"M",eq_s:"L"},
+      {asset:"Culvert",    wind_i:"L",wind_s:"-",  snow_i:"L",snow_s:"-",  fire_i:"H",fire_s:"M",  flood_i:"H",flood_s:"H",  ls_i:"H",ls_s:"H",  eq_i:"M",eq_s:"M"},
+      {asset:"Transit",    wind_i:"L",wind_s:"M",  snow_i:"L",snow_s:"H",  fire_i:"M",fire_s:"M",  flood_i:"NE",flood_s:"NE",ls_i:"NE",ls_s:"NE",eq_i:"L",eq_s:"L"},
+      {asset:"Bike Paths", wind_i:"-",wind_s:"-",  snow_i:"L",snow_s:"H",  fire_i:"M",fire_s:"H",  flood_i:"H",flood_s:"H",  ls_i:"H",ls_s:"H",  eq_i:"L",eq_s:"L"},
+      {asset:"Stormwater", wind_i:"L",wind_s:"-",  snow_i:"-",snow_s:"-",  fire_i:"L",fire_s:"-",  flood_i:"H",flood_s:"H",  ls_i:"M",ls_s:"M",  eq_i:"L",eq_s:"L"}
     ];
     const sensCols = [
-      {field:"hazard", headerName:"Hazard", pinned:"left", width:160, cellStyle:{fontWeight:"600"}},
-      ...sensAssets.map(a=>({headerName:a[0], children:[
-        {field:a[1]+"_i", headerName:"I", width:52, cellClass:"rate", cellStyle:colorCell(ratingMap)},
-        {field:a[1]+"_s", headerName:"S", width:52, cellClass:"rate", cellStyle:colorCell(ratingMap)}
+      {field:"asset", headerName:"Asset", pinned:"left", width:130, cellStyle:{fontWeight:"600"}},
+      ...sensHazards.map(h=>({headerName:h[0], children:[
+        {field:h[1]+"_i", headerName:"I", width:52, cellClass:"rate", cellStyle:colorCell(ratingMap)},
+        {field:h[1]+"_s", headerName:"S", width:52, cellClass:"rate", cellStyle:colorCell(ratingMap)}
       ]}))
     ];
 
@@ -612,7 +571,6 @@
       wireToolbar("inv-qf", "inv-export", invDiv, "PROTECT_Data_Inventory.csv");
       document.getElementById("sens-export").addEventListener("click", ()=>{ if(sensDiv.__api) sensDiv.__api.exportDataAsCsv({fileName:"PROTECT_Sensitivity_Matrix.csv"}); });
       wireToolbar("exp-qf", "exp-export", expDiv, "PROTECT_Exposure_Approach.csv");
-      wireTableCsv("matrix-export", ()=>document.querySelector("#matrix-mount table"), "PROTECT_Assets_Hazards_Matrix.csv");
       wireTableCsv("model-export", ()=>document.getElementById("model-rows").closest("table"), "PROTECT_Model_Inventory.csv");
       wireTableCsv("index-export", ()=>document.getElementById("index-rows").closest("table"), "PROTECT_Index_Architecture.csv");
       wireTableCsv("decision-export", ()=>document.getElementById("decision-rows").closest("table"), "PROTECT_Open_Decisions.csv");
