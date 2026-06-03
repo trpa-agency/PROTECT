@@ -267,24 +267,24 @@
   (function () {
     // ---------- DATA ----------
     const haPairs = [
-      {hazard:"Avalanche",    asset:"Bridges",          include:"Yes"},
-      {hazard:"Avalanche",    asset:"Roads",            include:"Yes"},
-      {hazard:"Flooding",     asset:"Bridges",          include:"Yes"},
-      {hazard:"Flooding",     asset:"Roads",            include:"Yes"},
-      {hazard:"Landslide",    asset:"Bridges",          include:"Yes"},
-      {hazard:"Landslide",    asset:"Roads",            include:"Yes"},
-      {hazard:"Wildfire",     asset:"Active Transport", include:"Yes"},
-      {hazard:"Wildfire",     asset:"Roads",            include:"Yes"},
-      {hazard:"Wildfire",     asset:"Transit Centers",  include:"Yes"},
-      {hazard:"Wind",         asset:"Roads",            include:"Yes"},
-      {hazard:"Winter Storm", asset:"Roads",            include:"Yes"},
-      {hazard:"Winter Storm", asset:"Transit Centers",  include:"Yes"},
-      {hazard:"Earthquake",   asset:"Bridges",          include:"Maybe"},
-      {hazard:"Earthquake",   asset:"Roads",            include:"Maybe"},
-      {hazard:"Flooding",     asset:"Active Transport", include:"Maybe"},
-      {hazard:"Landslide",    asset:"Culverts",         include:"Maybe"},
-      {hazard:"Wildfire",     asset:"Marinas",          include:"Maybe"},
-      {hazard:"Winter Storm", asset:"Active Transport", include:"Maybe"}
+      {hazard:"Avalanche",    asset:"Bridges",          include:"Yes",   comments:""},
+      {hazard:"Avalanche",    asset:"Roads",            include:"Yes",   comments:""},
+      {hazard:"Flooding",     asset:"Bridges",          include:"Yes",   comments:""},
+      {hazard:"Flooding",     asset:"Roads",            include:"Yes",   comments:""},
+      {hazard:"Landslide",    asset:"Bridges",          include:"Yes",   comments:""},
+      {hazard:"Landslide",    asset:"Roads",            include:"Yes",   comments:""},
+      {hazard:"Wildfire",     asset:"Active Transport", include:"Yes",   comments:""},
+      {hazard:"Wildfire",     asset:"Roads",            include:"Yes",   comments:""},
+      {hazard:"Wildfire",     asset:"Transit Centers",  include:"Yes",   comments:""},
+      {hazard:"Wind",         asset:"Roads",            include:"Yes",   comments:""},
+      {hazard:"Winter Storm", asset:"Roads",            include:"Yes",   comments:""},
+      {hazard:"Winter Storm", asset:"Transit Centers",  include:"Yes",   comments:""},
+      {hazard:"Earthquake",   asset:"Bridges",          include:"Maybe", comments:""},
+      {hazard:"Earthquake",   asset:"Roads",            include:"Maybe", comments:""},
+      {hazard:"Flooding",     asset:"Active Transport", include:"Maybe", comments:""},
+      {hazard:"Landslide",    asset:"Culverts",         include:"Maybe", comments:""},
+      {hazard:"Wildfire",     asset:"Marinas",          include:"Maybe", comments:""},
+      {hazard:"Winter Storm", asset:"Active Transport", include:"Maybe", comments:""}
     ];
     const assetsData = [
       {asset:"Active Transport", criticality:"Maybe a network analysis or just expense of replacement?", vulnerability:"", comments:""},
@@ -434,9 +434,10 @@
 
     // ---------- AG GRIDS ----------
     const haCols = [
-      {field:"hazard",  headerName:"Hazard",  width:150, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
-      {field:"asset",   headerName:"Asset",   width:160, filter:"agTextColumnFilter"},
-      {field:"include", headerName:"Include", width:120, filter:"agTextColumnFilter", cellStyle:colorCell({Yes:"#4A6118", Maybe:"#E87722"})}
+      {field:"hazard",   headerName:"Hazard",   width:150, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
+      {field:"asset",    headerName:"Asset",    width:160, filter:"agTextColumnFilter"},
+      {field:"include",  headerName:"Include",  width:120, filter:"agTextColumnFilter", cellStyle:colorCell({Yes:"#4A6118", Maybe:"#E87722"})},
+      {field:"comments", headerName:"Comments", flex:1, minWidth:200, wrapText:true, autoHeight:true}
     ];
     const assetsCols = [
       {field:"asset",         headerName:"Asset",                           width:160, pinned:"left", cellStyle:{fontWeight:"600"}},
