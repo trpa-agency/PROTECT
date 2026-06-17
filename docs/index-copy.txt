@@ -1,7 +1,7 @@
 PROTECT index.html -- editable copy
-Last synced: 2026-05-28
+Last synced: 2026-06-17
 ====================================
-Edit text below, then hand back to Copilot to apply changes to the HTML.
+Edit text below, then hand back to apply changes to the HTML.
 Labels in [brackets] identify where each piece of text lives.
 
 
@@ -28,14 +28,10 @@ v0.3
 [intro / lede paragraph]
 Plan for development of PROTECT Plan Task 3.3 Interactive Risk Index Mapping Tool.
 Includes an initial evaluation of Hazard/Asset pairs, H/A pairs that were selected for further analyses,
-an inventory of existing and needed data sources and information on the modeling approach for developing the risk index
-
-[intro / sources line]
-# Move this to the footer of the page
-Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity & criticality approach), PROTECT_DataModel_Inventory.xlsx, PROTECT_RiskIndexTool_Scoping_v0.1.docx.
+an inventory of existing and needed data sources and information on the modeling approach for developing the risk index.
 
 
-=== KPI CARDS ==
+=== KPI CARDS ===
 (value | label)
 
 6  | Asset types
@@ -43,23 +39,35 @@ Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity & criticality approach), PROTEC
 18 | Working pairs
 
 
-
 === TAB TITLES ===
 
 Tab 1: Hazard Asset Pairs
 Tab 2: Data Inventory
 Tab 3: Framework & Methods
-Tab 4: Exposure Approach
-Tab 5: Open Decisions
+Tab 4: Exposure Datasets
+Tab 5: Meeting Agenda
+Tab 6: Action Items
 
 
 === TAB 1: PAIR MATRIX ===
 
-[tab1 / lead paragraph]
-Initial evaluation of Hazard Asset Pairs.
+[tab1 / ha-pairs section heading]
+Hazard-Asset Pairs
 
-[tab1 / search placeholder]
-Quick search across all fields...
+[tab1 / ha-pairs lead paragraph]
+Hazard and asset pairs selected for analysis. "Yes" = advancing to geospatial scoring; "Maybe" = candidate pending further review.
+
+[tab1 / assets section heading]
+Assets
+
+[tab1 / assets lead paragraph]
+Asset types in scope, with notes on criticality scoring approach and additional vulnerability data sources.
+
+[tab1 / hazard sources section heading]
+Hazard Data Sources
+
+[tab1 / hazard sources lead paragraph]
+Data sources under evaluation for each hazard.
 
 [tab1 / matrix section heading]
 Asset and Vulnerability Matrix
@@ -71,29 +79,8 @@ Working draft of Infrastructure (I) and Service (S) ratings per asset and hazard
 === TAB 2: DATA INVENTORY ===
 
 [tab2 / lead paragraph]
-Data potentially needed for analysis classified by VAST component and TRPA acquisition status. Use the column filters or quick search to narrow; export the filtered set to CSV. For the full data-readiness tracker with live REST endpoints, see Data & Model Inventory.
-
-[tab2 / search placeholder]
-Quick search the data inventory...
-
-[tab2 / model inventory section heading]
-Model & Tool Inventory
-
-[tab2 / model inventory lead]
-Modeling platforms by contract task, with cost band and access constraints.
-
-[tab2 / composite index section heading]
-Composite Index Architecture
-
-# Move this to the bottom of tab 3
-[tab2 / composite index lead]
-Composite-index design: three sub-indices combine into the Master PROTECT Index.
-
-[tab2 / index flow node labels]
-A · Exposure
-B · Sensitivity
-C · Asset / Adaptive Capacity
-D · Master PROTECT Index
+For the full data-readiness tracker with live REST endpoints, see Data & Model Inventory →
+(link target: data-model-inventory.html)
 
 
 === TAB 3: FRAMEWORK & METHODS ===
@@ -298,7 +285,7 @@ Volpe RDR  [source tag: USDOT Volpe]
 - Requires significant data, modeling, and implementation effort
 
 
-=== TAB 4: EXPOSURE Datasets ===
+=== TAB 4: EXPOSURE DATASETS ===
 
 [tab4 / lead paragraph]
 Datasets that could be used for modeling Asset Exposure to risk. There are publically available datasets for every hazard; commercial / proprietary options are flagged.
@@ -307,10 +294,79 @@ Datasets that could be used for modeling Asset Exposure to risk. There are publi
 Quick search the exposure approach...
 
 
-=== TAB 5: OPEN DECISIONS ===
+=== TAB 5: MEETING AGENDA ===
 
-[tab5 / lead paragraph]
-Open decisions and action items, merged from the v0.1 scoping doc and the 5/20 VA sync. Next ICF/TRPA sync: June 3, 2026. Phase 1 MVP target: mid-June 2026.
+[tab5 / page heading]
+PROTECT ICF VA Meeting Agenda - 6/17
+
+--- TRPA Progress ---
+
+[tab5 / trpa progress / heading]
+TRPA Progress
+
+[tab5 / trpa progress / bullets]
+- RFP is almost out
+  - Does ICF have suggestions for data vendors that we should reach out to?
+- Streets network added to our enterprise geodatabase and we are testing and refining - we should have it published to our portal soon
+- Culverts from old data - new data rolling in
+- Created a file geodatabase with local versions of all of our relevant data
+  - Would it be helpful to share?
+- Continued with RA2CE analysis and it looks very useful
+  - What would be some defensible ways to create fire hazard polygons?
+  - Are there other hazards we should be modeling given that floods aren't really a big issue?
+- Published hex binned population centers as part of census curated - planning on using those as Origins in the OD RA2CE analysis. These population centers also have info about disadvantaged communities so we could do some equity weighting
+- Should we do a basic criticality scoring with public service infrastructure or just not worry about it?
+
+--- Questions for ICF ---
+
+[tab5 / questions for icf / heading]
+Questions for ICF
+
+[tab5 / questions for icf / bullets]
+- Timeline? When do they need preliminary results by?
+- Examples of how people have used RAMMS?
+- Examples of how people have used VOLPE? Do we need this for unlocking $$$?
+- What are we missing?
+- What specifically would doing a "dark sky" exercise look like?
+
+--- Random Thoughts ---
+
+[tab5 / random thoughts / heading]
+Random Thoughts
+
+[tab5 / random thoughts / bullets]
+- Should we attribute our roads network with "seasonal" or something so we can capture roads that have gates and close regularly in the winter? This might not be too difficult at least for the critical networks
+
+--- Open Decisions table ---
+
+[tab5 / open decisions / section heading]
+Open Decisions
+
+[tab5 / open decisions / lead paragraph]
+Questions and decisions raised at the ICF/TRPA VA sync, June 17, 2026.
+
+[tab5 / open decisions / table]
+(# | Question / decision | Owner | Status)
+1  | Does ICF have suggestions for data vendors that we should reach out to? (re: RFP)                 | ICF        | Open
+2  | Would it be helpful to share the local file geodatabase with ICF?                                  | TRPA       | Open
+3  | What would be some defensible ways to create fire hazard polygons?                                 | ICF        | Open
+4  | Are there other hazards we should be modeling given that floods are not really a big issue?        | ICF / TRPA | Open
+5  | Should we do a basic criticality scoring with public service infrastructure or just not worry about it? | TRPA  | Open
+6  | Timeline - when does ICF need preliminary results by?                                              | ICF        | Open
+7  | Examples of how people have used RAMMS?                                                            | ICF        | Open
+8  | Examples of how people have used VOLPE? Do we need this for unlocking $$$?                         | ICF        | Open
+9  | What are we missing?                                                                               | ICF / TRPA | Open
+10 | What specifically would doing a "dark sky" exercise look like?                                      | ICF        | Open
+11 | Should we attribute the roads network with "seasonal" to capture gated roads that close in winter? | TRPA       | Open
+
+
+=== TAB 6: ACTION ITEMS ===
+
+[tab6 / section heading]
+Action Items
+
+[tab6 / lead paragraph]
+Action items from ICF/TRPA syncs. Content to be added.
 
 
 === FOOTER ===
@@ -320,3 +376,6 @@ PROTECT = FHWA Promoting Resilient Operations for Transformative, Efficient, and
 
 [footer / line 2]
 Reference hub (v0.3) preceding the Phase 1 MVP. Internal review draft. Not for public distribution.
+
+[footer / sources line]
+Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity & criticality approach), PROTECT_DataModel_Inventory.xlsx, PROTECT_RiskIndexTool_Scoping_v0.1.docx.

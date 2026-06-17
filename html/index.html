@@ -141,7 +141,8 @@
         <calcite-tab-title>Data Inventory</calcite-tab-title>
         <calcite-tab-title>Framework &amp; Methods</calcite-tab-title>
         <calcite-tab-title>Exposure Datasets</calcite-tab-title>
-        <calcite-tab-title>Open Decisions</calcite-tab-title>
+        <calcite-tab-title>Meeting Agenda</calcite-tab-title>
+        <calcite-tab-title>Action Items</calcite-tab-title>
       </calcite-tab-nav>
 
       <!-- TAB 1: Pair Matrix -->
@@ -243,17 +244,78 @@
         </div>
       </calcite-tab>
 
-      <!-- TAB 4: Open Decisions -->
+      <!-- TAB: Meeting Agenda -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">Open decisions and action items, merged from the v0.1 scoping doc and the 5/20 VA sync. Next ICF/TRPA sync: June 3, 2026. Phase 1 MVP target: mid-June 2026.</p>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="decision-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
+          <h2 class="sec">PROTECT ICF VA Meeting Agenda - 6/17</h2>
+
+          <h3 style="font-size:.95rem;font-weight:700;margin:1rem 0 .5rem;color:var(--trpa-navy);">TRPA Progress</h3>
+          <ul style="margin-left:1.25rem;font-size:.88rem;line-height:1.65;">
+            <li style="margin-bottom:.5rem;">RFP is almost out
+              <ul style="margin-left:1.25rem;margin-top:.25rem;">
+                <li>Does ICF have suggestions for data vendors that we should reach out to?</li>
+              </ul>
+            </li>
+            <li style="margin-bottom:.5rem;">Streets network added to our enterprise geodatabase and we are testing and refining - we should have it published to our portal soon</li>
+            <li style="margin-bottom:.5rem;">Culverts from old data - new data rolling in</li>
+            <li style="margin-bottom:.5rem;">Created a file geodatabase with local versions of all of our relevant data
+              <ul style="margin-left:1.25rem;margin-top:.25rem;">
+                <li>Would it be helpful to share?</li>
+              </ul>
+            </li>
+            <li style="margin-bottom:.5rem;">Continued with RA2CE analysis and it looks very useful
+              <ul style="margin-left:1.25rem;margin-top:.25rem;">
+                <li>What would be some defensible ways to create fire hazard polygons?</li>
+                <li>Are there other hazards we should be modeling given that floods aren't really a big issue?</li>
+              </ul>
+            </li>
+            <li style="margin-bottom:.5rem;">Published hex binned population centers as part of census curated - planning on using those as Origins in the OD RA2CE analysis. These population centers also have info about disadvantaged communities so we could do some equity weighting</li>
+            <li style="margin-bottom:.5rem;">Should we do a basic criticality scoring with public service infrastructure or just not worry about it?</li>
+          </ul>
+
+          <h3 style="font-size:.95rem;font-weight:700;margin:1.25rem 0 .5rem;color:var(--trpa-navy);">Questions for ICF</h3>
+          <ul style="margin-left:1.25rem;font-size:.88rem;line-height:1.65;">
+            <li style="margin-bottom:.5rem;">Timeline? When do they need preliminary results by?</li>
+            <li style="margin-bottom:.5rem;">Examples of how people have used RAMMS?</li>
+            <li style="margin-bottom:.5rem;">Examples of how people have used VOLPE? Do we need this for unlocking $$$?</li>
+            <li style="margin-bottom:.5rem;">What are we missing?</li>
+            <li style="margin-bottom:.5rem;">What specifically would doing a "dark sky" exercise look like?</li>
+          </ul>
+
+          <h3 style="font-size:.95rem;font-weight:700;margin:1.25rem 0 .5rem;color:var(--trpa-navy);">Random Thoughts</h3>
+          <ul style="margin-left:1.25rem;font-size:.88rem;line-height:1.65;">
+            <li style="margin-bottom:.5rem;">Should we attribute our roads network with "seasonal" or something so we can capture roads that have gates and close regularly in the winter? This might not be too difficult at least for the critical networks</li>
+          </ul>
+
+          <h2 class="sec">Open Decisions</h2>
+          <p class="lead">Questions and decisions raised at the ICF/TRPA VA sync, June 17, 2026.</p>
           <table class="ref">
-            <thead><tr><th style="width:48px">#</th><th>Decision / action</th><th style="width:150px">Owner</th><th style="width:150px">Needed by</th></tr></thead>
-            <tbody id="decision-rows"></tbody>
+            <thead><tr><th style="width:48px">#</th><th>Question / decision</th><th style="width:150px">Owner</th><th style="width:150px">Status</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Does ICF have suggestions for data vendors that we should reach out to? (re: RFP)</td><td>ICF</td><td>Open</td></tr>
+              <tr><td>2</td><td>Would it be helpful to share the local file geodatabase with ICF?</td><td>TRPA</td><td>Open</td></tr>
+              <tr><td>3</td><td>What would be some defensible ways to create fire hazard polygons?</td><td>ICF</td><td>Open</td></tr>
+              <tr><td>4</td><td>Are there other hazards we should be modeling given that floods are not really a big issue?</td><td>ICF / TRPA</td><td>Open</td></tr>
+              <tr><td>5</td><td>Should we do a basic criticality scoring with public service infrastructure or just not worry about it?</td><td>TRPA</td><td>Open</td></tr>
+              <tr><td>6</td><td>Timeline - when does ICF need preliminary results by?</td><td>ICF</td><td>Open</td></tr>
+              <tr><td>7</td><td>Examples of how people have used RAMMS?</td><td>ICF</td><td>Open</td></tr>
+              <tr><td>8</td><td>Examples of how people have used VOLPE? Do we need this for unlocking $$$?</td><td>ICF</td><td>Open</td></tr>
+              <tr><td>9</td><td>What are we missing?</td><td>ICF / TRPA</td><td>Open</td></tr>
+              <tr><td>10</td><td>What specifically would doing a "dark sky" exercise look like?</td><td>ICF</td><td>Open</td></tr>
+              <tr><td>11</td><td>Should we attribute the roads network with "seasonal" to capture gated roads that close in winter?</td><td>TRPA</td><td>Open</td></tr>
+            </tbody>
           </table>
         </div>
       </calcite-tab>
+
+      <!-- TAB: Action Items -->
+      <calcite-tab>
+        <div class="tab-body">
+          <h2 class="sec">Action Items</h2>
+          <p class="lead">Action items from ICF/TRPA syncs. Content to be added.</p>
+        </div>
+      </calcite-tab>
+
     </calcite-tabs>
   </main>
 
@@ -393,23 +455,6 @@
       ["D. Master PROTECT Index","Sub-Index A + Sub-Index B + Sub-Index C","The single composite map for the Task 3.3 interactive tool.","#003B71"]
     ];
 
-    const decisions = [
-      [1,"Disruption-risk tool: RA2CE vs. Volpe RDR (ICF pros/cons + level of effort)","TRPA / ICF","Before MVP build"],
-      [2,"Which asset/hazard pairs advance to robust geospatial analysis","TRPA","In progress (before Phase 2)"],
-      [3,"Exposure scoring rubric per hazard","TRPA (ICF recs on sens/crit)","In progress"],
-      [4,"Analysis grain: road segment, parcel, or both","TRPA","Before MVP build"],
-      [5,"Climate-data sourcing: TRPA purchase vs. add to ICF contract (commercial flood data ~$29,500; RAMMS ~$3k-$5k, sole-source)","TRPA","Before Phase 2/3"],
-      [6,"ICF endorsement of FHWA VAST structure (4 sub-indices, Master, Justice40 multiplier, Adaptive Capacity reverse)","ICF / TRPA","Confirm at 5/20 sync"],
-      [7,"Data hand-off contract: schema, CRS, format, cadence for ICF deliverables","ICF / TRPA","In progress"],
-      [8,"Public visibility: internal-only until Workshop 1, partner-restricted, or public","TRPA","Before MVP build"],
-      [9,"Traffic-count source: commercial mobility data vs. AADT (vendor selection pending)","TRPA","Before MVP build"],
-      [10,"Prior landslide analysis: what type was previously conducted?","TRPA","Before Phase 2"],
-      [11,"Flood depth method: can TRPA run HEC-RAS, or use simpler flood-extent methods?","TRPA / ICF","Before Phase 2"],
-      [12,"Commercial fire modeling: needed, or do public datasets (WRC, CA Pyregence) suffice?","TRPA / ICF","Before Phase 2"],
-      [13,"Debris-flow modeling: run post-fire HEC-HMS or rely on proxy datasets?","TRPA / ICF","Before Phase 2"],
-      [14,"Wildfire pinch-point dataset: what does it include?","ICF","Define"]
-    ];
-
     // ---------- COLOR MAPS ----------
     const hazardColor = {Flooding:"#0072CE", Avalanche:"#5BA4DD", Landslide:"#9C3E27", Wildfire:"#E87722", Fire:"#E87722", "Debris Flow":"#8B5A3C", "Winter Storm":"#003B71", Earthquake:"#B5A64C", Wind:"#7B6A8A"};
     const statusColor = {Advancing:"#4A6118", Candidate:"#E87722", "Not Analyzing":"#6B7280", Screening:"#0072CE", Hold:"#6B7280"};
@@ -425,13 +470,6 @@
         return c ? { color:c, background:c+"14", fontWeight:"600" } : null;
       };
     }
-    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-    // ---------- STATIC TABLE INJECTION ----------
-    document.getElementById("decision-rows").innerHTML = decisions.map(d =>
-      "<tr><td>"+d[0]+"</td><td>"+esc(d[1])+"</td><td>"+esc(d[2])+"</td><td>"+esc(d[3])+"</td></tr>"
-    ).join("");
-
     // ---------- AG GRIDS ----------
     const haCols = [
       {field:"hazard",   headerName:"Hazard",   width:150, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
@@ -543,22 +581,6 @@
         if(div.__api) div.__api.exportDataAsCsv({fileName});
       });
     }
-    // CSV export for the static HTML tables (so every grid/table can round-trip via CSV).
-    function tableToCsv(tableEl, fileName){
-      const rows = [...tableEl.querySelectorAll("tr")].map(tr =>
-        [...tr.querySelectorAll("th,td")].map(td => {
-          const t = td.textContent.trim().replace(/"/g, '""');
-          return /[",\n]/.test(t) ? '"'+t+'"' : t;
-        }).join(","));
-      const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8"});
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = fileName; a.click(); URL.revokeObjectURL(a.href);
-    }
-    function wireTableCsv(btnId, getTable, fileName){
-      const b = document.getElementById(btnId);
-      if(b) b.addEventListener("click", ()=>{ const t = getTable(); if(t) tableToCsv(t, fileName); });
-    }
-
     function init(){
       if(!window.agGrid){ setTimeout(init, 60); return; }
       makeGrid(haDiv, haCols, haPairs, false);
@@ -571,7 +593,6 @@
       document.getElementById("hazards-export").addEventListener("click", ()=>{ if(hazardsDiv.__api) hazardsDiv.__api.exportDataAsCsv({fileName:"PROTECT_Hazard_Sources.csv"}); });
       document.getElementById("sens-export").addEventListener("click", ()=>{ if(sensDiv.__api) sensDiv.__api.exportDataAsCsv({fileName:"PROTECT_Sensitivity_Matrix.csv"}); });
       wireToolbar("exp-qf", "exp-export", expDiv, "PROTECT_Exposure_Approach.csv");
-      wireTableCsv("decision-export", ()=>document.getElementById("decision-rows").closest("table"), "PROTECT_Open_Decisions.csv");
 
       // size grids that start inside hidden Calcite tabs once their tab is shown.
       // Only fit when the grid is actually visible (non-zero width) to avoid AG Grid warnings.

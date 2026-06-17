@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/amcclary/Documents/gitback/Important_Backup/Transportation/PROTECT/RA2CE/**)",
+      "Bash(ls \"F:\\\\GIS\\\\PROJECTS\\\\Transportation\\\\Streets Network\\\\Streets_Network.gdb\" 2>/dev/null | head -20 || echo \"Cannot list GDB\")",
+      "Read(//f/GIS/PROJECTS/Transportation/Streets Network/Streets_Network.gdb/**)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\static\\\\network\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\static\\\\output_graph\")",
+      "Bash(Write-Output \"Directories created\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\static\\\\network\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\static\\\\output_graph\")",
+      "PowerShell($nb = Get-Content \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\ra2ce_tahoe.ipynb\" -Raw; try { $null = $nb | ConvertFrom-Json; Write-Output \"Valid JSON. Cell count: $\\(\\($nb | ConvertFrom-Json\\).cells.Count\\)\" } catch { Write-Output \"JSON parse error: $_\" })",
+      "Bash(python -c ' *)",
+      "WebFetch(domain:deltares.github.io)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api *)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:github.com)",
+      "Read(//c/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce/analysis/losses/traffic_analysis/**)",
+      "Read(//c/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce/analysis/analysis_config_data/**)",
+      "Read(//c/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce/**)",
+      "Bash(\"C:\\\\Users\\\\amcclary\\\\AppData\\\\Local\\\\ESRI\\\\conda\\\\envs\\\\arcgispro-py3-plotly\\\\python.exe\" _patch_nb.py)",
+      "Bash(del _patch_nb.py)",
+      "Bash(\"C:\\\\Users\\\\amcclary\\\\AppData\\\\Local\\\\ESRI\\\\conda\\\\envs\\\\arcgispro-py3-plotly\\\\python.exe\" \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\_patch_nb2.py\")",
+      "Bash(\"C:\\\\Users\\\\amcclary\\\\AppData\\\\Local\\\\ESRI\\\\conda\\\\envs\\\\arcgispro-py3-plotly\\\\python.exe\" \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\_patch_fix.py\")",
+      "Bash(del \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\_patch_fix.py\")",
+      "Bash(\"C:\\\\Users\\\\amcclary\\\\AppData\\\\Local\\\\ESRI\\\\conda\\\\envs\\\\arcgispro-py3-plotly\\\\python.exe\" \"C:\\\\Users\\\\amcclary\\\\Documents\\\\GitHub\\\\PROTECT\\\\scripts\\\\ra2ce\\\\_patch_nb3.py\")"
+    ]
+  }
+}
