@@ -9,3 +9,8 @@ data/vendors.csv
 .DS_Store
 Thumbs.db
 *.tmp
+
+# RA2CE large geodata outputs - too large for GitHub (analysis outputs, not source)
+scripts/ra2ce/output/
+scripts/ra2ce/static/output_graph/
+scripts/ra2ce/static/network/overture_drive_routable.*
