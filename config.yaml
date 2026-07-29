@@ -1,0 +1,32 @@
+# config.yaml - PROTECT culvert layer engineering
+# Loaded by notebooks/culvert_layer_engineering.ipynb.
+# Repo-relative paths except raw_root. No secrets here.
+
+project:
+  name: protect-culvert-layer
+  task: "3.3 Interactive Risk Index Mapping Tool - Assets (culverts)"
+
+paths:
+  raw_root: C:\GIS\Culvert      # jurisdiction deliveries (outside the repo; not committed)
+  # Prior TRPA basin-wide culvert compilation (READ-ONLY - includes USFS forest roads)
+  legacy_culverts: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert
+  processed: data/processed     # intermediate GeoPackage / parquet (gitignored)
+  outputs: outputs              # final File GDB + QA reports (gitignored)
+  logs: logs                    # timestamped run logs (gitignored)
+
+sources:
+  cslt_culvert_layer: "https://services2.arcgis.com/gWRYLIS16mKUskSO/arcgis/rest/services/Stormwater/FeatureServer/415006"
+  trpa_boundary_layer: "https://maps.trpa.org/server/rest/services/Boundaries/MapServer/4"
+
+output:
+  gdb_name: culverts.gdb
+  feature_class: Culverts             # point feature class (one row per culvert)
+  condition_table: CulvertCondition   # standalone table, 1:many inspections
+  relationship_class: Culvert_has_Condition
+  # Tahoe Basin working CRS: NAD 1983 UTM Zone 10N.
+  target_epsg: 26910
+
+run:
+  build_gdb: true       # set false to skip the arcpy File GDB write
+  line_to_point: midpoint   # how pipe centerlines collapse to a point: midpoint | start | end
+  legacy_match_m: 25    # legacy points within this many metres of a new asset count as matched

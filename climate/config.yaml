@@ -1,0 +1,118 @@
+# config.yaml - protect-climate-data pipeline (lives in PROTECT/climate/)
+# Climate projection inputs for the PROTECT Task 3 Risk Index, Lake Tahoe Basin (CA/NV).
+# Paths are relative to this climate/ folder. No secrets here (.env if ever needed).
+
+project:
+  name: protect-climate-data
+  task: "PROTECT Task 3 - climate inputs for the Risk Index / vulnerability assessment"
+
+paths:
+  raw: data/raw            # downloaded subsets (gitignored, never committed)
+  processed: data/processed  # clipped, analysis-ready grids (gitignored)
+  outputs: outputs         # summary CSVs, manifest, QA reports (gitignored)
+  logs: logs               # timestamped run logs (gitignored)
+
+study_area:
+  # Server-side subsetting box (covers basin + highway corridors with margin)
+  bbox:
+    lon_min: -120.5
+    lon_max: -119.5
+    lat_min: 38.5
+    lat_max: 39.5
+  # Local clip: TRPA boundary buffered outward to catch adjacent corridors
+  boundary_url: "https://maps.trpa.org/server/rest/services/Boundaries/MapServer/4"
+  buffer_km: 10
+
+crs:
+  target_epsg: 26910       # NAD83 / UTM 10N - all final outputs
+  keep_latlon_copy: true   # gridded intermediates also kept in native lat/lon
+
+sources:
+  loca2:
+    # LOCA2 North America 1/16 deg (~6 km), CMIP6, Scripps. Region-split files on
+    # cirrus (verified 2026-07-29: ~306 MB per daily region file, byte ranges OK).
+    # Subset via fsspec+h5netcdf ranged reads - NEVER store full region/CONUS files.
+    base_url: "https://cirrus.ucsd.edu/~pierce/LOCA2/CONUS_regions_split"
+    region: west            # Tahoe bbox sits in the 'west' split
+    region_fallback: west105  # used if the bbox slice comes back empty
+    grid_dir: 0p0625deg
+    variables: [pr, tasmax, tasmin]
+    scenarios: [ssp245, ssp370]
+    historical: [1950, 2014]
+    projection_end: 2100
+    member: r1i1p1f1
+    member_overrides:
+      MPI-ESM1-2-HR: r3i1p1f1   # the General Use run for this model
+    # Cal-Adapt "General Use Projections" - the 5-model starter ensemble used for CA
+    # Fifth Assessment general guidance. Scale up to the full 15 below when needed.
+    gcms:
+      - ACCESS-CM2
+      - EC-Earth3
+      - FGOALS-g3
+      - MIROC6
+      - MPI-ESM1-2-HR       # member r3i1p1f1
+    # Full LOCA2-Hybrid 15-model ensemble (uncomment to scale up):
+    # ACCESS-CM2, CESM2-LENS, CNRM-ESM2-1, EC-Earth3, EC-Earth3-Veg, FGOALS-g3,
+    # GFDL-ESM4, HadGEM3-GC31-LL, INM-CM5-0, IPSL-CM6A-LR, KACE-1-0-G, MIROC6,
+    # MPI-ESM1-2-HR, MRI-ESM2-0, TaiESM1
+
+  caladapt:
+    # Cal-Adapt Analytics Engine holdings on AWS Open Data - anonymous access, Zarr.
+    s3_bucket: cadcat
+    anonymous: true
+    intake_catalog: "https://cadcat.s3.amazonaws.com/cae-collection.json"
+    loca2_hybrid_3km:
+      enabled: true         # CA-only coverage - NV gap documented in METHODS.md
+      variables: [pr, tasmax, tasmin]
+    wrf_wind:
+      enabled: true
+      variables: [u10, v10]  # confirm exact names in catalog; want daily near-surface wind
+      resolution_km: 9       # 3 km if the bbox subset volume is acceptable
+
+  gridmet:
+    # Observed baseline, 4 km, 1979-present. Aggregated OPeNDAP endpoints - one
+    # lazy dataset per variable, subset server-side to the bbox.
+    dodsc_base: "http://thredds.northwestknowledge.net:8080/thredds/dodsC"
+    agg_pattern: "agg_met_{var}_1979_CurrentYear_CONUS.nc"
+    variables: [pr, tmmx, tmmn, vs]   # precip, max/min temp, wind speed
+    start_year: 1979
+    # end year = latest complete year at run time
+
+  atlas14:
+    # NOAA Atlas 14 precipitation depth-duration-frequency, via NWS PFDS point API.
+    pfds_url: "https://hdsc.nws.noaa.gov/cgi-bin/hdsc/new/fe_text_mean.csv"
+    series: pds             # partial duration series
+    units: english          # inches (convert to mm in transform)
+    points:                 # config-driven basin points (name, lon, lat)
+      - {name: tahoe_city,        lon: -120.1416, lat: 39.1678}
+      - {name: south_lake_tahoe,  lon: -119.9772, lat: 38.9399}
+      - {name: incline_village,   lon: -119.9435, lat: 39.2555}
+      - {name: glenbrook,         lon: -119.9291, lat: 39.0879}
+      - {name: meyers,            lon: -120.0124, lat: 38.8535}
+      - {name: emerald_bay,       lon: -120.1103, lat: 38.9542}
+      - {name: kingsbury,         lon: -119.8961, lat: 38.9635}
+      - {name: brockway_summit,   lon: -120.0700, lat: 39.2609}
+    atlas15:
+      # Pilot only (not yet national). Check status before Workshop 1:
+      status_url: "https://www.weather.gov/owp/hdsc_atlas15"
+      note: "stub - swap in Atlas 15 DDF grids when CA/NV coverage publishes"
+
+analysis:
+  baseline: [1981, 2010]
+  horizons:
+    - {name: "2020-2049", start: 2020, end: 2049}
+    - {name: "2040-2069", start: 2040, end: 2069}
+    - {name: "2070-2099", start: 2070, end: 2099}
+  metrics:
+    - total_annual_precip
+    - p99_daily_precip
+    - max_1day_precip
+    - max_3day_precip
+    - mean_tasmax
+    - max_tasmax
+    - mean_tasmin
+  ensemble_stats: [median, p10, p90]
+
+run:
+  overwrite_downloads: false   # skip files already in data/raw with matching size
+  write_geotiff: true          # via osgeo.gdal (do NOT install rasterio into arcgispro-py3)
