@@ -29,20 +29,21 @@ crs:
 
 sources:
   loca2:
-    # LOCA2 North America 1/16 deg (~6 km), CMIP6, Scripps. Region-split files on
-    # cirrus (verified 2026-07-29: ~306 MB per daily region file, byte ranges OK).
-    # Subset via fsspec+h5netcdf ranged reads - NEVER store full region/CONUS files.
-    base_url: "https://cirrus.ucsd.edu/~pierce/LOCA2/CONUS_regions_split"
-    region: west            # Tahoe bbox sits in the 'west' split
-    region_fallback: west105  # used if the bbox slice comes back empty
-    grid_dir: 0p0625deg
-    variables: [pr, tasmax, tasmin]
+    # LOCA2 1/16 deg (~6 km), CMIP6, Scripps. PRIMARY SOURCE: the Cal-Adapt cadcat
+    # S3 mirror - Zarr stores, western-US domain (lat 29.6-45.0, lon -128.4..-111.0,
+    # verified 2026-07-29: covers all of NV-side Tahoe), anonymous access, fast.
+    # wspeed included - daily wind for the full bi-state domain.
+    s3_prefix: "cadcat/loca2/ucsd"   # <model-lowercase>/<scenario>/<member>/day/<var>/d03
+    domain: d03
+    # Fallback (slow, ~3.3 MB/s): region-split NetCDFs on cirrus.ucsd.edu
+    fallback_http: "https://cirrus.ucsd.edu/~pierce/LOCA2/CONUS_regions_split"
+    variables: [pr, tasmax, tasmin, wspeed]
     scenarios: [ssp245, ssp370]
     historical: [1950, 2014]
     projection_end: 2100
     member: r1i1p1f1
     member_overrides:
-      MPI-ESM1-2-HR: r3i1p1f1   # the General Use run for this model
+      MPI-ESM1-2-HR: r3i1p1f1   # General Use run; ssp245 has only r1/r2 - code falls back
     # Cal-Adapt "General Use Projections" - the 5-model starter ensemble used for CA
     # Fifth Assessment general guidance. Scale up to the full 15 below when needed.
     gcms:
@@ -57,17 +58,34 @@ sources:
     # MPI-ESM1-2-HR, MRI-ESM2-0, TaiESM1
 
   caladapt:
-    # Cal-Adapt Analytics Engine holdings on AWS Open Data - anonymous access, Zarr.
+    # Cal-Adapt Analytics Engine holdings on AWS Open Data - anonymous access.
     s3_bucket: cadcat
     anonymous: true
     intake_catalog: "https://cadcat.s3.amazonaws.com/cae-collection.json"
-    loca2_hybrid_3km:
-      enabled: true         # CA-only coverage - NV gap documented in METHODS.md
+    loca2_hybrid:
+      # LOCA2-Hybrid CA product (cadcat/loca2/aaa-ca-hybrid). NOT 3 km - it is the
+      # same 1/16 deg grid, CA-only. With the full-domain ucsd mirror as primary,
+      # its marginal value is low; disabled by default.
+      enabled: false
+      s3_prefix: "cadcat/loca2/aaa-ca-hybrid"
       variables: [pr, tasmax, tasmin]
-    wrf_wind:
+    wrf:
+      # UCLA WRF dynamical downscaling (cadcat/wrf/ucla): one hourly Zarr store per
+      # model/scenario/domain holding all variables. Scenarios: historical + ssp370
+      # ONLY (no ssp245 WRF runs). d01 = 45 km, d02 = 9 km.
       enabled: true
-      variables: [u10, v10]  # confirm exact names in catalog; want daily near-surface wind
-      resolution_km: 9       # 3 km if the bbox subset volume is acceptable
+      s3_prefix: "cadcat/wrf/ucla"
+      domain: d02
+      models: [access-cm2, ec-earth3, fgoals-g3, miroc6, mpi-esm1-2-hr]
+      wind:
+        variables: [U10, V10]     # -> daily mean + daily max wind components
+      swe:
+        variables: [SNOW]         # snow water equivalent (kg m-2) -> daily
+      precip_hourly:
+        # RAINC + RAINNC are run-accumulated - hourly rate = time-diff, clipped >= 0.
+        # Hourly volume is large; limit models here (expand after ICF sync).
+        variables: [RAINC, RAINNC]
+        models: [access-cm2, ec-earth3, miroc6]
 
   gridmet:
     # Observed baseline, 4 km, 1979-present. Aggregated OPeNDAP endpoints - one

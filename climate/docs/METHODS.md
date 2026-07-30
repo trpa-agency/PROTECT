@@ -32,6 +32,14 @@ Ensemble: Cal-Adapt **General Use Projections** 5-GCM starter set (ACCESS-CM2, E
 FGOALS-g3, MIROC6, MPI-ESM1-2-HR r3i1p1f1), scalable in config to the full 15-model
 LOCA2-Hybrid ensemble selected for performance over California.
 
+**LOCA2 access, verified 2026-07-29**: region-split daily NetCDFs on
+`cirrus.ucsd.edu/~pierce/LOCA2/CONUS_regions_split/<GCM>/west/0p0625deg/<member>/<scenario>/<var>/`,
+version `v20240915`; historical is one 1950-2014 file, each SSP is three chunks
+(2015-2044 / 2045-2074 / 2075-2100). Full plan = 105 files, ~60 GB remote; HTTP
+byte-range subsetting (fsspec + h5netcdf) pulls only the bbox window. Member note:
+MPI-ESM1-2-HR's General Use run r3i1p1f1 covers historical + ssp370 only - ssp245 falls
+back to r1i1p1f1 (notebook 01 logs the fallback; QA reports members used).
+
 ## The 6 km vs 3 km bi-state decision
 
 LOCA2-Hybrid 3 km (Cal-Adapt) is the finer product but **covers California only** - the NV

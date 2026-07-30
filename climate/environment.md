@@ -14,11 +14,18 @@ Already present (verified 2026-07-29): `xarray` 2024.11, `netCDF4` 1.6.4, `fsspe
   present); this is what keeps LOCA2 pulls at ~tens of MB instead of 306 MB/file
 - `intake` + `intake-esm` (optional) - catalog browsing of cadcat; plain s3fs paths work without it
 
-Install with:
+Installed 2026-07-29 via **pip --user** (conda cannot write to the Program Files env
+without admin: `EnvironmentNotWritableError`):
 
 ```
-conda install -n arcgispro-py3 -c conda-forge s3fs zarr h5netcdf
+"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe" -m pip install --user s3fs "zarr<3" h5netcdf
 ```
+
+Packages land in `%APPDATA%\Python\Python311\site-packages` and are picked up by
+arcgispro-py3 automatically. **Pin `zarr<3`**: zarr 3 drags in numpy >= 2.x to the user
+site, which shadows the env's numpy 1.26 and breaks h5py/scipy/arcpy binary compat
+(observed, then rolled back). If numpy ever appears in the user site, remove it:
+`python -m pip uninstall -y numpy`.
 
 ## Do NOT install
 
