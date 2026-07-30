@@ -5,6 +5,28 @@
 # GitHub Pages serves the repo, so anything committed under data/ is reachable by URL.
 data/vendors.csv
 
+# Data engineering: source snapshots, intermediates, outputs, logs (never commit)
+data/raw/
+data/processed/
+outputs/
+logs/
+*.gdb/
+*.gpkg
+
+# Climate pipeline (climate/) - downloaded data never committed
+climate/data/
+climate/outputs/
+climate/logs/
+climate/.env
+*.nc
+*.zarr/
+*.tif
+
+# Jupyter
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
