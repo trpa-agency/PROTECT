@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT: Debris-Flow Hazard | TRPA</title>
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Calcite Design System v5.0 -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+
+  <!-- AG Grid Community (pinned to 31.3.2: v33+ Theming API drops the legacy quartz CSS this page uses) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <!-- Plotly (Design Storms tab) - no ArcGIS SDK on this page, so no AMD load-order concern -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+
+  <!-- Open Sans (TRPA web font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:#0072CE; --trpa-navy:#003B71; --trpa-earth:#B47E00; --trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27; --trpa-olive:#B5A64C; --trpa-orange:#E87722; --trpa-purple:#7B6A8A;
+      --trpa-ice:#B4CBE8; --gray-text:#5a6577; --gray-border:#DDDDDD; --page-bg:#f4f6f9; --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;}
+    .header-text{flex:1;min-width:0;}
+    .header-text .agency{color:var(--trpa-ice);font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+    .header-text h1{font-size:1.45rem;font-weight:700;color:#fff;line-height:1.25;}
+    .header-text .header-sub{color:var(--trpa-ice);font-size:.85rem;}
+    header.app-header .header-meta{flex-shrink:0;display:flex;align-items:center;gap:.6rem;}
+    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;}
+    header.app-header a.navlink{color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;}
+    header.app-header a.navlink:hover{color:#fff;}
+    main{max-width:1240px;margin:0 auto;padding:1.25rem 1.75rem 3rem;}
+    .intro .lede{font-size:.98rem;max-width:64rem;margin:.4rem 0 1.1rem;}
+    .intro .lede strong{color:var(--trpa-navy);}
+    .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .kpi-card{background:var(--white);border:1px solid var(--gray-border);border-top:4px solid var(--trpa-blue);border-radius:8px;padding:.8rem 1.2rem;min-width:150px;}
+    .kpi-card .kpi-value{font-size:1.9rem;font-weight:700;color:var(--trpa-navy);line-height:1;}
+    .kpi-card .kpi-label{font-size:.78rem;color:var(--gray-text);margin-top:.25rem;}
+    .panel{background:var(--white);border:1px solid var(--gray-border);border-radius:8px;padding:1.1rem 1.3rem;margin:.9rem 0;}
+    .panel h2{font-size:1.05rem;font-weight:700;margin-bottom:.5rem;}
+    .panel h3{font-size:.95rem;font-weight:700;margin:1rem 0 .45rem;}
+    .panel p{font-size:.9rem;margin:.4rem 0;max-width:72rem;}
+    .panel ul,.panel ol{font-size:.9rem;margin:.4rem 0 .4rem 1.2rem;}
+    .panel li{margin:.25rem 0;}
+    .note{background:#fdf6ee;border-left:4px solid var(--trpa-orange);padding:.6rem .9rem;font-size:.85rem;border-radius:0 6px 6px 0;margin:.7rem 0;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin:.7rem 0;flex-wrap:wrap;}
+    .toolbar input.qf{flex:1;min-width:240px;padding:.5rem .75rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.9rem;color:var(--trpa-navy);}
+    .toolbar button{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.5rem .9rem;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;}
+    .toolbar button:hover{background:var(--trpa-blue);}
+    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-navy);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
+    table.ref{width:100%;border-collapse:collapse;font-size:.85rem;margin:.6rem 0 1rem;}
+    table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.55rem .8rem;font-weight:600;}
+    table.ref td{border:1px solid #e6e9ee;padding:.5rem .8rem;vertical-align:top;}
+    table.ref tr:nth-child(even) td{background:#f8fafc;}
+    .flow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-size:.82rem;font-weight:600;margin:.8rem 0;}
+    .flow .step{background:#eaf3fb;border:1px solid var(--trpa-ice);border-radius:6px;padding:.45rem .7rem;color:var(--trpa-navy);}
+    .flow .arrow{color:var(--gray-text);}
+    pre.tree{background:#f8fafc;border:1px solid #e6e9ee;border-radius:6px;padding:.8rem 1rem;font-size:.8rem;line-height:1.5;overflow-x:auto;margin:.6rem 0 1rem;}
+    code{background:#f0f3f7;border-radius:4px;padding:.05rem .3rem;font-size:.85em;}
+    pre.tree code{background:none;padding:0;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>PROTECT: Debris-Flow Hazard</h1>
+        <div class="header-sub">Task 3 &middot; USGS wildcat hazard modeling for the Risk Index</div>
+      </div>
+      <div class="header-meta">
+        <a class="navlink" href="index.html">Home</a>
+        <a class="navlink" href="reference-hub.html">Reference Hub</a>
+        <a class="navlink" href="climate-data.html">Climate Data</a>
+        <a class="navlink" href="data-model-inventory.html">Data Inventory</a>
+        <a class="navlink" href="risk-index-tool.html">Risk Index Tool</a>
+        <span class="version">v0.1</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="lede">
+        Debris flow is a selected PROTECT hazard with <strong>no existing basin-wide hazard layer</strong>.
+        This page documents how that layer will be built with <strong>USGS wildcat</strong>, the operational
+        post-fire debris-flow assessment tool, run from the <code>debris-flow/</code> pipeline of the PROTECT
+        repository. It covers the analysis plan, the tool workflow, the input data mapping, the scenario
+        design, the Tahoe-specific design storms, and the open decisions.
+      </p>
+    </section>
+
+    <section class="kpi-row">
+      <div class="kpi-card"><div class="kpi-value">1.1.1</div><div class="kpi-label">wildcat version (verified Jul 29, 2026)</div></div>
+      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Planned scenarios</div></div>
+      <div class="kpi-card"><div class="kpi-value">9</div><div class="kpi-label">Input datasets mapped</div></div>
+      <div class="kpi-card"><div class="kpi-value">63.8</div><div class="kpi-label">Basin 25-yr I15 (mm/hr), Atlas 14</div></div>
+    </section>
+
+    <calcite-tabs scale="m">
+      <calcite-tab-nav slot="title-group">
+        <calcite-tab-title selected>Overview</calcite-tab-title>
+        <calcite-tab-title>Analysis Plan</calcite-tab-title>
+        <calcite-tab-title>Wildcat Workflow</calcite-tab-title>
+        <calcite-tab-title>Input Data</calcite-tab-title>
+        <calcite-tab-title>Scenarios</calcite-tab-title>
+        <calcite-tab-title>Design Storms</calcite-tab-title>
+        <calcite-tab-title>Open Decisions</calcite-tab-title>
+      </calcite-tab-nav>
+
+      <!-- TAB 1: Overview -->
+      <calcite-tab selected>
+        <div class="panel">
+          <h2>Role in the risk framework</h2>
+          <p>
+            The FHWA VAST-based PROTECT index combines Exposure, Sensitivity, Asset Value, and Adaptive
+            Capacity with Criticality. Wildcat supplies the debris-flow <strong>Exposure</strong> inputs:
+            for each road segment, culvert, and bridge, what is the modeled probability, volume, and combined
+            hazard class of a post-fire debris flow reaching it? Debris flow is the one selected hazard where
+            no mappable layer exists today; wildcat is how the gap gets filled with a defensible,
+            USGS-standard method.
+          </p>
+          <div class="flow">
+            <span class="step">Inputs (DEM, burn severity, soils, vegetation)</span><span class="arrow">&rarr;</span>
+            <span class="step">wildcat: stream network + hazard models</span><span class="arrow">&rarr;</span>
+            <span class="step">Segments, outlets, basins with P, V, hazard class</span><span class="arrow">&rarr;</span>
+            <span class="step">Intersect with roads and culverts</span><span class="arrow">&rarr;</span>
+            <span class="step">Debris-flow Exposure scores</span><span class="arrow">&rarr;</span>
+            <span class="step">Risk Index Tool</span>
+          </div>
+          <h3>What wildcat estimates</h3>
+          <div class="toolbar" style="justify-content:flex-end;margin:.2rem 0;">
+            <button data-tablecsv="models-table" data-filename="PROTECT_Wildcat_Models.csv">Export CSV</button>
+          </div>
+          <table class="ref" id="models-table">
+            <thead><tr><th>Result</th><th>Units</th><th>Model</th><th>Use in PROTECT</th></tr></thead>
+            <tbody>
+              <tr><td>Debris-flow likelihood</td><td>0 to 1</td><td>M1 logistic model (Staley and others, 2017)</td><td>Core exposure metric per stream segment at a chosen design storm</td></tr>
+              <tr><td>Potential sediment volume</td><td>m&sup3;</td><td>Emergency assessment model (Gartner and others, 2014)</td><td>Consequence scale: culvert and bridge blockage potential</td></tr>
+              <tr><td>Combined hazard class</td><td>1 low / 2 moderate / 3 high</td><td>Modified Cannon and others (2010) scheme</td><td>Map symbology and exposure classing in the Risk Index Tool</td></tr>
+              <tr><td>Rainfall thresholds</td><td>mm and mm/hr at 15, 30, and 60 min</td><td>Inverted M1 model</td><td>Links hazard to the climate pipeline's precipitation-intensity work</td></tr>
+            </tbody>
+          </table>
+          <h3>Why wildcat</h3>
+          <ul>
+            <li><strong>It is the USGS operational standard.</strong> The same models behind the USGS post-fire debris-flow hazard portal, packaged as a reproducible open-source tool (GPL-3.0, <code>code.usgs.gov/ghsc/lhp/wildcat</code>).</li>
+            <li><strong>It supports pre-fire planning.</strong> Burn severity and dNBR accept constant values, the standard hook for hypothetical-burn assessments over unburned watersheds.</li>
+            <li><strong>Every run is reproducible.</strong> Each command writes a configuration record that exactly reproduces its outputs: clean provenance for the Resilience Improvement Plan appendix.</li>
+            <li><strong>Complementary, not duplicative.</strong> WEPP models chronic post-fire erosion and sediment yield; RAMMS (sole-source) simulates site-scale runout. Wildcat is the network-scale screening layer between them.</li>
+          </ul>
+          <div class="note">
+            Status as of Jul 30, 2026: pipeline scaffolded (<code>debris-flow/</code> folder, scoping notebook,
+            config), tool verified, design storms extracted. No assessment has been run yet; the dedicated
+            Python environment and input downloads are the next steps.
+          </div>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 2: Analysis Plan -->
+      <calcite-tab>
+        <div class="panel">
+          <h2>What the PROTECT analysis looks like, end to end</h2>
+          <p>
+            Six stages take the current empty folder to a published hazard layer. Stages 1 and 2 are one-time
+            setup; stages 3 through 5 are the modeling loop; stage 6 delivers into the index. The target is a
+            reviewed debris-flow exposure layer in time for Workshop 1 (Nov. 2026).
+          </p>
+
+          <h3>1. Stand up the environment</h3>
+          <p>
+            Wildcat requires Python 3.11+ and depends on <code>rasterio</code> and <code>fiona</code>, which
+            cannot coexist with arcpy's GDAL. It gets a dedicated <code>wildcat</code> conda environment
+            (commands in <code>debris-flow/environment.md</code>), installed from the USGS GitLab package
+            registry. The notebook detects the environment and degrades gracefully, so scoping cells run
+            anywhere.
+          </p>
+
+          <h3>2. Acquire the static inputs once</h3>
+          <p>
+            Three basin-wide inputs are fire-independent and get downloaded once into
+            <code>debris-flow/data/raw/</code>: the USGS 3DEP 10 m DEM (the models are calibrated at 10 m;
+            finer lidar is deliberately not used), STATSGO soil KF-factors, and LANDFIRE existing vegetation
+            type (which builds the water and development masks). The pfdf library bundled with wildcat ships
+            acquisition helpers for each.
+          </p>
+
+          <h3>3. Validate on a real fire (S1)</h3>
+          <p>
+            Before trusting the tool for planning, run it in its native mode: the Caldor Fire (2021), which
+            burned into the basin at Echo Summit and Christmas Valley, with its real perimeter and dNBR.
+            USGS published an operational Caldor assessment, so our segments, likelihoods, and hazard classes
+            can be compared directly against theirs. Agreement validates the setup; disagreement gets
+            diagnosed before moving on.
+          </p>
+
+          <h3>4. Run the pre-fire planning scenario (S2, the deliverable)</h3>
+          <p>
+            Wildcat is a post-fire tool, but PROTECT needs hazard for fires that have not happened. Following
+            USGS pre-fire assessment practice, the basin's watersheds are assessed under a hypothetical burn:
+            constant moderate-or-high burn severity across each burn unit (likely HUC12 watersheds
+            intersecting the highway corridors, one wildcat project per unit, batched from the notebook).
+            The result is the answer to: <em>if this watershed burns, which channels below it produce
+            debris flows, how likely, and how big?</em>
+          </p>
+
+          <h3>5. Apply Tahoe design storms, then climate-adjusted storms (S3)</h3>
+          <p>
+            Every likelihood is conditional on a 15-minute rainfall intensity. Instead of the generic USGS
+            defaults, runs use the basin's own NOAA Atlas 14 statistics already extracted by the climate
+            pipeline: 31.6, 49.6, and 63.8 mm/hr for the 2-, 10-, and 25-year storms (basin median). When the
+            climate pipeline's sub-daily intensity scaling lands, the same runs repeat with mid-century
+            intensities, making debris-flow exposure responsive to the climate horizons like every other
+            hazard in the index.
+          </p>
+
+          <h3>6. Post-process into the Risk Index</h3>
+          <p>
+            The exported segments and basins (GeoJSON, EPSG:26910) intersect with the road network and the
+            culvert and bridge inventories. Each asset picks up its debris-flow exposure inputs: the maximum
+            combined hazard class of intersecting basins, the likelihood at the chosen design storm, and the
+            summed upstream potential volume. Those columns are normalized into the Exposure sub-index
+            exactly like the other hazards, the layer is loaded toward the packaged Hazards REST service, and
+            the Debris Flow row in the data inventory flips from needed to available.
+          </p>
+
+          <h3>Worked example: a culvert on US-50 below Echo Summit</h3>
+          <p>
+            A culvert drains a steep, confined, forested catchment. S2 says: if that catchment burns at
+            moderate severity, the channel above the culvert has a 55 percent debris-flow likelihood at the
+            25-year 15-minute storm, with a potential volume in the 10,000 to 100,000 m&sup3; class: combined
+            hazard high. The culvert inherits that exposure, which is weighted with its condition
+            (Sensitivity), replacement cost (Asset Value), detour length (Adaptive Capacity), and the
+            criticality of US-50 into its master risk score. Fuels treatments upstream lower the modeled
+            severity, which lowers the score: the layer responds to management, not just topography.
+          </p>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 3: Wildcat Workflow -->
+      <calcite-tab>
+        <div class="panel">
+          <h2>How a wildcat assessment runs</h2>
+          <p>
+            Four commands, run from the CLI or the Python API (the notebook uses the Python API so parameters
+            can be swept programmatically). Each assessment is a self-contained project folder under
+            <code>debris-flow/projects/</code>, one per scenario, never committed.
+          </p>
+          <div class="flow">
+            <span class="step">initialize</span><span class="arrow">&rarr;</span>
+            <span class="step">preprocess</span><span class="arrow">&rarr;</span>
+            <span class="step">assess</span><span class="arrow">&rarr;</span>
+            <span class="step">export</span>
+          </div>
+          <pre class="tree"><code>projects/&lt;scenario&gt;/
+├── configuration.py     all settings; created by initialize, edited per scenario
+├── inputs/              small files here; large rasters stay in data/raw/ via absolute paths
+├── preprocessed/        every input reprojected and clipped to the DEM grid + config record
+├── assessment/          segments.geojson, outlets.geojson, basins.geojson + config record
+└── exports/             GIS formats (Shapefile, GeoJSON) in a chosen CRS + config record</code></pre>
+          <h3>Behaviors that shape the design</h3>
+          <ul>
+            <li><strong>The fire perimeter defines the domain.</strong> It is buffered (3 km default) and everything is clipped to that extent. The pre-fire scenario therefore supplies hypothetical burn footprints.</li>
+            <li><strong>The DEM sets the grid.</strong> All inputs are reprojected to the DEM's CRS, resolution, and alignment. Allowed resolution is 6.5 to 11 m; the models are calibrated at about 10 m.</li>
+            <li><strong>dNBR and severity accept constants.</strong> <code>dnbr = 525</code> or <code>severity = 3</code> applies a uniform value: the hypothetical-burn hook.</li>
+            <li><strong>Stream network design is tunable.</strong> Delineation (<code>min_area_km2</code>, <code>min_burned_area_km2</code>) and filtering (<code>min_slope</code>, <code>max_confinement</code>, <code>min_burn_ratio</code>, <code>max_area_km2</code>) default to the USGS operational style; runs start from defaults.</li>
+            <li><strong>Basin location is the slow step.</strong> <code>locate_basins</code> is disabled during parameter sweeps and enabled for deliverable runs.</li>
+            <li><strong>Every command writes a config record</strong> (<code>configuration.txt</code>) that exactly reproduces its outputs.</li>
+          </ul>
+          <h3>Skeleton (Python API)</h3>
+          <pre class="tree"><code>from wildcat import initialize, preprocess, assess, export
+
+initialize(project)
+preprocess(project, perimeter=..., dem=..., dnbr=..., kf=..., kf_field="KFFACT", evt=...)
+assess(project, I15_mm_hr=[31.6, 49.6, 63.8], locate_basins=True)
+export(project, format="GeoJSON", crs=26910)</code></pre>
+          <p>
+            The runnable version, with environment checks and guards, is
+            <code>debris-flow/notebooks/01_wildcat_scoping.ipynb</code>.
+          </p>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 4: Input Data -->
+      <calcite-tab>
+        <div class="panel">
+          <h2>Wildcat inputs mapped to Tahoe sources</h2>
+          <p>
+            Wildcat's standard datasets and where each comes from for the basin. This table mirrors
+            <code>debris-flow/outputs/wildcat_input_mapping.csv</code> produced by the scoping notebook;
+            edit via CSV round trip.
+          </p>
+          <div class="toolbar">
+            <input id="inp-qf" class="qf" type="text" placeholder="Quick filter: dataset, source, status..." />
+            <button id="inp-export">Export CSV</button>
+          </div>
+          <div id="inp-grid" class="ag-theme-quartz" style="width:100%;"></div>
+          <div class="note">
+            The DEM stays at 10 m even though basin lidar is finer: the M1 and volume models were calibrated
+            with 10 m topography, and wildcat rejects DEMs outside 6.5 to 11 m by default.
+          </div>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 5: Scenarios -->
+      <calcite-tab>
+        <div class="panel">
+          <h2>Scenario design</h2>
+          <p>
+            Wildcat expects a fire that already happened; PROTECT needs planning-scale hazard for fires that
+            have not. USGS handles this with pre-fire assessments over hypothetical burns, which wildcat
+            supports directly through constant-valued severity and dNBR. Three scenarios, in build order:
+          </p>
+          <div class="toolbar" style="justify-content:flex-end;margin:.2rem 0;">
+            <button data-tablecsv="scen-table" data-filename="PROTECT_DebrisFlow_Scenarios.csv">Export CSV</button>
+          </div>
+          <table class="ref" id="scen-table">
+            <thead><tr><th>Scenario</th><th>Purpose</th><th>Perimeter</th><th>Burn inputs</th><th>Design storm</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>S1 Validation</strong></td>
+                <td>Prove the setup reproduces USGS-style results on a real fire</td>
+                <td>Caldor Fire 2021 (NIFC/CAL FIRE), clipped to the study area; Angora 2007 as backup</td>
+                <td>Real dNBR (MTBS or RAVG); severity estimated from dNBR</td>
+                <td>USGS defaults (16, 20, 24, 40 mm/hr) for comparability</td>
+              </tr>
+              <tr>
+                <td><strong>S2 Pre-fire planning</strong></td>
+                <td>The deliverable: basin-wide hazard for hypothetical burns</td>
+                <td>HUC12 watersheds intersecting highway corridors (or one basin-wide run; feasibility open)</td>
+                <td>Constant severity (class 3, moderate) and matching dNBR constant; modeled-severity surface as v2</td>
+                <td>Atlas 14 basin median: 31.6 / 49.6 / 63.8 mm/hr (2-, 10-, 25-yr)</td>
+              </tr>
+              <tr>
+                <td><strong>S3 Climate-adjusted</strong></td>
+                <td>Make debris-flow exposure responsive to climate horizons</td>
+                <td>Same as S2</td>
+                <td>Same as S2</td>
+                <td>Future 15-minute intensities scaled from the climate pipeline (LOCA2/WRF), pending</td>
+              </tr>
+            </tbody>
+          </table>
+          <h3>Relationship to the other sediment and mass-wasting tools</h3>
+          <div class="toolbar" style="justify-content:flex-end;margin:.2rem 0;">
+            <button data-tablecsv="tools-table" data-filename="PROTECT_DebrisFlow_RelatedTools.csv">Export CSV</button>
+          </div>
+          <table class="ref" id="tools-table">
+            <thead><tr><th>Tool</th><th>Question it answers</th><th>Scale</th><th>Role</th></tr></thead>
+            <tbody>
+              <tr><td>wildcat (USGS)</td><td>Which channels produce debris flows after a burn, how likely, and how big?</td><td>Stream network, basin-wide</td><td>Screening layer feeding the Exposure sub-index (this page)</td></tr>
+              <tr><td>WEPP</td><td>How much chronic post-fire erosion and sediment yield?</td><td>Hillslope/watershed</td><td>Separate service in progress; feeds debris-flow and flood exposure context</td></tr>
+              <tr><td>RAMMS</td><td>Where does a specific debris flow run out, how deep, how fast?</td><td>Site / reach</td><td>Possible follow-up on hotspots wildcat flags (sole-source)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 6: Design Storms -->
+      <calcite-tab>
+        <div class="panel">
+          <h2>15-minute design storms for the M1 model</h2>
+          <p>
+            The Staley 2017 M1 model conditions every likelihood on peak 15-minute rainfall intensity (I15).
+            The chart shows Atlas 14 partial-duration-series 15-minute intensities at the eight basin
+            design-storm points from the climate pipeline, with the basin median in navy and the USGS default
+            assessment intensities as dashed reference lines.
+          </p>
+          <div class="toolbar">
+            <button id="i15-export">Export CSV</button>
+          </div>
+          <div id="i15-chart" style="width:100%;height:440px;"></div>
+          <div class="note">
+            Even the basin's 2-year storm (31.6 mm/hr) exceeds three of the four USGS default intensities
+            (16, 20, 24, 40 mm/hr). Tahoe-specific design storms are not optional refinement: the defaults
+            would materially understate rainfall, and therefore understate likelihoods. Proposed set for S2:
+            the 2-, 10-, and 25-year basin medians, with per-point values available for corridor-specific
+            work.
+          </div>
+          <p>
+            Source: NOAA Atlas 14 depth-duration-frequency extracted at eight basin points by the climate
+            pipeline (<code>climate/data/processed/atlas14_ddf.csv</code>). Intensities are 15-minute depths
+            times four. Atlas 15 (with climate adjustment) is tracked as a future swap-in on the
+            <a href="climate-data.html">Climate Data</a> page.
+          </p>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 7: Open Decisions -->
+      <calcite-tab>
+        <div class="panel">
+          <h2>Open decisions</h2>
+          <div class="toolbar" style="justify-content:flex-end;margin:.2rem 0;">
+            <button data-tablecsv="dec-table" data-filename="PROTECT_DebrisFlow_Decisions.csv">Export CSV</button>
+          </div>
+          <table class="ref" id="dec-table">
+            <thead><tr><th>#</th><th>Decision</th><th>Options</th><th>Leaning</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Create the dedicated wildcat environment</td><td>Conda env from the Pro installer's conda, per environment.md</td><td>Proceed; blocked only on go-ahead</td><td>Open</td></tr>
+              <tr><td>2</td><td>S1 validation fire</td><td>Caldor 2021 (official USGS assessment to compare against) vs. Angora 2007 (fully inside the basin, smaller)</td><td>Caldor</td><td>Open</td></tr>
+              <tr><td>3</td><td>S2 burn unit</td><td>HUC12s intersecting corridors vs. one basin-wide run</td><td>HUC12s, pending a basin-wide feasibility check at 10 m</td><td>Open</td></tr>
+              <tr><td>4</td><td>S2 severity scenario</td><td>Constant class 3 (v1) vs. modeled severity surface (v2, e.g. flame-length derived)</td><td>Constant for v1; evaluate Vegetation_Burn_Severity / WEPP inputs for v2</td><td>Open</td></tr>
+              <tr><td>5</td><td>Design-storm set for the index</td><td>Which return periods anchor the published exposure score</td><td>2-, 10-, 25-yr basin medians; headline TBD with ICF</td><td>Open</td></tr>
+              <tr><td>6</td><td>Debris retainment inventory</td><td>Include sediment basins if jurisdictions have an inventory; else omit</td><td>Ask jurisdictions; likely omit v1</td><td>Open</td></tr>
+              <tr><td>7</td><td>Publication path</td><td>How segments and basins version into the packaged Hazards REST service and the data inventory</td><td>Follow the Hazards service pattern; bump Debris Flow readiness on delivery</td><td>Open</td></tr>
+            </tbody>
+          </table>
+          <h3>References</h3>
+          <ul>
+            <li>wildcat documentation and repository: <a href="https://ghsc.code-pages.usgs.gov/lhp/wildcat/" target="_blank" rel="noopener">ghsc.code-pages.usgs.gov/lhp/wildcat</a> &middot; <a href="https://code.usgs.gov/ghsc/lhp/wildcat" target="_blank" rel="noopener">code.usgs.gov/ghsc/lhp/wildcat</a></li>
+            <li>pfdf (assessment engine and data helpers): <a href="https://ghsc.code-pages.usgs.gov/lhp/pfdf/" target="_blank" rel="noopener">ghsc.code-pages.usgs.gov/lhp/pfdf</a></li>
+            <li>Staley and others (2017), likelihood model: <a href="https://doi.org/10.1016/j.geomorph.2016.10.019" target="_blank" rel="noopener">doi.org/10.1016/j.geomorph.2016.10.019</a></li>
+            <li>Gartner and others (2014), volume model: <a href="https://doi.org/10.1016/j.enggeo.2014.04.008" target="_blank" rel="noopener">doi.org/10.1016/j.enggeo.2014.04.008</a></li>
+            <li>Cannon and others (2010), combined hazard: <a href="https://doi.org/10.1130/B26459.1" target="_blank" rel="noopener">doi.org/10.1130/B26459.1</a></li>
+            <li>USGS post-fire debris-flow hazard dashboard: <a href="https://www.arcgis.com/apps/dashboards/c09fa874362e48a9afe79432f2efe6fe" target="_blank" rel="noopener">arcgis.com dashboard</a></li>
+          </ul>
+        </div>
+      </calcite-tab>
+    </calcite-tabs>
+  </main>
+
+  <script>
+    // ---------- DATA ----------
+    const inputData = [
+      {dataset:"perimeter", tier:"Required", source:"Scenario-dependent: real fire perimeter (NIFC/CAL FIRE) or hypothetical burn unit (HUC12s / TRPA boundary)", status:"Decision open", notes:"Buffered (3 km default); defines the analysis domain"},
+      {dataset:"dem", tier:"Required", source:"USGS 3DEP 1/3 arc-second (~10 m); pfdf.data helper or The National Map", status:"Not acquired", notes:"Sets CRS, resolution, and alignment; keep 10 m, do not substitute lidar"},
+      {dataset:"dnbr", tier:"Recommended", source:"Validation: MTBS or RAVG (Caldor 2021, Angora 2007). Pre-fire: constant value", status:"Not acquired", notes:"Expected scaling is raw dNBR times 1000"},
+      {dataset:"severity", tier:"Recommended", source:"BARC4 from BAER where available; else wildcat estimates from dNBR; pre-fire: constant class", status:"Not acquired", notes:"BARC4 classes: 1 unburned, 2 low, 3 moderate, 4 high"},
+      {dataset:"kf", tier:"Recommended", source:"STATSGO soil KF-factor (pfdf.data helper); attribute field KFFACT", status:"Not acquired", notes:"Polygon input needs the kf_field setting"},
+      {dataset:"evt", tier:"Recommended", source:"LANDFIRE Existing Vegetation Type, latest version", status:"Not acquired", notes:"Builds the water, development, and exclusion masks"},
+      {dataset:"retainments", tier:"Optional", source:"No basin-wide debris-basin inventory known; ask jurisdictions about sediment basins", status:"Decision open", notes:"Pixels downstream of retainments are excluded from the network"},
+      {dataset:"iswater", tier:"Optional", source:"Lake Tahoe and major lakes; the EVT water mask is likely sufficient", status:"Probably skip", notes:"EVT-derived mask is the default path"},
+      {dataset:"isdeveloped", tier:"Optional", source:"EVT development mask; TRPA impervious or urban layers if EVT is too coarse", status:"Probably skip", notes:"Informs network filtering"}
+    ];
+
+    // Atlas 14 PDS 15-minute intensities (mm/hr), computed from the climate pipeline's
+    // atlas14_ddf.csv on Jul 30, 2026 (depth_mm * 4).
+    const i15Data = {"aris":[1,2,5,10,25,50,100,200,500,1000],"brockway_summit":[26.6,33.7,44.0,53.1,67.0,79.2,93.0,108.7,134.1,156.5],"emerald_bay":[27.6,33.8,43.2,51.9,65.8,78.6,94.0,112.8,143.2,173.7],"glenbrook":[24.0,29.9,39.1,47.8,61.8,74.2,89.3,107.7,137.2,164.6],"incline_village":[25.9,32.2,42.2,51.5,66.8,80.9,97.7,117.8,152.4,183.9],"kingsbury":[24.0,29.9,38.9,47.2,60.4,72.1,86.4,103.6,130.0,155.4],"meyers":[24.9,30.9,39.5,47.2,58.9,68.9,80.0,92.6,111.8,128.0],"south_lake_tahoe":[20.9,25.9,33.1,39.8,50.0,58.9,69.0,80.7,98.6,114.8],"tahoe_city":[26.1,33.6,44.4,53.8,67.7,79.4,92.4,106.7,129.0,148.3],"basin_median":[25.4,31.6,40.8,49.6,63.8,76.4,90.8,107.2,132.0,156.0]};
+    const USGS_DEFAULT_I15 = [16, 20, 24, 40];
+
+    // ---------- HELPERS ----------
+    // AG Grid 31.3.2 in this environment does not render cellRenderer output,
+    // so color category columns via cellStyle instead.
+    function colorCell(map){
+      return p => {
+        const c = (typeof map === "function") ? map(p.value) : map[p.value];
+        return c ? { color:c, background:c+"14", fontWeight:"600" } : null;
+      };
+    }
+    const statusColor = {"Not acquired":"#E87722", "Decision open":"#7B6A8A",
+                         "Probably skip":"#5a6577", "Acquired":"#4A6118"};
+    const tierColor = {"Required":"#9C3E27", "Recommended":"#0072CE", "Optional":"#5a6577"};
+
+    function downloadCsv(csv, fileName){
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+      a.download = fileName;
+      a.click();
+    }
+    // Static-table CSV export (CSV round-trip convention: every table gets a button)
+    function tableToCsv(tableId){
+      const rows = [...document.getElementById(tableId).querySelectorAll("tr")];
+      return rows.map(tr => [...tr.querySelectorAll("th,td")]
+        .map(c => '"' + c.textContent.trim().replace(/\s+/g, " ").replaceAll('"', '""') + '"')
+        .join(",")).join("\n");
+    }
+
+    const inpCols = [
+      {field:"dataset", headerName:"Dataset", width:130, filter:"agTextColumnFilter", cellStyle:{fontWeight:"600"}},
+      {field:"tier", headerName:"Tier", width:130, filter:"agTextColumnFilter", cellStyle:colorCell(tierColor)},
+      {field:"source", headerName:"Tahoe source", flex:1, minWidth:300, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"},
+      {field:"status", headerName:"Status", width:140, filter:"agTextColumnFilter", cellStyle:colorCell(statusColor)},
+      {field:"notes", headerName:"Notes", flex:1, minWidth:260, wrapText:true, autoHeight:true}
+    ];
+
+    // ---------- CHART ----------
+    function renderI15Chart(){
+      const div = document.getElementById("i15-chart");
+      const points = Object.keys(i15Data).filter(k => k !== "aris" && k !== "basin_median");
+      const traces = points.map(p => ({
+        x: i15Data.aris, y: i15Data[p], mode: "lines", name: p.replaceAll("_", " "),
+        line: {color: "#B4CBE8", width: 1.5}, hovertemplate: "%{y} mm/hr<extra>" + p.replaceAll("_", " ") + "</extra>"
+      }));
+      traces.push({
+        x: i15Data.aris, y: i15Data.basin_median, mode: "lines+markers", name: "basin median",
+        line: {color: "#003B71", width: 3}, marker: {size: 7},
+        hovertemplate: "%{y} mm/hr<extra>basin median</extra>"
+      });
+      const shapes = USGS_DEFAULT_I15.map(v => ({
+        type: "line", xref: "paper", x0: 0, x1: 1, y0: v, y1: v,
+        line: {color: "#E87722", width: 1, dash: "dot"}
+      }));
+      const annotations = USGS_DEFAULT_I15.map(v => ({
+        xref: "paper", x: 1, y: v, xanchor: "left", yanchor: "middle",
+        text: String(v), showarrow: false, font: {color: "#E87722", size: 11}
+      }));
+      annotations.push({
+        xref: "paper", x: 1.005, y: 46, xanchor: "left", yanchor: "middle", textangle: -90,
+        text: "USGS defaults", showarrow: false, font: {color: "#E87722", size: 11}
+      });
+      Plotly.newPlot(div, traces, {
+        font: {family: "'Open Sans', system-ui, sans-serif", color: "#003B71"},
+        xaxis: {title: {text: "Return period (years)"}, type: "log",
+                tickvals: [1, 2, 5, 10, 25, 50, 100, 200, 500, 1000], gridcolor: "#e6e9ee"},
+        yaxis: {title: {text: "15-minute intensity (mm/hr)"}, gridcolor: "#e6e9ee", rangemode: "tozero"},
+        shapes, annotations,
+        margin: {l: 60, r: 90, t: 20, b: 55},
+        legend: {orientation: "h", y: -0.22},
+        paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)"
+      }, {displayModeBar: false, responsive: true});
+    }
+
+    // ---------- INIT ----------
+    function makeGrid(divId, cols, rows, qfId, btnId, fileName){
+      const div = document.getElementById(divId);
+      agGrid.createGrid(div, {
+        columnDefs: cols, rowData: rows,
+        defaultColDef: {sortable:true, resizable:true},
+        domLayout: "autoHeight",
+        onGridReady: e => {
+          div.__api = e.api;
+          // Grids inside hidden Calcite tabs: only fit when actually visible
+          if (div.offsetWidth > 0) e.api.sizeColumnsToFit();
+        }
+      });
+      document.getElementById(qfId).addEventListener("input", ev => {
+        if (div.__api) div.__api.setGridOption("quickFilterText", ev.target.value);
+      });
+      document.getElementById(btnId).addEventListener("click", () => {
+        if (div.__api) div.__api.exportDataAsCsv({fileName});
+      });
+    }
+
+    function init(){
+      makeGrid("inp-grid", inpCols, inputData, "inp-qf", "inp-export", "PROTECT_Wildcat_Inputs.csv");
+      renderI15Chart();
+      // Static-table export buttons
+      document.querySelectorAll("button[data-tablecsv]").forEach(btn => {
+        btn.addEventListener("click", () =>
+          downloadCsv(tableToCsv(btn.dataset.tablecsv), btn.dataset.filename));
+      });
+      // I15 chart data export
+      document.getElementById("i15-export").addEventListener("click", () => {
+        const points = Object.keys(i15Data).filter(k => k !== "aris");
+        const rows = [["ari_years"].concat(points).join(",")];
+        i15Data.aris.forEach((ari, i) =>
+          rows.push([ari].concat(points.map(p => i15Data[p][i])).join(",")));
+        downloadCsv(rows.join("\n"), "PROTECT_DebrisFlow_I15_Atlas14.csv");
+      });
+      // Re-fit grid / relayout chart when their tab becomes visible (zero-width guard)
+      document.querySelector("calcite-tabs").addEventListener("calciteTabChange", () => {
+        setTimeout(() => {
+          const div = document.getElementById("inp-grid");
+          if (div && div.__api && div.offsetWidth > 0) div.__api.sizeColumnsToFit();
+          const chart = document.getElementById("i15-chart");
+          if (chart && chart.data && chart.offsetWidth > 0) Plotly.Plots.resize(chart);
+        }, 60);
+      });
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
+  </script>
+</body>
+</html>

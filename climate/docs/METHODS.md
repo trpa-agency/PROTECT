@@ -70,6 +70,9 @@ reason it cannot be primary. Revisit if a bi-state 3 km product publishes.
 
 ## Known caveats
 
+- **FGOALS-g3 publishes no wind variables** on the cadcat LOCA2 mirror - the daily wind
+  (`wspeed`) ensemble is 4 models, not 5. Precip/temp remain 5-model.
+
 - LOCA2-Hybrid 3 km has no Nevada coverage (see decision above).
 - WRF wind is dynamically downscaled from a smaller GCM subset than LOCA2 - ensemble
   stats for wind are not directly comparable to the precip/temp ensemble.
