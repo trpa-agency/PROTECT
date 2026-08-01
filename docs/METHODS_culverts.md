@@ -38,6 +38,10 @@ tool filters to `culvert`.
 - **CRS:** everything reprojected to EPSG:26910 (NAD83 / UTM 10N).
 - **Basin clip:** features outside the TRPA boundary (Boundaries MapServer layer 4) are dropped,
   with their condition records; dropped rows listed in `outputs/clipped_out_of_basin.csv`.
+  Current run drops 1,087 records: Douglas County 854 of 858 (their delivery is county-wide;
+  the Tahoe-area subset is small, see caveats), Placer County 187 of 660 (28 percent - their
+  gdb extends past the basin boundary), El Dorado County 43, Caltrans 3. If a jurisdiction
+  asks where their records went, the clip is the answer.
 - **Lines to points:** representative point per `run.line_to_point` (default midpoint);
   `geom_source` records the derivation.
 - **Ratings stay raw.** Each condition record carries the jurisdiction's own value plus a
@@ -46,9 +50,13 @@ tool filters to `culvert`.
   subscores and `perc_full` carry the signal.
 - **Caltrans:** one culvert per `SYSNO` (segments summed for length, geometry at first inlet).
 - **Legacy gap fill:** each point in the prior TRPA compilation is matched to the nearest new
-  asset within `run.legacy_match_m` (25 m); unmatched points join the layer as jurisdiction
-  `TRPA Legacy (provisional)` with a PROVISIONAL comment. Match status per legacy point:
-  `outputs/legacy_comparison.csv`.
+  asset within `run.legacy_match_m` (25 m). For assets ingested from line sources the match
+  tests distance to the full original line, not the collapsed representative point (midpoint
+  matching under-matches long pipes and inflates provisional adds with duplicates). Unmatched
+  points join the layer as jurisdiction `TRPA Legacy (provisional)` with a PROVISIONAL comment;
+  condition history on matched points is re-parented onto the surviving asset. Match status per
+  legacy point: `outputs/legacy_comparison.csv`. Note the published counts below predate the
+  line-geometry match; a rerun will likely reduce the 1,626 provisional adds somewhat.
 
 ## Known caveats
 

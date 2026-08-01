@@ -5,7 +5,24 @@ in this repo. Deeper detail lives in the canonical docs listed per section - rea
 before extending a pipeline. No secrets, no staff names, no commercial vendor names
 (repo is served by GitHub Pages).
 
-Last updated: 2026-07-31
+Last updated: 2026-08-01
+
+## Web pages (restructured 2026-08-01)
+
+- Site is now 5 pages: index, risk-index-tool, reference-hub, climate-data,
+  tahoe-precip-events. debris-flow.html and data-model-inventory.html were merged away
+  (wildcat plan -> Debris Flow Modeling tab on tahoe-precip-events; data/model inventory
+  -> a tab on reference-hub) and moved to html/_to_delete/ for git rm.
+- Meeting agendas / action items / per-person notes live in docs/coordination_notes.md,
+  never on the pages. Titles carry no em-dashes and minimal colons ("PROTECT Reference
+  Hub", not "PROTECT: Reference Hub").
+- 05_transform now treats config.yaml analysis.metrics as authoritative (raises on
+  unimplemented metrics); 06_qa unit-checks every file (12-file cap removed).
+- Culvert notebook: legacy 25 m match now runs against full line geometry (not midpoints),
+  matched-legacy condition records re-parent onto the surviving asset, Caltrans SYSNO ids
+  are integer-safe. Rerun needed; the 1,626 provisional-add count will likely drop.
+- Full repo audit: docs/REPO_REVIEW_2026-08-01.md (RFP/vendor items superseded by a
+  team decision, being removed separately).
 
 ## Culvert layer (canonical: docs/METHODS_culverts.md, docs/jurisdiction_data_questions.md)
 
