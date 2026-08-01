@@ -22,6 +22,12 @@ climate/.env
 *.zarr/
 *.tif
 
+# Debris-flow pipeline (debris-flow/) - inputs and wildcat project runs never committed
+# (outputs/ and logs/ are already covered by the unanchored patterns above)
+debris-flow/data/
+debris-flow/projects/
+debris-flow/.env
+
 # Jupyter
 .ipynb_checkpoints/
 __pycache__/

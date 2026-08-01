@@ -11,7 +11,8 @@ deliverable).
 
 The risk index uses the **FHWA VAST framework**: sub-indices Exposure, Sensitivity, Asset Value, and
 Adaptive Capacity (reverse-scored) combine into a Master PROTECT Index, weighted alongside Criticality
-(Sensitivity ~10-20%, Criticality ~30%). Current artifacts: a reference hub (`html/index.html`, v0.3)
+(Sensitivity ~10-20%, Criticality ~30%). Current artifacts: a landing page (`html/index.html`, v0.4,
+links every page with status and phasing); a reference hub (`html/reference-hub.html`, v0.3)
 with tabs for the hazard-asset pairs, data inventory, framework/methods (incl. a hazard impact &
 sensitivity matrix), and open decisions; a data-readiness tracker (`html/data-model-inventory.html`)
 mapping each layer to its TRPA REST endpoint; and the **Phase 1 MVP map tool**
@@ -67,9 +68,14 @@ The live readiness tracker is `html/data-model-inventory.html`.
 PROTECT/
 ├── data/                            # input data, intermediate files (empty for now)
 ├── docs/                            # methodology and build notes (empty for now)
-├── html/index.html                  # v0.3 reference hub (Calcite + AG Grid, TRPA brand)
+├── html/index.html                  # v0.4 landing page (page cards, phasing, workstream status; no CDN libs)
+├── html/reference-hub.html          # v0.3 reference hub (Calcite + AG Grid, TRPA brand)
 ├── html/data-model-inventory.html   # data + model inventory with REST endpoint tracking
 ├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK + Plotly + AG Grid)
+├── html/climate-data.html           # v0.1 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
+├── html/debris-flow.html            # v0.1 wildcat page (analysis plan, workflow, inputs, scenarios, I15 chart)
+├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
+├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
 ├── scripts/                         # ETL / analysis scripts (empty for now)
 └── Hazard_Asset_Pairs.md            # plain-text source-of-record for pairs + framework
 ```
@@ -104,7 +110,7 @@ PROTECT/
   Dojo/AMD loader otherwise makes those UMD bundles register as AMD modules (`Error: multipleDefine`;
   `window.Plotly` / `window.agGrid` end up undefined and the map fails). Pages without ArcGIS (the hub,
   the inventory) are unaffected.
-- **`html/index.html` and `Hazard_Asset_Pairs.md` mirror the pair list.** When pairs change, update
+- **`html/reference-hub.html` and `Hazard_Asset_Pairs.md` mirror the pair list.** When pairs change, update
   the grid's `pairs` array in the HTML and the markdown table. The 33-element data inventory (32 from
   the workbook + WEPP) lives in the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.
 - **Punctuation**: no em-dashes (use a hyphen or colon), following the Reporting house style.
