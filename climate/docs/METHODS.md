@@ -24,7 +24,7 @@ native lat/lon.
 | # | Source | Resolution | Variables | Period | Access | Notebook |
 |---|---|---|---|---|---|---|
 | 1 | LOCA2 North America (CMIP6, Scripps) | ~6 km (1/16 deg) | pr, tasmax, tasmin (daily) | 1950-2014 hist + SSP2-4.5 / SSP3-7.0 to 2100 | HTTPS/OPeNDAP subset, bbox only | `01_extract_loca2` |
-| 2 | Cal-Adapt Analytics Engine (`s3://cadcat`, anonymous) | LOCA2-Hybrid 3 km; WRF 9 km (wind) | pr, tasmax, tasmin; u10/v10 | same | xarray + s3fs + zarr, bbox subset | `02_extract_caladapt` |
+| 2 | Cal-Adapt Analytics Engine (`s3://cadcat`, anonymous) | LOCA2-Hybrid 6 km CA-only (disabled); WRF 9 km d02 (wind) | pr, tasmax, tasmin; u10/v10 | same | xarray + s3fs + zarr, bbox subset | `02_extract_caladapt` |
 | 3 | gridMET (climatologylab.org) | 4 km | pr, tmmx, tmmn, vs (daily) | 1979-present | THREDDS/OPeNDAP subset | `03_extract_gridmet` |
 | 4 | NOAA Atlas 14 (NWS PFDS) | point DDF | precip depth-duration-frequency | stationary | point CSV API | `04_extract_atlas14` |
 
@@ -40,14 +40,16 @@ byte-range subsetting (fsspec + h5netcdf) pulls only the bbox window. Member not
 MPI-ESM1-2-HR's General Use run r3i1p1f1 covers historical + ssp370 only - ssp245 falls
 back to r1i1p1f1 (notebook 01 logs the fallback; QA reports members used).
 
-## The 6 km vs 3 km bi-state decision
+## The LOCA2-Hybrid decision
 
-LOCA2-Hybrid 3 km (Cal-Adapt) is the finer product but **covers California only** - the NV
-side of the basin (Incline Village, east shore, Kingsbury, Mt Rose corridor) falls outside
-it. LOCA2 North America 6 km covers the full bi-state study area. Decision: **6 km is the
-primary analysis grid** so every asset scores from one consistent product; 3 km is pulled
-for the CA side as a sensitivity/verification layer, and the NV gap is the documented
-reason it cannot be primary. Revisit if a bi-state 3 km product publishes.
+LOCA2-Hybrid (Cal-Adapt, `cadcat/loca2/aaa-ca-hybrid`) is often described as a 3 km
+product; inspection of the stores (2026-07-31) shows it is the **same 1/16 deg (~6 km)
+grid, California only** - the NV side of the basin (Incline Village, east shore,
+Kingsbury, Mt Rose corridor) falls outside it. LOCA2 North America 6 km covers the full
+bi-state study area at the same resolution. Decision: **the full-domain LOCA2 grid is the
+primary analysis grid**; with no resolution gain and no Nevada coverage, LOCA2-Hybrid
+adds nothing here and is disabled in config (`caladapt.loca2_hybrid.enabled: false`).
+Revisit only if a genuinely finer bi-state downscaled product publishes.
 
 ## Processing (notebook 05_transform)
 
@@ -73,7 +75,8 @@ reason it cannot be primary. Revisit if a bi-state 3 km product publishes.
 - **FGOALS-g3 publishes no wind variables** on the cadcat LOCA2 mirror - the daily wind
   (`wspeed`) ensemble is 4 models, not 5. Precip/temp remain 5-model.
 
-- LOCA2-Hybrid 3 km has no Nevada coverage (see decision above).
+- LOCA2-Hybrid is 6 km CA-only, not 3 km as commonly described, and has no Nevada
+  coverage (see decision above) - disabled as redundant.
 - WRF wind is dynamically downscaled from a smaller GCM subset than LOCA2 - ensemble
   stats for wind are not directly comparable to the precip/temp ensemble.
 - NOAA Atlas 14 is stationary (no climate-change adjustment); Atlas 15 (non-stationary)

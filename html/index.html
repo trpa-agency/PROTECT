@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PROTECT: Risk Index &amp; Resilience Tool | TRPA</title>
+  <title>PROTECT Risk Index and Resilience Tool | TRPA</title>
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -92,12 +92,12 @@
     <div class="header-content">
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
-        <h1>PROTECT: Risk Index &amp; Resilience Tool</h1>
+        <h1>PROTECT Risk Index and Resilience Tool</h1>
         <div class="header-sub">Task 3 &middot; Resilience Improvement Plan</div>
       </div>
       <div class="header-meta">
         <a class="cta" href="risk-index-tool.html">Open Risk Index Tool (MVP) &rarr;</a>
-        <span class="version">v0.4</span>
+        <span class="version">v0.5</span>
       </div>
     </div>
   </header>
@@ -105,18 +105,26 @@
   <main>
     <section class="intro">
       <p class="lede">
-        Working hub for <strong>PROTECT Task 3</strong>: a risk-based vulnerability assessment (3.2) and an
-        <strong>interactive risk index mapping tool</strong> (3.3) for the Lake Tahoe Basin's transportation
-        system, funded by the FHWA PROTECT grant and feeding the 2027 Resilience Improvement Plan. The index
-        follows the FHWA VAST framework: Exposure, Sensitivity, Asset Value, and Adaptive Capacity combine
-        with Criticality into a master risk score per asset.
+        The Lake Tahoe Basin's roads, culverts, and bridges face wildfire, flooding, landslides, avalanches,
+        and intensifying storms. <strong>PROTECT Task 3</strong> (FHWA grant) is building a risk-based
+        vulnerability assessment and an <strong>interactive risk index mapping tool</strong> that scores every
+        transportation asset against those hazards, feeding the 2027 Resilience Improvement Plan. The method
+        follows the FHWA VAST framework, with Exposure, Sensitivity, Asset Value, and Adaptive Capacity
+        combining with Criticality into one risk score per asset.
       </p>
+      <div class="flow">
+        <span class="step">Source layers + pipelines (climate, storms, culverts, debris flow)</span><span class="arrow">&rarr;</span>
+        <span class="step">Per-asset sub-indices (E, S, AV, AC)</span><span class="arrow">&rarr;</span>
+        <span class="step">Master PROTECT index</span><span class="arrow">&rarr;</span>
+        <span class="step">Risk Index Tool + Workshops</span><span class="arrow">&rarr;</span>
+        <span class="step">2027 Resilience Improvement Plan</span>
+      </div>
     </section>
 
     <section class="kpi-row">
       <div class="kpi-card"><div class="kpi-value">18</div><div class="kpi-label">Working hazard-asset pairs</div></div>
       <div class="kpi-card"><div class="kpi-value">33</div><div class="kpi-label">Datasets tracked</div></div>
-      <div class="kpi-card"><div class="kpi-value">2</div><div class="kpi-label">Analysis pipelines (climate, debris flow)</div></div>
+      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Analysis pipelines (climate, storms, debris flow)</div></div>
       <div class="kpi-card"><div class="kpi-value">Nov 2026</div><div class="kpi-label">Workshop 1: exposure results</div></div>
     </section>
 
@@ -140,30 +148,17 @@
       <a class="page-card" href="reference-hub.html">
         <div class="card-head">
           <h3>Reference Hub</h3>
-          <span class="chip">v0.3</span>
+          <span class="chip">v0.4</span>
         </div>
-        <p>The methodology record: what is being assessed and how.</p>
+        <p>The methodology record, what is being assessed and how, plus data readiness.</p>
         <ul>
           <li>Hazard-asset pair evaluation and selections</li>
-          <li>VAST framework, weights, and the impact and sensitivity matrix</li>
-          <li>Exposure datasets, meeting agenda, and action items</li>
+          <li>VAST framework, weights, and the sensitivity matrix</li>
+          <li>Data and model inventory with live REST endpoints</li>
         </ul>
         <span class="open">Open the hub &rarr;</span>
       </a>
 
-      <a class="page-card" href="data-model-inventory.html">
-        <div class="card-head">
-          <h3>Data &amp; Model Inventory</h3>
-          <span class="chip">Live tracker</span>
-        </div>
-        <p>Readiness of every input layer, mapped to its TRPA REST endpoint.</p>
-        <ul>
-          <li>33 datasets with live / building / needed status</li>
-          <li>Service and layer index per source</li>
-          <li>Model inventory (disruption-risk tools, WEPP, wildcat)</li>
-        </ul>
-        <span class="open">Open the inventory &rarr;</span>
-      </a>
 
       <a class="page-card" href="climate-data.html">
         <div class="card-head">
@@ -179,38 +174,30 @@
         <span class="open">Open climate data &rarr;</span>
       </a>
 
-      <a class="page-card" href="debris-flow.html">
+      <a class="page-card" href="tahoe-precip-events.html">
         <div class="card-head">
-          <h3>Debris-Flow Hazard</h3>
-          <span class="chip">v0.1</span>
+          <h3>Storm Events and Debris Flow</h3>
+          <span class="chip">New</span>
         </div>
-        <p>Filling the one missing hazard layer with USGS wildcat modeling.</p>
+        <p>Trigger storms, their frequency, and the debris-flow consequence chain.</p>
         <ul>
-          <li>End-to-end analysis plan and wildcat workflow</li>
-          <li>Input mapping, validation and pre-fire scenarios</li>
-          <li>Tahoe-specific 15-minute design storms</li>
+          <li>MRMS animation and hindcast of the July 14 debris flow</li>
+          <li>Burst catalog, Atlas 14 rarity, WRF future scaling, WEPP runs</li>
+          <li>Culvert screening (CULVERT + WildCat) and the modeling plan</li>
         </ul>
-        <span class="open">Open debris flow &rarr;</span>
+        <span class="open">Open storm events &rarr;</span>
       </a>
 
     </section>
 
     <h2 class="section">How the pieces fit together</h2>
     <div class="panel">
-      <div class="flow">
-        <span class="step">Data &amp; Model Inventory: source layers</span><span class="arrow">&rarr;</span>
-        <span class="step">Pipelines: climate + debris flow</span><span class="arrow">&rarr;</span>
-        <span class="step">Per-asset sub-indices (E, S, AV, AC)</span><span class="arrow">&rarr;</span>
-        <span class="step">Master PROTECT index (with Criticality)</span><span class="arrow">&rarr;</span>
-        <span class="step">Risk Index Tool + Workshops</span><span class="arrow">&rarr;</span>
-        <span class="step">2027 Resilience Improvement Plan</span>
-      </div>
       <p>
-        The inventory tracks what exists and what is missing; the pipelines turn raw sources into exposure
-        inputs (future climate stressors, modeled debris-flow hazard); the Reference Hub records the framework
-        decisions that govern scoring; and the Risk Index Tool is where assets, hazards, and scores meet the
-        map. Methodology questions land in the Reference Hub's open decisions; data questions land in the
-        inventory.
+        The Reference Hub records the framework decisions and tracks what data exists and what is missing;
+        the pipelines turn raw sources into exposure inputs (future climate stressors, trigger-storm
+        climatology, the culvert layer, modeled debris-flow hazard); and the Risk Index Tool is where assets,
+        hazards, and scores meet the map. Meeting agendas and action items live in the repo docs folder,
+        not on these pages.
       </p>
     </div>
 
@@ -254,10 +241,11 @@
         <thead><tr><th>Workstream</th><th>Status</th><th>Where</th><th>Next step</th></tr></thead>
         <tbody>
           <tr><td>Risk Index Tool (map SPA)</td><td><span class="tag live">MVP live</span></td><td>risk-index-tool.html</td><td>Wire scored layers as sub-indices land</td></tr>
-          <tr><td>Hazard-asset framework</td><td><span class="tag live">Working set</span></td><td>reference-hub.html</td><td>Close open weighting decisions with the consultant</td></tr>
-          <tr><td>Data readiness (33 layers)</td><td><span class="tag progress">In progress</span></td><td>data-model-inventory.html</td><td>Consolidated Assets service; packaged Hazards services</td></tr>
-          <tr><td>Climate pipeline</td><td><span class="tag progress">Extracting</span></td><td>climate-data.html + climate/</td><td>First reviewed projection summaries onto the page</td></tr>
-          <tr><td>Debris-flow modeling (wildcat)</td><td><span class="tag scoped">Scoped</span></td><td>debris-flow.html + debris-flow/</td><td>Create the environment; run the Caldor validation</td></tr>
+          <tr><td>Hazard-asset framework + data readiness</td><td><span class="tag live">Working set</span></td><td>reference-hub.html</td><td>Close open weighting decisions with the consultant</td></tr>
+          <tr><td>Climate pipeline</td><td><span class="tag live">Validated run</span></td><td>climate-data.html + climate/</td><td>Consultant review of the extraction spec, then publish reviewed projections</td></tr>
+          <tr><td>Storm events + frequency + WEPP chain</td><td><span class="tag live">Built</span></td><td>tahoe-precip-events.html</td><td>Review WRF change factors; pilot CULVERT upload on the West Shore</td></tr>
+          <tr><td>Culvert layer (6 jurisdictions)</td><td><span class="tag live">Compiled</span></td><td>docs/METHODS_culverts.md + outputs/culverts.gdb</td><td>Rerun with line-geometry legacy match; jurisdiction follow-ups</td></tr>
+          <tr><td>Debris-flow modeling (WildCat)</td><td><span class="tag scoped">Scoped</span></td><td>tahoe-precip-events.html + debris-flow/</td><td>Create the environment; run the Caldor validation</td></tr>
           <tr><td>Disruption-risk tool (RA2CE vs. RDR)</td><td><span class="tag open">Decision open</span></td><td>Consultant pros and cons in review</td><td>Select tool; street network base is ready</td></tr>
         </tbody>
       </table>
