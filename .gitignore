@@ -13,4 +13,25 @@ Thumbs.db
 # RA2CE large geodata outputs - too large for GitHub (analysis outputs, not source)
 scripts/ra2ce/output/
 scripts/ra2ce/static/output_graph/
-scripts/ra2ce/static/network/overture_drive_routable.*
+
+# Shapefiles and dbf tables - regenerated from the source GDB / SDE by the
+# notebooks, so they are outputs rather than source. Every sidecar counts:
+# a shapefile is unusable if one of .shp / .shx / .dbf / .prj goes missing.
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.CPG
+*.sbn
+*.sbx
+*.qix
+*.qpj
+*.shp.xml
+*.shp.*.sr.lock
+
+# Non-shapefile geodata written alongside the above (GeoPackage / GeoJSON
+# copies of the same networks). CSVs are deliberately NOT ignored - the
+# *_weights.csv files record the weights an analysis actually ran with.
+scripts/ra2ce/static/network/*.gpkg
+scripts/ra2ce/static/network/*.geojson

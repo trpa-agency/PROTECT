@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Criticality Index &middot; PROTECT</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css"/>
+  <script src="https://js.arcgis.com/4.30/"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─────────────────────────────────────────────
+       TRPA BRAND TOKENS
+       Navy  #003B71   Blue #0072CE   Ice #B4CBE8
+    ───────────────────────────────────────────── */
+    :root {
+      --navy:       #003B71;
+      --navy-mid:   #0a4a86;
+      --blue:       #0072CE;
+      --blue-lt:    #2f92e0;
+      --ice:        #B4CBE8;
+      --teal:       #007681;
+      --teal-lt:    #159aa6;
+      --purple:     #4a1486;
+      --orange:     #E87722;
+      --orange-lt:  #f0913f;
+      --green-dk:   #4a7729;
+
+      --bg:         #f4f6f9;
+      --panel:      #ffffff;
+      --panel-dk:   #eef1f6;
+      --card:       #ffffff;
+      --border:     #d0d8e4;
+      --border-lt:  #e4eaf2;
+
+      --text:       #003B71;
+      --text-mid:   #3a5278;
+      --text-dim:   #7a90aa;
+
+      --font-display: 'Open Sans', 'Segoe UI', sans-serif;
+      --font-body:    'Open Sans', 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ───────────────────────────────── */
+    .app-header {
+      background: var(--navy);
+      height: 56px;
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .hdr-l { display: flex; align-items: center; gap: 14px; }
+    .hdr-logo { height: 38px; flex-shrink: 0; display: flex; align-items: center; }
+    .hdr-logo img { height: 38px; width: auto; display: block; }
+
+    .hdr-title {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #ffffff;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+    .hdr-sub {
+      font-size: 10px; font-weight: 400;
+      color: var(--ice);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hdr-r { display: flex; align-items: center; gap: 18px; }
+
+    .live-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 700;
+      color: var(--ice);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--ice);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(180,203,232,.5); }
+      50%      { opacity:.8; box-shadow: 0 0 0 5px rgba(180,203,232,0); }
+    }
+
+    #feat-count {
+      font-size: 11px; font-weight: 400;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── LAYOUT ───────────────────────────────── */
+    .app-body { display: flex; flex: 1; overflow: hidden; }
+
+    .left-panel {
+      width: 324px; flex-shrink: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 2px 0 8px rgba(0,59,113,0.07);
+    }
+
+    /* ── normalization switch ── */
+    .norm-bar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-dk);
+      flex-shrink: 0;
+    }
+    .norm-lbl {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase; margin-bottom: 6px;
+      display: block;
+    }
+    .norm-btns { display: flex; gap: 6px; }
+    .norm-btn {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: var(--panel);
+      color: var(--text-mid);
+      border-radius: 5px; padding: 7px 4px;
+      cursor: pointer; transition: all .15s;
+    }
+    .norm-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .norm-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+    /* ── hazard exposure filter ── */
+    .haz-bar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-dk);
+      flex-shrink: 0;
+    }
+    .haz-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .haz-btn {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: var(--panel);
+      color: var(--text-mid);
+      border-radius: 5px; padding: 7px 4px;
+      cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .haz-btn:hover { border-color: var(--hz-color, var(--navy)); color: var(--hz-color, var(--navy)); }
+    .haz-btn.active {
+      background: var(--hz-color, var(--navy));
+      border-color: var(--hz-color, var(--navy));
+      color: #fff;
+    }
+    .haz-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; background: var(--hz-color, var(--text-dim)); }
+    .haz-btn.active .haz-swatch { background: rgba(255,255,255,0.85); }
+
+    .haz-thresh {
+      margin-top: 9px; padding-top: 9px;
+      border-top: 1px solid var(--border);
+    }
+    .haz-thresh.hidden { display: none; }
+    .haz-thresh-row { display: flex; align-items: center; gap: 8px; }
+    .haz-thresh-lbl {
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      width: 74px; flex-shrink: 0;
+    }
+    .haz-thresh-val {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700;
+      color: var(--teal);
+      width: 30px; text-align: right; flex-shrink: 0;
+    }
+    .haz-count {
+      margin-top: 8px;
+      font-size: 10px; color: var(--text-dim); line-height: 1.5;
+    }
+    .haz-count strong { color: var(--navy); font-weight: 700; }
+
+    .cards-scroll {
+      flex: 1; overflow-y: auto;
+      padding: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .cards-scroll::-webkit-scrollbar { width: 4px; }
+    .cards-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── SUBINDEX CARD ── */
+    .si-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 1px 4px rgba(0,59,113,0.06);
+      transition: box-shadow .2s;
+    }
+    .si-card:hover { box-shadow: 0 3px 10px rgba(0,59,113,0.1); }
+    .si-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--si-color, var(--blue));
+    }
+
+    .si-head {
+      display: flex; align-items: center; gap: 9px;
+      padding: 10px 12px 10px 16px;
+      cursor: pointer; user-select: none;
+      border-bottom: 1px solid var(--border-lt);
+      transition: background .15s;
+    }
+    .si-head:hover { background: var(--panel-dk); }
+
+    .si-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .si-name {
+      font-family: var(--font-display);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--navy);
+      flex: 1;
+    }
+    .si-badge {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 700;
+      color: var(--blue);
+    }
+    .chevron { font-size: 9px; color: var(--text-dim); transition: transform .2s; }
+    .si-card.collapsed .chevron { transform: rotate(-90deg); }
+    .si-card.collapsed .si-body { display: none; }
+
+    .si-body { padding: 10px 12px 12px 16px; }
+
+    .si-wt-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-lt);
+    }
+    .si-wt-label {
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      width: 88px; flex-shrink: 0;
+    }
+    .si-wt-val {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700;
+      color: var(--blue);
+      width: 34px; text-align: right; flex-shrink: 0;
+    }
+
+    .vars-lbl {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .var-row { margin-bottom: 9px; }
+    .var-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .var-name-wrap { display: flex; align-items: center; gap: 6px; }
+    .var-lbl { font-size: 11px; font-weight: 400; color: var(--text); }
+    .var-wt-val {
+      font-family: var(--font-display);
+      font-size: 13px; font-weight: 700;
+      color: var(--navy);
+    }
+
+    .invert-pill {
+      font-family: var(--font-display);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; padding: 2px 7px;
+      border-radius: 10px; border: 1px solid;
+      cursor: pointer; transition: all .15s;
+      text-transform: uppercase;
+    }
+    .invert-pill.off { background: transparent; border-color: var(--border); color: var(--text-dim); }
+    .invert-pill.on  { background: rgba(232,119,34,0.1); border-color: rgba(232,119,34,0.5); color: var(--orange); }
+
+    input[type=range] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--blue);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,114,206,0.4);
+      cursor: pointer; transition: transform .1s, background .1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); background: var(--blue-lt); }
+
+    .vsum-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 8px; padding: 5px 9px;
+      background: var(--panel-dk);
+      border-radius: 4px;
+      border: 1px solid var(--border-lt);
+    }
+    .vsum-label {
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .vsum-val {
+      font-family: var(--font-display);
+      font-size: 14px; font-weight: 700;
+      color: var(--green-dk);
+      transition: color .2s;
+    }
+    .vsum-val.warn { color: var(--orange); }
+
+    .single-note {
+      font-size: 10px; color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ── FOOTER ── */
+    .panel-footer {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      background: var(--panel-dk);
+      display: flex; flex-direction: column; gap: 7px;
+      flex-shrink: 0;
+    }
+    .btn-row { display: flex; gap: 8px; }
+
+    .btn {
+      flex: 1; padding: 9px;
+      border-radius: 5px;
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      cursor: pointer; border: none; transition: all .18s;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-lt); }
+    .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-mid); }
+    .btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+    .btn-export {
+      width: 100%;
+      background: rgba(0,114,206,0.08);
+      border: 1.5px solid rgba(0,114,206,0.4);
+      color: var(--navy);
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      padding: 9px; border-radius: 5px;
+      cursor: pointer; transition: all .18s;
+    }
+    .btn-export:hover { background: rgba(0,114,206,0.16); border-color: var(--blue); }
+    .btn-export:disabled { opacity: .35; cursor: not-allowed; }
+
+    .vars-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+      padding: 5px 0;
+      border-top: 1px solid var(--border-lt);
+      margin-top: 4px;
+    }
+    .vars-toggle:hover .vars-lbl { color: var(--navy); }
+    .vars-chevron { font-size: 9px; color: var(--text-dim); transition: transform .2s; }
+    .vars-section { overflow: hidden; }
+    .vars-section.collapsed { display: none; }
+    .vars-toggle.closed .vars-chevron { transform: rotate(-90deg); }
+
+    /* ── MAP ── */
+    .main-area { flex: 1; position: relative; overflow: hidden; }
+    #viewDiv { width: 100%; height: 100%; }
+
+    .map-legend {
+      position: absolute; bottom: 20px; right: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px; width: 218px; z-index: 50;
+      box-shadow: 0 2px 12px rgba(0,59,113,0.12);
+    }
+    .legend-title {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--navy);
+      text-transform: uppercase;
+      margin-bottom: 9px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .legend-title::before {
+      content: '';
+      width: 14px; height: 3px;
+      background: var(--blue); border-radius: 2px; flex-shrink: 0;
+    }
+    .cbar { height: 10px; border-radius: 3px; margin-bottom: 5px; }
+    .cbar-labels {
+      display: flex; justify-content: space-between;
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim); letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .loading-overlay {
+      position: absolute; inset: 0;
+      background: rgba(244,246,249,0.92);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px; z-index: 200;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .dot-equity  { background: var(--blue); }
+    .dot-traffic { background: var(--orange); }
+    .dot-detour  { background: var(--teal); }
+
+    /* ── SYMBOLOGY TOGGLE BAR ── */
+    .sym-bar {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 50;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 12px rgba(0,59,113,0.14);
+    }
+    .sym-lbl {
+      font-family: var(--font-display);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      padding: 0 6px 0 2px;
+      border-right: 1px solid var(--border);
+      margin-right: 2px;
+      white-space: nowrap;
+    }
+    .sym-btn {
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-mid);
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+    .sym-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--panel-dk); }
+    .sym-btn.active { color: #fff; border-color: transparent; background: var(--navy); }
+    .sym-btn[data-sym="criticality"].active { background: var(--purple); }
+    .sym-btn[data-sym="equity"].active      { background: var(--blue); }
+    .sym-btn[data-sym="traffic"].active     { background: var(--orange); }
+    .sym-btn[data-sym="detour"].active      { background: var(--teal); }
+    .sym-btn .sym-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────── -->
+<div class="app-header">
+  <div class="hdr-l">
+    <a class="hdr-logo" href="https://www.trpa.gov" target="_blank" rel="noopener">
+      <img src="trpa-logo-color.png" alt="TRPA"/>
+    </a>
+    <div class="hdr-titles">
+      <div class="hdr-title">Criticality Index</div>
+      <div class="hdr-sub">PROTECT &middot; Tahoe Street Network Vulnerability Assessment</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <span id="feat-count">Loading&hellip;</span>
+    <div class="live-badge"><div class="live-dot"></div>Live</div>
+  </div>
+</div>
+
+<div class="app-body">
+
+  <!-- ── LEFT PANEL ──────────────────────────────────────── -->
+  <div class="left-panel">
+
+    <div class="norm-bar">
+      <span class="norm-lbl">Normalization</span>
+      <div class="norm-btns">
+        <button class="norm-btn active" data-norm="zscore">Z-Score</button>
+        <button class="norm-btn" data-norm="minmax">Min-Max 0&ndash;1</button>
+      </div>
+    </div>
+
+    <div class="haz-bar">
+      <span class="norm-lbl">Hazard Exposure Filter</span>
+      <div class="haz-btns">
+        <button class="haz-btn active" data-haz="none" style="--hz-color: var(--navy)">
+          <span class="haz-swatch"></span>All Segments
+        </button>
+        <button class="haz-btn" data-haz="flood" style="--hz-color: #0072CE">
+          <span class="haz-swatch"></span>Flood Zone
+        </button>
+        <button class="haz-btn" data-haz="fire" style="--hz-color: #B03A1A">
+          <span class="haz-swatch"></span>High-Sev Fire
+        </button>
+        <button class="haz-btn" data-haz="landslide" style="--hz-color: #7A5C2E">
+          <span class="haz-swatch"></span>Landslide
+        </button>
+      </div>
+
+      <div class="haz-thresh hidden" id="haz-thresh">
+        <div class="haz-thresh-row">
+          <span class="haz-thresh-lbl">Mean &ge;</span>
+          <input type="range" id="haz-slider" min="0" max="81" step="1" value="22" style="flex:1">
+          <span class="haz-thresh-val" id="haz-slider-val">22</span>
+        </div>
+      </div>
+
+      <div class="haz-count" id="haz-count">Showing all segments</div>
+    </div>
+
+    <div class="cards-scroll">
+
+      <!-- ── EQUITY ── -->
+      <div class="si-card" id="card-equity" style="--si-color: var(--blue)">
+        <div class="si-head" onclick="toggleCard('equity')">
+          <div class="si-dot dot-equity"></div>
+          <span class="si-name">Equity</span>
+          <span class="si-badge" id="sidisp-equity">0.33</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Subindex Wt.</span>
+            <input type="range" id="siw-equity" min="0" max="1" step="0.01" value="0.333" style="flex:1">
+            <span class="si-wt-val" id="siwv-equity">0.33</span>
+          </div>
+          <div class="vars-toggle closed" onclick="toggleVars('equity')">
+            <span class="vars-lbl">Variable Weights &amp; Invert</span>
+            <span class="vars-chevron">&#9660;</span>
+          </div>
+          <div class="vars-section collapsed" id="vars-equity">
+            <div class="var-row">
+              <div class="var-top">
+                <div class="var-name-wrap">
+                  <span class="var-lbl">Households Below Poverty</span>
+                  <button class="invert-pill off" id="inv-Below_Poverty_Household_max">INV</button>
+                </div>
+                <span class="var-wt-val" id="vwv-Below_Poverty_Household_max">0.25</span>
+              </div>
+              <input type="range" id="vw-Below_Poverty_Household_max" min="0" max="1" step="0.01" value="0.25">
+            </div>
+
+            <div class="var-row">
+              <div class="var-top">
+                <div class="var-name-wrap">
+                  <span class="var-lbl">Limited English Proficiency</span>
+                  <button class="invert-pill off" id="inv-Speak_English_Not_Well_Not_at_A_max">INV</button>
+                </div>
+                <span class="var-wt-val" id="vwv-Speak_English_Not_Well_Not_at_A_max">0.25</span>
+              </div>
+              <input type="range" id="vw-Speak_English_Not_Well_Not_at_A_max" min="0" max="1" step="0.01" value="0.25">
+            </div>
+
+            <div class="var-row">
+              <div class="var-top">
+                <div class="var-name-wrap">
+                  <span class="var-lbl">Zero-Vehicle Households</span>
+                  <button class="invert-pill off" id="inv-Vehicle_Available_0_max">INV</button>
+                </div>
+                <span class="var-wt-val" id="vwv-Vehicle_Available_0_max">0.25</span>
+              </div>
+              <input type="range" id="vw-Vehicle_Available_0_max" min="0" max="1" step="0.01" value="0.25">
+            </div>
+
+            <div class="var-row">
+              <div class="var-top">
+                <div class="var-name-wrap">
+                  <span class="var-lbl">Population with a Disability</span>
+                  <button class="invert-pill off" id="inv-With_Disability_max">INV</button>
+                </div>
+                <span class="var-wt-val" id="vwv-With_Disability_max">0.25</span>
+              </div>
+              <input type="range" id="vw-With_Disability_max" min="0" max="1" step="0.01" value="0.25">
+            </div>
+
+            <div class="vsum-row">
+              <span class="vsum-label">Variable &Sigma;</span>
+              <span class="vsum-val" id="vsum-equity">1.00</span>
+            </div>
+          </div><!-- /vars-equity -->
+        </div>
+      </div>
+
+      <!-- ── TRAFFIC ── -->
+      <div class="si-card" id="card-traffic" style="--si-color: var(--orange)">
+        <div class="si-head" onclick="toggleCard('traffic')">
+          <div class="si-dot dot-traffic"></div>
+          <span class="si-name">Traffic</span>
+          <span class="si-badge" id="sidisp-traffic">0.33</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Subindex Wt.</span>
+            <input type="range" id="siw-traffic" min="0" max="1" step="0.01" value="0.333" style="flex:1">
+            <span class="si-wt-val" id="siwv-traffic">0.33</span>
+          </div>
+          <div class="vars-toggle closed" onclick="toggleVars('traffic')">
+            <span class="vars-lbl">Variable Weights &amp; Invert</span>
+            <span class="vars-chevron">&#9660;</span>
+          </div>
+          <div class="vars-section collapsed" id="vars-traffic">
+            <div class="var-row">
+              <div class="var-top">
+                <div class="var-name-wrap">
+                  <span class="var-lbl">AADT Jenks Score (1&ndash;10)</span>
+                  <button class="invert-pill off" id="inv-AADT_Jenks_Score">INV</button>
+                </div>
+                <span class="var-wt-val" id="vwv-AADT_Jenks_Score">1.00</span>
+              </div>
+              <input type="range" id="vw-AADT_Jenks_Score" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div class="single-note">Single-variable subindex: 2024 estimated AADT classified into 10 Jenks natural-break categories, then normalized on its own.</div>
+            <div class="vsum-row">
+              <span class="vsum-label">Variable &Sigma;</span>
+              <span class="vsum-val" id="vsum-traffic">1.00</span>
+            </div>
+          </div><!-- /vars-traffic -->
+        </div>
+      </div>
+
+      <!-- ── DETOUR LENGTH ── -->
+      <div class="si-card" id="card-detour" style="--si-color: var(--teal)">
+        <div class="si-head" onclick="toggleCard('detour')">
+          <div class="si-dot dot-detour"></div>
+          <span class="si-name">Detour Length</span>
+          <span class="si-badge" id="sidisp-detour">0.34</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Subindex Wt.</span>
+            <input type="range" id="siw-detour" min="0" max="1" step="0.01" value="0.334" style="flex:1">
+            <span class="si-wt-val" id="siwv-detour">0.34</span>
+          </div>
+          <div class="vars-toggle closed" onclick="toggleVars('detour')">
+            <span class="vars-lbl">Variable Weights &amp; Invert</span>
+            <span class="vars-chevron">&#9660;</span>
+          </div>
+          <div class="vars-section collapsed" id="vars-detour">
+            <div class="var-row">
+              <div class="var-top">
+                <div class="var-name-wrap">
+                  <span class="var-lbl">SLR Detour Length Jenks (1&ndash;10)</span>
+                  <button class="invert-pill off" id="inv-SLR_Diff_Length_Jenks_Score">INV</button>
+                </div>
+                <span class="var-wt-val" id="vwv-SLR_Diff_Length_Jenks_Score">1.00</span>
+              </div>
+              <input type="range" id="vw-SLR_Diff_Length_Jenks_Score" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div class="single-note">Single-variable subindex: added travel distance when the segment is removed from the network, classified into 10 Jenks natural-break categories, then normalized on its own.</div>
+            <div class="vsum-row">
+              <span class="vsum-label">Variable &Sigma;</span>
+              <span class="vsum-val" id="vsum-detour">1.00</span>
+            </div>
+          </div><!-- /vars-detour -->
+        </div>
+      </div>
+
+    </div><!-- /cards-scroll -->
+
+    <div class="panel-footer">
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="resetBtn">&#8635; Reset</button>
+        <button class="btn btn-primary" id="applyBtn">&#9654; Apply</button>
+      </div>
+      <button class="btn-export" id="exportBtn" disabled>&#8681; Export Scores CSV</button>
+    </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- ── MAP ─────────────────────────────────────────────── -->
+  <div class="main-area">
+    <div id="viewDiv"></div>
+
+    <div class="sym-bar">
+      <span class="sym-lbl">Map View</span>
+      <button class="sym-btn active" data-sym="criticality">
+        <span class="sym-swatch" style="background:var(--purple)"></span>
+        Criticality
+      </button>
+      <button class="sym-btn" data-sym="equity">
+        <span class="sym-swatch" style="background:var(--blue)"></span>
+        Equity
+      </button>
+      <button class="sym-btn" data-sym="traffic">
+        <span class="sym-swatch" style="background:var(--orange)"></span>
+        Traffic
+      </button>
+      <button class="sym-btn" data-sym="detour">
+        <span class="sym-swatch" style="background:var(--teal)"></span>
+        Detour
+      </button>
+    </div>
+
+    <div class="map-legend">
+      <div class="legend-title" id="legend-title">Criticality Score</div>
+      <div class="cbar" id="legend-cbar"></div>
+      <div class="cbar-labels"><span>Low</span><span>High</span></div>
+    </div>
+
+    <div class="loading-overlay" id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loading-msg">Loading street segments&hellip;</div>
+    </div>
+  </div>
+
+</div><!-- /app-body -->
+
+<script>
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, CustomContent) => {
+
+  // ═══════════════════════════════════════════════════════
+  //  SUBINDEX DEFINITIONS
+  //  Equity  = 4 equally weighted demographic exposure fields
+  //  Traffic = AADT Jenks score, normalized as its own index
+  //  Detour  = SLR detour-length Jenks score, normalized as its own index
+  // ═══════════════════════════════════════════════════════
+  const SUBINDEX_DEFS = [
+    {
+      key: "equity", label: "Equity", color: "#0072CE",
+      vars: [
+        { field: "Below_Poverty_Household_max",         label: "Households Below Poverty",     invert: false },
+        { field: "Speak_English_Not_Well_Not_at_A_max", label: "Limited English Proficiency",  invert: false },
+        { field: "Vehicle_Available_0_max",             label: "Zero-Vehicle Households",      invert: false },
+        { field: "With_Disability_max",                 label: "Population with a Disability", invert: false }
+      ]
+    },
+    {
+      key: "traffic", label: "Traffic", color: "#E87722",
+      vars: [
+        { field: "AADT_Jenks_Score", label: "AADT Jenks Score (1-10)", invert: false }
+      ]
+    },
+    {
+      key: "detour", label: "Detour Length", color: "#007681",
+      vars: [
+        { field: "SLR_Diff_Length_Jenks_Score", label: "SLR Detour Length Jenks (1-10)", invert: false }
+      ]
+    }
+  ];
+
+  const LAYER_URL = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0";
+  const HAZARD_FIELDS = ["in_flood_zone", "high_sev_fire", "landslide_mean"];
+  const ID_FIELDS = ["OBJECTID", "segment_id", "name", "class",
+                     "Estimated_2024_AADT_Filled", "slr_diff_length_max", ...HAZARD_FIELDS];
+
+  // ═══════════════════════════════════════════════════════
+  //  HAZARD EXPOSURE FILTERS (one at a time)
+  //  Flood and fire are 0/1 flags; landslide_mean is continuous (0-81),
+  //  so it filters on a user-set threshold instead.
+  // ═══════════════════════════════════════════════════════
+  const HAZARDS = {
+    none:      { label: "all segments", color: "#003B71" },
+    flood:     { label: "in a flood zone",           color: "#0072CE",
+                 where: () => "in_flood_zone = 1",
+                 test:  a => a.in_flood_zone === 1 },
+    fire:      { label: "in a high-severity fire area", color: "#B03A1A",
+                 where: () => "high_sev_fire = 1",
+                 test:  a => a.high_sev_fire === 1 },
+    landslide: { label: "landslide exposure",        color: "#7A5C2E",
+                 where: () => `landslide_mean >= ${landslideThreshold}`,
+                 test:  a => a.landslide_mean != null && a.landslide_mean >= landslideThreshold }
+  };
+
+  // ── State ────────────────────────────────────────────────
+  const subWeights = { equity: 1/3, traffic: 1/3, detour: 1/3 };
+  const varWeights = {
+    equity:  { Below_Poverty_Household_max: 0.25, Speak_English_Not_Well_Not_at_A_max: 0.25,
+               Vehicle_Available_0_max: 0.25, With_Disability_max: 0.25 },
+    traffic: { AADT_Jenks_Score: 1 },
+    detour:  { SLR_Diff_Length_Jenks_Score: 1 }
+  };
+  const invertFlags = {
+    equity:  { Below_Poverty_Household_max: false, Speak_English_Not_Well_Not_at_A_max: false,
+               Vehicle_Available_0_max: false, With_Disability_max: false },
+    traffic: { AADT_Jenks_Score: false },
+    detour:  { SLR_Diff_Length_Jenks_Score: false }
+  };
+
+  // Normalization: each variable becomes (raw - offset) / scale.
+  //   zscore -> offset = mean, scale = std
+  //   minmax -> offset = min,  scale = max - min
+  let   normMode    = "zscore";
+  const rawStats    = {};   // field -> { mean, std, min, max }
+  let   allFeatures = [];
+  let   featureLayer;
+  let   currentSym  = "criticality";
+
+  // Hazard filter state
+  let   activeHazard       = "none";
+  let   landslideThreshold = 22;   // ~75th percentile of landslide_mean
+
+  const SYM_COLORS = {
+    criticality: { lo: "#efedf5", mid: "#807dba", hi: "#4a1486",
+                   grad: "#efedf5 0%, #807dba 50%, #4a1486 100%", label: "Criticality Score" },
+    equity:      { lo: "#dcebf8", mid: "#3f9bdd", hi: "#004f8f",
+                   grad: "#dcebf8 0%, #3f9bdd 50%, #004f8f 100%", label: "Equity Sub-Index" },
+    traffic:     { lo: "#fbe6d3", mid: "#f0913f", hi: "#a34c07",
+                   grad: "#fbe6d3 0%, #f0913f 50%, #a34c07 100%", label: "Traffic Sub-Index" },
+    detour:      { lo: "#d8ecee", mid: "#159aa6", hi: "#004a52",
+                   grad: "#d8ecee 0%, #159aa6 50%, #004a52 100%", label: "Detour Length Sub-Index" }
+  };
+
+  const allVarFields = SUBINDEX_DEFS.flatMap(si => si.vars.map(v => v.field));
+
+  // ═══════════════════════════════════════════════════════
+  //  NORMALIZATION HELPERS
+  // ═══════════════════════════════════════════════════════
+  function normParams(field) {
+    const st = rawStats[field];
+    if (!st) return { offset: 0, scale: 1 };
+    return normMode === "minmax"
+      ? { offset: st.min,  scale: (st.max - st.min) || 1 }
+      : { offset: st.mean, scale: st.std || 1 };
+  }
+
+  function normValue(field, raw) {
+    const p = normParams(field);
+    const st = rawStats[field];
+    const v = (raw != null && !isNaN(raw)) ? raw : (st ? (normMode === "minmax" ? st.min : st.mean) : 0);
+    return (v - p.offset) / p.scale;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  SLIDER LOGIC
+  // ═══════════════════════════════════════════════════════
+  function onSubSlider(key) {
+    const newVal = parseFloat(document.getElementById(`siw-${key}`).value);
+    const others = SUBINDEX_DEFS.map(s => s.key).filter(k => k !== key);
+    const sumOther = others.reduce((s, k) => s + subWeights[k], 0);
+    if (sumOther === 0) {
+      others.forEach(k => subWeights[k] = (1 - newVal) / others.length);
+    } else {
+      const scale = (1 - newVal) / sumOther;
+      others.forEach(k => subWeights[k] = subWeights[k] * scale);
+    }
+    subWeights[key] = newVal;
+    syncSubSliders();
+    updateMap();
+  }
+
+  function onVarSlider(siKey, changedField) {
+    const newVal = parseFloat(document.getElementById(`vw-${changedField}`).value);
+    const si = SUBINDEX_DEFS.find(s => s.key === siKey);
+    const others = si.vars.map(v => v.field).filter(f => f !== changedField);
+    const sumOther = others.reduce((s, f) => s + (varWeights[siKey][f] || 0), 0);
+    if (others.length === 0) {
+      varWeights[siKey][changedField] = 1;           // single-variable subindex stays at 1.0
+    } else if (sumOther === 0) {
+      others.forEach(f => varWeights[siKey][f] = (1 - newVal) / others.length);
+      varWeights[siKey][changedField] = newVal;
+    } else {
+      const scale = (1 - newVal) / sumOther;
+      others.forEach(f => varWeights[siKey][f] = varWeights[siKey][f] * scale);
+      varWeights[siKey][changedField] = newVal;
+    }
+    syncVarSliders(siKey);
+    updateMap();
+  }
+
+  function syncSubSliders() {
+    SUBINDEX_DEFS.forEach(si => {
+      const v = Math.max(0, subWeights[si.key]);
+      subWeights[si.key] = v;
+      document.getElementById(`siw-${si.key}`).value          = v.toFixed(3);
+      document.getElementById(`sidisp-${si.key}`).textContent = v.toFixed(2);
+      document.getElementById(`siwv-${si.key}`).textContent   = v.toFixed(2);
+    });
+  }
+
+  function syncVarSliders(siKey) {
+    const si = SUBINDEX_DEFS.find(s => s.key === siKey);
+    let total = 0;
+    si.vars.forEach(v => {
+      const w = varWeights[siKey][v.field];
+      document.getElementById(`vw-${v.field}`).value        = w.toFixed(3);
+      document.getElementById(`vwv-${v.field}`).textContent = w.toFixed(2);
+      total += w;
+    });
+    const el = document.getElementById(`vsum-${siKey}`);
+    if (el) {
+      el.textContent = total.toFixed(2);
+      el.className   = `vsum-val${Math.abs(total - 1) > 0.05 ? ' warn' : ''}`;
+    }
+  }
+
+  // ── Wire all controls ────────────────────────────────────
+  SUBINDEX_DEFS.forEach(si => {
+    document.getElementById(`siw-${si.key}`).addEventListener("input", () => onSubSlider(si.key));
+    si.vars.forEach(v => {
+      document.getElementById(`vw-${v.field}`).addEventListener("input", () => onVarSlider(si.key, v.field));
+      document.getElementById(`inv-${v.field}`).addEventListener("click", e => {
+        e.stopPropagation();
+        invertFlags[si.key][v.field] = !invertFlags[si.key][v.field];
+        document.getElementById(`inv-${v.field}`).className =
+          `invert-pill ${invertFlags[si.key][v.field] ? 'on' : 'off'}`;
+        updateMap();
+      });
+    });
+  });
+
+  document.querySelectorAll(".norm-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      normMode = btn.dataset.norm;
+      document.querySelectorAll(".norm-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      updateMap();
+    });
+  });
+
+  window.toggleCard = key => document.getElementById(`card-${key}`).classList.toggle("collapsed");
+
+  window.toggleVars = key => {
+    const section = document.getElementById(`vars-${key}`);
+    const toggle  = section.previousElementSibling;
+    section.classList.toggle("collapsed");
+    toggle.classList.toggle("closed");
+  };
+
+  // ═══════════════════════════════════════════════════════
+  //  STATS
+  // ═══════════════════════════════════════════════════════
+  function computeFieldStats() {
+    allVarFields.forEach(field => {
+      const vals = allFeatures.map(f => f.attributes[field]).filter(v => v != null && !isNaN(v));
+      if (!vals.length) { rawStats[field] = { mean: 0, std: 1, min: 0, max: 1 }; return; }
+      const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const std  = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length) || 1;
+      rawStats[field] = { mean, std, min: Math.min(...vals), max: Math.max(...vals) };
+    });
+  }
+
+  function subScore(siKey, attrs) {
+    const si = SUBINDEX_DEFS.find(s => s.key === siKey);
+    return si.vars.reduce((s, v) => {
+      const n = normValue(v.field, attrs[v.field]);
+      return s + (invertFlags[siKey][v.field] ? -n : n) * (varWeights[siKey][v.field] || 0);
+    }, 0);
+  }
+
+  function calcCriticality(attrs) {
+    return SUBINDEX_DEFS.reduce((s, si) => s + subScore(si.key, attrs) * subWeights[si.key], 0);
+  }
+
+  // Score distribution for whatever is currently symbolized
+  function getActiveStats() {
+    const scores = allFeatures.map(f =>
+      currentSym === "criticality" ? calcCriticality(f.attributes) : subScore(currentSym, f.attributes)
+    );
+    const n    = scores.length || 1;
+    const mean = scores.reduce((a, b) => a + b, 0) / n;
+    const std  = Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / n) || 1;
+    return { mean, std };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  ARCADE EXPRESSIONS
+  // ═══════════════════════════════════════════════════════
+  function varTerm(siKey, field) {
+    const p = normParams(field);
+    const n = `((IIf(IsEmpty($feature.${field}), ${p.offset}, $feature.${field}) - ${p.offset}) / ${p.scale})`;
+    const t = invertFlags[siKey][field] ? `(-1 * ${n})` : n;
+    return `(${t} * ${(varWeights[siKey][field] || 0).toFixed(6)})`;
+  }
+
+  function buildSubArcade(siKey) {
+    const si = SUBINDEX_DEFS.find(s => s.key === siKey);
+    return `return ${si.vars.map(v => varTerm(siKey, v.field)).join(" + ")};`;
+  }
+
+  function buildCriticalityArcade() {
+    const lines = [];
+    SUBINDEX_DEFS.forEach(si => {
+      lines.push(`var si_${si.key} = ${si.vars.map(v => varTerm(si.key, v.field)).join(" + ")};`);
+    });
+    lines.push(`return ${SUBINDEX_DEFS.map(si => `(si_${si.key} * ${subWeights[si.key].toFixed(6)})`).join(" + ")};`);
+    return lines.join("\n");
+  }
+
+  function getActiveArcade() {
+    return currentSym === "criticality" ? buildCriticalityArcade() : buildSubArcade(currentSym);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  POPUP
+  // ═══════════════════════════════════════════════════════
+  function buildPopupHTML(attrs) {
+    const style       = `font-family:'Open Sans','Segoe UI',sans-serif;font-size:12px;color:#003B71;line-height:1.6;`;
+    const hrStyle     = `border:none;border-top:1px solid #d0d8e4;margin:6px 0;`;
+    const scoreStyle  = `font-size:15px;font-weight:700;color:#0072CE;`;
+    const varStyle    = `color:#3a5278;padding-left:10px;`;
+    const nStyle      = `color:#7a90aa;font-size:11px;`;
+    const metaStyle   = `color:#7a90aa;font-size:11px;margin-bottom:6px;`;
+    const nLabel      = normMode === "minmax" ? "n" : "z";
+
+    let html = `<div style="${style}">`;
+    html += `<div style="${metaStyle}">${attrs.class || "segment"} &middot; segment ${attrs.segment_id || attrs.OBJECTID}</div>`;
+
+    const flags = [];
+    if (attrs.in_flood_zone === 1) flags.push(`<span style="color:#0072CE;font-weight:700;">Flood zone</span>`);
+    if (attrs.high_sev_fire === 1) flags.push(`<span style="color:#B03A1A;font-weight:700;">High-severity fire</span>`);
+    if (attrs.landslide_mean != null)
+      flags.push(`<span style="color:#7A5C2E;">Landslide mean ${Number(attrs.landslide_mean).toFixed(0)}</span>`);
+    if (flags.length) html += `<div style="${metaStyle}">Hazards: ${flags.join(" &middot; ")}</div>`;
+
+    if (currentSym === "criticality") {
+      html += `<div>Criticality Score: <span style="${scoreStyle}">${calcCriticality(attrs).toFixed(3)}</span></div>`;
+      html += `<hr style="${hrStyle}">`;
+      SUBINDEX_DEFS.forEach(si => {
+        html += `<div style="font-weight:700;color:${si.color};">${si.label} `
+             +  `<span style="font-weight:400;font-size:11px;color:#7a90aa;">(wt=${subWeights[si.key].toFixed(2)})</span>: `
+             +  `${subScore(si.key, attrs).toFixed(3)}</div>`;
+        si.vars.forEach(v => {
+          const raw = attrs[v.field] != null ? Number(attrs[v.field]).toFixed(2) : "N/A";
+          const inv = invertFlags[si.key][v.field] ? " &#8597;" : "";
+          html += `<div style="${varStyle}">${v.label}${inv}: ${raw} `
+               +  `<span style="${nStyle}">(${nLabel}=${normValue(v.field, attrs[v.field]).toFixed(2)})</span></div>`;
+        });
+      });
+    } else {
+      const si = SUBINDEX_DEFS.find(s => s.key === currentSym);
+      html += `<div style="font-weight:700;font-size:14px;color:${si.color};">${si.label} Score: `
+           +  `<span style="${scoreStyle};color:${si.color};">${subScore(si.key, attrs).toFixed(3)}</span></div>`;
+      html += `<hr style="${hrStyle}">`;
+      si.vars.forEach(v => {
+        const raw = attrs[v.field] != null ? Number(attrs[v.field]).toFixed(2) : "N/A";
+        const inv = invertFlags[si.key][v.field] ? " &#8597;" : "";
+        html += `<div>${v.label}${inv}: <strong>${raw}</strong> `
+             +  `<span style="${nStyle}">(${nLabel}=${normValue(v.field, attrs[v.field]).toFixed(2)})</span></div>`;
+      });
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  UPDATE MAP RENDERER
+  // ═══════════════════════════════════════════════════════
+  function updateMap() {
+    if (!featureLayer || !Object.keys(rawStats).length) return;
+    const stats  = getActiveStats();
+    const lo     = stats.mean - 1.8 * stats.std;
+    const hi     = stats.mean + 1.8 * stats.std;
+    const mid    = (lo + hi) / 2;
+    const arcade = getActiveArcade();
+    const c      = SYM_COLORS[currentSym];
+
+    featureLayer.renderer = {
+      type: "simple",
+      symbol: { type: "simple-line", width: 1.6, cap: "round", join: "round" },
+      visualVariables: [
+        {
+          type: "color",
+          valueExpression: arcade,
+          stops: [
+            { value: lo,  color: c.lo  },
+            { value: mid, color: c.mid },
+            { value: hi,  color: c.hi  }
+          ]
+        },
+        {
+          type: "size",
+          valueExpression: arcade,
+          stops: [
+            { value: lo,  size: 1.0 },
+            { value: mid, size: 2.4 },
+            { value: hi,  size: 4.5 }
+          ]
+        }
+      ]
+    };
+
+    const legendTitle = document.getElementById("legend-title");
+    const legendCbar  = document.getElementById("legend-cbar");
+    if (legendTitle) legendTitle.textContent = c.label;
+    if (legendCbar)  legendCbar.style.background = `linear-gradient(to right, ${c.grad})`;
+
+    featureLayer.popupTemplate = {
+      title: "{name}",
+      content: [new CustomContent({
+        outFields: ["*"],
+        creator: (event) => {
+          const div = document.createElement("div");
+          div.innerHTML = buildPopupHTML(event.graphic.attributes);
+          return div;
+        }
+      })],
+      actions: []
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  HAZARD FILTER
+  //  Scores and normalization baselines always come from the full
+  //  network, so a segment keeps the same color whether or not a
+  //  hazard filter is on. The filter only changes what is drawn.
+  // ═══════════════════════════════════════════════════════
+  function filteredFeatures() {
+    const hz = HAZARDS[activeHazard];
+    return hz && hz.test ? allFeatures.filter(f => hz.test(f.attributes)) : allFeatures;
+  }
+
+  function applyHazardFilter() {
+    const hz = HAZARDS[activeHazard];
+    if (featureLayer) {
+      featureLayer.definitionExpression = hz && hz.where ? `${WHERE} AND ${hz.where()}` : WHERE;
+    }
+
+    document.getElementById("haz-thresh").classList.toggle("hidden", activeHazard !== "landslide");
+    document.getElementById("haz-slider-val").textContent = landslideThreshold;
+
+    const countEl = document.getElementById("haz-count");
+    const headEl  = document.getElementById("feat-count");
+    if (!allFeatures.length) return;
+
+    if (activeHazard === "none") {
+      countEl.textContent = "Showing all segments";
+      headEl.textContent  = `${allFeatures.length.toLocaleString()} segments`;
+    } else {
+      const n   = filteredFeatures().length;
+      const pct = (100 * n / allFeatures.length).toFixed(1);
+      const what = activeHazard === "landslide"
+        ? `with landslide mean &ge; ${landslideThreshold}`
+        : hz.label;
+      countEl.innerHTML  = `Showing <strong>${n.toLocaleString()}</strong> of `
+                         + `${allFeatures.length.toLocaleString()} segments ${what} (${pct}%)`;
+      headEl.textContent = `${n.toLocaleString()} of ${allFeatures.length.toLocaleString()} segments`;
+    }
+  }
+
+  document.querySelectorAll(".haz-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeHazard = btn.dataset.haz;
+      document.querySelectorAll(".haz-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyHazardFilter();
+    });
+  });
+
+  document.getElementById("haz-slider").addEventListener("input", e => {
+    landslideThreshold = parseInt(e.target.value, 10);
+    applyHazardFilter();
+  });
+
+  // ── Symbology toggle buttons ─────────────────────────────
+  document.querySelectorAll(".sym-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentSym = btn.dataset.sym;
+      document.querySelectorAll(".sym-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      updateMap();
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  ESRI SETUP
+  // ═══════════════════════════════════════════════════════
+  const OUT_FIELDS = [...ID_FIELDS, ...allVarFields];
+  const WHERE      = allVarFields.map(f => `${f} IS NOT NULL`).join(" AND ");
+
+  featureLayer = new FeatureLayer({
+    url: LAYER_URL,
+    title: "Tahoe Street Network",
+    outFields: OUT_FIELDS,
+    definitionExpression: WHERE
+  });
+
+  const map  = new Map({ basemap: "gray-vector", layers: [featureLayer] });
+  const view = new MapView({
+    container: "viewDiv", map,
+    center: [-120.03, 39.09], zoom: 10,
+    popup: { defaultPopupTemplateEnabled: false }
+  });
+
+  // The service caps a single query at 2,000 records, so page through by OBJECTID.
+  async function loadAllFeatures() {
+    const PAGE = 2000;
+    const out  = [];
+    let start  = 0;
+    while (true) {
+      const res = await featureLayer.queryFeatures({
+        where: WHERE,
+        outFields: OUT_FIELDS,
+        orderByFields: ["OBJECTID ASC"],
+        returnGeometry: false,
+        start, num: PAGE
+      });
+      out.push(...res.features);
+      document.getElementById("loading-msg").textContent =
+        `Loading street segments… ${out.length.toLocaleString()}`;
+      if (res.features.length < PAGE) break;
+      start += PAGE;
+    }
+    return out;
+  }
+
+  loadAllFeatures().then(features => {
+    allFeatures = features;
+    computeFieldStats();
+    syncSubSliders();
+    SUBINDEX_DEFS.forEach(si => syncVarSliders(si.key));
+    updateMap();
+    applyHazardFilter();
+    document.getElementById("exportBtn").disabled = false;
+    document.getElementById("loading").style.display = "none";
+  }).catch(err => {
+    document.getElementById("loading").innerHTML =
+      `<div class="spinner" style="border-top-color:#E87722"></div>
+       <div class="loading-text" style="color:#E87722">Error: ${err.message}</div>`;
+  });
+
+  // ── Buttons ──────────────────────────────────────────────
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    SUBINDEX_DEFS.forEach(si => {
+      subWeights[si.key] = 1 / SUBINDEX_DEFS.length;
+      const M = si.vars.length;
+      si.vars.forEach(v => {
+        varWeights[si.key][v.field]  = 1 / M;
+        invertFlags[si.key][v.field] = v.invert;
+        const btn = document.getElementById(`inv-${v.field}`);
+        if (btn) btn.className = `invert-pill ${v.invert ? 'on' : 'off'}`;
+      });
+    });
+    normMode = "zscore";
+    document.querySelectorAll(".norm-btn").forEach(b => b.classList.toggle("active", b.dataset.norm === "zscore"));
+    activeHazard = "none";
+    landslideThreshold = 22;
+    document.getElementById("haz-slider").value = 22;
+    document.querySelectorAll(".haz-btn").forEach(b => b.classList.toggle("active", b.dataset.haz === "none"));
+    syncSubSliders();
+    SUBINDEX_DEFS.forEach(si => syncVarSliders(si.key));
+    updateMap();
+    applyHazardFilter();
+  });
+
+  document.getElementById("applyBtn").addEventListener("click", updateMap);
+
+  // ═══════════════════════════════════════════════════════
+  //  CSV EXPORT
+  // ═══════════════════════════════════════════════════════
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    if (!allFeatures.length) return;
+    const suffix = normMode === "minmax" ? "norm" : "z";
+    const rowsIn = filteredFeatures();          // export matches what the map shows
+
+    const header = ["OBJECTID","segment_id","name","class", ...HAZARD_FIELDS, "hazard_filter"];
+    allVarFields.forEach(f => header.push(`${f}_raw`));
+    allVarFields.forEach(f => header.push(`${f}_${suffix}`));
+    SUBINDEX_DEFS.forEach(si => header.push(`${si.key}_subindex_score`));
+    header.push("criticality_score");
+    header.push("normalization");
+    SUBINDEX_DEFS.forEach(si => {
+      header.push(`wt_subindex_${si.key}`);
+      si.vars.forEach(v => header.push(`wt_var_${v.field}`));
+      si.vars.forEach(v => header.push(`inverted_${v.field}`));
+    });
+
+    const q = s => {
+      const t = s == null ? "" : String(s);
+      return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+    };
+
+    const hazTag = activeHazard === "none" ? "none"
+                 : activeHazard === "landslide" ? `landslide_mean>=${landslideThreshold}`
+                 : activeHazard;
+
+    const rows = [header.join(",")];
+    rowsIn.forEach(feat => {
+      const a = feat.attributes;
+      const row = [a.OBJECTID, a.segment_id, a.name, a.class,
+                   ...HAZARD_FIELDS.map(f => a[f] != null ? a[f] : ""), hazTag].map(q);
+      allVarFields.forEach(f => row.push(a[f] != null ? a[f] : ""));
+      allVarFields.forEach(f => row.push(normValue(f, a[f]).toFixed(6)));
+      SUBINDEX_DEFS.forEach(si => row.push(subScore(si.key, a).toFixed(6)));
+      row.push(calcCriticality(a).toFixed(6));
+      row.push(normMode);
+      SUBINDEX_DEFS.forEach(si => {
+        row.push(subWeights[si.key].toFixed(4));
+        si.vars.forEach(v => row.push(varWeights[si.key][v.field].toFixed(4)));
+        si.vars.forEach(v => row.push(invertFlags[si.key][v.field] ? "1" : "0"));
+      });
+      rows.push(row.join(","));
+    });
+
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url;
+    a.download = `PROTECT_Criticality_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+});
+</script>
+</body>
+</html>
