@@ -23,7 +23,6 @@
       --ice:        #B4CBE8;
       --teal:       #007681;
       --teal-lt:    #159aa6;
-      --purple:     #4a1486;
       --orange:     #E87722;
       --orange-lt:  #f0913f;
       --green-dk:   #4a7729;
@@ -488,7 +487,7 @@
     }
     .sym-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--panel-dk); }
     .sym-btn.active { color: #fff; border-color: transparent; background: var(--navy); }
-    .sym-btn[data-sym="criticality"].active { background: var(--purple); }
+    .sym-btn[data-sym="criticality"].active { background: var(--navy); }
     .sym-btn[data-sym="equity"].active      { background: var(--blue); }
     .sym-btn[data-sym="traffic"].active     { background: var(--orange); }
     .sym-btn[data-sym="detour"].active      { background: var(--teal); }
@@ -723,7 +722,7 @@
     <div class="sym-bar">
       <span class="sym-lbl">Map View</span>
       <button class="sym-btn active" data-sym="criticality">
-        <span class="sym-swatch" style="background:var(--purple)"></span>
+        <span class="sym-swatch" style="background:linear-gradient(90deg,#2c7bb6,#d7191c)"></span>
         Criticality
       </button>
       <button class="sym-btn" data-sym="equity">
@@ -743,7 +742,7 @@
     <div class="map-legend">
       <div class="legend-title" id="legend-title">Criticality Score</div>
       <div class="cbar" id="legend-cbar"></div>
-      <div class="cbar-labels"><span>Low</span><span>High</span></div>
+      <div class="cbar-labels"><span>Low</span><span>Mean</span><span>High</span></div>
     </div>
 
     <div class="loading-overlay" id="loading">
@@ -839,8 +838,8 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
   let   landslideThreshold = 22;   // ~75th percentile of landslide_mean
 
   const SYM_COLORS = {
-    criticality: { lo: "#efedf5", mid: "#807dba", hi: "#4a1486",
-                   grad: "#efedf5 0%, #807dba 50%, #4a1486 100%", label: "Criticality Score" },
+    criticality: { lo: "#2c7bb6", mid: "#ffffbf", hi: "#d7191c",
+                   grad: "#2c7bb6 0%, #ffffbf 50%, #d7191c 100%", label: "Criticality Score" },
     equity:      { lo: "#dcebf8", mid: "#3f9bdd", hi: "#004f8f",
                    grad: "#dcebf8 0%, #3f9bdd 50%, #004f8f 100%", label: "Equity Sub-Index" },
     traffic:     { lo: "#fbe6d3", mid: "#f0913f", hi: "#a34c07",
@@ -1096,7 +1095,8 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
 
     featureLayer.renderer = {
       type: "simple",
-      symbol: { type: "simple-line", width: 1.6, cap: "round", join: "round" },
+      // Uniform line weight: score is encoded by color only.
+      symbol: { type: "simple-line", width: 2, cap: "round", join: "round" },
       visualVariables: [
         {
           type: "color",
@@ -1105,15 +1105,6 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
             { value: lo,  color: c.lo  },
             { value: mid, color: c.mid },
             { value: hi,  color: c.hi  }
-          ]
-        },
-        {
-          type: "size",
-          valueExpression: arcade,
-          stops: [
-            { value: lo,  size: 1.0 },
-            { value: mid, size: 2.4 },
-            { value: hi,  size: 4.5 }
           ]
         }
       ]
