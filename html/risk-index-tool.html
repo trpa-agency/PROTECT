@@ -30,6 +30,7 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
     header.app-header{background:var(--trpa-navy);color:#fff;}
     .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    header.app-header .right{flex-wrap:wrap;}
     .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
     .header-logo img{height:50px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
@@ -74,6 +75,19 @@
     .formula{background:#f0f4f9;border:1px solid #dbe5f0;border-radius:6px;padding:.5rem .75rem;font-size:.84rem;margin:.35rem 0;}
     footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
     footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+
+    /* Hover/focus info affordance: detail lives here instead of on the page */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
   </style>
 </head>
 <body>
@@ -150,14 +164,14 @@
       <!-- STATUS -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">Where each piece of the index stands. Detail, endpoints, and the full readiness tracker live in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>.</p>
+          <p class="lead">Full readiness tracker in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>.</p>
           <div class="card-grid">
-            <div class="card" style="--c:#003B71"><h3>Step 1: Criticality<span class="pill live">Live</span></h3><p>Interactive scoring across 18,253 segments with adjustable weights and hazard filters: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>. Bridges and culverts inherit their segment's score.</p></div>
-            <div class="card" style="--c:#E87722"><h3>Step 2: Exposure<span class="pill building">Building</span></h3><p>Hazard zone layers are live (flood, avalanche, fire). The climate pipeline has a validated run; the storm-frequency and debris-flow chain is built on the Storm Events page. Scoring rubrics finalize with the screening datasets.</p></div>
-            <div class="card" style="--c:#B47E00"><h3>Step 2: Sensitivity<span class="pill building">Building</span></h3><p>Bridge condition comes from the FHWA National Bridge Inventory; the culvert layer with condition is compiled (7,858 assets, six jurisdictions); the equity multiplier is live. Pavement condition is the remaining gap, with jurisdiction outreach planned.</p></div>
-            <div class="card" style="--c:#9C3E27"><h3>Step 2: Vulnerability rating<span class="pill pending">Pending</span></h3><p>(Exposure + Sensitivity) x Criticality, scored 0-3 per asset and bucketed High / Medium / Low. This is what colors the map and fills the segment table once the screening runs.</p></div>
-            <div class="card" style="--c:#4A6118"><h3>Step 3: Scenario disruption<span class="pill building">Building</span></h3><p>RA2CE on the Overture street network: detours, travel-time change, blocked assets, populations impacted. Scenarios get defined after the screening identifies high-risk hazards and locations.</p></div>
-            <div class="card" style="--c:#0072CE"><h3>Supporting layers<span class="pill live">Live</span></h3><p>Strategic and emergency assets, transit, community priority zones, and the equity tessellation are live TRPA services feeding both criticality and sensitivity.</p></div>
+            <div class="card" style="--c:#003B71"><h3>1. Criticality<span class="pill live">Live</span></h3><p>18,253 segments scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.<i class="i" tabindex="0" data-tip="Adjustable weights and hazard filters. Bridges and culverts inherit their road segment's score.">i</i></p></div>
+            <div class="card" style="--c:#E87722"><h3>2. Exposure<span class="pill building">Building</span></h3><p>Hazard zones live; scoring rubrics pending.<i class="i" tabindex="0" data-tip="Flood, avalanche, and fire severity layers are live. The climate pipeline has a validated run, and the storm-frequency and debris-flow chain is built on the Storm Events page. Rubrics finalize with the screening datasets.">i</i></p></div>
+            <div class="card" style="--c:#B47E00"><h3>2. Sensitivity<span class="pill building">Building</span></h3><p>Bridge and culvert condition sourced; pavement condition is the gap.<i class="i" tabindex="0" data-tip="Bridge condition from the FHWA National Bridge Inventory. Culverts compiled from six jurisdictions (7,858 assets with a condition table). Equity multiplier live. Pavement condition source is TBD, with jurisdiction outreach planned.">i</i></p></div>
+            <div class="card" style="--c:#9C3E27"><h3>2. Vulnerability rating<span class="pill pending">Pending</span></h3><p>(Exposure + Sensitivity) x Criticality.<i class="i" tabindex="0" data-tip="Scored 0-3 per asset and bucketed High / Medium / Low. This is what colors the map and fills the segment table once the screening runs.">i</i></p></div>
+            <div class="card" style="--c:#4A6118"><h3>3. Disruption scenarios<span class="pill building">Building</span></h3><p>RA2CE on the Overture street network.<i class="i" tabindex="0" data-tip="Outputs detours, travel-time change, blocked assets, and populations impacted. Scenarios are defined after the screening identifies high-risk hazards and locations.">i</i></p></div>
+            <div class="card" style="--c:#0072CE"><h3>Supporting layers<span class="pill live">Live</span></h3><p>Emergency services, transit, priority zones, equity tessellation.<i class="i" tabindex="0" data-tip="Live TRPA REST services feeding both the criticality and sensitivity scoring.">i</i></p></div>
           </div>
         </div>
       </calcite-tab>
@@ -166,9 +180,9 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">Three-step assessment approach</h2>
-          <p class="lead">The adopted approach (6/25 VA discussion, building on FHWA VAST guidance): (1) a criticality assessment - live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; (2) a system-wide indicator-based screening of the 14 Include-in-VA hazard-asset pairs; (3) scenario-based disruption analyses (RA2CE) for the highest-risk hazards and locations.</p>
-          <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality &mdash; asset-level 0-3 scores, bucketed High / Medium / Low</div>
-          <p class="lead" style="margin-top:1rem;">The full methodology record - sub-index definitions, weighting precedents from peer DOT plans, the sensitivity matrix, and the data and model inventory - lives in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>. Climate inputs are documented on the <a href="climate-data.html" style="color:var(--trpa-blue);font-weight:600;">Climate Data</a> page; trigger-storm and debris-flow methods on the <a href="tahoe-precip-events.html" style="color:var(--trpa-blue);font-weight:600;">Storm Events</a> page.</p>
+          <p class="lead">Adopted at the June 25, 2026 VA discussion.<i class="i" tabindex="0" data-tip="Step 1: criticality assessment, live in the Criticality Index app. Step 2: system-wide indicator screening of the 14 Include-in-VA pairs. Step 3: scenario-based disruption analyses in RA2CE for the highest-risk hazards and locations.">i</i></p>
+          <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality. Asset-level 0-3 scores, bucketed High / Medium / Low.</div>
+          <p class="lead" style="margin-top:1rem;">Full methodology in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>. Climate inputs on the <a href="climate-data.html" style="color:var(--trpa-blue);font-weight:600;">Climate Data</a> page; storm and debris-flow methods on the <a href="tahoe-precip-events.html" style="color:var(--trpa-blue);font-weight:600;">Storm Events</a> page.</p>
         </div>
       </calcite-tab>
 
@@ -176,9 +190,9 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">About this tool</h2>
-          <p class="lead">The <strong>PROTECT Risk Index Tool</strong> is the Task 3.3 deliverable of TRPA's PROTECT Plan (FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant). It visualizes the FHWA VAST-based risk index across the Lake Tahoe Region's transportation network for technical partners.</p>
-          <p class="lead">Built by TRPA (Science &amp; Data + Transportation) with ICF as climate-resilience consultant, on the standard TRPA dashboard stack (Calcite + ArcGIS Maps SDK). Live spatial data from <code>maps.trpa.org</code>. Interactive criticality scoring runs in the companion <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.</p>
-          <p class="lead"><strong>Internal review draft.</strong> Not for public distribution. Phase 1 MVP; Workshop 1 release November 2026.</p>
+          <p class="lead">The Task 3.3 deliverable of TRPA's PROTECT Plan: the risk index mapped across the Lake Tahoe Region's transportation network, for technical partners.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Resilience Improvement Plan; 3.2 is the vulnerability assessment and 3.3 is this tool.">i</i></p>
+          <p class="lead">Built by TRPA Science &amp; Data and Transportation, with ICF as climate-resilience consultant.<i class="i" tabindex="0" data-tip="Standard TRPA dashboard stack: Calcite Design System and the ArcGIS Maps SDK. Live spatial data from maps.trpa.org. Criticality scoring runs in the companion Criticality Index app.">i</i></p>
+          <p class="lead"><strong>Internal review draft.</strong> Not for public distribution. Workshop 1 release November 2026.</p>
         </div>
       </calcite-tab>
     </calcite-tabs>
@@ -268,6 +282,20 @@
       bindToggle("tg-transit", transit);
       bindToggle("tg-ems", ems);
     });
+
+    // Flip tooltips that would otherwise extend past a viewport edge.
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 150;
+      document.querySelectorAll(".i").forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle("tip-right", x > w - pad);
+        el.classList.toggle("tip-left", x < pad);
+      });
+    }
+    placeTips();
+    window.addEventListener("resize", placeTips);
+    const tabs = document.querySelector("calcite-tabs");
+    if(tabs) tabs.addEventListener("calciteTabChange", function(){ setTimeout(placeTips, 60); });
 
     const ml = document.getElementById("methods-link");
     if(ml) ml.addEventListener("click", function(e){ e.preventDefault(); const t=document.querySelectorAll("calcite-tab-title")[2]; if(t) t.click(); });

@@ -31,14 +31,14 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
 
     header.app-header{background:var(--trpa-navy);color:#fff;}
-    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;}
+    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
     .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
     .header-logo img{height:54px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
     header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
     header.app-header h1{font-size:1.35rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
     header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
-    header.app-header .header-meta{flex-shrink:0;display:flex;align-items:center;gap:.6rem;}
+    header.app-header .header-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
     header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
 
     main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
@@ -102,6 +102,19 @@
 
     footer.app-footer{max-width:1240px;margin:0 auto;padding:1.25rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.82rem;}
     footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+
+    /* Hover/focus info affordance: detail lives here instead of on the page */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
   </style>
 </head>
 <body>
@@ -112,7 +125,7 @@
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
         <h1>PROTECT Reference Hub</h1>
-        <div class="header-sub">Task 3 &middot; Hazard-asset pairs, framework, and open decisions</div>
+        <div class="header-sub">Task 3 &middot; Hazard-asset pairs, data inventory, and methods</div>
       </div>
       <div class="header-meta">
         <a href="index.html" style="color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;">Home</a>
@@ -128,10 +141,9 @@
   <main>
     <section class="intro">
       <p class="lede">
-        The methodology record for the PROTECT <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>:
-        the decided hazard-asset pair matrix, the source-of-record data and model inventory,
-        the three-step assessment approach (criticality, screening, scenario disruption), and the
-        per-hazard exposure dataset evaluation.
+        Methodology record for the PROTECT <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>:
+        hazard-asset pairs, the data and model inventory, the assessment approach, and the exposure
+        dataset evaluation.
       </p>
     </section>
 
@@ -153,13 +165,13 @@
       <calcite-tab selected>
         <div class="tab-body">
           <h2 class="sec">Hazard-Asset Pairs</h2>
-          <p class="lead">The decided pair matrix from the June 25, 2026 VA discussion: <strong>Include in VA</strong> = scored in the risk-based vulnerability assessment (14 pairs); <strong>TRIP discussion</strong> = excluded from the VA, with impacts and potential strategies discussed in the Resilience Improvement Plan instead (9 pairs). Mirrored in <code>Hazard_Asset_Pairs.md</code>.</p>
+          <p class="lead">Decided at the June 25, 2026 VA discussion. 14 pairs are scored in the VA; nine are excluded from the VA but discussed in the plan.<i class="i" tabindex="0" data-tip="Include in VA = scored in the risk-based vulnerability assessment. TRIP discussion = excluded from the VA, with impacts and potential strategies covered in the Resilience Improvement Plan instead. Mirrored in Hazard_Asset_Pairs.md.">i</i></p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="ha-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="ha-grid" class="ag-theme-quartz grid-wrap"></div>
-          <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Asset criticality scoring: road segments are scored interactively in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts inherit their segment's score. The spring 2026 scoping notes behind this table are archived in the repo (<code>docs/scoping_archive_2026-spring.md</code>).</p>
+          <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Road segments are scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts inherit their segment's score.<i class="i" tabindex="0" data-tip="The spring 2026 scoping notes behind this table are archived at docs/scoping_archive_2026-spring.md in the repo.">i</i></p>
 
           <h2 class="sec">Asset and Vulnerability Matrix</h2>
-          <p class="lead">Working draft of Infrastructure (<strong>I</strong>) and Service (<strong>S</strong>) ratings per asset and hazard. H/M/L = high/medium/low; NE = Not Exposed (the asset would not be built in a location exposed to that hazard by design); "-" = not applicable.</p>
+          <p class="lead">Working draft of Infrastructure (<strong>I</strong>) and Service (<strong>S</strong>) ratings per asset and hazard.<i class="i" tabindex="0" data-tip="H / M / L = high, medium, low. NE = Not Exposed: the asset would not be built in a location exposed to that hazard by design. A dash means not applicable.">i</i></p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="sens-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="sens-grid" class="ag-theme-quartz grid-wrap"></div>
         </div>
@@ -169,7 +181,7 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">Data inventory</h2>
-          <p class="lead">Data-readiness tracker for the Risk Index Tool. Each layer maps to the assessment step it feeds, a TRPA REST endpoint, and an availability status (Live / Building / Needed / External). "Context / TRIP" elements support the plan or Task 3.4 project work rather than the scoring. Services live at <code style="background:#eef1f5;padding:1px 5px;border-radius:3px;">maps.trpa.org/server/rest/services</code>; confirm the layer index per service before wiring it into the tool.</p>
+          <p class="lead">35 data elements, each mapped to the assessment step it feeds and its availability.<i class="i" tabindex="0" data-tip="Availability: Live = a working TRPA REST endpoint. Building = in progress. Needed = no source yet. External = a non-TRPA source. Context / TRIP elements support the plan or Task 3.4 rather than the scoring. Services are at maps.trpa.org/server/rest/services; confirm the layer index per service before wiring it in.">i</i></p>
           <div class="toolbar">
             <input id="inv-qf" class="qf" type="text" placeholder="Quick search the data inventory..." aria-label="Quick search" />
             <calcite-button id="inv-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -177,7 +189,7 @@
           <div id="inv-grid" class="ag-theme-quartz grid-wrap"></div>
 
           <h2 class="sec">Model inventory</h2>
-          <p class="lead">Modeling platforms and disruption-risk tools. RA2CE (on the Overture street network) is the selected disruption-risk engine; see the Framework tab for the decision record.</p>
+          <p class="lead">Modeling platforms and tools. RA2CE is the selected disruption-risk engine.<i class="i" tabindex="0" data-tip="RA2CE runs on the Overture-derived street network. See the Framework and Methods tab for the decision record.">i</i></p>
           <div class="toolbar">
             <input id="mdl-qf" class="qf" type="text" placeholder="Quick search models..." aria-label="Quick search models" />
             <calcite-button id="mdl-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -185,7 +197,7 @@
           <div id="mdl-grid" class="ag-theme-quartz grid-wrap"></div>
 
           <h2 class="sec">Index readiness</h2>
-          <p class="lead">How each step of the assessment maps to data layers and their endpoint status. The gating view for the screening and tool build.</p>
+          <p class="lead">What is ready per step, and what is not.</p>
           <div class="card-grid" id="readiness-mount"></div>
         </div>
       </calcite-tab>
@@ -194,18 +206,13 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">Three-step assessment approach</h2>
-          <p class="lead">
-            The adopted approach (6/25 VA discussion, building on FHWA VAST guidance) runs three steps:
-            a criticality assessment, a system-wide indicator-based screening, and scenario-based
-            disruption analyses for the highest-risk hazards and locations. Network redundancy and
-            adaptive-capacity questions are handled in the scenario step (RA2CE), not as a separate sub-index.
-          </p>
-          <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality &mdash; asset-level 0-3 scores, bucketed High / Medium / Low</div>
+          <p class="lead">Adopted at the June 25, 2026 VA discussion.<i class="i" tabindex="0" data-tip="Builds on FHWA VAST guidance. Network redundancy and adaptive capacity are handled in the scenario step (RA2CE), not as a separate sub-index.">i</i></p>
+          <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality. Asset-level 0-3 scores, bucketed High / Medium / Low.</div>
 
           <div class="card-grid">
-            <div class="card" style="--c:#003B71"><h3>1. Criticality assessment</h3><p><em>What are the critical assets in the region?</em></p><ul><li>Scope: roads, bridges, trails, transit centers</li><li>Indicators: evacuation route, detour length, AADT, proximity to strategic assets, community priority zones</li><li>Live: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a> (18,253 segments)</li></ul></div>
-            <div class="card" style="--c:#E87722"><h3>2. System-wide screening</h3><p><em>Where are the greatest vulnerabilities?</em></p><ul><li>Scope: the 14 Include-in-VA pairs</li><li>Score exposure and sensitivity per asset, multiply by criticality</li><li>Output: High / Medium / Low vulnerability classes on an interactive map</li></ul></div>
-            <div class="card" style="--c:#4A6118"><h3>3. Scenario-based disruption</h3><p><em>How does the system react to an event? Where are the pinch points?</em></p><ul><li>2-3 plausible scenarios per high-priority hazard / location</li><li>RA2CE on the Overture network: detours, travel-time change, blocked assets, populations impacted</li><li>Optional monetization: Expected Annual Loss from loss functions and value of time</li></ul></div>
+            <div class="card" style="--c:#003B71"><h3>1. Criticality</h3><p><em>What are the critical assets?</em></p><ul><li>Roads, bridges, trails, transit centers<i class="i" tabindex="0" data-tip="Indicators: evacuation route, detour length, AADT, proximity to strategic community assets, and community priority zones.">i</i></li><li>Live: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a></li></ul></div>
+            <div class="card" style="--c:#E87722"><h3>2. Screening</h3><p><em>Where are the greatest vulnerabilities?</em></p><ul><li>The 14 Include-in-VA pairs</li><li>Exposure + sensitivity, times criticality<i class="i" tabindex="0" data-tip="Scored per asset on a 0-3 scale, then bucketed into High, Medium, and Low vulnerability classes and mapped.">i</i></li></ul></div>
+            <div class="card" style="--c:#4A6118"><h3>3. Disruption scenarios</h3><p><em>How does the system react to an event?</em></p><ul><li>Two to three scenarios per priority hazard</li><li>RA2CE on the Overture network<i class="i" tabindex="0" data-tip="Outputs: detour lengths, travel-time change, blocked assets, populations impacted, and optionally Expected Annual Loss from loss functions and value of time.">i</i></li></ul></div>
           </div>
 
           <h2 class="sec">Sensitivity indicators by asset</h2>
@@ -223,18 +230,17 @@
             <div class="card" style="--c:#E87722"><h3>Bus Stops</h3><ul><li>Ridership</li><li>Community priority zones</li><li>Proximity to strategic community assets</li><li>Multi-modal connectivity</li></ul><p style="font-size:.78rem;color:var(--gray-text)">Or inherit the road segment's score.</p></div>
           </div>
 
-          <h2 class="sec">Assessment approaches</h2>
+          <h2 class="sec">Assessment approaches by pair type</h2>
           <div class="card-grid">
-            <div class="card" style="--c:#7B6A8A"><h3>Qualitative screening</h3><p>Qualitatively assess how an asset type may be impacted, driven by sensitivity.</p><p style="font-size:.8rem;color:var(--gray-text)"><strong>Best for:</strong> initial screening to decide which pairs get detailed analysis.</p></div>
-            <div class="card" style="--c:#E87722"><h3>Indicator-based</h3><p>Asset-level scoring on a 0-3 or 0-5 scale, overlaying hazard data with asset locations to grade exposure.</p><p style="font-size:.8rem;color:var(--gray-text)"><strong>Best for:</strong> physical-damage pairs.</p></div>
-            <div class="card" style="--c:#0072CE"><h3>Criticality-focused</h3><p>Used where hazard exposure does not vary much geospatially or data is unavailable. Asks which assets are most critical and what happens if they fail.</p><p style="font-size:.8rem;color:var(--gray-text)"><strong>Best for:</strong> operational-disruption pairs.</p></div>
+            <div class="card" style="--c:#E87722"><h3>Indicator-based</h3><p>Asset-level scoring, overlaying hazard data with asset locations.<i class="i" tabindex="0" data-tip="Scored on a 0-3 or 0-5 scale. Best for physical-damage pairs.">i</i></p></div>
+            <div class="card" style="--c:#0072CE"><h3>Criticality-focused</h3><p>Which assets are most critical, and what happens if they fail.<i class="i" tabindex="0" data-tip="Used where hazard exposure does not vary much geospatially, or where data is unavailable. Best for operational-disruption pairs.">i</i></p></div>
+            <div class="card" style="--c:#7B6A8A"><h3>Qualitative</h3><p>How an asset type may be impacted, driven by sensitivity.<i class="i" tabindex="0" data-tip="Best for initial screening, to decide which pairs get detailed analysis.">i</i></p></div>
           </div>
 
-          <h2 class="sec">Disruption-risk tool: RA2CE selected</h2>
-          <p class="lead">RA2CE (Deltares) is the selected disruption-risk engine, running on the Overture-derived street network. Volpe RDR was evaluated and not pursued. Analysis work lives in the repo's <code>scripts/ra2ce</code> folder; network criticality results are live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.</p>
+          <h2 class="sec">Disruption-risk tool</h2>
           <div class="card-grid">
-            <div class="card" style="--c:#0072CE"><h3>RA2CE <span class="tag">Deltares &middot; selected</span></h3><ul><li>Flexible, Python-based risk &amp; resilience framework</li><li>Integrates hazard exposure, network criticality, economic impacts</li><li>Estimates direct damages + indirect disruption costs (detours)</li><li>Runs on the Overture street network built by the data team</li></ul></div>
-            <div class="card" style="--c:#7B6A8A"><h3>Volpe RDR <span class="tag">USDOT Volpe &middot; not pursued</span></h3><ul><li>Tool suite for resilience investment and ROI analysis</li><li>Evaluated alongside RA2CE; capable but requires significantly more data, modeling, and implementation effort</li><li>Retained as a reference for BCA framing in Task 3.4</li></ul></div>
+            <div class="card" style="--c:#0072CE"><h3>RA2CE <span class="tag">Deltares &middot; selected</span></h3><p>Python risk and resilience framework, run on the Overture street network.<i class="i" tabindex="0" data-tip="Integrates hazard exposure, network criticality, and economic impacts. Estimates direct damages plus indirect disruption costs such as detours. Analysis work is in scripts/ra2ce.">i</i></p></div>
+            <div class="card" style="--c:#7B6A8A"><h3>Volpe RDR <span class="tag">USDOT &middot; not pursued</span></h3><p>Evaluated alongside RA2CE; needs significantly more data and effort.<i class="i" tabindex="0" data-tip="Tool suite for resilience investment and ROI analysis. Retained as a reference for benefit-cost framing in Task 3.4.">i</i></p></div>
           </div>
 
         </div>
@@ -243,7 +249,7 @@
       <!-- TAB: Exposure Datasets -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">Per-hazard evaluation of datasets for modeling asset exposure (from the ICF data review). Publicly available datasets exist for every hazard; commercial / proprietary options are flagged. The Data and Model Inventory tab is the source of record for what TRPA holds and serves; this tab records the evaluation behind those choices.</p>
+          <p class="lead">Per-hazard evaluation of datasets for modeling asset exposure. Public options exist for every hazard.<i class="i" tabindex="0" data-tip="From the ICF data review. Commercial and proprietary options are flagged in the Availability column. The Data and Model Inventory tab is the source of record for what TRPA holds and serves; this tab records the evaluation behind those choices.">i</i></p>
           <div class="toolbar">
             <input id="exp-qf" class="qf" type="text" placeholder="Quick search the exposure approach..." aria-label="Quick search exposure" />
             <calcite-button id="exp-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -256,9 +262,8 @@
   </main>
 
   <footer class="app-footer">
-    <p><strong>PROTECT</strong> = FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 = Resilience Improvement Plan; 3.2 = Risk-Based Vulnerability Assessment; 3.3 = this Interactive Risk Index Mapping Tool.</p>
-    <p>Reference hub (v0.5). The data and model inventory is the source of record on this page; spring 2026 scoping notes are archived in the repo docs folder. Internal review draft. Not for public distribution.</p>
-    <p>Sources: 6/25/2026 VA discussion deck (decided pairs, three-step approach), 5/20/2026 ICF/TRPA VA deck (sensitivity &amp; criticality approach), <code>PROTECT_DataModel_Inventory.xlsx</code>, <code>PROTECT_RiskIndexTool_Scoping_v0.1.docx</code>.</p>
+    <p>Reference hub v0.5. Internal review draft, not for public distribution.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Resilience Improvement Plan; 3.2 is the Risk-Based Vulnerability Assessment and 3.3 is this Interactive Risk Index Mapping Tool.">i</i>
+    Sources: the June 25, 2026 VA discussion deck and the May 20, 2026 ICF/TRPA VA deck.<i class="i" tabindex="0" data-tip="The 6/25 deck sets the decided pairs and the three-step approach; the 5/20 deck sets the sensitivity and criticality approach. Also PROTECT_DataModel_Inventory.xlsx and PROTECT_RiskIndexTool_Scoping_v0.1.docx. Spring 2026 scoping notes are archived at docs/scoping_archive_2026-spring.md.">i</i></p>
   </footer>
 
   <script>
@@ -489,6 +494,16 @@
     const invDiv = document.querySelector("#inv-grid");
     const mdlDiv = document.querySelector("#mdl-grid");
 
+    // Flip tooltips that would otherwise extend past a viewport edge.
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 150;
+      document.querySelectorAll(".i").forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle("tip-right", x > w - pad);
+        el.classList.toggle("tip-left", x < pad);
+      });
+    }
+
     function makeGrid(div, columnDefs, rowData, floating){
       agGrid.createGrid(div, {
         columnDefs, rowData,
@@ -524,16 +539,18 @@
       document.getElementById("sens-export").addEventListener("click", ()=>{ if(sensDiv.__api) sensDiv.__api.exportDataAsCsv({fileName:"PROTECT_Sensitivity_Matrix.csv"}); });
       wireToolbar("exp-qf", "exp-export", expDiv, "PROTECT_Exposure_Approach.csv");
 
+      placeTips();
+
       // size grids that start inside hidden Calcite tabs once their tab is shown.
       // Only fit when the grid is actually visible (non-zero width) to avoid AG Grid warnings.
       function fitIfVisible(d){ if(d.__api && d.getBoundingClientRect().width > 0) d.__api.sizeColumnsToFit(); }
       const tabs = document.querySelector("calcite-tabs");
       if(tabs){
         tabs.addEventListener("calciteTabChange", ()=>{
-          setTimeout(()=>{ [haDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); }, 60);
+          setTimeout(()=>{ [haDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); placeTips(); }, 60);
         });
       }
-      window.addEventListener("resize", ()=>{ [haDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); });
+      window.addEventListener("resize", ()=>{ [haDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); placeTips(); });
     }
 
     if(document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", init); } else { init(); }
