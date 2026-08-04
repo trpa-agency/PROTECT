@@ -34,6 +34,8 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
     header.app-header{background:var(--trpa-navy);color:#fff;}
     .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:52px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
     .header-text .agency{color:var(--trpa-ice);font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
     .header-text h1{font-size:1.45rem;font-weight:700;color:#fff;line-height:1.25;}
@@ -69,12 +71,25 @@
     .flow .step{background:#eaf3fb;border:1px solid var(--trpa-ice);border-radius:6px;padding:.45rem .7rem;color:var(--trpa-navy);}
     .flow .arrow{color:var(--gray-text);}
     .phase{display:inline-block;font-size:.7rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;background:#eef1f5;color:var(--gray-text);margin-left:.4rem;}
+    /* Hover/focus info affordance: detail lives here instead of on the page */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
   </style>
 </head>
 <body>
 
   <header class="app-header">
     <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
         <h1>PROTECT Climate Data</h1>
@@ -82,9 +97,10 @@
       </div>
       <div class="header-meta">
         <a class="navlink" href="index.html">Home</a>
+        <a class="navlink" href="risk-index-tool.html">Risk Index Tool</a>
+        <a class="navlink" href="criticality-index.html">Criticality Index</a>
         <a class="navlink" href="reference-hub.html">Reference Hub</a>
         <a class="navlink" href="tahoe-precip-events.html">Storm Events</a>
-        <a class="navlink" href="risk-index-tool.html">Risk Index Tool</a>
         <span class="version">v0.2</span>
       </div>
     </div>
@@ -93,10 +109,9 @@
   <main>
     <section class="intro">
       <p class="lede">
-        Downscaled climate projections and design-storm statistics that feed the <strong>Exposure sub-index</strong>
-        of the PROTECT risk framework. This page documents the sources, the metrics computed from them, the
-        engineering design-storm anchor (NOAA Atlas 14), and the open methodological decisions. Data preparation
-        runs in the <code>climate/</code> pipeline of the PROTECT repository; raw downloads are never published.
+        Downscaled climate projections and design-storm statistics that feed <strong>exposure scoring</strong>:
+        the sources, the metrics computed from them, the NOAA Atlas 14 design-storm anchor, and the open
+        decisions.<i class="i" tabindex="0" data-tip="Data preparation runs in the climate/ pipeline of the PROTECT repository. Raw downloads are never published; only reviewed summary products reach this page.">i</i>
       </p>
     </section>
 
@@ -124,10 +139,9 @@
         <div class="panel">
           <h2>Role in the risk framework</h2>
           <p>
-            The FHWA VAST-based PROTECT index combines Exposure, Sensitivity, Asset Value, and Adaptive Capacity
-            with Criticality. Climate data drives <strong>Exposure</strong>: for each asset and hazard, how much
-            does the climate stressor change under future scenarios? Sensitivity and Asset Value come from asset
-            attributes (material, size, condition); Adaptive Capacity from network redundancy.
+            The screening scores each asset as (Exposure + Sensitivity) &times; Criticality. Climate data drives
+            <strong>Exposure</strong>: for each asset and hazard, how much does the climate stressor change under
+            future scenarios?<i class="i" tabindex="0" data-tip="Sensitivity comes from asset attributes such as material, size, and condition; criticality from the network assessment. Network redundancy is handled in the RA2CE scenario step, not as a separate sub-index.">i</i>
           </p>
           <div class="flow">
             <span class="step">Sources (LOCA2, WRF, gridMET, Atlas 14)</span><span class="arrow">&rarr;</span>
@@ -158,57 +172,26 @@
       <calcite-tab>
         <div class="panel">
           <h2>How climate data becomes a risk score</h2>
-          <p>
-            The climate products on this page never reach the Risk Index Tool as raw grids. They pass through
-            five steps that turn projections into a defensible, per-asset exposure score:
-          </p>
-          <h3>1. From global models to the basin</h3>
-          <p>
-            CMIP6 global climate models are downscaled two ways: statistically (LOCA2, 6 km daily, the full
-            bi-state study area) and dynamically (WRF, 9 km hourly, better storm physics). The pipeline pulls
-            only the Tahoe window - the TRPA boundary plus a 10 km buffer that keeps the highway approach
-            corridors (US-50, SR-89, SR-28, SR-207, SR-267, SR-431) inside the analysis.
-          </p>
-          <h3>2. From daily weather to planning metrics</h3>
-          <p>
-            156 years of simulated daily weather per model compress into a handful of decision-relevant numbers
-            per grid cell: how much the extreme storm grows, how the hottest day shifts, how snowpack thins.
-            Each is computed for three 30-year horizons against the 1981-2010 baseline, under a middle
-            (SSP2-4.5) and a high (SSP3-7.0) emissions pathway.
-          </p>
-          <h3>3. From one model to an ensemble</h3>
-          <p>
-            No single climate model is trusted alone. Five models chosen for skill over California (the
-            Cal-Adapt General Use Projections) run through every metric; the index uses the ensemble median,
-            and the 10th-90th percentile spread travels alongside as the uncertainty band shown in charts.
-          </p>
-          <h3>4. From grid cells to assets</h3>
-          <p>
-            Every transportation asset in the inventory - each culvert, bridge, road segment, transit facility -
-            samples the metric grids at its location. The result is a set of climate columns on the asset table:
-            the same asset registry that carries condition, criticality, and sensitivity attributes.
-          </p>
-          <h3>5. From climate columns to the Exposure sub-index</h3>
-          <p>
-            Per hazard, the climate columns are normalized to a 0-1 exposure score and weighted into the master
-            PROTECT index alongside Sensitivity, Asset Value, Adaptive Capacity, and Criticality. Exposure is
-            where the future enters the index; the other components describe the asset as it is today.
-          </p>
+          <p>Raw grids never reach the Risk Index Tool. Five steps turn projections into a per-asset exposure score.</p>
+          <div class="flow" style="margin:.9rem 0 1.1rem;">
+            <span class="step">1. Downscale to the basin<i class="i" tabindex="0" data-tip="CMIP6 global models downscaled statistically (LOCA2, 6 km daily, full bi-state area) and dynamically (WRF, hourly, better storm physics). The pipeline pulls the TRPA boundary plus a 10 km buffer, which keeps US-50, SR-89, SR-28, SR-207, SR-267, and SR-431 inside the analysis.">i</i></span><span class="arrow">&rarr;</span>
+            <span class="step">2. Compute metrics<i class="i" tabindex="0" data-tip="156 years of simulated daily weather per model compress into decision-relevant numbers per grid cell: how much the extreme storm grows, how the hottest day shifts, how snowpack thins. Each is computed for three 30-year horizons against the 1981-2010 baseline, under SSP2-4.5 and SSP3-7.0.">i</i></span><span class="arrow">&rarr;</span>
+            <span class="step">3. Ensemble<i class="i" tabindex="0" data-tip="Five models chosen for skill over California (the Cal-Adapt General Use Projections) run through every metric. The index uses the ensemble median; the 10th-90th percentile spread travels alongside as the uncertainty band.">i</i></span><span class="arrow">&rarr;</span>
+            <span class="step">4. Sample per asset<i class="i" tabindex="0" data-tip="Every culvert, bridge, road segment, and transit facility samples the metric grids at its location, adding climate columns to the same asset table that carries condition and criticality attributes.">i</i></span><span class="arrow">&rarr;</span>
+            <span class="step">5. Score exposure<i class="i" tabindex="0" data-tip="Per hazard, climate columns normalize to an exposure score, combine with sensitivity, and multiply by criticality to give the vulnerability rating. Exposure is where the future enters; sensitivity and criticality describe the asset as it is today.">i</i></span>
+          </div>
           <h3>Worked example: a culvert on SR-89</h3>
           <p>
-            A 24-inch corrugated metal culvert was sized for the Atlas 14 design storm of its era - say a
-            25-year, 24-hour depth of about 4 inches. The LOCA2 ensemble says mid-century storms of that rank
-            carry more water; the change factor scales the design depth up, and the culvert's design margin
-            shrinks or disappears. That margin change, combined with the culvert's condition (from the
-            jurisdiction inventories) and the criticality of the road it drains, is the culvert's risk score.
-            Where WRF hourly intensity is available, the same logic sharpens from daily totals to the short
-            bursts that actually overtop inlets.
+            A 24-inch culvert was sized for the Atlas 14 design storm of its era, say a 25-year, 24-hour depth
+            near four inches. The LOCA2 ensemble says mid-century storms of that rank carry more water, so the
+            change factor scales the design depth up and the culvert's margin shrinks. That margin change, with
+            the culvert's condition and the criticality of the road it drains, is its risk score.<i class="i" tabindex="0" data-tip="Where WRF hourly intensity is available, the same logic sharpens from daily totals to the short bursts that actually overtop inlets.">i</i>
           </p>
           <h3>Where it lands</h3>
           <ul>
             <li><strong>Risk Index Tool</strong>: exposure scores color the map, filterable by hazard, scenario, and horizon.</li>
-            <li><strong>Consultant analysis</strong>: the processed summary grids and tables (not raw downloads) feed the vulnerability assessment.</li>
-            <li><strong>Workshops</strong>: Workshop 1 (Nov 2026) reviews exposure results; Workshop 2 (May 2027) prioritizes adaptation actions; findings roll into the 2027 Resilience Improvement Plan.</li>
+            <li><strong>Consultant analysis</strong>: processed summary grids and tables, not raw downloads.</li>
+            <li><strong>Workshops</strong>: Workshop 1 reviews exposure results; Workshop 2 prioritizes adaptation actions.</li>
           </ul>
         </div>
       </calcite-tab>
@@ -231,9 +214,8 @@
         <div class="panel">
           <h2>Computed climate metrics</h2>
           <p>
-            Every metric is computed per scenario and horizon on the common grid, then summarized across the GCM
-            ensemble as the median with 10th and 90th percentile bounds. Raw jurisdiction ratings are never mixed
-            with modeled values.
+            Computed per scenario and horizon on the common grid, then summarized across the ensemble as the
+            median with 10th and 90th percentile bounds.<i class="i" tabindex="0" data-tip="Raw jurisdiction ratings are never mixed with modeled values.">i</i>
           </p>
           <table class="ref">
             <thead><tr><th>Metric</th><th>Definition</th><th>Primary hazard-asset use</th><th>Source</th><th>Phase</th></tr></thead>
@@ -305,33 +287,23 @@
           <h2>Key methodological decisions</h2>
           <h3>Bi-state grid: LOCA2 6 km is primary</h3>
           <p>
-            The finer LOCA2-Hybrid product built for California's Fifth Climate Change Assessment covers
-            California only, which would leave the Nevada side of the basin (east shore, Incline Village,
-            Kingsbury, Mt Rose corridor) unscored. Every asset therefore scores from the LOCA2 North America
-            1/16-degree (~6 km) product, pulled from the Cal-Adapt open S3 archive on a western-US domain that
-            covers the full study area. LOCA2-Hybrid is retained as an optional CA-side sensitivity layer only.
-            Contrary to common description it is the same 1/16-degree grid, not 3 km.
+            LOCA2-Hybrid covers California only, which would leave the Nevada side of the basin unscored. Every
+            asset therefore scores from the LOCA2 North America 1/16-degree (~6 km) product, on a western-US
+            domain covering the full study area.<i class="i" tabindex="0" data-tip="Unscored areas would include the east shore, Incline Village, Kingsbury, and the Mt Rose corridor. Pulled from the Cal-Adapt open S3 archive. LOCA2-Hybrid is retained as an optional California-side sensitivity layer only; contrary to common description it is the same 1/16-degree grid, not 3 km.">i</i>
           </p>
           <h3>WRF scenario asymmetry</h3>
           <p>
-            Dynamically downscaled WRF data (hourly precipitation intensity, snow water equivalent, wind) exists
-            for historical and SSP3-7.0 only. Any WRF-derived metric shown beside two-scenario LOCA2 results
-            carries this footnote.
+            Dynamically downscaled WRF data exists for historical and SSP3-7.0 only.<i class="i" tabindex="0" data-tip="Affects hourly precipitation intensity, snow water equivalent, and wind. Any WRF-derived metric shown beside two-scenario LOCA2 results carries this footnote.">i</i>
           </p>
           <h3>Units and conversions</h3>
           <p>
-            LOCA2 precipitation arrives as kg m<sup>-2</sup> s<sup>-1</sup> and is converted to mm/day
-            (multiply by 86,400); temperatures arrive in Kelvin and are converted to degC. WRF precipitation is
-            run-accumulated and is differenced to hourly rates. Automated QA asserts these conversions on every run.
+            Automated QA asserts every unit conversion on each run.<i class="i" tabindex="0" data-tip="LOCA2 precipitation arrives as kg m-2 s-1 and converts to mm/day by multiplying by 86,400. Temperatures arrive in Kelvin and convert to degrees C. WRF precipitation is run-accumulated and is differenced to hourly rates.">i</i>
           </p>
           <h3>Provenance and reproducibility</h3>
           <p>
-            Every download is recorded in a manifest (source URL, size, checksum, retrieval date). Raw subsets
-            stay on local disk and are excluded from the repository; only reviewed summary products are published.
-            This tab is the condensed summary - the full, versioned methods document is
-            <a href="https://github.com/trpa-agency/PROTECT/blob/main/climate/docs/METHODS.md" style="color:var(--trpa-blue);font-weight:600;">climate/docs/METHODS.md</a>
-            in the PROTECT repository. The current extraction spec (scenarios, ensemble, metrics) is a
-            <strong>placeholder pending consultant review</strong>; it lives in <code>climate/config.yaml</code>.
+            Every download is recorded in a manifest; raw subsets stay on local disk. Full methods in
+            <a href="https://github.com/trpa-agency/PROTECT/blob/main/climate/docs/METHODS.md" style="color:var(--trpa-blue);font-weight:600;">climate/docs/METHODS.md</a>.
+            The extraction spec is a <strong>placeholder pending consultant review</strong>.<i class="i" tabindex="0" data-tip="The manifest records source URL, size, checksum, and retrieval date. Only reviewed summary products are published. The spec (scenarios, ensemble, metrics) lives in climate/config.yaml.">i</i>
           </p>
           <h3>Known caveats</h3>
           <ul>
@@ -351,11 +323,11 @@
           <table class="ref">
             <thead><tr><th>#</th><th>Decision</th><th>Current lean</th><th>Who</th></tr></thead>
             <tbody>
-              <tr><td>1</td><td>Headline scenario for exposure scoring</td><td>SSP3-7.0 (planning-conservative), SSP2-4.5 shown as sensitivity</td><td>TRPA + ICF</td></tr>
+              <tr><td>1</td><td>Headline scenario for exposure scoring<i class="i" tabindex="0" data-tip="Now forced by the contracted flood dataset, which offers SSP1-2.6, SSP2-4.5, and SSP5-8.5. Only SSP2-4.5 overlaps with this pipeline. Either flood is scored under a different scenario from every other hazard, or the headline moves to SSP2-4.5, or SSP5-8.5 substitutes for SSP3-7.0 as the high pathway. They are not equivalent.">i</i></td><td>Was SSP3-7.0 with SSP2-4.5 as sensitivity; the contracted flood data does not offer SSP3-7.0, so SSP2-4.5 is the only common scenario</td><td>TRPA + ICF</td></tr>
               <tr><td>2</td><td>Headline planning horizon</td><td>2040-2069, with 2020-2049 for near-term priorities</td><td>TRPA + ICF</td></tr>
               <tr><td>3</td><td>Exposure normalization scheme</td><td>Fixed physical thresholds per hazard (defensible in workshops) vs percentile rank across assets</td><td>ICF proposal, TRPA review</td></tr>
               <tr><td>4</td><td>SWE summary metric for snow/avalanche exposure</td><td>Candidates: April 1 SWE, peak SWE, snow-season length; confirm at consultant sync</td><td>ICF</td></tr>
-              <tr><td>5</td><td>Atlas 14 change-factor method</td><td>Scale published depths by ensemble delta in extreme daily precip; provisional until Atlas 15</td><td>TRPA</td></tr>
+              <tr><td>5</td><td>Atlas 14 change-factor method<i class="i" tabindex="0" data-tip="Double-counting risk: the contracted flood model already applies Atlas 14 curves in its rain-on-grid method and delivers climate-adjusted depths. Scaling Atlas 14 again by LOCA2 change factors would apply the climate adjustment twice for flood. The change factor is still needed for the culvert design-margin work, which the contracted model does not cover.">i</i></td><td>Scale published depths by ensemble delta in extreme daily precip; provisional until Atlas 15. Do not apply on top of the contracted flood model.</td><td>TRPA</td></tr>
               <tr><td>6</td><td>Hourly-intensity model subset</td><td>3 of 5 GCMs for volume; expand if intensity metrics prove decisive</td><td>TRPA</td></tr>
             </tbody>
           </table>
@@ -520,10 +492,22 @@
       });
     }
 
+    // Flip tooltips that would otherwise extend past a viewport edge.
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 150;
+      document.querySelectorAll(".i").forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle("tip-right", x > w - pad);
+        el.classList.toggle("tip-left", x < pad);
+      });
+    }
+
     function init(){
       makeGrid("src-grid", srcCols, sourcesData, "src-qf", "src-export", "PROTECT_Climate_Sources.csv");
       makeGrid("ddf-grid", ddfCols, ddfData, "ddf-qf", "ddf-export", "PROTECT_Atlas14_DDF.csv");
       initProjections();
+      placeTips();
+      window.addEventListener("resize", placeTips);
       // Re-fit grids / relayout charts when their tab becomes visible (zero-width guard)
       document.querySelector("calcite-tabs").addEventListener("calciteTabChange", () => {
         setTimeout(() => {
@@ -533,6 +517,7 @@
           }
           const chart = document.getElementById("proj-chart");
           if (chart && chart.data && chart.offsetWidth > 0) Plotly.Plots.resize(chart);
+          placeTips();
         }, 60);
       });
     }

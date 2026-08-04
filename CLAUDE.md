@@ -11,27 +11,29 @@ deliverable).
 
 The risk index uses the **FHWA VAST framework**: sub-indices Exposure, Sensitivity, Asset Value, and
 Adaptive Capacity (reverse-scored) combine into a Master PROTECT Index, weighted alongside Criticality
-(Sensitivity ~10-20%, Criticality ~30%). Current artifacts: a landing page (`html/index.html`, v0.4,
-links every page with status and phasing); a reference hub (`html/reference-hub.html`, v0.3)
-with tabs for the hazard-asset pairs, data inventory, framework/methods (incl. a hazard impact &
-sensitivity matrix), and open decisions; a data-readiness tracker (`html/data-model-inventory.html`)
-mapping each layer to its TRPA REST endpoint; and the **Phase 1 MVP map tool**
-(`html/risk-index-tool.html`) - a map-centric SPA on live TRPA layers.
+(Sensitivity ~10-20%, Criticality ~30%). Current artifacts: a landing page (`html/index.html`, v0.6,
+links every page with status and phasing); a reference hub (`html/reference-hub.html`, v0.5) with
+tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
+(incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Phase 1
+MVP map tool** (`html/risk-index-tool.html`) - live TRPA layers plus a per-component Status view,
+no placeholder data; the **Criticality Index app** (`html/criticality-index.html`, live, 18,253
+segments, linked site-wide); the climate inputs page (`html/climate-data.html`); and the storm
+events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culvert layer).
 
 ## Project context
 
 - **Tool vision** (per `PROTECT_RiskIndexTool_Scoping_v0.1.docx`): a map-centric single-page app
-  (Map / Charts / Table / Methods / About). Phasing: Phase 1 MVP ~mid-June 2026 (SC kickoff),
-  Workshop 1 Nov 2026, Workshop 2 May 2027, final RIP 2027.
+  (Map / Charts / Table / Methods / About). Phasing: Phase 1 MVP ~mid-June 2026, **first Steering
+  Committee Aug 2026** (nothing in October), Workshop 1 Nov 2026, VA + tool final Dec 2026,
+  Workshop 2 May 2027, final RIP 2027.
 - **Two-repo future**: the scoping doc proposes `protect-risk-index` (Python ETL) +
   `protect-risk-index-tool` (frontend, GitHub Pages). Neither exists yet; this single `PROTECT` repo
   is the working hub until the MVP build starts.
-- **Disruption-risk tool decision**: RA2CE (Deltares) vs. Volpe RDR (USDOT). ICF preparing pros/cons
-  + level of effort; TRPA reviewing. Open.
+- **Disruption-risk tool decision**: **RA2CE (Deltares) selected** (Aug 2026); Volpe RDR evaluated
+  and not pursued. Analysis work lives in `scripts/ra2ce`.
 - **Partners**: ICF is the consultant (climate resilience); TRPA Science & Data + Transportation
-  teams lead. Next ICF/TRPA sync: June 3, 2026. Andy (TRPA) is exploring use cases and scripting with
-  the Volpe RDR and RA2CE disruption-risk models, and built a street network from Overture data (the
-  base network for those models).
+  teams lead. The data team built a street network from Overture data (the base network for RA2CE)
+  and the interactive Criticality Index app on top of it.
 - **MVP build**: the MVP Risk Index Tool is built in this repo's `html/` folder using the TRPA
   dashboard stack (Calcite + ArcGIS Maps SDK + Plotly + AG Grid).
 - **Hosting / visibility**: GitHub Pages for now (`trpa-agency.github.io/PROTECT`); final home is
@@ -60,23 +62,23 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   Keep only open-source / public / sole-source tools in the HTML; do not enumerate commercial vendor
   names in committed files.
 
-The live readiness tracker is `html/data-model-inventory.html`.
+The live readiness tracker is the Data and Model Inventory tab of `html/reference-hub.html`.
 
 ## Where things live
 
 ```
 PROTECT/
-├── data/                            # input data, intermediate files (empty for now)
-├── docs/                            # methodology and build notes (empty for now)
-├── html/index.html                  # v0.4 landing page (page cards, phasing, workstream status; no CDN libs)
-├── html/reference-hub.html          # v0.3 reference hub (Calcite + AG Grid, TRPA brand)
-├── html/data-model-inventory.html   # data + model inventory with REST endpoint tracking
-├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK + Plotly + AG Grid)
-├── html/climate-data.html           # v0.1 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
-├── html/debris-flow.html            # v0.1 wildcat page (analysis plan, workflow, inputs, scenarios, I15 chart)
+├── data/                            # input data, intermediate files
+├── docs/                            # methodology, build notes, scoping archive
+├── html/index.html                  # v0.6 landing page (page cards, phasing, workstream status; no CDN libs)
+├── html/reference-hub.html          # v0.5 reference hub incl. data + model inventory (Calcite + AG Grid)
+├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
+├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
+├── html/climate-data.html           # v0.2 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
+├── html/tahoe-precip-events.html    # storm events + debris-flow explorer (CDN libs, embedded culverts)
 ├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
 ├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
-├── scripts/                         # ETL / analysis scripts (empty for now)
+├── scripts/                         # analysis scripts and notebooks (incl. ra2ce/)
 └── Hazard_Asset_Pairs.md            # plain-text source-of-record for pairs + framework
 ```
 

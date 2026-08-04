@@ -12,7 +12,7 @@ These involve the public visibility of the repo or data agreements.
 
 ### 1.1 data/vendors.csv should leave the repo entirely
 
-`data/vendors.csv` is the RFP vendor research list, roughly 50 commercial vendors with notes and price points, including a specific quote around $29,500 for a flood data product. The repo's own rule (SESSION_NOTES.md header) is no commercial vendor names in committed files, since GitHub Pages serves this publicly. This file breaks that rule about 50 times over and also exposes procurement research.
+`data/vendors.csv` is the RFP vendor research list, roughly 50 commercial vendors with notes and price points, including specific price points for flood data. The repo's own rule (SESSION_NOTES.md header) is no commercial vendor names in committed files, since GitHub Pages serves this publicly. This file breaks that rule about 50 times over and also exposes procurement research.
 
 Fix. Move the file out of the repo (a OneDrive or Teams location is fine), add `data/vendors.csv` to .gitignore, and check whether it was ever pushed. If it went to the public remote, the safe assumption is that the vendor list is public and a history rewrite (`git filter-repo`) plus force push is warranted. Run `git log --oneline --all -- data/vendors.csv` in the real clone to confirm.
 
@@ -30,9 +30,9 @@ Fix. Replace with a role ("GIS analyst") or remove. Search the other pages for f
 
 Fix. Replace with a generic description ("commercial fire modeling vendor") or remove the row.
 
-### 1.4 The $29,500 quote also lives in docs/Hazard_Asset_Pairs.md
+### 1.4 The same flood price point also lives in docs/Hazard_Asset_Pairs.md
 
-The same flood data price point from vendors.csv is quoted in `docs/Hazard_Asset_Pairs.md`. Fix alongside 1.1 so the number does not survive in a second location.
+The same flood data price point from vendors.csv appears in `docs/Hazard_Asset_Pairs.md`. Fix alongside 1.1 so the number does not survive in a second location.
 
 ### 1.5 docs/index-copy.txt contains internal consultant coordination notes
 

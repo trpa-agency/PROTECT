@@ -11,15 +11,8 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
   <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
 
-  <!-- Plotly + AG Grid load BEFORE the ArcGIS Maps SDK. The ArcGIS Dojo/AMD loader makes these UMD
-       bundles register as AMD modules instead of globals (Error: multipleDefine; window.Plotly /
-       window.agGrid end up undefined and the map fails to load). Loading them first avoids it. -->
-  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
-  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
-
-  <!-- ArcGIS Maps SDK (must load AFTER the UMD libraries above) -->
+  <!-- ArcGIS Maps SDK. This page no longer loads Plotly or AG Grid; if UMD libraries return,
+       they must load BEFORE this script (ArcGIS's AMD loader breaks UMD globals otherwise). -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
   <script src="https://js.arcgis.com/4.31/"></script>
 
@@ -37,16 +30,17 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
     header.app-header{background:var(--trpa-navy);color:#fff;}
     .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    header.app-header .right{flex-wrap:wrap;}
     .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
     .header-logo img{height:50px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
     header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
     header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
     header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
-    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.6rem;font-size:.78rem;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;}
     header.app-header .badge{background:var(--trpa-orange);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
-    header.app-header a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:.28rem .65rem;border-radius:6px;white-space:nowrap;}
-    header.app-header a:hover{background:rgba(255,255,255,.12);}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
     main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
     .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem;}
     .kpi-card{background:#fff;border-radius:8px;padding:.8rem 1.1rem;flex:1;min-width:160px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
@@ -58,33 +52,49 @@
     .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
     /* Map layout */
     .map-wrap{display:flex;gap:0;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;}
-    .layer-panel{width:250px;flex-shrink:0;background:#fff;border-right:1px solid var(--gray-border);padding:.9rem 1rem;overflow-y:auto;}
+    .layer-panel{width:270px;flex-shrink:0;background:#fff;border-right:1px solid var(--gray-border);padding:.9rem 1rem;overflow-y:auto;}
     .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
     .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
     .layer-panel .lyr .sw{flex-shrink:0;}
     .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
     .layer-panel .coming{color:#aab2bd;font-size:.78rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .5rem;}
+    .layer-panel .note a{color:var(--trpa-blue);font-weight:600;}
     #map-view{flex:1;height:600px;}
-    .chart-card{background:#fff;border-radius:8px;padding:1rem 1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:1rem;}
-    .chart-card h3{font-size:1rem;font-weight:600;margin-bottom:.2rem;}
-    .chart-card .sub{font-size:.76rem;color:var(--gray-text);margin-bottom:.6rem;}
-    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-navy);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
-    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.7rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.3rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
     h2.sec:first-child{margin-top:0;}
     .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;}
     .card{background:#fff;border-radius:8px;padding:1rem 1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--c,var(--trpa-blue));}
     .card h3{font-size:.95rem;font-weight:700;margin-bottom:.5rem;}
     .card ul{margin-left:1.05rem;} .card li{font-size:.84rem;margin-bottom:.25rem;}
+    .card p{font-size:.84rem;margin-bottom:.4rem;}
+    .card .pill{display:inline-block;font-size:.66rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;margin-left:.35rem;vertical-align:1px;}
+    .pill.live{background:#4A611814;color:var(--trpa-forest);}
+    .pill.building{background:#B47E0014;color:var(--trpa-earth);}
+    .pill.pending{background:#7B6A8A14;color:var(--trpa-purple);}
     .formula{background:#f0f4f9;border:1px solid #dbe5f0;border-radius:6px;padding:.5rem .75rem;font-size:.84rem;margin:.35rem 0;}
     footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
     footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+
+    /* Hover/focus info affordance: detail lives here instead of on the page */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
   </style>
 </head>
 <body>
 
   <header class="app-header">
     <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
         <h1>Risk Index Tool</h1>
@@ -94,25 +104,26 @@
         <span class="badge">MVP &middot; Phase 1</span>
         <a href="#" id="methods-link">Methods</a>
         <a href="index.html">Home</a>
-        <a href="reference-hub.html">Reference hub</a>
+        <a href="criticality-index.html">Criticality Index</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="climate-data.html">Climate Data</a>
+        <a href="tahoe-precip-events.html">Storm Events</a>
       </div>
     </div>
   </header>
 
   <main>
     <section class="kpi-row">
-      <div class="kpi-card"><div class="kpi-value" id="kpi-miles">&mdash;</div><div class="kpi-label">Network miles analyzed</div></div>
-      <div class="kpi-card"><div class="kpi-value" id="kpi-highrisk">&mdash;</div><div class="kpi-label">Segments in highest risk class</div></div>
-      <div class="kpi-card"><div class="kpi-value" id="kpi-projects">&mdash;</div><div class="kpi-label">Priority resilience projects</div></div>
-      <div class="kpi-card"><div class="kpi-value" id="kpi-vacov">&mdash;</div><div class="kpi-label">% network with VA data</div></div>
+      <div class="kpi-card"><div class="kpi-value">18,253</div><div class="kpi-label">Street segments in the criticality network</div></div>
+      <div class="kpi-card"><div class="kpi-value">7,858</div><div class="kpi-label">Culverts compiled (6 jurisdictions, with condition)</div></div>
+      <div class="kpi-card"><div class="kpi-value">14</div><div class="kpi-label">Hazard-asset pairs in the VA<i class="i" tabindex="0" data-tip="14 pairs are scored in the vulnerability assessment. Nine more are excluded from the VA but discussed in the plan, for 23 total.">i</i></div></div>
     </section>
-    <p class="kpi-cap">KPIs are illustrative and populate as the scored network and resilience-project layers are integrated (Phase 2 onward).</p>
+    <p class="kpi-cap">Real counts from the working layers. Segment counts come from the criticality network (Overture-derived); culverts from the compiled TRPA layer.</p>
 
     <calcite-tabs scale="m">
       <calcite-tab-nav slot="title-group">
         <calcite-tab-title selected>Map</calcite-tab-title>
-        <calcite-tab-title>Charts</calcite-tab-title>
-        <calcite-tab-title>Data Table</calcite-tab-title>
+        <calcite-tab-title>Status</calcite-tab-title>
         <calcite-tab-title>Methods</calcite-tab-title>
         <calcite-tab-title>About</calcite-tab-title>
       </calcite-tab-nav>
@@ -121,20 +132,27 @@
       <calcite-tab selected>
         <div class="tab-body">
           <calcite-notice icon="information" scale="s" open>
-            <span slot="message">MVP shell (Phase 1). The map shows live TRPA layers; the sub-index layers, charts, and data table are illustrative placeholders until the scored network is integrated. Internal review draft.</span>
+            <span slot="message">Phase 1 MVP. Every layer on this map is live TRPA data. Screening layers land as the vulnerability scoring runs; interactive criticality scoring is already live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>. Internal review draft.</span>
           </calcite-notice>
           <div class="map-wrap" style="margin-top:.8rem;">
             <div class="layer-panel">
-              <h3>Live layers</h3>
-              <label class="lyr"><calcite-switch id="tg-equity" class="sw" checked></calcite-switch> Equity tessellation <span style="color:var(--trpa-earth)">(Sensitivity)</span></label>
-              <label class="lyr"><calcite-switch id="tg-cpz" class="sw"></calcite-switch> Community Priority Zones <span style="color:var(--trpa-orange)">(Criticality)</span></label>
-              <label class="lyr"><calcite-switch id="tg-transit" class="sw"></calcite-switch> Transit network <span style="color:var(--trpa-blue)">(Asset Value)</span></label>
+              <h3>Hazards (Exposure)</h3>
+              <label class="lyr"><calcite-switch id="tg-flood" class="sw"></calcite-switch> Flood zones</label>
+              <label class="lyr"><calcite-switch id="tg-avy" class="sw"></calcite-switch> Avalanche zones</label>
+              <label class="lyr"><calcite-switch id="tg-fire" class="sw"></calcite-switch> Fire severity probability</label>
               <div class="grp">
-                <h3>Sub-indices (coming)</h3>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Master PROTECT Index</label>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Exposure</label>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Asset Value</label>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Adaptive Capacity</label>
+                <h3>Community (Criticality / Sensitivity)</h3>
+                <label class="lyr"><calcite-switch id="tg-equity" class="sw" checked></calcite-switch> Equity tessellation</label>
+                <label class="lyr"><calcite-switch id="tg-cpz" class="sw"></calcite-switch> Community Priority Zones</label>
+                <label class="lyr"><calcite-switch id="tg-transit" class="sw"></calcite-switch> Transit network</label>
+                <label class="lyr"><calcite-switch id="tg-ems" class="sw"></calcite-switch> Emergency services</label>
+              </div>
+              <div class="grp">
+                <h3>Scored layers</h3>
+                <div class="note">Step 1 criticality is live as its own app: <a href="criticality-index.html">open the Criticality Index</a>. The screening layers below appear here as step 2 runs.</div>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Exposure score (per pair)</label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Sensitivity score (per pair)</label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Vulnerability rating (H / M / L)</label>
               </div>
             </div>
             <div id="map-view"></div>
@@ -142,40 +160,28 @@
         </div>
       </calcite-tab>
 
-      <!-- CHARTS -->
+      <!-- STATUS -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">Illustrative distributions. These wire to the scored Risk Index once the sub-indices are computed.</p>
-          <div class="chart-card"><h3>Risk Index distribution</h3><div class="sub">Illustrative - segment count by risk class</div><div id="chart-dist" style="height:300px;"></div></div>
-          <div class="chart-card"><h3>Highest-risk segments by jurisdiction</h3><div class="sub">Illustrative</div><div id="chart-juris" style="height:300px;"></div></div>
-        </div>
-      </calcite-tab>
-
-      <!-- DATA TABLE -->
-      <calcite-tab>
-        <div class="tab-body">
-          <p class="lead">Illustrative segment-level schema (not real scores). Each analyzed segment carries its four sub-index scores and the Master Index. Sortable, filterable, CSV-exportable.</p>
-          <div class="toolbar">
-            <input id="seg-qf" type="text" placeholder="Quick search segments..." style="flex:1;min-width:240px;padding:.5rem .75rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.9rem;color:var(--trpa-navy);" />
-            <calcite-button id="seg-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+          <p class="lead">Full readiness tracker in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>.</p>
+          <div class="card-grid">
+            <div class="card" style="--c:#003B71"><h3>1. Criticality<span class="pill live">Live</span></h3><p>18,253 segments scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.<i class="i" tabindex="0" data-tip="Adjustable weights and hazard filters. Bridges and culverts inherit their road segment's score.">i</i></p></div>
+            <div class="card" style="--c:#E87722"><h3>2. Exposure<span class="pill building">Building</span></h3><p>TRPA hazard zones live; contracted fire, flood, and terrain data purchased and pending delivery.<i class="i" tabindex="0" data-tip="Purchased: fire-behavior modeling (burn probability, flame length, ember load, suppression difficulty), predicted soil burn severity, fire pathways and firesheds, ~10 m flood depths across eight return periods, and a bare-earth terrain model for runout. The climate pipeline has a validated run. Scoring rubrics finalize with the screening datasets.">i</i></p></div>
+            <div class="card" style="--c:#B47E00"><h3>2. Sensitivity<span class="pill building">Building</span></h3><p>Bridge and culvert condition sourced; pavement condition is the gap.<i class="i" tabindex="0" data-tip="Bridge condition from the FHWA National Bridge Inventory. Culverts compiled from six jurisdictions (7,858 assets with a condition table). Equity multiplier live. Pavement condition source is TBD, with jurisdiction outreach planned.">i</i></p></div>
+            <div class="card" style="--c:#9C3E27"><h3>2. Vulnerability rating<span class="pill pending">Pending</span></h3><p>(Exposure + Sensitivity) x Criticality.<i class="i" tabindex="0" data-tip="Scored 0-3 per asset and bucketed High / Medium / Low. This is what colors the map and fills the segment table once the screening runs.">i</i></p></div>
+            <div class="card" style="--c:#4A6118"><h3>3. Disruption scenarios<span class="pill building">Building</span></h3><p>RA2CE on the Overture street network.<i class="i" tabindex="0" data-tip="Outputs detours, travel-time change, blocked assets, and populations impacted. Scenarios are defined after the screening identifies high-risk hazards and locations.">i</i></p></div>
+            <div class="card" style="--c:#0072CE"><h3>Supporting layers<span class="pill live">Live</span></h3><p>Emergency services, transit, priority zones, equity tessellation.<i class="i" tabindex="0" data-tip="Live TRPA REST services feeding both the criticality and sensitivity scoring.">i</i></p></div>
           </div>
-          <div id="seg-grid" class="ag-theme-quartz" style="width:100%;"></div>
         </div>
       </calcite-tab>
 
       <!-- METHODS -->
       <calcite-tab>
         <div class="tab-body">
-          <h2 class="sec">FHWA VAST framework</h2>
-          <p class="lead">Risk is built from four sub-indices, weighted alongside Criticality (Sensitivity ~10-20%, Criticality ~30%). Adaptive Capacity is reverse-scored (high capacity = low vulnerability).</p>
-          <div class="formula"><strong>Master PROTECT Index</strong> = f(Exposure, Sensitivity, Asset Value, Adaptive Capacity) weighted with Criticality</div>
-          <div class="card-grid" style="margin-top:1rem;">
-            <div class="card" style="--c:#E87722"><h3>Exposure</h3><ul><li>Wildfire pathways (commercial fire modeling)</li><li>Flood inundation &amp; scour (HEC-RAS)</li><li>Avalanche / landslide / debris-flow runout (RAMMS)</li><li>Post-fire erosion &amp; sediment (WEPP)</li></ul></div>
-            <div class="card" style="--c:#B47E00"><h3>Sensitivity</h3><ul><li>Bridge / culvert condition, pavement age</li><li>Equity Study (vulnerable populations, Justice40 multiplier)</li></ul></div>
-            <div class="card" style="--c:#0072CE"><h3>Asset Value</h3><ul><li>Strategic / emergency assets, transit</li><li>Freight, cascading power / telecom</li></ul></div>
-            <div class="card" style="--c:#4A6118"><h3>Adaptive Capacity</h3><ul><li>Network redundancy / detours (commercial mobility data)</li><li>Reverse-scored</li></ul></div>
-          </div>
-          <p class="lead" style="margin-top:1rem;">Full methodology, the data and model inventory, and the hazard impact &amp; sensitivity matrix live in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">reference hub</a>.</p>
+          <h2 class="sec">Three-step assessment approach</h2>
+          <p class="lead">Adopted at the June 25, 2026 VA discussion.<i class="i" tabindex="0" data-tip="Step 1: criticality assessment, live in the Criticality Index app. Step 2: system-wide indicator screening of the 14 Include-in-VA pairs. Step 3: scenario-based disruption analyses in RA2CE for the highest-risk hazards and locations.">i</i></p>
+          <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality. Asset-level 0-3 scores, bucketed High / Medium / Low.</div>
+          <p class="lead" style="margin-top:1rem;">Full methodology in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>. Climate inputs on the <a href="climate-data.html" style="color:var(--trpa-blue);font-weight:600;">Climate Data</a> page; storm and debris-flow methods on the <a href="tahoe-precip-events.html" style="color:var(--trpa-blue);font-weight:600;">Storm Events</a> page.</p>
         </div>
       </calcite-tab>
 
@@ -183,16 +189,16 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">About this tool</h2>
-          <p class="lead">The <strong>PROTECT Risk Index Tool</strong> is the Task 3.3 deliverable of TRPA's PROTECT Plan (FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant). It visualizes the FHWA VAST-based risk index across the Lake Tahoe Region's transportation network for technical partners.</p>
-          <p class="lead">Built by TRPA (Science &amp; Data + Transportation) with ICF as climate-resilience consultant, on the standard TRPA dashboard stack (Calcite + ArcGIS Maps SDK + Plotly + AG Grid). Live spatial data from <code>maps.trpa.org</code>.</p>
-          <p class="lead"><strong>Internal review draft.</strong> Not for public distribution. Phase 1 MVP for the Steering Committee kickoff; Workshop 1 release November 2026.</p>
+          <p class="lead">The Task 3.3 deliverable of TRPA's PROTECT Plan: the risk index mapped across the Lake Tahoe Region's transportation network, for technical partners.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Resilience Improvement Plan; 3.2 is the vulnerability assessment and 3.3 is this tool.">i</i></p>
+          <p class="lead">Built by TRPA Science &amp; Data and Transportation, with ICF as climate-resilience consultant.<i class="i" tabindex="0" data-tip="Standard TRPA dashboard stack: Calcite Design System and the ArcGIS Maps SDK. Live spatial data from maps.trpa.org. Criticality scoring runs in the companion Criticality Index app.">i</i></p>
+          <p class="lead"><strong>Internal review draft.</strong> Not for public distribution. Workshop 1 release November 2026.</p>
         </div>
       </calcite-tab>
     </calcite-tabs>
   </main>
 
   <footer class="app-footer">
-    <p>PROTECT Risk Index Tool (MVP, Phase 1). Live layers: <code>Transportation_Equity_Analysis_Tessellation</code>, <code>Transportation</code> (Community Priority Zones, Transit). Internal review draft.</p>
+    <p>PROTECT Risk Index Tool (MVP, Phase 1). Live layers: <code>Streams_and_Flood_Zone</code>, <code>Avalanche_Zones</code>, <code>Fire</code>, <code>Transportation_Equity_Analysis_Tessellation</code>, <code>Transportation</code> (Community Priority Zones, Transit), <code>Emergency_Services</code>. Internal review draft.</p>
   </footer>
 
   <script>
@@ -201,14 +207,30 @@
     const EQUITY_URL  = SVC + "/Transportation_Equity_Analysis_Tessellation/FeatureServer/0";
     const CPZ_URL     = SVC + "/Transportation/MapServer/6";
     const TRANSIT_URL = SVC + "/Transportation/MapServer/5";
+    const FLOOD_URL   = SVC + "/Streams_and_Flood_Zone/MapServer/0";
+    const AVY_URL     = SVC + "/Avalanche_Zones/MapServer/0";
+    const FIRE_URL    = SVC + "/Fire/MapServer/3";
+    const EMS_URLS    = [SVC + "/Emergency_Services/MapServer/3",   // fire stations
+                         SVC + "/Emergency_Services/MapServer/5",   // medical facilities
+                         SVC + "/Emergency_Services/MapServer/2"];  // evacuation shelters
 
-    // ---------- MAP ----------
     require([
-      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer",
+      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GroupLayer",
       "esri/widgets/Legend","esri/widgets/Home","esri/widgets/BasemapToggle",
       "esri/smartMapping/renderers/color"
-    ], function(Map, MapView, FeatureLayer, Legend, Home, BasemapToggle, colorRenderer){
+    ], function(Map, MapView, FeatureLayer, GroupLayer, Legend, Home, BasemapToggle, colorRenderer){
 
+      const flood = new FeatureLayer({
+        url: FLOOD_URL, title: "Flood zones", visible:false, opacity:0.55,
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,114,206,0.35], outline:{color:[0,114,206,0.8], width:0.4}}}
+      });
+      const avy = new FeatureLayer({
+        url: AVY_URL, title: "Avalanche zones", visible:false, opacity:0.6,
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[123,106,138,0.4], outline:{color:[123,106,138,0.9], width:0.5}}}
+      });
+      const fire = new FeatureLayer({
+        url: FIRE_URL, title: "Fire severity probability", visible:false, opacity:0.5
+      });
       const equity = new FeatureLayer({
         url: EQUITY_URL, title: "Equity tessellation", opacity: 0.8,
         renderer: {type:"simple", symbol:{type:"simple-fill", color:[180,203,232,0.45], outline:{color:[255,255,255,0.5], width:0.4}}},
@@ -229,8 +251,12 @@
         url: TRANSIT_URL, title: "Transit network", visible:false,
         renderer: {type:"simple", symbol:{type:"simple-line", color:[0,114,206], width:1.6}}
       });
+      const ems = new GroupLayer({
+        title: "Emergency services", visible:false,
+        layers: EMS_URLS.map(u => new FeatureLayer({url:u}))
+      });
 
-      const map = new Map({ basemap:"gray-vector", layers:[equity, cpz, transit] });
+      const map = new Map({ basemap:"gray-vector", layers:[fire, flood, avy, equity, cpz, transit, ems] });
       const view = new MapView({ container:"map-view", map:map, center:[-120.04, 39.09], zoom:10 });
 
       view.when(function(){
@@ -247,85 +273,32 @@
         const el = document.getElementById(id);
         if(el) el.addEventListener("calciteSwitchChange", function(){ layer.visible = el.checked; });
       }
+      bindToggle("tg-flood", flood);
+      bindToggle("tg-avy", avy);
+      bindToggle("tg-fire", fire);
       bindToggle("tg-equity", equity);
       bindToggle("tg-cpz", cpz);
       bindToggle("tg-transit", transit);
+      bindToggle("tg-ems", ems);
     });
 
-    // ---------- CHARTS (illustrative placeholders) ----------
-    const TRPA = ['#0072CE','#003B71','#E87722','#4A6118','#9C3E27','#B5A64C','#7B6A8A','#B4CBE8'];
-    const PLOT_LAYOUT = { font:{family:"Open Sans, sans-serif", color:"#003B71", size:12}, paper_bgcolor:"transparent", plot_bgcolor:"transparent", margin:{t:10,r:15,b:40,l:45}, xaxis:{gridcolor:"#e8e8e8"}, yaxis:{gridcolor:"#e8e8e8"}, colorway:TRPA };
-    function drawCharts(){
-      if(!window.Plotly) return;
-      Plotly.newPlot("chart-dist", [{
-        x:["Low","Moderate","High","Very High"], y:[180,140,86,34], type:"bar",
-        marker:{color:["#4A6118","#B5A64C","#E87722","#9C3E27"]}
-      }], Object.assign({}, PLOT_LAYOUT), {responsive:true, displayModeBar:false});
-      Plotly.newPlot("chart-juris", [{
-        x:["S. Lake Tahoe","El Dorado","Placer","Washoe","Douglas","Carson City"], y:[22,15,12,9,7,3], type:"bar",
-        marker:{color:"#0072CE"}
-      }], Object.assign({}, PLOT_LAYOUT), {responsive:true, displayModeBar:false});
-    }
-
-    // ---------- DATA TABLE (illustrative sample) ----------
-    const segs = [
-      {seg:"RD-0001", jur:"South Lake Tahoe", cls:"Arterial", exposure:0.72, sensitivity:0.61, asset:0.80, adaptive:0.40, master:0.71},
-      {seg:"RD-0002", jur:"South Lake Tahoe", cls:"Highway",  exposure:0.84, sensitivity:0.55, asset:0.78, adaptive:0.30, master:0.78},
-      {seg:"RD-0014", jur:"El Dorado",        cls:"Collector",exposure:0.58, sensitivity:0.49, asset:0.52, adaptive:0.55, master:0.52},
-      {seg:"RD-0021", jur:"Placer",           cls:"Arterial", exposure:0.66, sensitivity:0.40, asset:0.61, adaptive:0.48, master:0.59},
-      {seg:"RD-0033", jur:"Washoe",           cls:"Highway",  exposure:0.79, sensitivity:0.52, asset:0.70, adaptive:0.35, master:0.74},
-      {seg:"RD-0040", jur:"Douglas",          cls:"Local",    exposure:0.41, sensitivity:0.33, asset:0.38, adaptive:0.70, master:0.34},
-      {seg:"RD-0052", jur:"Placer",           cls:"Collector",exposure:0.62, sensitivity:0.58, asset:0.49, adaptive:0.52, master:0.57},
-      {seg:"RD-0061", jur:"El Dorado",        cls:"Highway",  exposure:0.88, sensitivity:0.64, asset:0.83, adaptive:0.28, master:0.82},
-      {seg:"RD-0070", jur:"Carson City",      cls:"Local",    exposure:0.36, sensitivity:0.30, asset:0.41, adaptive:0.75, master:0.31},
-      {seg:"RD-0085", jur:"South Lake Tahoe", cls:"Arterial", exposure:0.69, sensitivity:0.57, asset:0.74, adaptive:0.44, master:0.66},
-      {seg:"RD-0090", jur:"Washoe",           cls:"Collector",exposure:0.54, sensitivity:0.45, asset:0.50, adaptive:0.60, master:0.48},
-      {seg:"RD-0102", jur:"Douglas",          cls:"Arterial", exposure:0.61, sensitivity:0.47, asset:0.59, adaptive:0.50, master:0.56}
-    ];
-    function scoreColor(v){ if(v==null) return null; const c = v>=0.66?"#9C3E27":(v>=0.33?"#B47E00":"#4A6118"); return {color:c, background:c+"14", fontWeight:"600", textAlign:"center"}; }
-    const segDiv = document.querySelector("#seg-grid");
-    function buildGrid(){
-      if(!window.agGrid) { setTimeout(buildGrid, 60); return; }
-      const num = {width:120, type:"numericColumn", valueFormatter:p=>p.value!=null?p.value.toFixed(2):"-"};
-      agGrid.createGrid(segDiv, {
-        columnDefs:[
-          {field:"seg", headerName:"Segment", width:120, pinned:"left"},
-          {field:"jur", headerName:"Jurisdiction", width:160},
-          {field:"cls", headerName:"Road class", width:120},
-          Object.assign({field:"exposure", headerName:"Exposure", cellClass:"r", cellStyle:p=>scoreColor(p.value)}, num),
-          Object.assign({field:"sensitivity", headerName:"Sensitivity", cellClass:"r", cellStyle:p=>scoreColor(p.value)}, num),
-          Object.assign({field:"asset", headerName:"Asset Value", cellClass:"r", cellStyle:p=>scoreColor(p.value)}, num),
-          Object.assign({field:"adaptive", headerName:"Adaptive Cap.", cellClass:"r", cellStyle:p=>scoreColor(p.value)}, num),
-          Object.assign({field:"master", headerName:"Master Index", cellClass:"r", cellStyle:p=>scoreColor(p.value)}, {width:130, type:"numericColumn", sort:"desc", valueFormatter:p=>p.value!=null?p.value.toFixed(2):"-"})
-        ],
-        rowData: segs,
-        defaultColDef:{sortable:true, resizable:true, filter:true},
-        pagination:false, domLayout:"autoHeight",
-        onGridReady:e=>{ segDiv.__api=e.api; }
+    // Flip tooltips that would otherwise extend past a viewport edge.
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 150;
+      document.querySelectorAll(".i").forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle("tip-right", x > w - pad);
+        el.classList.toggle("tip-left", x < pad);
       });
-      document.getElementById("seg-qf").addEventListener("input", e=>{ if(segDiv.__api) segDiv.__api.setGridOption("quickFilterText", e.target.value); });
-      document.getElementById("seg-export").addEventListener("click", ()=>{ if(segDiv.__api) segDiv.__api.exportDataAsCsv({fileName:"PROTECT_Segments_sample.csv"}); });
     }
+    placeTips();
+    window.addEventListener("resize", placeTips);
+    const tabs = document.querySelector("calcite-tabs");
+    if(tabs) tabs.addEventListener("calciteTabChange", function(){ setTimeout(placeTips, 60); });
 
-    // ---------- INIT + tab resize handling ----------
-    function init(){
-      drawCharts();
-      buildGrid();
-      const tabs = document.querySelector("calcite-tabs");
-      if(tabs){
-        tabs.addEventListener("calciteTabChange", function(){
-          setTimeout(function(){
-            if(window.Plotly){ ["chart-dist","chart-juris"].forEach(id=>{ const el=document.getElementById(id); if(el) Plotly.Plots.resize(el); }); }
-            if(segDiv && segDiv.__api && segDiv.getBoundingClientRect().width>0) segDiv.__api.sizeColumnsToFit();
-          }, 60);
-        });
-      }
-      const ml = document.getElementById("methods-link");
-      if(ml) ml.addEventListener("click", function(e){ e.preventDefault(); const t=document.querySelectorAll("calcite-tab-title")[3]; if(t) t.click(); });
-    }
-    if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded", init); } else { init(); }
+    const ml = document.getElementById("methods-link");
+    if(ml) ml.addEventListener("click", function(e){ e.preventDefault(); const t=document.querySelectorAll("calcite-tab-title")[2]; if(t) t.click(); });
   })();
   </script>
-  <style>.r{text-align:center;}</style>
 </body>
 </html>
