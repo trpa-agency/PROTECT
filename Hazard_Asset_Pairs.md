@@ -100,8 +100,10 @@ EAD/EAL).
 
 ## 6. Data inventory
 
-33 data elements, plus the model/tool inventory, are catalogued in the **Data and Model Inventory**
-tab of the [reference hub](html/reference-hub.html) (the source of record) and
+33 data elements, each mapped to the assessment step it feeds (Step 1 Criticality, Step 2 Exposure,
+Step 2 Sensitivity, Step 3 Disruption, or Context / TRIP for elements that support the plan or Task
+3.4 rather than the scoring), plus the model/tool inventory, are catalogued in the **Data and Model
+Inventory** tab of the [reference hub](html/reference-hub.html) (the source of record) and
 `PROTECT_DataModel_Inventory.xlsx`. Not reproduced here to avoid divergence.
 
 ## 7. Open decisions
