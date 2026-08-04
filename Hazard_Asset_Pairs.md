@@ -134,6 +134,33 @@ Inventory** tab of the [reference hub](html/reference-hub.html) (the source of r
 
 ## 7. Open decisions
 
+**Vendor risk scores versus this screening.** Both contracted datasets ship a pre-computed risk
+score: an average-annual-loss measure for flood and a net-value-change measure for wildfire. Each is
+structurally the same shape as (Exposure + Sensitivity) x Criticality. Recommendation: take the
+component layers as exposure and sensitivity inputs, score them through the screening with TRPA
+criticality, and keep the vendor scores as validation cross-checks. Using them directly would rank
+flood by average annual loss, wildfire by a federal valued-resource framework, and everything else by
+TRPA criticality, leaving the pairs incomparable. The wildfire package also models critical access
+roads, overlapping the Criticality Index.
+
+**Contracted flood licence expires July 2027**, roughly two months after the final plan. The wildfire
+package is perpetual. Establish the renewal cost, whether derived scores survive expiry (a licensing
+question), and whether flood should be architected so the contracted model is swappable back to FEMA,
+StreamStats, and HEC-RAS without a rebuild.
+
+**Scenario mismatch.** The contracted flood data offers SSP1-2.6, SSP2-4.5, and SSP5-8.5; this
+pipeline runs SSP2-4.5 and SSP3-7.0. Only SSP2-4.5 overlaps, which forces the headline-scenario
+decision (climate page, decision 1). Horizons differ too: snapshot years 2030 / 2050 / 2100 against
+30-year climatologies, where 2050 maps onto 2040-2069 but 2100 does not map onto 2070-2099.
+
+**Do not double-count the climate adjustment.** The contracted flood model already applies Atlas 14
+curves and delivers climate-adjusted depths; scaling Atlas 14 again by LOCA2 change factors would
+apply the adjustment twice for flood.
+
+**Fuelscape consistency.** The contracted fire-behavior runs need a fuelscape, and a separate 2026
+fuels package is also being delivered. Confirm both run on the same fuelscape or document the
+discrepancy, or treated areas will differ between products.
+
 **How pair scores aggregate to an asset-level rating.** One asset appears in several pairs: a
 culvert carries FL-C, DF-C, and LS-C; a bridge carries FL-B, DF-B, LS-B, and AV-B. Whether the
 asset's rating is the highest pair, the sum, or a weighted combination is not decided. Summing
