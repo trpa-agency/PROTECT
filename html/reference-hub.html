@@ -150,8 +150,8 @@
 
     <section class="kpi-row">
       <div class="kpi-card"><div class="kpi-value">6</div><div class="kpi-label">Asset types</div></div>
-      <div class="kpi-card"><div class="kpi-value">8</div><div class="kpi-label">Hazards</div></div>
-      <div class="kpi-card"><div class="kpi-value">23</div><div class="kpi-label">Pairs (14 in the VA)</div></div>
+      <div class="kpi-card"><div class="kpi-value">10</div><div class="kpi-label">Hazards<i class="i" tabindex="0" data-tip="Eight decided at the 6/25 VA discussion, plus seiche and high lake level proposed for Steering Committee review.">i</i></div></div>
+      <div class="kpi-card"><div class="kpi-value">27</div><div class="kpi-label">Pairs<i class="i" tabindex="0" data-tip="14 scored in the VA, 9 discussed in the plan only, and 4 proposed pending Steering Committee review.">i</i></div></div>
     </section>
 
     <calcite-tabs scale="m">
@@ -166,7 +166,7 @@
       <calcite-tab selected>
         <div class="tab-body">
           <h2 class="sec">Hazard-Asset Pairs</h2>
-          <p class="lead">Decided at the June 25, 2026 VA discussion. 14 pairs are scored in the VA; nine are excluded from the VA but discussed in the plan.<i class="i" tabindex="0" data-tip="Include in VA = scored in the risk-based vulnerability assessment. TRIP discussion = excluded from the VA, with impacts and potential strategies covered in the Resilience Improvement Plan instead. Mirrored in Hazard_Asset_Pairs.md.">i</i></p>
+          <p class="lead">Decided at the June 25, 2026 VA discussion: 14 pairs scored in the VA, nine discussed in the plan only. Four more are <strong>proposed</strong> for Steering Committee review and are not yet decided.<i class="i" tabindex="0" data-tip="Include in VA = scored in the risk-based vulnerability assessment. TRIP discussion = excluded from the VA, with impacts and strategies covered in the Resilience Improvement Plan instead. Proposed = added after the 6/25 decision (seiche and high lake level), pending confirmation. Mirrored in Hazard_Asset_Pairs.md.">i</i></p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="ha-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="ha-grid" class="ag-theme-quartz grid-wrap"></div>
           <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Road segments are scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts inherit their segment's score.<i class="i" tabindex="0" data-tip="The spring 2026 scoping notes behind this table are archived at docs/scoping_archive_2026-spring.md in the repo.">i</i></p>
@@ -223,7 +223,7 @@
 
           <h2 class="sec">Sensitivity indicators by asset</h2>
           <div class="card-grid">
-            <div class="card" style="--c:#0072CE"><h3>Roads <span class="tag">MDOT</span></h3><ul><li>Pavement condition (all)</li><li>Pavement foundation / permeable sub-base (flooding)</li><li>Road elevation (flooding)</li><li>Asset age (all)</li></ul></div>
+            <div class="card" style="--c:#0072CE"><h3>Roads <span class="tag">MDOT</span></h3><ul><li>Pavement condition (all)</li><li>Pavement foundation / permeable sub-base (flooding)</li><li>Road elevation (flooding)</li><li>Depth to groundwater<i class="i" tabindex="0" data-tip="Proposed. Shallow groundwater weakens subgrade and drives freeze-thaw damage. Treated as a sensitivity attribute rather than a hazard: it is a persistent site condition with no event frequency, which is what separates sensitivity from exposure. If groundwater rise under climate change is modeled, that becomes an exposure input instead.">i</i></li><li>Asset age (all)</li></ul></div>
             <div class="card" style="--c:#7B6A8A"><h3>Bridges <span class="tag">MDOT</span></h3><ul><li>Bridge condition, deck rating / type, material</li><li>Scour criticality (flooding, debris flow)</li><li>Bridge elevation (flooding, landslide, debris flow, avalanche)</li><li>Seismic retrofit (earthquake); channel &amp; water-opening adequacy (flooding)</li></ul></div>
             <div class="card" style="--c:#9C3E27"><h3>Culverts <span class="tag">DCTC</span></h3><ul><li>Culvert condition (all)</li><li>Scour (flooding, debris flow, landslide, avalanche)</li><li>Culvert capacity (debris flow, landslide, avalanche)</li><li>Age; channel condition (flooding)</li></ul></div>
             <div class="card" style="--c:#4A6118"><h3>Active Transit <span class="tag">SF Bay Trail</span></h3><ul><li>Paved vs. unpaved trail (all)</li><li>Elevation (flooding)</li><li>Trail slope (flooding)</li></ul></div>
@@ -284,7 +284,7 @@
       {id:"DF-C",  hazard:"Debris Flow",  asset:"Culverts",         impact:"Physical + cascading", status:"Include in VA", exposure:"Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt)", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; post-fire compounding required per ICF; WildCat modeling planned."},
       {id:"DF-R",  hazard:"Debris Flow",  asset:"Roads",            impact:"Physical + cascading", status:"Include in VA", exposure:"Post-fire debris flow (HEC-HMS); LiDAR runout; precip", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20; July 14 event hindcast on the Storm Events page."},
       {id:"FL-B",  hazard:"Flooding",     asset:"Bridges",          impact:"Physical + cascading", status:"Include in VA", exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition and scour criticality from the FHWA National Bridge Inventory."},
-      {id:"FL-C",  hazard:"Flooding",     asset:"Culverts",         impact:"Physical + cascading", status:"Include in VA", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page."},
+      {id:"FL-C",  hazard:"Flooding",     asset:"Culverts",         impact:"Physical + cascading", status:"Include in VA", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour; lake stage as tailwater at shoreline outlets", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall."},
       {id:"FL-R",  hazard:"Flooding",     asset:"Roads",            impact:"Physical + cascading", status:"Include in VA", exposure:"FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
       {id:"LS-B",  hazard:"Landslide",    asset:"Bridges",          impact:"Physical + cascading", status:"Include in VA", exposure:"", sensitivity:"", notes:""},
       {id:"LS-C",  hazard:"Landslide",    asset:"Culverts",         impact:"Physical + cascading", status:"Include in VA", exposure:"USGS Landslide Susceptibility; CA Geological Survey; post-fire debris-flow", sensitivity:"Culvert condition, capacity, scour", notes:"Post-fire compounding required per ICF."},
@@ -300,7 +300,11 @@
       {id:"WD-R",  hazard:"Wind",         asset:"Roads",            impact:"Operational",          status:"TRIP discussion", exposure:"gridMET wind (Climate Engine); ASCE 7", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:""},
       {id:"WS-AT", hazard:"Winter Storm", asset:"Active Transport", impact:"Operational",          status:"TRIP discussion", exposure:"", sensitivity:"", notes:""},
       {id:"WS-R",  hazard:"Winter Storm", asset:"Roads",            impact:"Operational",          status:"TRIP discussion", exposure:"SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:""},
-      {id:"WS-TC", hazard:"Winter Storm", asset:"Transit Centers",  impact:"Operational",          status:"TRIP discussion", exposure:"", sensitivity:"", notes:""}
+      {id:"WS-TC", hazard:"Winter Storm", asset:"Transit Centers",  impact:"Operational",          status:"TRIP discussion", exposure:"", sensitivity:"", notes:""},
+      {id:"SE-R",  hazard:"Seiche",          asset:"Roads",            impact:"Physical + cascading", status:"Proposed", exposure:"TRPA bathymetry + wind models; USGS seismic (seismically triggered seiche)", sensitivity:"Road elevation above lake stage, shoreline armoring, pavement foundation", notes:"Not in the 6/25 decided matrix. Seiche is already tracked as a data element and rated in the asset and vulnerability matrix, but has no pair. Shoreline routes: Hwy 28 and US-50 East Shore."},
+      {id:"SE-AT", hazard:"Seiche",          asset:"Active Transport", impact:"Physical + cascading", status:"Proposed", exposure:"TRPA bathymetry + wind models", sensitivity:"Elevation above lake stage, paved vs. unpaved", notes:"Not in the 6/25 decided matrix. East Shore Trail and shoreline bike paths sit close to lake level."},
+      {id:"LL-R",  hazard:"High Lake Level", asset:"Roads",            impact:"Physical + cascading", status:"Proposed", exposure:"TRPA Lake Tahoe at High Water (live); lake stage exceedance frequency", sensitivity:"Road elevation, pavement foundation, depth to groundwater", notes:"Not in the 6/25 decided matrix. Data is live today. Lake stage is regulated between the natural rim and the maximum legal limit, so exceedance frequency is tractable."},
+      {id:"LL-AT", hazard:"High Lake Level", asset:"Active Transport", impact:"Physical + cascading", status:"Proposed", exposure:"TRPA Lake Tahoe at High Water (live)", sensitivity:"Elevation above lake stage", notes:"Not in the 6/25 decided matrix. Shoreline paths inundate at sustained high stand."}
     ];
     // Spring 2026 scoping grids (assets criticality notes, early hazard data sources) retired
     // 2026-08-03; archived in docs/scoping_archive_2026-spring.md. Data-source evaluation now
@@ -342,7 +346,9 @@
       ["Climate: Wind","Step 2: Exposure","External","","Climate Engine / USFS","Wind strike zones near roads. (Wind pairs are TRIP-discussion, not scored.)"],
       ["Climate: Heat/Freeze","Step 2: Exposure","External","","Cal-Adapt API","Asphalt rutting, freeze-thaw, joint stress."],
       ["Climate: Subsidence","Step 2: Exposure","External","","USDA SSURGO / Drought.gov","Shrink-swell soils; road slumping."],
-      ["Climate: Seiche","Step 2: Exposure","Building","","TRPA Bathymetry / Wind Models","Shoreline routes (Hwy 28/50) wave undercutting."],
+      ["Climate: Seiche","Step 2: Exposure","Building","","TRPA Bathymetry / Wind Models","Shoreline routes (Hwy 28/50) wave undercutting. Feeds the proposed SE pairs."],
+      ["Lake Stage","Step 2: Exposure","Live","/Streams_and_Flood_Zone/MapServer/2","TRPA Lake Tahoe at High Water","Shoreline inundation for the proposed LL pairs, and tailwater at culvert outlets for FL-C."],
+      ["Groundwater Depth","Step 2: Sensitivity","Needed","","USGS wells / SSURGO water table","Proposed sensitivity attribute: shallow groundwater weakens subgrade and drives freeze-thaw. Not a hazard (no event frequency)."],
       ["Economic Impact","Step 3: Disruption","External","","Caltrans Econ Analysis","VTTS / detour costs; RA2CE economic inputs and EAL."],
       ["WEPP Erosion / Sediment","Step 2: Exposure","Building","","USDA WEPP / WEPPcloud","Post-fire soil erosion, sediment, and runoff; should be a TRPA service. Feeds debris-flow and flood exposure."]
     ];
@@ -381,8 +387,8 @@
     const mdlRows = modelInv.map(r=>({model:r[0],category:r[1],task:r[2],cost:r[3],access:r[4],owner:r[5]}));
 
     // ---------- COLOR MAPS ----------
-    const hazardColor = {Flooding:"#0072CE", Avalanche:"#5BA4DD", Landslide:"#9C3E27", Wildfire:"#E87722", Fire:"#E87722", "Debris Flow":"#8B5A3C", "Winter Storm":"#003B71", Earthquake:"#B5A64C", Wind:"#7B6A8A"};
-    const statusColor = {Advancing:"#4A6118", Candidate:"#E87722", "Not Analyzing":"#6B7280", Screening:"#0072CE", Hold:"#6B7280", "Include in VA":"#4A6118", "TRIP discussion":"#7B6A8A"};
+    const hazardColor = {Flooding:"#0072CE", Avalanche:"#5BA4DD", Landslide:"#9C3E27", Wildfire:"#E87722", Fire:"#E87722", "Debris Flow":"#8B5A3C", "Winter Storm":"#003B71", Earthquake:"#B5A64C", Wind:"#7B6A8A", Seiche:"#1C7293", "High Lake Level":"#065A82"};
+    const statusColor = {Advancing:"#4A6118", Candidate:"#E87722", "Not Analyzing":"#6B7280", Screening:"#0072CE", Hold:"#6B7280", "Include in VA":"#4A6118", "TRIP discussion":"#7B6A8A", "Proposed":"#E87722"};
     const impactColor = {"Physical + cascading":"#9C3E27", "Operational":"#B47E00"};
     const componentColor = {"Step 1: Criticality":"#003B71", "Step 2: Exposure":"#E87722", "Step 2: Sensitivity":"#B47E00", "Step 3: Disruption":"#4A6118", "Context / TRIP":"#7B6A8A"};
     function statusWord(s){ return statusColor[(s||"").split(/[\s/]/)[0]] || "#6B7280"; }
@@ -440,6 +446,7 @@
       {hazard:"Flooding", analysis:"Indicator-based", indicator:"Peak discharge (culvert capacity : peak flow)", dataset:"USGS StreamStats", avail:"Public", time:"Historical", notes:"Basin/gage-level; needs derivation"},
       {hazard:"Flooding", analysis:"Indicator-based", indicator:"Extreme precipitation", dataset:"NOAA Atlas 14 (or 15)", avail:"Public", time:"Historical", notes:"Precip-frequency estimates"},
       {hazard:"Flooding", analysis:"Indicator-based", indicator:"Future precipitation", dataset:"Cal-Adapt / LOCA2", avail:"Public", time:"Future", notes:"1-in-100yr derivation"},
+      {hazard:"Flooding", analysis:"Indicator-based", indicator:"Sub-daily precip intensity (future)", dataset:"UCLA WRF (dynamically downscaled)", avail:"Public", time:"Future", notes:"Hourly 1/3/6-hr rates, 3 km d03 domain; SSP3-7.0 only. Drives culvert and stormwater capacity, which daily totals miss."},
       {hazard:"Flooding", analysis:"Indicator-based", indicator:"Flood depth & extent", dataset:"FEMA Floodplains", avail:"Public", time:"Historical", notes:"Possible data gaps"},
       {hazard:"Flooding", analysis:"Indicator-based", indicator:"Flood depth & extent", dataset:"USACE HEC-RAS", avail:"Public", time:"Event", notes:"Event-specific routing; needs expertise"},
       {hazard:"Flooding", analysis:"Indicator-based", indicator:"Flood depth & extent", dataset:"Commercial flood model (proprietary)", avail:"Proprietary", time:"Future", notes:"Potentially cost-prohibitive"},
@@ -448,6 +455,7 @@
       {hazard:"Wildfire", analysis:"Indicator-based", indicator:"Wildfire spread / pathways", dataset:"Commercial fire modeling (proprietary)", avail:"Proprietary", time:"Historical", notes:"Present-day pathways; cost-prohibitive (ICF: needed?)"},
       {hazard:"Wildfire", analysis:"Indicator-based", indicator:"Change in fire weather", dataset:"Cal-Adapt / NASA NEX-GDDP", avail:"Public", time:"Future", notes:"Fire-weather index derivation"},
       {hazard:"Debris Flow", analysis:"Indicator-based", indicator:"Extreme precip change", dataset:"Cal-Adapt / LOCA2", avail:"Public", time:"Future", notes:"Precip derivation"},
+      {hazard:"Debris Flow", analysis:"Indicator-based", indicator:"Burst intensity (future)", dataset:"UCLA WRF (dynamically downscaled)", avail:"Public", time:"Future", notes:"Short-duration rates that trigger post-fire debris flow (the I15 threshold); 3 km d03, SSP3-7.0 only."},
       {hazard:"Debris Flow", analysis:"Indicator-based", indicator:"Debris & sediment loads", dataset:"Post-wildfire debris flow (HEC-HMS)", avail:"Public", time:"Event", notes:"Run model; scenario parameterization"},
       {hazard:"Earthquake", analysis:"Indicator-based", indicator:"Seismic hazard", dataset:"USGS National Seismic Hazard Maps", avail:"Public", time:"Historical", notes:"Future events may be underrepresented"},
       {hazard:"Earthquake", analysis:"Indicator-based", indicator:"Earthquake likelihood (primary)", dataset:"USGS / ANSS ComCat", avail:"Public", time:"Probabilistic", notes:"Long-term probabilistic"},
@@ -455,6 +463,7 @@
       {hazard:"Avalanche", analysis:"Indicator-based", indicator:"Snow depth / SWE (proxy)", dataset:"SNODAS / SWE", avail:"Public", time:"Historical", notes:"Higher snowpack on avalanche terrain"},
       {hazard:"Avalanche", analysis:"Indicator-based", indicator:"Snow depth / SWE", dataset:"Topofire SWE", avail:"Public", time:"Historical", notes:"250 m high-res; harder to process"},
       {hazard:"Avalanche", analysis:"Indicator-based", indicator:"SWE projections (future)", dataset:"Cal-Adapt VIC", avail:"Public", time:"Future", notes:"Daily snowpack derivation"},
+      {hazard:"Avalanche", analysis:"Indicator-based", indicator:"SWE projections (future)", dataset:"UCLA WRF SNOW", avail:"Public", time:"Future", notes:"Dynamically downscaled snowpack; SSP3-7.0 only. Summary metric (April 1 SWE, peak SWE, season length) pending ICF input."},
       {hazard:"Avalanche", analysis:"Indicator-based", indicator:"Runout zones", dataset:"OpenTopography LiDAR + RAMMS", avail:"Mixed", time:"Historical", notes:"LiDAR public; RAMMS sole-source"},
       {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Evacuation routes", dataset:"TRPA Evacuation Route", avail:"TRPA", time:"Historical", notes:"Operational-disruption pairs"},
       {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Community priority zones", dataset:"TRPA Equity Study / Census", avail:"TRPA", time:"Historical", notes:""},
@@ -462,7 +471,8 @@
       {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Available detours", dataset:"Commercial mobility data", avail:"Proprietary", time:"Historical", notes:""},
       {hazard:"Wildfire", analysis:"Criticality-focused", indicator:"Wildfire pinch points", dataset:"TBD", avail:"TBD", time:"-", notes:"ICF question: dataset contents?"},
       {hazard:"Winter Storm", analysis:"Qualitative (criticality)", indicator:"Criticality set + storm likelihood", dataset:"TRPA + HIFLD + commercial mobility + NRI Winter Storm", avail:"Mixed", time:"Historical", notes:"Routes, zones, assets, detours"},
-      {hazard:"Wind", analysis:"Qualitative (criticality)", indicator:"Criticality set", dataset:"TRPA + HIFLD + commercial mobility", avail:"Mixed", time:"Historical", notes:"Routes, zones, assets, detours"}
+      {hazard:"Wind", analysis:"Qualitative (criticality)", indicator:"Criticality set", dataset:"TRPA + HIFLD + commercial mobility", avail:"Mixed", time:"Historical", notes:"Routes, zones, assets, detours"},
+      {hazard:"Wind", analysis:"Qualitative (criticality)", indicator:"Future wind speed", dataset:"UCLA WRF U10/V10", avail:"Public", time:"Future", notes:"Coarser 9 km d02 domain; SSP3-7.0 only. FGOALS-g3 excluded from the wind ensemble."}
     ];
     const exposureCols = [
       {field:"hazard", headerName:"Hazard", width:130, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},

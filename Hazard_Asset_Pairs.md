@@ -1,4 +1,4 @@
-# PROTECT: Hazard x Asset Pairs & Risk Index (v0.5)
+# PROTECT: Hazard x Asset Pairs & Risk Index (v0.6)
 
 **Task 3.3 Interactive Risk Index Mapping Tool** (PROTECT Plan, Task 3 Resilience Improvement Plan)
 
@@ -9,6 +9,12 @@ version (with the data and model inventory and full framework) is the
 Sources: 6/25/2026 VA discussion deck (decided pairs, three-step approach), 5/20/2026 ICF/TRPA VA
 deck (sensitivity & criticality approach), `PROTECT_RiskIndexTool_Scoping_v0.1.docx`.
 
+> v0.6 (Aug. 3, 2026) adds four **proposed** pairs for Steering Committee review: seiche and high
+> lake level against roads and active transport. Seiche resolves an existing inconsistency (tracked
+> as data and rated in the sensitivity matrix, but with no pair). Shallow groundwater is handled as a
+> sensitivity attribute rather than a hazard. Also records lake stage as tailwater on FL-C and adds
+> WRF to the exposure dataset evaluation.
+>
 > v0.5 (Aug. 3, 2026) adopts the decided pair matrix and three-step assessment approach from the
 > June 25 VA discussion: 14 pairs scored in the VA, 9 pairs excluded from the VA but discussed in
 > the TRIP; LS-C reinstated as its own pair (v0.4 had folded it into DF-C); DF-B and FL-TC added;
@@ -39,12 +45,12 @@ Adopted at the 6/25 VA discussion, building on FHWA VAST guidance:
 Network redundancy and adaptive-capacity questions are handled in step 3, not as a separate
 sub-index.
 
-## 2. Hazard x Asset pairs (decided matrix, 6/25: 14 in the VA, 9 TRIP-discussion)
+## 2. Hazard x Asset pairs (6/25 decided: 14 in the VA, 9 TRIP-discussion; plus 4 proposed)
 
 Impact: **PC** = physical damage + cascading operational disruption; **OP** = operational only.
 Status: **Include in VA** = scored in the risk-based vulnerability assessment;
 **TRIP discussion** = excluded from the VA; impacts and potential strategies are discussed in the
-Resilience Improvement Plan instead.
+Resilience Improvement Plan instead; **Proposed** = added after the 6/25 decision, not yet confirmed.
 
 | ID | Hazard | Asset | Impact | Status | Exposure inputs | Sensitivity indicators | Notes |
 |----|--------|-------|--------|--------|-----------------|------------------------|-------|
@@ -54,7 +60,7 @@ Resilience Improvement Plan instead.
 | DF-C | Debris Flow | Culverts | PC | Include in VA | Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt) | Culvert condition, capacity, scour | Split from landslide per 5/20; post-fire compounding required per ICF; WildCat modeling planned |
 | DF-R | Debris Flow | Roads | PC | Include in VA | Post-fire debris flow (HEC-HMS); LiDAR runout; precip | Pavement condition, road elevation | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
 | FL-B | Flooding | Bridges | PC | Include in VA | HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains | Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy | Bridge condition and scour criticality from the FHWA National Bridge Inventory |
-| FL-C | Flooding | Culverts | PC | Include in VA | USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour | Culvert condition, scour, capacity, age, channel condition | TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page |
+| FL-C | Flooding | Culverts | PC | Include in VA | USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour; lake stage as tailwater at shoreline outlets | Culvert condition, scour, capacity, age, channel condition | TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall |
 | FL-R | Flooding | Roads | PC | Include in VA | FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation | Pavement condition, foundation / permeable sub-base, elevation, age | Lowland and valley segments most exposed |
 | LS-B | Landslide | Bridges | PC | Include in VA | | | |
 | LS-C | Landslide | Culverts | PC | Include in VA | USGS Landslide Susceptibility; CA Geological Survey; post-fire debris-flow | Culvert condition, capacity, scour | Post-fire compounding required per ICF |
@@ -71,6 +77,21 @@ Resilience Improvement Plan instead.
 | WS-AT | Winter Storm | Active Transport | OP | TRIP discussion | | | |
 | WS-R | Winter Storm | Roads | OP | TRIP discussion | SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm | Operational: extended closure, plow-depot overrun, ITS power loss | |
 | WS-TC | Winter Storm | Transit Centers | OP | TRIP discussion | | | |
+| SE-R | Seiche | Roads | PC | **Proposed** | TRPA bathymetry + wind models; USGS seismic | Road elevation above lake stage, shoreline armoring, pavement foundation | Shoreline routes: Hwy 28 and US-50 East Shore |
+| SE-AT | Seiche | Active Transport | PC | **Proposed** | TRPA bathymetry + wind models | Elevation above lake stage, paved vs. unpaved | East Shore Trail and shoreline bike paths |
+| LL-R | High Lake Level | Roads | PC | **Proposed** | TRPA Lake Tahoe at High Water (live); lake stage exceedance frequency | Road elevation, pavement foundation, depth to groundwater | Data live today; lake stage is regulated, so exceedance frequency is tractable |
+| LL-AT | High Lake Level | Active Transport | PC | **Proposed** | TRPA Lake Tahoe at High Water (live) | Elevation above lake stage | Shoreline paths inundate at sustained high stand |
+
+**Proposed** = added after the June 25 decision, pending Steering Committee confirmation. Seiche was
+already tracked as a data element and rated in the asset and vulnerability matrix but had no pair,
+which is the inconsistency these entries resolve. High lake level also acts as **tailwater at
+shoreline culvert outlets**, reducing capacity independent of rainfall; that is carried as an
+exposure input on FL-C rather than a separate culvert pair.
+
+**Shallow groundwater is deliberately not a hazard.** It is a persistent site condition with no
+event frequency, so it enters as a *sensitivity* attribute (depth to groundwater on roads and
+culverts, alongside pavement foundation) rather than a pair. If groundwater rise under climate
+change is modeled later, that becomes an exposure input beside Climate: Subsidence.
 
 ## 3. Screening indicators (6/25 deck, slide 6)
 
@@ -105,7 +126,7 @@ EAD/EAL).
 
 ## 6. Data inventory
 
-35 data elements, each mapped to the assessment step it feeds (Step 1 Criticality, Step 2 Exposure,
+37 data elements, each mapped to the assessment step it feeds (Step 1 Criticality, Step 2 Exposure,
 Step 2 Sensitivity, Step 3 Disruption, or Context / TRIP for elements that support the plan or Task
 3.4 rather than the scoring), plus the model/tool inventory, are catalogued in the **Data and Model
 Inventory** tab of the [reference hub](html/reference-hub.html) (the source of record) and
