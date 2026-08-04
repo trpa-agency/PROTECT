@@ -120,7 +120,7 @@
         <a href="climate-data.html" style="color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;">Climate Data</a>
         <a href="tahoe-precip-events.html" style="color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;">Storm Events</a>
         <a href="risk-index-tool.html" style="background:var(--trpa-blue);color:#fff;text-decoration:none;font-size:.8rem;font-weight:700;padding:.35rem .75rem;border-radius:6px;white-space:nowrap;">Open Risk Index Tool (MVP) &rarr;</a>
-        <span class="version">v0.4</span>
+        <span class="version">v0.5</span>
       </div>
     </div>
   </header>
@@ -128,9 +128,9 @@
   <main>
     <section class="intro">
       <p class="lede">
-        Plan for development of PROTECT Plan <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>.
-        Includes an initial evaluation of Hazard/Asset pairs, H/A pairs that were selected for further analyses,
-        an inventory of existing and needed data sources and information on the modeling approach for developing the risk index.
+        The methodology record for the PROTECT <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>:
+        the hazard-asset pairs selected for analysis, the source-of-record data and model inventory,
+        the FHWA VAST framework and weighting approach, and the per-hazard exposure dataset evaluation.
       </p>
     </section>
 
@@ -155,16 +155,7 @@
           <p class="lead">Hazard and asset pairs selected for analysis. "Yes" = advancing to geospatial scoring; "Maybe" = candidate pending further review.</p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="ha-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="ha-grid" class="ag-theme-quartz grid-wrap"></div>
-
-          <h2 class="sec">Assets</h2>
-          <p class="lead">Asset types in scope, with notes on criticality scoring approach and additional vulnerability data sources.</p>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="assets-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
-          <div id="assets-grid" class="ag-theme-quartz grid-wrap"></div>
-
-          <h2 class="sec">Hazard Data Sources</h2>
-          <p class="lead">Data sources under evaluation for each hazard.</p>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="hazards-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
-          <div id="hazards-grid" class="ag-theme-quartz grid-wrap"></div>
+          <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Asset criticality scoring: road segments are scored interactively in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts inherit their segment's score. The spring 2026 scoping notes behind this table are archived in the repo (<code>docs/scoping_archive_2026-spring.md</code>).</p>
 
           <h2 class="sec">Asset and Vulnerability Matrix</h2>
           <p class="lead">Working draft of Infrastructure (<strong>I</strong>) and Service (<strong>S</strong>) ratings per asset and hazard. H/M/L = high/medium/low; NE = Not Exposed (the asset would not be built in a location exposed to that hazard by design); "-" = not applicable.</p>
@@ -185,7 +176,7 @@
           <div id="inv-grid" class="ag-theme-quartz grid-wrap"></div>
 
           <h2 class="sec">Model inventory</h2>
-          <p class="lead">Modeling platforms and disruption-risk tools. RA2CE, Volpe RDR, and the Overture street network are the data team's exploratory workstream.</p>
+          <p class="lead">Modeling platforms and disruption-risk tools. RA2CE (on the Overture street network) is the selected disruption-risk engine; see the Framework tab for the decision record.</p>
           <div class="toolbar">
             <input id="mdl-qf" class="qf" type="text" placeholder="Quick search models..." aria-label="Quick search models" />
             <calcite-button id="mdl-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -240,11 +231,11 @@
             <div class="card" style="--c:#0072CE"><h3>Criticality-focused</h3><p>Used where hazard exposure does not vary much geospatially or data is unavailable. Asks which assets are most critical and what happens if they fail.</p><p style="font-size:.8rem;color:var(--gray-text)"><strong>Best for:</strong> operational-disruption pairs.</p></div>
           </div>
 
-          <h2 class="sec">Disruption-risk tool: under evaluation</h2>
-          <p class="lead">ICF is preparing a pros/cons comparison and level-of-effort for the two candidate engines; TRPA is taking a closer look. Decision needed before the MVP build.</p>
+          <h2 class="sec">Disruption-risk tool: RA2CE selected</h2>
+          <p class="lead">RA2CE (Deltares) is the selected disruption-risk engine, running on the Overture-derived street network. Volpe RDR was evaluated and not pursued. Analysis work lives in the repo's <code>scripts/ra2ce</code> folder; network criticality results are live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.</p>
           <div class="card-grid">
-            <div class="card" style="--c:#0072CE"><h3>RA2CE <span class="tag">Deltares</span></h3><ul><li>Flexible, Python-based risk &amp; resilience framework</li><li>Integrates hazard exposure, network criticality, economic impacts</li><li>Estimates direct damages + indirect disruption costs (detours)</li><li>Best for custom, analysis-driven workflows; requires user-defined setup</li></ul></div>
-            <div class="card" style="--c:#003B71"><h3>Volpe RDR <span class="tag">USDOT Volpe</span></h3><ul><li>Tool suite for resilience investment and ROI analysis</li><li>Models network exposure, disruption, system-performance impacts</li><li>Quantifies travel, repair cost, and performance impacts; supports prioritization under scenarios</li><li>Requires significant data, modeling, and implementation effort</li></ul></div>
+            <div class="card" style="--c:#0072CE"><h3>RA2CE <span class="tag">Deltares &middot; selected</span></h3><ul><li>Flexible, Python-based risk &amp; resilience framework</li><li>Integrates hazard exposure, network criticality, economic impacts</li><li>Estimates direct damages + indirect disruption costs (detours)</li><li>Runs on the Overture street network built by the data team</li></ul></div>
+            <div class="card" style="--c:#7B6A8A"><h3>Volpe RDR <span class="tag">USDOT Volpe &middot; not pursued</span></h3><ul><li>Tool suite for resilience investment and ROI analysis</li><li>Evaluated alongside RA2CE; capable but requires significantly more data, modeling, and implementation effort</li><li>Retained as a reference for BCA framing in Task 3.4</li></ul></div>
           </div>
 
         </div>
@@ -253,7 +244,7 @@
       <!-- TAB: Exposure Datasets -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">Datasets that could be used for modeling Asset Exposure to risk. There are publically available datasets for every hazard; commercial / proprietary options are flagged.</p>
+          <p class="lead">Per-hazard evaluation of datasets for modeling asset exposure (from the ICF data review). Publicly available datasets exist for every hazard; commercial / proprietary options are flagged. The Data and Model Inventory tab is the source of record for what TRPA holds and serves; this tab records the evaluation behind those choices.</p>
           <div class="toolbar">
             <input id="exp-qf" class="qf" type="text" placeholder="Quick search the exposure approach..." aria-label="Quick search exposure" />
             <calcite-button id="exp-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -267,7 +258,7 @@
 
   <footer class="app-footer">
     <p><strong>PROTECT</strong> = FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 = Resilience Improvement Plan; 3.2 = Risk-Based Vulnerability Assessment; 3.3 = this Interactive Risk Index Mapping Tool.</p>
-    <p>Reference hub (v0.4). Meeting agendas and action items moved to the repo docs folder; the data and model inventory now lives on this page. Internal review draft. Not for public distribution.</p>
+    <p>Reference hub (v0.5). The data and model inventory is the source of record on this page; spring 2026 scoping notes are archived in the repo docs folder. Internal review draft. Not for public distribution.</p>
     <p>Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity &amp; criticality approach), <code>PROTECT_DataModel_Inventory.xlsx</code>, <code>PROTECT_RiskIndexTool_Scoping_v0.1.docx</code>.</p>
   </footer>
 
@@ -275,47 +266,28 @@
   (function () {
     // ---------- DATA ----------
     const haPairs = [
-      {hazard:"Avalanche",    asset:"Bridges",          include:"Yes",   comments:""},
-      {hazard:"Avalanche",    asset:"Roads",            include:"Yes",   comments:""},
-      {hazard:"Flooding",     asset:"Bridges",          include:"Yes",   comments:""},
-      {hazard:"Flooding",     asset:"Roads",            include:"Yes",   comments:""},
-      {hazard:"Landslide",    asset:"Bridges",          include:"Yes",   comments:""},
-      {hazard:"Landslide",    asset:"Roads",            include:"Yes",   comments:""},
-      {hazard:"Wildfire",     asset:"Active Transport", include:"Yes",   comments:""},
-      {hazard:"Wildfire",     asset:"Roads",            include:"Yes",   comments:""},
-      {hazard:"Wildfire",     asset:"Transit Centers",  include:"Yes",   comments:""},
-      {hazard:"Wind",         asset:"Roads",            include:"Yes",   comments:""},
-      {hazard:"Winter Storm", asset:"Roads",            include:"Yes",   comments:""},
-      {hazard:"Winter Storm", asset:"Transit Centers",  include:"Yes",   comments:""},
-      {hazard:"Earthquake",   asset:"Bridges",          include:"Maybe", comments:""},
-      {hazard:"Earthquake",   asset:"Roads",            include:"Maybe", comments:""},
-      {hazard:"Flooding",     asset:"Active Transport", include:"Maybe", comments:""},
-      {hazard:"Landslide",    asset:"Culverts",         include:"Maybe", comments:""},
-      {hazard:"Wildfire",     asset:"Marinas",          include:"Maybe", comments:""},
-      {hazard:"Winter Storm", asset:"Active Transport", include:"Maybe", comments:""}
+      {hazard:"Avalanche",    asset:"Bridges",          include:"Yes"},
+      {hazard:"Avalanche",    asset:"Roads",            include:"Yes"},
+      {hazard:"Flooding",     asset:"Bridges",          include:"Yes"},
+      {hazard:"Flooding",     asset:"Roads",            include:"Yes"},
+      {hazard:"Landslide",    asset:"Bridges",          include:"Yes"},
+      {hazard:"Landslide",    asset:"Roads",            include:"Yes"},
+      {hazard:"Wildfire",     asset:"Active Transport", include:"Yes"},
+      {hazard:"Wildfire",     asset:"Roads",            include:"Yes"},
+      {hazard:"Wildfire",     asset:"Transit Centers",  include:"Yes"},
+      {hazard:"Wind",         asset:"Roads",            include:"Yes"},
+      {hazard:"Winter Storm", asset:"Roads",            include:"Yes"},
+      {hazard:"Winter Storm", asset:"Transit Centers",  include:"Yes"},
+      {hazard:"Earthquake",   asset:"Bridges",          include:"Maybe"},
+      {hazard:"Earthquake",   asset:"Roads",            include:"Maybe"},
+      {hazard:"Flooding",     asset:"Active Transport", include:"Maybe"},
+      {hazard:"Landslide",    asset:"Culverts",         include:"Maybe"},
+      {hazard:"Wildfire",     asset:"Marinas",          include:"Maybe"},
+      {hazard:"Winter Storm", asset:"Active Transport", include:"Maybe"}
     ];
-    const assetsData = [
-      {asset:"Active Transport", criticality:"Maybe a network analysis or just expense of replacement?", vulnerability:"", comments:""},
-      {asset:"Bridges",          criticality:"From road segment values", vulnerability:"Age or National Bridge Inventory data", comments:""},
-      {asset:"Culverts",         criticality:"Get criticality from Road criticality of section they are on", vulnerability:"Possibly county or transportation department condition information", comments:""},
-      {asset:"Marinas",          criticality:"Size? This could be weird since they are privately owned", vulnerability:"", comments:""},
-      {asset:"Roads",            criticality:"Traffic counts, RA2CE detour and impact of disruption analysis", vulnerability:"DOT road condition information?", comments:"This is going to be the hard one"},
-      {asset:"Transit Centers",  criticality:"Size/Number of passengers served", vulnerability:"", comments:""}
-    ];
-    const hazardsData = [
-      {hazard:"Avalanche",    source:"RAMMS::Avalanche",              status:"Need to buy",            link:"",                                       details:""},
-      {hazard:"Fire",         source:"Wildfire Exposure",             status:"Have",                   link:"Forest_Health_Composition_Age/MapServer", details:"Wildfire Risk to Communities; CA Pyregence; CA Forest Observatory"},
-      {hazard:"Fire",         source:"Completed forest thinning",     status:"Have",                   link:"TFFT",                                   details:"Use this to adjust wildfire risk"},
-      {hazard:"Fire",         source:"Fire Behavior Modeling",        status:"Purchase",               link:"Commercial vendors (RFP)",               details:""},
-      {hazard:"Flooding",     source:"NOAA Flood Zones",              status:"Have",                   link:"Streams_and_Flood_Zone/MapServer",        details:""},
-      {hazard:"Flooding",     source:"HEC-RAS (USACE)",               status:"Free but requires work", link:"",                                       details:""},
-      {hazard:"Landslide",    source:"WEPP",                          status:"Have?",                  link:"",                                       details:""},
-      {hazard:"Landslide",    source:"USGS Landslide Susceptibility", status:"",                       link:"",                                       details:"Need more details"},
-      {hazard:"Wind",         source:"gridMET wind",                  status:"",                       link:"",                                       details:"Need more details"},
-      {hazard:"Winter Storm", source:"Unknown",                       status:"",                       link:"",                                       details:""},
-      {hazard:"Winter Storm", source:"SNODAS SWE",                    status:"",                       link:"",                                       details:"Need more details"},
-      {hazard:"Winter Storm", source:"Snow plow route info",          status:"",                       link:"",                                       details:""}
-    ];
+    // Spring 2026 scoping grids (assets criticality notes, early hazard data sources) retired
+    // 2026-08-03; archived in docs/scoping_archive_2026-spring.md. Data-source evaluation now
+    // lives in the inventory below and the Exposure Datasets tab.
     // ---------- DATA AND MODEL INVENTORY (merged from the former standalone page) ----------
     const REST_BASE = "https://maps.trpa.org/server/rest/services";
     const invSrc = [
@@ -354,9 +326,9 @@
       ["WEPP Erosion / Sediment","Exposure","Building","","USDA WEPP / WEPPcloud","Post-fire soil erosion, sediment, and runoff; should be a TRPA service. Feeds debris-flow and flood exposure."]
     ];
     const modelInv = [
-      ["RA2CE","Disruption-Risk Tool (candidate)","Task 3.2 / 3.3","Free","Open source (Deltares, Python)","Data team: exploring + scripting"],
-      ["Volpe RDR","Disruption-Risk Tool (candidate)","Task 3.2 / 3.3","Free","USDOT Volpe; heavy data/effort","Data team: exploring + scripting"],
-      ["Overture Street Network","Base Network","Task 3.2 / 3.3","Free","Overture Maps data","Data team: built (base net for RA2CE/Volpe)"],
+      ["RA2CE","Disruption-Risk Tool (selected)","Task 3.2 / 3.3","Free","Open source (Deltares, Python)","Data team: selected; analysis in scripts/ra2ce"],
+      ["Volpe RDR","Disruption-Risk Tool (evaluated, not pursued)","Task 3.2 / 3.3","Free","USDOT Volpe; heavy data/effort","Data team: evaluated; RA2CE chosen"],
+      ["Overture Street Network","Base Network","Task 3.2 / 3.3","Free","Overture Maps data","Data team: built (base network for RA2CE)"],
       ["USGS WildCat","Geohazards & Mass Movement","Task 3.2","Free","USGS open source (post-fire debris flow)","Scoped; plan on the Storm Events page"],
       ["WEPP","Hydrology & Erosion","Task 3.2","Free","USDA FS / WEPPcloud (open)","Post-fire erosion & sediment; planned TRPA service"],
       ["CULVERT (culvert-at-risk.org)","Crossing-Scale Risk Screening","Task 3.2 / 3.3","Free","USDA FS / FHWA web tool","Collaboration with developer; EHVI screening of the culvert layer"],
@@ -405,22 +377,8 @@
     // ---------- AG GRIDS ----------
     const haCols = [
       {field:"hazard",   headerName:"Hazard",   width:150, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
-      {field:"asset",    headerName:"Asset",    width:160, filter:"agTextColumnFilter"},
-      {field:"include",  headerName:"Include",  width:120, filter:"agTextColumnFilter", cellStyle:colorCell({Yes:"#4A6118", Maybe:"#E87722"})},
-      {field:"comments", headerName:"Comments", flex:1, minWidth:200, wrapText:true, autoHeight:true}
-    ];
-    const assetsCols = [
-      {field:"asset",         headerName:"Asset",                           width:160, pinned:"left", cellStyle:{fontWeight:"600"}},
-      {field:"criticality",   headerName:"How to Score Criticality",        flex:1.5, minWidth:220, wrapText:true, autoHeight:true},
-      {field:"vulnerability", headerName:"Additional Vulnerability Values",  flex:1.5, minWidth:220, wrapText:true, autoHeight:true},
-      {field:"comments",      headerName:"Comments",                        flex:1,   minWidth:150, wrapText:true, autoHeight:true}
-    ];
-    const hazardsCols = [
-      {field:"hazard",  headerName:"Hazard",      width:130, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
-      {field:"source",  headerName:"Data Source", minWidth:200, width:230, wrapText:true, autoHeight:true, filter:"agTextColumnFilter"},
-      {field:"status",  headerName:"TRPA Status", width:180, filter:"agTextColumnFilter"},
-      {field:"link",    headerName:"Link",         width:220, wrapText:true, autoHeight:true},
-      {field:"details", headerName:"Details",      flex:1, minWidth:200, wrapText:true, autoHeight:true}
+      {field:"asset",    headerName:"Asset",    flex:1, minWidth:160, filter:"agTextColumnFilter"},
+      {field:"include",  headerName:"Include",  width:120, filter:"agTextColumnFilter", cellStyle:colorCell({Yes:"#4A6118", Maybe:"#E87722"})}
     ];
 
     // ---------- ASSET AND VULNERABILITY MATRIX ----------
@@ -511,8 +469,6 @@
     ];
 
     const haDiv = document.querySelector("#ha-grid");
-    const assetsDiv = document.querySelector("#assets-grid");
-    const hazardsDiv = document.querySelector("#hazards-grid");
     const sensDiv = document.querySelector("#sens-grid");
     const expDiv = document.querySelector("#exp-grid");
     const invDiv = document.querySelector("#inv-grid");
@@ -538,8 +494,6 @@
     function init(){
       if(!window.agGrid){ setTimeout(init, 60); return; }
       makeGrid(haDiv, haCols, haPairs, false);
-      makeGrid(assetsDiv, assetsCols, assetsData, false);
-      makeGrid(hazardsDiv, hazardsCols, hazardsData, false);
       agGrid.createGrid(sensDiv, {columnDefs:sensCols, rowData:sensRows, defaultColDef:{sortable:false, resizable:true}, domLayout:"autoHeight", onGridReady:e=>{ sensDiv.__api=e.api; }});
       makeGrid(expDiv, exposureCols, exposureRows, false);
       makeGrid(invDiv, invCols, invRows, false);
@@ -552,8 +506,6 @@
         '<div style="font-size:.8rem;color:var(--gray-text);margin-top:.5rem;border-top:1px dashed #e0e4ea;padding-top:.5rem;">'+escHtml(s.note)+'</div></div>'
       ).join("");
       document.getElementById("ha-export").addEventListener("click", ()=>{ if(haDiv.__api) haDiv.__api.exportDataAsCsv({fileName:"PROTECT_HA_Pairs.csv"}); });
-      document.getElementById("assets-export").addEventListener("click", ()=>{ if(assetsDiv.__api) assetsDiv.__api.exportDataAsCsv({fileName:"PROTECT_Assets.csv"}); });
-      document.getElementById("hazards-export").addEventListener("click", ()=>{ if(hazardsDiv.__api) hazardsDiv.__api.exportDataAsCsv({fileName:"PROTECT_Hazard_Sources.csv"}); });
       document.getElementById("sens-export").addEventListener("click", ()=>{ if(sensDiv.__api) sensDiv.__api.exportDataAsCsv({fileName:"PROTECT_Sensitivity_Matrix.csv"}); });
       wireToolbar("exp-qf", "exp-export", expDiv, "PROTECT_Exposure_Approach.csv");
 
@@ -563,10 +515,10 @@
       const tabs = document.querySelector("calcite-tabs");
       if(tabs){
         tabs.addEventListener("calciteTabChange", ()=>{
-          setTimeout(()=>{ [haDiv, assetsDiv, hazardsDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); }, 60);
+          setTimeout(()=>{ [haDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); }, 60);
         });
       }
-      window.addEventListener("resize", ()=>{ [haDiv, assetsDiv, hazardsDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); });
+      window.addEventListener("resize", ()=>{ [haDiv, expDiv, invDiv, mdlDiv].forEach(fitIfVisible); });
     }
 
     if(document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", init); } else { init(); }
