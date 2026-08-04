@@ -70,3 +70,8 @@ data/*.xlsx
 docs/*.xlsx
 *.docx
 *.pptx
+
+# Internal coordination notes - working content for the team, not for the
+# public Pages site (repo review 2026-08-01, item 1.5)
+docs/index-copy.txt
+docs/coordination_notes.md
