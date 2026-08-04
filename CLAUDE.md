@@ -23,8 +23,9 @@ events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culver
 ## Project context
 
 - **Tool vision** (per `PROTECT_RiskIndexTool_Scoping_v0.1.docx`): a map-centric single-page app
-  (Map / Charts / Table / Methods / About). Phasing: Phase 1 MVP ~mid-June 2026 (SC kickoff),
-  Workshop 1 Nov 2026, Workshop 2 May 2027, final RIP 2027.
+  (Map / Charts / Table / Methods / About). Phasing: Phase 1 MVP ~mid-June 2026, **first Steering
+  Committee Aug 2026** (nothing in October), Workshop 1 Nov 2026, VA + tool final Dec 2026,
+  Workshop 2 May 2027, final RIP 2027.
 - **Two-repo future**: the scoping doc proposes `protect-risk-index` (Python ETL) +
   `protect-risk-index-tool` (frontend, GitHub Pages). Neither exists yet; this single `PROTECT` repo
   is the working hub until the MVP build starts.

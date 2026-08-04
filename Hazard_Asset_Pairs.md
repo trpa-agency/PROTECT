@@ -90,9 +90,9 @@ Resilience Improvement Plan instead.
 
 ## 4. Schedule (6/25 deck)
 
-Jul 2026 asset data updates + criticality assessment; Aug data acquisition + screening; Sep
-scenarios + start tool build; Oct Steering Committee vets preliminary results; Nov workshop vets
-draft results + tool; Dec finalize VA results and tool.
+Jul 2026 asset data updates + criticality assessment; Aug data acquisition, screening, and the
+**first Steering Committee**; Sep scenarios + start tool build; Nov workshop vets draft results +
+tool; Dec finalize VA results and tool. Nothing scheduled in October.
 
 ## 5. Disruption-risk tool: RA2CE selected
 
