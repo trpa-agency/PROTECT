@@ -137,7 +137,7 @@
     <section class="kpi-row">
       <div class="kpi-card"><div class="kpi-value">6</div><div class="kpi-label">Asset types</div></div>
       <div class="kpi-card"><div class="kpi-value">8</div><div class="kpi-label">Hazards</div></div>
-      <div class="kpi-card"><div class="kpi-value">18</div><div class="kpi-label">Working pairs</div></div>
+      <div class="kpi-card"><div class="kpi-value">20</div><div class="kpi-label">Working pairs (6 advancing)</div></div>
     </section>
 
     <calcite-tabs scale="m">
@@ -152,7 +152,7 @@
       <calcite-tab selected>
         <div class="tab-body">
           <h2 class="sec">Hazard-Asset Pairs</h2>
-          <p class="lead">Hazard and asset pairs selected for analysis. "Yes" = advancing to geospatial scoring; "Maybe" = candidate pending further review.</p>
+          <p class="lead">The canonical pair list (Aug 2026 review): <strong>Advancing</strong> = locked for geospatial scoring; <strong>Candidate</strong> = under review with partners; <strong>Screening</strong> = operational-only, asset target still TBD. Landslide-Culverts is folded into Debris Flow-Culverts (DF-C). Mirrored in <code>Hazard_Asset_Pairs.md</code>.</p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="ha-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="ha-grid" class="ag-theme-quartz grid-wrap"></div>
           <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Asset criticality scoring: road segments are scored interactively in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts inherit their segment's score. The spring 2026 scoping notes behind this table are archived in the repo (<code>docs/scoping_archive_2026-spring.md</code>).</p>
@@ -265,25 +265,29 @@
   <script>
   (function () {
     // ---------- DATA ----------
+    // Canonical pair list (Aug 2026 review): 6 advancing, 12 candidate, 2 screening.
+    // LS-C (Landslide-Culverts) folded into DF-C. Mirror: Hazard_Asset_Pairs.md (v0.4).
     const haPairs = [
-      {hazard:"Avalanche",    asset:"Bridges",          include:"Yes"},
-      {hazard:"Avalanche",    asset:"Roads",            include:"Yes"},
-      {hazard:"Flooding",     asset:"Bridges",          include:"Yes"},
-      {hazard:"Flooding",     asset:"Roads",            include:"Yes"},
-      {hazard:"Landslide",    asset:"Bridges",          include:"Yes"},
-      {hazard:"Landslide",    asset:"Roads",            include:"Yes"},
-      {hazard:"Wildfire",     asset:"Active Transport", include:"Yes"},
-      {hazard:"Wildfire",     asset:"Roads",            include:"Yes"},
-      {hazard:"Wildfire",     asset:"Transit Centers",  include:"Yes"},
-      {hazard:"Wind",         asset:"Roads",            include:"Yes"},
-      {hazard:"Winter Storm", asset:"Roads",            include:"Yes"},
-      {hazard:"Winter Storm", asset:"Transit Centers",  include:"Yes"},
-      {hazard:"Earthquake",   asset:"Bridges",          include:"Maybe"},
-      {hazard:"Earthquake",   asset:"Roads",            include:"Maybe"},
-      {hazard:"Flooding",     asset:"Active Transport", include:"Maybe"},
-      {hazard:"Landslide",    asset:"Culverts",         include:"Maybe"},
-      {hazard:"Wildfire",     asset:"Marinas",          include:"Maybe"},
-      {hazard:"Winter Storm", asset:"Active Transport", include:"Maybe"}
+      {id:"AV-R",  hazard:"Avalanche",    asset:"Roads",            impact:"Operational",          status:"Advancing", exposure:"SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout", sensitivity:"Road elevation (no unique sensitivity indicators)", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
+      {id:"FL-B",  hazard:"Flooding",     asset:"Bridges",          impact:"Physical + cascading", status:"Advancing", exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition data request open with Caltrans/NDOT."},
+      {id:"FL-C",  hazard:"Flooding",     asset:"Culverts",         impact:"Physical + cascading", status:"Advancing", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page."},
+      {id:"FL-R",  hazard:"Flooding",     asset:"Roads",            impact:"Physical + cascading", status:"Advancing", exposure:"FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
+      {id:"LS-R",  hazard:"Landslide",    asset:"Roads",            impact:"Physical + cascading", status:"Advancing", exposure:"USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout", sensitivity:"Pavement condition, road elevation", notes:"Runout extents via RAMMS or r.avaflow."},
+      {id:"WF-R",  hazard:"Wildfire",     asset:"Roads",            impact:"Physical + cascading", status:"Advancing", exposure:"Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling", sensitivity:"No unique sensitivity indicators", notes:"Fire-modeling procurement is the critical-path dependency."},
+      {id:"AV-B",  hazard:"Avalanche",    asset:"Bridges",          impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"DF-C",  hazard:"Debris Flow",  asset:"Culverts",         impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); USGS Landslide Susceptibility; CA Geological Survey; CA Pyregence; precip (Cal-Adapt)", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; absorbs Landslide-Culverts (LS-C) per Aug 2026 review; post-fire compounding required per ICF. WildCat modeling planned."},
+      {id:"DF-R",  hazard:"Debris Flow",  asset:"Roads",            impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); LiDAR runout; precip", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20; July 14 event hindcast on the Storm Events page."},
+      {id:"EQ-B",  hazard:"Earthquake",   asset:"Bridges",          impact:"Physical + cascading", status:"Candidate", exposure:"USGS Seismic Hazard Maps; ComCat; ShakeMaps", sensitivity:"Seismic retrofit status, bridge condition, age", notes:"Identify bridges needing seismic retrofit."},
+      {id:"EQ-R",  hazard:"Earthquake",   asset:"Roads",            impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"FL-AT", hazard:"Flooding",     asset:"Active Transport", impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"LS-B",  hazard:"Landslide",    asset:"Bridges",          impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"WF-AT", hazard:"Wildfire",     asset:"Active Transport", impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"WF-M",  hazard:"Wildfire",     asset:"Marinas",          impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"WF-TC", hazard:"Wildfire",     asset:"Transit Centers",  impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"WS-AT", hazard:"Winter Storm", asset:"Active Transport", impact:"Operational",          status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"WS-TC", hazard:"Winter Storm", asset:"Transit Centers",  impact:"Operational",          status:"Candidate", exposure:"", sensitivity:"", notes:""},
+      {id:"WD-R",  hazard:"Wind",         asset:"Roads",            impact:"Operational",          status:"Screening", exposure:"gridMET wind (Climate Engine); ASCE 7; criticality-focused (operational)", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:"Asset target TBD: Roads and/or Power & Telecom. Operational-only per 5/20."},
+      {id:"WS-R",  hazard:"Winter Storm", asset:"Roads",            impact:"Operational",          status:"Screening", exposure:"SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm; criticality-focused", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:"Asset target TBD: Roads / Power / ITS. Operational-only."}
     ];
     // Spring 2026 scoping grids (assets criticality notes, early hazard data sources) retired
     // 2026-08-03; archived in docs/scoping_archive_2026-spring.md. Data-source evaluation now
@@ -376,9 +380,14 @@
     }
     // ---------- AG GRIDS ----------
     const haCols = [
-      {field:"hazard",   headerName:"Hazard",   width:150, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
-      {field:"asset",    headerName:"Asset",    flex:1, minWidth:160, filter:"agTextColumnFilter"},
-      {field:"include",  headerName:"Include",  width:120, filter:"agTextColumnFilter", cellStyle:colorCell({Yes:"#4A6118", Maybe:"#E87722"})}
+      {field:"id",          headerName:"ID",       width:80,  pinned:"left", cellStyle:{fontWeight:"700"}},
+      {field:"hazard",      headerName:"Hazard",   width:125, filter:"agTextColumnFilter", cellStyle:colorCell(hazardColor)},
+      {field:"asset",       headerName:"Asset",    width:145, filter:"agTextColumnFilter"},
+      {field:"impact",      headerName:"Impact",   width:165, filter:"agTextColumnFilter", cellStyle:colorCell(impactColor)},
+      {field:"status",      headerName:"Status",   width:115, filter:"agTextColumnFilter", cellStyle:colorCell(statusColor)},
+      {field:"exposure",    headerName:"Exposure inputs",        flex:1.3, minWidth:220, wrapText:true, autoHeight:true, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+      {field:"sensitivity", headerName:"Sensitivity indicators", flex:1.1, minWidth:200, wrapText:true, autoHeight:true, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+      {field:"notes",       headerName:"Notes",                  flex:1.1, minWidth:200, wrapText:true, autoHeight:true, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"}
     ];
 
     // ---------- ASSET AND VULNERABILITY MATRIX ----------

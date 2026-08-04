@@ -63,3 +63,10 @@ scripts/ra2ce/static/output_graph/
 # *_weights.csv files record the weights an analysis actually ran with.
 scripts/ra2ce/static/network/*.gpkg
 scripts/ra2ce/static/network/*.geojson
+
+# Raw internal source docs (per CLAUDE.md rule: never commit xlsx/docx/pptx
+# working files - GitHub Pages serves the repo publicly)
+data/*.xlsx
+docs/*.xlsx
+*.docx
+*.pptx
