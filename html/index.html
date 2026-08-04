@@ -141,17 +141,31 @@
         </div>
         <p>The deliverable: a map-centric app scoring risk per asset on live TRPA layers.</p>
         <ul>
-          <li>Interactive map with hazard and asset layers</li>
-          <li>Charts, table, and methods views</li>
+          <li>Live hazard and community layers on the map</li>
+          <li>Status view: each VAST component's real state</li>
           <li>Foundation for the Workshop 1 review</li>
         </ul>
         <span class="open">Open the tool &rarr;</span>
       </a>
 
+      <a class="page-card" href="criticality-index.html">
+        <div class="card-head">
+          <h3>Criticality Index</h3>
+          <span class="chip blue">Live</span>
+        </div>
+        <p>Interactive criticality scoring across 18,253 street segments on the Overture network.</p>
+        <ul>
+          <li>Adjustable sub-index and variable weights</li>
+          <li>Hazard exposure filters (flood, fire, landslide)</li>
+          <li>CSV export of the scored network</li>
+        </ul>
+        <span class="open">Open the criticality index &rarr;</span>
+      </a>
+
       <a class="page-card" href="reference-hub.html">
         <div class="card-head">
           <h3>Reference Hub</h3>
-          <span class="chip">v0.4</span>
+          <span class="chip">v0.5</span>
         </div>
         <p>The methodology record, what is being assessed and how, plus data readiness.</p>
         <ul>
@@ -198,9 +212,10 @@
       <p>
         The Reference Hub records the framework decisions and tracks what data exists and what is missing;
         the pipelines turn raw sources into exposure inputs (future climate stressors, trigger-storm
-        climatology, the culvert layer, modeled debris-flow hazard); and the Risk Index Tool is where assets,
-        hazards, and scores meet the map. Meeting agendas and action items live in the repo docs folder,
-        not on these pages.
+        climatology, the culvert layer, modeled debris-flow hazard); the Criticality Index app scores
+        segment criticality interactively on the Overture street network; and the Risk Index Tool is where
+        assets, hazards, and scores meet the map. Meeting agendas and action items live in the repo docs
+        folder, not on these pages.
       </p>
     </div>
 
@@ -216,6 +231,11 @@
           <div class="when">Jul 2026 &middot; done</div>
           <div class="what">Data pipelines stood up</div>
           <div class="detail">Climate extraction running; wildcat scoped and verified</div>
+        </div>
+        <div class="milestone done">
+          <div class="when">Aug 2026 &middot; done</div>
+          <div class="what">Criticality index live</div>
+          <div class="detail">Interactive segment scoring; RA2CE selected as disruption engine</div>
         </div>
         <div class="milestone next">
           <div class="when">Nov 2026 &middot; next</div>
@@ -244,12 +264,13 @@
         <thead><tr><th>Workstream</th><th>Status</th><th>Where</th><th>Next step</th></tr></thead>
         <tbody>
           <tr><td>Risk Index Tool (map SPA)</td><td><span class="tag live">MVP live</span></td><td>risk-index-tool.html</td><td>Wire scored layers as sub-indices land</td></tr>
+          <tr><td>Criticality index (interactive scoring)</td><td><span class="tag live">Live</span></td><td>criticality-index.html</td><td>Review weights with partners; feed the Master Index</td></tr>
           <tr><td>Hazard-asset framework + data readiness</td><td><span class="tag live">Working set</span></td><td>reference-hub.html</td><td>Close open weighting decisions with the consultant</td></tr>
           <tr><td>Climate pipeline</td><td><span class="tag live">Validated run</span></td><td>climate-data.html + climate/</td><td>Consultant review of the extraction spec, then publish reviewed projections</td></tr>
           <tr><td>Storm events + frequency + WEPP chain</td><td><span class="tag live">Built</span></td><td>tahoe-precip-events.html</td><td>Review WRF change factors; pilot CULVERT upload on the West Shore</td></tr>
           <tr><td>Culvert layer (6 jurisdictions)</td><td><span class="tag live">Compiled</span></td><td>docs/METHODS_culverts.md + outputs/culverts.gdb</td><td>Rerun with line-geometry legacy match; jurisdiction follow-ups</td></tr>
           <tr><td>Debris-flow modeling (WildCat)</td><td><span class="tag scoped">Scoped</span></td><td>tahoe-precip-events.html + debris-flow/</td><td>Create the environment; run the Caldor validation</td></tr>
-          <tr><td>Disruption-risk tool (RA2CE vs. RDR)</td><td><span class="tag open">Decision open</span></td><td>Consultant pros and cons in review</td><td>Select tool; street network base is ready</td></tr>
+          <tr><td>Disruption-risk tool</td><td><span class="tag live">RA2CE selected</span></td><td>scripts/ra2ce + criticality-index.html</td><td>Disruption and detour analysis on the Overture network</td></tr>
         </tbody>
       </table>
     </div>
