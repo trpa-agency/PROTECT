@@ -129,15 +129,16 @@
     <section class="intro">
       <p class="lede">
         The methodology record for the PROTECT <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>:
-        the hazard-asset pairs selected for analysis, the source-of-record data and model inventory,
-        the FHWA VAST framework and weighting approach, and the per-hazard exposure dataset evaluation.
+        the decided hazard-asset pair matrix, the source-of-record data and model inventory,
+        the three-step assessment approach (criticality, screening, scenario disruption), and the
+        per-hazard exposure dataset evaluation.
       </p>
     </section>
 
     <section class="kpi-row">
       <div class="kpi-card"><div class="kpi-value">6</div><div class="kpi-label">Asset types</div></div>
       <div class="kpi-card"><div class="kpi-value">8</div><div class="kpi-label">Hazards</div></div>
-      <div class="kpi-card"><div class="kpi-value">20</div><div class="kpi-label">Working pairs (6 advancing)</div></div>
+      <div class="kpi-card"><div class="kpi-value">23</div><div class="kpi-label">Pairs (14 in the VA)</div></div>
     </section>
 
     <calcite-tabs scale="m">
@@ -152,7 +153,7 @@
       <calcite-tab selected>
         <div class="tab-body">
           <h2 class="sec">Hazard-Asset Pairs</h2>
-          <p class="lead">The canonical pair list (Aug 2026 review): <strong>Advancing</strong> = locked for geospatial scoring; <strong>Candidate</strong> = under review with partners; <strong>Screening</strong> = operational-only, asset target still TBD. Landslide-Culverts is folded into Debris Flow-Culverts (DF-C). Mirrored in <code>Hazard_Asset_Pairs.md</code>.</p>
+          <p class="lead">The decided pair matrix from the June 25, 2026 VA discussion: <strong>Include in VA</strong> = scored in the risk-based vulnerability assessment (14 pairs); <strong>TRIP discussion</strong> = excluded from the VA, with impacts and potential strategies discussed in the Resilience Improvement Plan instead (9 pairs). Mirrored in <code>Hazard_Asset_Pairs.md</code>.</p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="ha-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="ha-grid" class="ag-theme-quartz grid-wrap"></div>
           <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Asset criticality scoring: road segments are scored interactively in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts inherit their segment's score. The spring 2026 scoping notes behind this table are archived in the repo (<code>docs/scoping_archive_2026-spring.md</code>).</p>
@@ -184,7 +185,7 @@
           <div id="mdl-grid" class="ag-theme-quartz grid-wrap"></div>
 
           <h2 class="sec">Index readiness</h2>
-          <p class="lead">How each VAST sub-index maps to data layers and their endpoint status. The gating view for the MVP.</p>
+          <p class="lead">How each step of the assessment maps to data layers and their endpoint status. The gating view for the screening and tool build.</p>
           <div class="card-grid" id="readiness-mount"></div>
         </div>
       </calcite-tab>
@@ -192,21 +193,19 @@
       <!-- TAB 3: Framework & Methods -->
       <calcite-tab>
         <div class="tab-body">
-          <h2 class="sec">FHWA VAST framework</h2>
+          <h2 class="sec">Three-step assessment approach</h2>
           <p class="lead">
-            Risk is built from four sub-indices rather than a single vulnerability score. Per ICF guidance,
-            Sensitivity is weighted lightly (~10-20%) and Criticality substantially (~30%, just below Exposure).
-            Example weightings from peer DOT plans:
+            The adopted approach (6/25 VA discussion, building on FHWA VAST guidance) runs three steps:
+            a criticality assessment, a system-wide indicator-based screening, and scenario-based
+            disruption analyses for the highest-risk hazards and locations. Network redundancy and
+            adaptive-capacity questions are handled in the scenario step (RA2CE), not as a separate sub-index.
           </p>
-          <div class="formula"><strong>MDOT RIP / CMAP:</strong> Risk = (Adaptive Capacity &times; 40%) + (Exposure &times; 40%) + (Sensitivity &times; 20%)</div>
-          <div class="formula"><strong>VTrans:</strong> Risk = (Criticality &times; 25%) + (([Exposure &times; 75%] + [Sensitivity &times; 25%]) &times; 75%)</div>
-          <div class="formula"><strong>MDOT (criticality variant):</strong> Risk = (Exposure &times; 60%) + (Criticality &times; 40%)</div>
+          <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality &mdash; asset-level 0-3 scores, bucketed High / Medium / Low</div>
 
           <div class="card-grid">
-            <div class="card" style="--c:#E87722"><h3>Exposure</h3><p>Where and how intensely a hazard hits an asset.</p><ul><li>Wildfire pathways / ember spread (commercial fire modeling)</li><li>Flood inundation &amp; scour (HEC-RAS, StreamStats)</li><li>Avalanche / landslide runout (RAMMS)</li><li>Post-fire erosion &amp; sediment (WEPP)</li><li>Wind strike zones, seiche zones</li></ul></div>
-            <div class="card" style="--c:#B47E00"><h3>Sensitivity</h3><p>How badly the asset (or people) suffer when hit. Weighted ~10-20%.</p><ul><li>Bridge / culvert condition, pavement age</li><li>Equity Study (vulnerable populations), applied as a Justice40 multiplier</li><li>Stormwater / IDF capacity</li></ul></div>
-            <div class="card" style="--c:#0072CE"><h3>Asset Value</h3><p>What is at stake at the location.</p><ul><li>Strategic community assets, emergency staging</li><li>Freight tonnage, transit, active transport</li><li>Cascading assets (power, telecom)</li></ul></div>
-            <div class="card" style="--c:#4A6118"><h3>Adaptive Capacity</h3><p>Ability to absorb / reroute. <strong>Reverse-scored</strong>: high capacity = low vulnerability.</p><ul><li>Network redundancy / detour ratios (commercial mobility data)</li><li>Redundant power (HIFLD)</li><li>Transit hubs, airport ICS proximity</li></ul></div>
+            <div class="card" style="--c:#003B71"><h3>1. Criticality assessment</h3><p><em>What are the critical assets in the region?</em></p><ul><li>Scope: roads, bridges, trails, transit centers</li><li>Indicators: evacuation route, detour length, AADT, proximity to strategic assets, community priority zones</li><li>Live: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a> (18,253 segments)</li></ul></div>
+            <div class="card" style="--c:#E87722"><h3>2. System-wide screening</h3><p><em>Where are the greatest vulnerabilities?</em></p><ul><li>Scope: the 14 Include-in-VA pairs</li><li>Score exposure and sensitivity per asset, multiply by criticality</li><li>Output: High / Medium / Low vulnerability classes on an interactive map</li></ul></div>
+            <div class="card" style="--c:#4A6118"><h3>3. Scenario-based disruption</h3><p><em>How does the system react to an event? Where are the pinch points?</em></p><ul><li>2-3 plausible scenarios per high-priority hazard / location</li><li>RA2CE on the Overture network: detours, travel-time change, blocked assets, populations impacted</li><li>Optional monetization: Expected Annual Loss from loss functions and value of time</li></ul></div>
           </div>
 
           <h2 class="sec">Sensitivity indicators by asset</h2>
@@ -259,35 +258,38 @@
   <footer class="app-footer">
     <p><strong>PROTECT</strong> = FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 = Resilience Improvement Plan; 3.2 = Risk-Based Vulnerability Assessment; 3.3 = this Interactive Risk Index Mapping Tool.</p>
     <p>Reference hub (v0.5). The data and model inventory is the source of record on this page; spring 2026 scoping notes are archived in the repo docs folder. Internal review draft. Not for public distribution.</p>
-    <p>Sources: 5/20/2026 ICF/TRPA VA deck (sensitivity &amp; criticality approach), <code>PROTECT_DataModel_Inventory.xlsx</code>, <code>PROTECT_RiskIndexTool_Scoping_v0.1.docx</code>.</p>
+    <p>Sources: 6/25/2026 VA discussion deck (decided pairs, three-step approach), 5/20/2026 ICF/TRPA VA deck (sensitivity &amp; criticality approach), <code>PROTECT_DataModel_Inventory.xlsx</code>, <code>PROTECT_RiskIndexTool_Scoping_v0.1.docx</code>.</p>
   </footer>
 
   <script>
   (function () {
     // ---------- DATA ----------
-    // Canonical pair list (Aug 2026 review): 6 advancing, 12 candidate, 2 screening.
-    // LS-C (Landslide-Culverts) folded into DF-C. Mirror: Hazard_Asset_Pairs.md (v0.4).
+    // Decided pair matrix (6/25 VA discussion): 14 pairs in the VA, 9 excluded from the VA
+    // but discussed in the TRIP. Mirror: Hazard_Asset_Pairs.md (v0.5).
     const haPairs = [
-      {id:"AV-R",  hazard:"Avalanche",    asset:"Roads",            impact:"Operational",          status:"Advancing", exposure:"SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout", sensitivity:"Road elevation (no unique sensitivity indicators)", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
-      {id:"FL-B",  hazard:"Flooding",     asset:"Bridges",          impact:"Physical + cascading", status:"Advancing", exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition data request open with Caltrans/NDOT."},
-      {id:"FL-C",  hazard:"Flooding",     asset:"Culverts",         impact:"Physical + cascading", status:"Advancing", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page."},
-      {id:"FL-R",  hazard:"Flooding",     asset:"Roads",            impact:"Physical + cascading", status:"Advancing", exposure:"FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
-      {id:"LS-R",  hazard:"Landslide",    asset:"Roads",            impact:"Physical + cascading", status:"Advancing", exposure:"USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout", sensitivity:"Pavement condition, road elevation", notes:"Runout extents via RAMMS or r.avaflow."},
-      {id:"WF-R",  hazard:"Wildfire",     asset:"Roads",            impact:"Physical + cascading", status:"Advancing", exposure:"Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling", sensitivity:"No unique sensitivity indicators", notes:"Fire-modeling procurement is the critical-path dependency."},
-      {id:"AV-B",  hazard:"Avalanche",    asset:"Bridges",          impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"DF-C",  hazard:"Debris Flow",  asset:"Culverts",         impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); USGS Landslide Susceptibility; CA Geological Survey; CA Pyregence; precip (Cal-Adapt)", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; absorbs Landslide-Culverts (LS-C) per Aug 2026 review; post-fire compounding required per ICF. WildCat modeling planned."},
-      {id:"DF-R",  hazard:"Debris Flow",  asset:"Roads",            impact:"Physical + cascading", status:"Candidate", exposure:"Post-fire debris flow (HEC-HMS); LiDAR runout; precip", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20; July 14 event hindcast on the Storm Events page."},
-      {id:"EQ-B",  hazard:"Earthquake",   asset:"Bridges",          impact:"Physical + cascading", status:"Candidate", exposure:"USGS Seismic Hazard Maps; ComCat; ShakeMaps", sensitivity:"Seismic retrofit status, bridge condition, age", notes:"Identify bridges needing seismic retrofit."},
-      {id:"EQ-R",  hazard:"Earthquake",   asset:"Roads",            impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"FL-AT", hazard:"Flooding",     asset:"Active Transport", impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"LS-B",  hazard:"Landslide",    asset:"Bridges",          impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"WF-AT", hazard:"Wildfire",     asset:"Active Transport", impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"WF-M",  hazard:"Wildfire",     asset:"Marinas",          impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"WF-TC", hazard:"Wildfire",     asset:"Transit Centers",  impact:"Physical + cascading", status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"WS-AT", hazard:"Winter Storm", asset:"Active Transport", impact:"Operational",          status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"WS-TC", hazard:"Winter Storm", asset:"Transit Centers",  impact:"Operational",          status:"Candidate", exposure:"", sensitivity:"", notes:""},
-      {id:"WD-R",  hazard:"Wind",         asset:"Roads",            impact:"Operational",          status:"Screening", exposure:"gridMET wind (Climate Engine); ASCE 7; criticality-focused (operational)", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:"Asset target TBD: Roads and/or Power & Telecom. Operational-only per 5/20."},
-      {id:"WS-R",  hazard:"Winter Storm", asset:"Roads",            impact:"Operational",          status:"Screening", exposure:"SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm; criticality-focused", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:"Asset target TBD: Roads / Power / ITS. Operational-only."}
+      {id:"AV-R",  hazard:"Avalanche",    asset:"Roads",            impact:"Operational",          status:"Include in VA", exposure:"SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout", sensitivity:"Road elevation (no unique sensitivity indicators)", notes:"Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans."},
+      {id:"AV-B",  hazard:"Avalanche",    asset:"Bridges",          impact:"Physical + cascading", status:"Include in VA", exposure:"", sensitivity:"", notes:""},
+      {id:"DF-B",  hazard:"Debris Flow",  asset:"Bridges",          impact:"Physical + cascading", status:"Include in VA", exposure:"", sensitivity:"", notes:"Added at the 6/25 VA review."},
+      {id:"DF-C",  hazard:"Debris Flow",  asset:"Culverts",         impact:"Physical + cascading", status:"Include in VA", exposure:"Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt)", sensitivity:"Culvert condition, capacity, scour", notes:"Split from landslide per 5/20; post-fire compounding required per ICF; WildCat modeling planned."},
+      {id:"DF-R",  hazard:"Debris Flow",  asset:"Roads",            impact:"Physical + cascading", status:"Include in VA", exposure:"Post-fire debris flow (HEC-HMS); LiDAR runout; precip", sensitivity:"Pavement condition, road elevation", notes:"Split from landslide per 5/20; July 14 event hindcast on the Storm Events page."},
+      {id:"FL-B",  hazard:"Flooding",     asset:"Bridges",          impact:"Physical + cascading", status:"Include in VA", exposure:"HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains", sensitivity:"Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy", notes:"Bridge condition data request open with Caltrans/NDOT."},
+      {id:"FL-C",  hazard:"Flooding",     asset:"Culverts",         impact:"Physical + cascading", status:"Include in VA", exposure:"USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour", sensitivity:"Culvert condition, scour, capacity, age, channel condition", notes:"TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page."},
+      {id:"FL-R",  hazard:"Flooding",     asset:"Roads",            impact:"Physical + cascading", status:"Include in VA", exposure:"FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation", sensitivity:"Pavement condition, foundation / permeable sub-base, road elevation, age", notes:"Lowland and valley segments most exposed."},
+      {id:"LS-B",  hazard:"Landslide",    asset:"Bridges",          impact:"Physical + cascading", status:"Include in VA", exposure:"", sensitivity:"", notes:""},
+      {id:"LS-C",  hazard:"Landslide",    asset:"Culverts",         impact:"Physical + cascading", status:"Include in VA", exposure:"USGS Landslide Susceptibility; CA Geological Survey; post-fire debris-flow", sensitivity:"Culvert condition, capacity, scour", notes:"Post-fire compounding required per ICF."},
+      {id:"LS-R",  hazard:"Landslide",    asset:"Roads",            impact:"Physical + cascading", status:"Include in VA", exposure:"USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout", sensitivity:"Pavement condition, road elevation", notes:"Runout extents via RAMMS or r.avaflow."},
+      {id:"WF-AT", hazard:"Wildfire",     asset:"Active Transport", impact:"Physical + cascading", status:"Include in VA", exposure:"", sensitivity:"Paved vs. unpaved, trail slope", notes:""},
+      {id:"WF-R",  hazard:"Wildfire",     asset:"Roads",            impact:"Physical + cascading", status:"Include in VA", exposure:"Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling", sensitivity:"No unique sensitivity indicators", notes:"Fire-modeling procurement is the critical-path dependency."},
+      {id:"WF-TC", hazard:"Wildfire",     asset:"Transit Centers",  impact:"Physical + cascading", status:"Include in VA", exposure:"", sensitivity:"", notes:""},
+      {id:"EQ-B",  hazard:"Earthquake",   asset:"Bridges",          impact:"Physical + cascading", status:"TRIP discussion", exposure:"USGS Seismic Hazard Maps; ComCat; ShakeMaps", sensitivity:"Seismic retrofit status, bridge condition, age", notes:""},
+      {id:"EQ-R",  hazard:"Earthquake",   asset:"Roads",            impact:"Physical + cascading", status:"TRIP discussion", exposure:"", sensitivity:"", notes:""},
+      {id:"FL-AT", hazard:"Flooding",     asset:"Active Transport", impact:"Physical + cascading", status:"TRIP discussion", exposure:"", sensitivity:"", notes:""},
+      {id:"FL-TC", hazard:"Flooding",     asset:"Transit Centers",  impact:"Physical + cascading", status:"TRIP discussion", exposure:"", sensitivity:"", notes:"Added at the 6/25 VA review."},
+      {id:"WF-M",  hazard:"Wildfire",     asset:"Marinas",          impact:"Physical + cascading", status:"TRIP discussion", exposure:"", sensitivity:"", notes:""},
+      {id:"WD-R",  hazard:"Wind",         asset:"Roads",            impact:"Operational",          status:"TRIP discussion", exposure:"gridMET wind (Climate Engine); ASCE 7", sensitivity:"Operational: tree blow-down, power-line breaks (cascading)", notes:""},
+      {id:"WS-AT", hazard:"Winter Storm", asset:"Active Transport", impact:"Operational",          status:"TRIP discussion", exposure:"", sensitivity:"", notes:""},
+      {id:"WS-R",  hazard:"Winter Storm", asset:"Roads",            impact:"Operational",          status:"TRIP discussion", exposure:"SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm", sensitivity:"Operational: extended closure, plow-depot overrun, loss of power to ITS", notes:""},
+      {id:"WS-TC", hazard:"Winter Storm", asset:"Transit Centers",  impact:"Operational",          status:"TRIP discussion", exposure:"", sensitivity:"", notes:""}
     ];
     // Spring 2026 scoping grids (assets criticality notes, early hazard data sources) retired
     // 2026-08-03; archived in docs/scoping_archive_2026-spring.md. Data-source evaluation now
@@ -352,11 +354,11 @@
     ];
     const availStatusColor = {Live:"#4A6118",Building:"#B47E00",Needed:"#9C3E27",External:"#7B6A8A"};
     const readiness = [
-      {sub:"A. Exposure",c:"#E87722",rows:[["Wildfire","Live"],["Flooding","Live"],["Avalanche","Live"],["Landslide / Debris Flow","Building"],["Earthquake","External"],["Wind","External"],["Seiche","Building"]],note:"Fire, flood, and avalanche zones are live; the debris-flow layer is being built with USGS WildCat (plan on the Storm Events page)."},
-      {sub:"B. Sensitivity",c:"#B47E00",rows:[["Equity multiplier","Live"],["Stormwater / BMP","Live"],["Pavement age","Building"],["Asset condition (bridge/culvert)","Building"]],note:"Equity is live; the TRPA culvert layer and condition table are compiled (7,858 assets), bridge condition (Caltrans/NDOT) still open."},
-      {sub:"C. Asset Value",c:"#0072CE",rows:[["Demographics","Live"],["Strategic / emergency assets","Live"],["Transit & active transport","Building"],["Freight","External"],["Cascading power/telecom","Needed"]],note:"Good coverage; cascading-asset (HIFLD Secure) data is the gap for Black Sky scenarios."},
-      {sub:"C. Adaptive Capacity",c:"#4A6118",rows:[["Road network","Live"],["Network redundancy / detours","Building"],["Emergency staging (airports)","External"]],note:"Reverse-scored. Redundancy comes from the Overture network run through RA2CE / Volpe RDR."},
-      {sub:"D. Master PROTECT Index",c:"#003B71",rows:[["Combine A + B + C","Needed"]],note:"Phase 1 MVP can demo with the two best-covered sub-indices while gaps are built."}
+      {sub:"Step 1. Criticality",c:"#003B71",rows:[["Criticality Index app","Live"],["Community priority zones","Live"],["Strategic / emergency assets","Live"]],note:"Interactive scoring live on the Overture network (18,253 segments); bridges and culverts inherit their segment's score."},
+      {sub:"Step 2a. Exposure",c:"#E87722",rows:[["Wildfire","Live"],["Flooding","Live"],["Avalanche","Live"],["Landslide / Debris Flow","Building"]],note:"Hazard zones live for fire, flood, and avalanche; the debris-flow layer is being built with USGS WildCat (plan on the Storm Events page). Earthquake, wind, and winter storm are TRIP-discussion hazards, not scored in the VA."},
+      {sub:"Step 2b. Sensitivity",c:"#B47E00",rows:[["Equity multiplier","Live"],["Stormwater / BMP","Live"],["Culvert condition","Building"],["Bridge / pavement condition","Needed"]],note:"TRPA culvert layer and condition table compiled (7,858 assets); bridge condition (Caltrans/NDOT request) still open."},
+      {sub:"Step 2. Vulnerability rating",c:"#9C3E27",rows:[["(Exposure + Sensitivity) x Criticality","Needed"]],note:"Scoring rubrics finalize with the screening datasets (per the 6/25 schedule); output is asset-level High / Medium / Low."},
+      {sub:"Step 3. Scenario disruption (RA2CE)",c:"#4A6118",rows:[["Street network (Overture)","Live"],["Disruption runs","Building"],["Scenario definitions","Needed"]],note:"RA2CE selected; analysis work in the repo's ra2ce scripts. Scenarios are defined after the screening identifies high-risk hazards and locations."}
     ];
     function invPill(t,c){c=c||"#555";return '<span class="pill" style="background:'+c+'1A;color:'+c+';border:1px solid '+c+'55;">'+t+'</span>';}
     function escHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -365,7 +367,7 @@
 
     // ---------- COLOR MAPS ----------
     const hazardColor = {Flooding:"#0072CE", Avalanche:"#5BA4DD", Landslide:"#9C3E27", Wildfire:"#E87722", Fire:"#E87722", "Debris Flow":"#8B5A3C", "Winter Storm":"#003B71", Earthquake:"#B5A64C", Wind:"#7B6A8A"};
-    const statusColor = {Advancing:"#4A6118", Candidate:"#E87722", "Not Analyzing":"#6B7280", Screening:"#0072CE", Hold:"#6B7280"};
+    const statusColor = {Advancing:"#4A6118", Candidate:"#E87722", "Not Analyzing":"#6B7280", Screening:"#0072CE", Hold:"#6B7280", "Include in VA":"#4A6118", "TRIP discussion":"#7B6A8A"};
     const impactColor = {"Physical + cascading":"#9C3E27", "Operational":"#B47E00"};
     const componentColor = {Exposure:"#E87722", Sensitivity:"#B47E00", "Asset Value":"#0072CE", "Adaptive Capacity":"#4A6118", Vulnerability:"#9C3E27"};
     function statusWord(s){ return statusColor[(s||"").split(/[\s/]/)[0]] || "#6B7280"; }

@@ -112,23 +112,25 @@
         and intensifying storms. <strong>PROTECT Task 3</strong> (FHWA grant) is building a risk-based
         vulnerability assessment and an <strong>interactive risk index mapping tool</strong> that scores every
         transportation asset against those hazards, feeding the 2027 Resilience Improvement Plan. The method
-        follows the FHWA VAST framework, with Exposure, Sensitivity, Asset Value, and Adaptive Capacity
-        combining with Criticality into one risk score per asset.
+        runs in three steps: a criticality assessment, a system-wide screening scored as
+        (Exposure + Sensitivity) &times; Criticality, and scenario-based disruption analyses for the
+        highest-risk hazards and locations.
       </p>
       <div class="flow">
         <span class="step">Source layers + pipelines (climate, storms, culverts, debris flow)</span><span class="arrow">&rarr;</span>
-        <span class="step">Per-asset sub-indices (E, S, AV, AC)</span><span class="arrow">&rarr;</span>
-        <span class="step">Master PROTECT index</span><span class="arrow">&rarr;</span>
+        <span class="step">Criticality assessment</span><span class="arrow">&rarr;</span>
+        <span class="step">Screening: (E + S) &times; C</span><span class="arrow">&rarr;</span>
+        <span class="step">Scenario disruption (RA2CE)</span><span class="arrow">&rarr;</span>
         <span class="step">Risk Index Tool + Workshops</span><span class="arrow">&rarr;</span>
         <span class="step">2027 Resilience Improvement Plan</span>
       </div>
     </section>
 
     <section class="kpi-row">
-      <div class="kpi-card"><div class="kpi-value">20</div><div class="kpi-label">Working hazard-asset pairs (6 advancing)</div></div>
+      <div class="kpi-card"><div class="kpi-value">14</div><div class="kpi-label">Hazard-asset pairs in the VA (23 total)</div></div>
       <div class="kpi-card"><div class="kpi-value">33</div><div class="kpi-label">Datasets tracked</div></div>
       <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Analysis pipelines (climate, storms, debris flow)</div></div>
-      <div class="kpi-card"><div class="kpi-value">Nov 2026</div><div class="kpi-label">Workshop 1: exposure results</div></div>
+      <div class="kpi-card"><div class="kpi-value">Oct 2026</div><div class="kpi-label">Steering Committee: preliminary results</div></div>
     </section>
 
     <h2 class="section">Project pages</h2>
@@ -142,7 +144,7 @@
         <p>The deliverable: a map-centric app scoring risk per asset on live TRPA layers.</p>
         <ul>
           <li>Live hazard and community layers on the map</li>
-          <li>Status view: each VAST component's real state</li>
+          <li>Status view: each assessment step's real state</li>
           <li>Foundation for the Workshop 1 review</li>
         </ul>
         <span class="open">Open the tool &rarr;</span>
@@ -169,8 +171,8 @@
         </div>
         <p>The methodology record, what is being assessed and how, plus data readiness.</p>
         <ul>
-          <li>Hazard-asset pair evaluation and selections</li>
-          <li>VAST framework, weights, and the sensitivity matrix</li>
+          <li>Decided hazard-asset pair matrix</li>
+          <li>Three-step approach, indicators, and the sensitivity matrix</li>
           <li>Data and model inventory with live REST endpoints</li>
         </ul>
         <span class="open">Open the hub &rarr;</span>
@@ -238,9 +240,19 @@
           <div class="detail">Interactive segment scoring; RA2CE selected as disruption engine</div>
         </div>
         <div class="milestone next">
-          <div class="when">Nov 2026 &middot; next</div>
+          <div class="when">Oct 2026 &middot; next</div>
+          <div class="what">Steering Committee</div>
+          <div class="detail">Vet preliminary screening results</div>
+        </div>
+        <div class="milestone">
+          <div class="when">Nov 2026</div>
           <div class="what">Workshop 1</div>
-          <div class="detail">Exposure results review, including debris-flow layer</div>
+          <div class="detail">Vet draft results and the interactive mapping tool</div>
+        </div>
+        <div class="milestone">
+          <div class="when">Dec 2026</div>
+          <div class="what">VA + tool finalized</div>
+          <div class="detail">Finalize VA results and the interactive mapping tool</div>
         </div>
         <div class="milestone">
           <div class="when">May 2027</div>

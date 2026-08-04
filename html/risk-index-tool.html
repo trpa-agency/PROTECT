@@ -102,7 +102,7 @@
     <section class="kpi-row">
       <div class="kpi-card"><div class="kpi-value">18,253</div><div class="kpi-label">Street segments in the criticality network</div></div>
       <div class="kpi-card"><div class="kpi-value">7,858</div><div class="kpi-label">Culverts compiled (6 jurisdictions, with condition)</div></div>
-      <div class="kpi-card"><div class="kpi-value">20</div><div class="kpi-label">Working hazard-asset pairs (6 advancing)</div></div>
+      <div class="kpi-card"><div class="kpi-value">14</div><div class="kpi-label">Hazard-asset pairs in the VA (23 total)</div></div>
       <div class="kpi-card"><div class="kpi-value">Nov 2026</div><div class="kpi-label">Workshop 1: exposure results review</div></div>
     </section>
     <p class="kpi-cap">Real counts from the working layers. Segment counts come from the criticality network (Overture-derived); culverts from the compiled TRPA layer.</p>
@@ -119,7 +119,7 @@
       <calcite-tab selected>
         <div class="tab-body">
           <calcite-notice icon="information" scale="s" open>
-            <span slot="message">Phase 1 MVP. Every layer on this map is live TRPA data. Scored sub-index layers land as they are computed; interactive criticality scoring is already live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>. Internal review draft.</span>
+            <span slot="message">Phase 1 MVP. Every layer on this map is live TRPA data. Screening layers land as the vulnerability scoring runs; interactive criticality scoring is already live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>. Internal review draft.</span>
           </calcite-notice>
           <div class="map-wrap" style="margin-top:.8rem;">
             <div class="layer-panel">
@@ -128,18 +128,18 @@
               <label class="lyr"><calcite-switch id="tg-avy" class="sw"></calcite-switch> Avalanche zones</label>
               <label class="lyr"><calcite-switch id="tg-fire" class="sw"></calcite-switch> Fire severity probability</label>
               <div class="grp">
-                <h3>Community (Sensitivity / Asset Value)</h3>
+                <h3>Community (Criticality / Sensitivity)</h3>
                 <label class="lyr"><calcite-switch id="tg-equity" class="sw" checked></calcite-switch> Equity tessellation</label>
                 <label class="lyr"><calcite-switch id="tg-cpz" class="sw"></calcite-switch> Community Priority Zones</label>
                 <label class="lyr"><calcite-switch id="tg-transit" class="sw"></calcite-switch> Transit network</label>
                 <label class="lyr"><calcite-switch id="tg-ems" class="sw"></calcite-switch> Emergency services</label>
               </div>
               <div class="grp">
-                <h3>Scored indices</h3>
-                <div class="note">Criticality is live as its own app: <a href="criticality-index.html">open the Criticality Index</a>. The layers below appear here as each sub-index is computed.</div>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Exposure (climate + hazard scoring)</label>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Sensitivity (condition + equity)</label>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Master PROTECT Index</label>
+                <h3>Scored layers</h3>
+                <div class="note">Step 1 criticality is live as its own app: <a href="criticality-index.html">open the Criticality Index</a>. The screening layers below appear here as step 2 runs.</div>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Exposure score (per pair)</label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Sensitivity score (per pair)</label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Vulnerability rating (H / M / L)</label>
               </div>
             </div>
             <div id="map-view"></div>
@@ -152,12 +152,12 @@
         <div class="tab-body">
           <p class="lead">Where each piece of the index stands. Detail, endpoints, and the full readiness tracker live in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>.</p>
           <div class="card-grid">
-            <div class="card" style="--c:#E87722"><h3>Exposure<span class="pill building">Building</span></h3><p>Hazard zone layers are live (flood, avalanche, fire). The climate pipeline has a validated run; the storm-frequency and debris-flow chain is built on the Storm Events page. Scoring awaits the normalization decision with the consultant.</p></div>
-            <div class="card" style="--c:#B47E00"><h3>Sensitivity<span class="pill building">Building</span></h3><p>The culvert layer with condition is compiled (7,858 assets, six jurisdictions). Bridge condition (Caltrans / NDOT request) is the open gap. Equity multiplier is live.</p></div>
-            <div class="card" style="--c:#0072CE"><h3>Asset Value<span class="pill live">Good coverage</span></h3><p>Strategic and emergency assets, transit, and equity layers are live TRPA services. Cascading power / telecom data remains the gap.</p></div>
-            <div class="card" style="--c:#4A6118"><h3>Adaptive Capacity<span class="pill building">Building</span></h3><p>Reverse-scored. Network redundancy comes from the Overture street network run through RA2CE (selected as the disruption-risk tool); analysis work is in the repo's RA2CE scripts.</p></div>
-            <div class="card" style="--c:#003B71"><h3>Criticality<span class="pill live">Live</span></h3><p>Interactive scoring across 18,253 segments with adjustable weights and hazard filters: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.</p></div>
-            <div class="card" style="--c:#7B6A8A"><h3>Master PROTECT Index<span class="pill pending">Pending</span></h3><p>Combines the sub-indices once Exposure and Sensitivity scoring land. Charts and a segment-level table join this tool at that point.</p></div>
+            <div class="card" style="--c:#003B71"><h3>Step 1: Criticality<span class="pill live">Live</span></h3><p>Interactive scoring across 18,253 segments with adjustable weights and hazard filters: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>. Bridges and culverts inherit their segment's score.</p></div>
+            <div class="card" style="--c:#E87722"><h3>Step 2: Exposure<span class="pill building">Building</span></h3><p>Hazard zone layers are live (flood, avalanche, fire). The climate pipeline has a validated run; the storm-frequency and debris-flow chain is built on the Storm Events page. Scoring rubrics finalize with the screening datasets.</p></div>
+            <div class="card" style="--c:#B47E00"><h3>Step 2: Sensitivity<span class="pill building">Building</span></h3><p>The culvert layer with condition is compiled (7,858 assets, six jurisdictions). Bridge and pavement condition (Caltrans / NDOT request) is the open gap. Equity multiplier is live.</p></div>
+            <div class="card" style="--c:#9C3E27"><h3>Step 2: Vulnerability rating<span class="pill pending">Pending</span></h3><p>(Exposure + Sensitivity) x Criticality, scored 0-3 per asset and bucketed High / Medium / Low. This is what colors the map and fills the segment table once the screening runs.</p></div>
+            <div class="card" style="--c:#4A6118"><h3>Step 3: Scenario disruption<span class="pill building">Building</span></h3><p>RA2CE on the Overture street network: detours, travel-time change, blocked assets, populations impacted. Scenarios get defined after the screening identifies high-risk hazards and locations.</p></div>
+            <div class="card" style="--c:#0072CE"><h3>Supporting layers<span class="pill live">Live</span></h3><p>Strategic and emergency assets, transit, community priority zones, and the equity tessellation are live TRPA services feeding both criticality and sensitivity.</p></div>
           </div>
         </div>
       </calcite-tab>
@@ -165,9 +165,9 @@
       <!-- METHODS -->
       <calcite-tab>
         <div class="tab-body">
-          <h2 class="sec">FHWA VAST framework</h2>
-          <p class="lead">Risk is built from four sub-indices, weighted alongside Criticality (Sensitivity ~10-20%, Criticality ~30%). Adaptive Capacity is reverse-scored: high capacity = low vulnerability.</p>
-          <div class="formula"><strong>Master PROTECT Index</strong> = f(Exposure, Sensitivity, Asset Value, Adaptive Capacity) weighted with Criticality</div>
+          <h2 class="sec">Three-step assessment approach</h2>
+          <p class="lead">The adopted approach (6/25 VA discussion, building on FHWA VAST guidance): (1) a criticality assessment - live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; (2) a system-wide indicator-based screening of the 14 Include-in-VA hazard-asset pairs; (3) scenario-based disruption analyses (RA2CE) for the highest-risk hazards and locations.</p>
+          <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality &mdash; asset-level 0-3 scores, bucketed High / Medium / Low</div>
           <p class="lead" style="margin-top:1rem;">The full methodology record - sub-index definitions, weighting precedents from peer DOT plans, the sensitivity matrix, and the data and model inventory - lives in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>. Climate inputs are documented on the <a href="climate-data.html" style="color:var(--trpa-blue);font-weight:600;">Climate Data</a> page; trigger-storm and debris-flow methods on the <a href="tahoe-precip-events.html" style="color:var(--trpa-blue);font-weight:600;">Storm Events</a> page.</p>
         </div>
       </calcite-tab>

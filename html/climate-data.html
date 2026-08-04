@@ -128,10 +128,11 @@
         <div class="panel">
           <h2>Role in the risk framework</h2>
           <p>
-            The FHWA VAST-based PROTECT index combines Exposure, Sensitivity, Asset Value, and Adaptive Capacity
-            with Criticality. Climate data drives <strong>Exposure</strong>: for each asset and hazard, how much
-            does the climate stressor change under future scenarios? Sensitivity and Asset Value come from asset
-            attributes (material, size, condition); Adaptive Capacity from network redundancy.
+            The system-wide screening scores each asset as (Exposure + Sensitivity) &times; Criticality. Climate
+            data drives <strong>Exposure</strong>: for each asset and hazard, how much does the climate stressor
+            change under future scenarios? Sensitivity comes from asset attributes (material, size, condition),
+            and criticality from the network assessment. Network redundancy is handled in the scenario-based
+            disruption step (RA2CE) rather than as a separate sub-index.
           </p>
           <div class="flow">
             <span class="step">Sources (LOCA2, WRF, gridMET, Atlas 14)</span><span class="arrow">&rarr;</span>
@@ -194,9 +195,9 @@
           </p>
           <h3>5. From climate columns to the Exposure sub-index</h3>
           <p>
-            Per hazard, the climate columns are normalized to a 0-1 exposure score and weighted into the master
-            PROTECT index alongside Sensitivity, Asset Value, Adaptive Capacity, and Criticality. Exposure is
-            where the future enters the index; the other components describe the asset as it is today.
+            Per hazard, the climate columns are normalized to an exposure score and combined with sensitivity,
+            then multiplied by criticality to produce the asset's vulnerability rating. Exposure is where the
+            future enters the assessment; sensitivity and criticality describe the asset as it is today.
           </p>
           <h3>Worked example: a culvert on SR-89</h3>
           <p>
