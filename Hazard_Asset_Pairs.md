@@ -53,7 +53,7 @@ Resilience Improvement Plan instead.
 | DF-B | Debris Flow | Bridges | PC | Include in VA | | | Added at the 6/25 VA review |
 | DF-C | Debris Flow | Culverts | PC | Include in VA | Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt) | Culvert condition, capacity, scour | Split from landslide per 5/20; post-fire compounding required per ICF; WildCat modeling planned |
 | DF-R | Debris Flow | Roads | PC | Include in VA | Post-fire debris flow (HEC-HMS); LiDAR runout; precip | Pavement condition, road elevation | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
-| FL-B | Flooding | Bridges | PC | Include in VA | HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains | Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy | Bridge condition data request open with Caltrans/NDOT |
+| FL-B | Flooding | Bridges | PC | Include in VA | HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains | Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy | Bridge condition and scour criticality from the FHWA National Bridge Inventory |
 | FL-C | Flooding | Culverts | PC | Include in VA | USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour | Culvert condition, scour, capacity, age, channel condition | TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page |
 | FL-R | Flooding | Roads | PC | Include in VA | FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation | Pavement condition, foundation / permeable sub-base, elevation, age | Lowland and valley segments most exposed |
 | LS-B | Landslide | Bridges | PC | Include in VA | | | |
@@ -79,6 +79,11 @@ Resilience Improvement Plan instead.
   retrofit (bridges); culvert condition, scour, capacity (culverts); paved vs. unpaved, trail slope
   (active transport). The TRPA Equity Study (vulnerable populations) is applied as a Justice40
   multiplier.
+
+  Condition sources: **bridges** from the FHWA National Bridge Inventory (public annual dataset, no
+  agency request needed); **culverts** from the compiled TRPA layer and condition table (7,858
+  assets, six jurisdictions); **pavement** is TBD, with jurisdiction outreach planned - the
+  remaining sensitivity gap for the road pairs.
 - **Criticality**: detour length and AADT (roads, bridges); proximity to strategic community
   assets and community priority zones (roads, bridges, culverts, active transport, transit
   centers).
@@ -100,7 +105,7 @@ EAD/EAL).
 
 ## 6. Data inventory
 
-33 data elements, each mapped to the assessment step it feeds (Step 1 Criticality, Step 2 Exposure,
+35 data elements, each mapped to the assessment step it feeds (Step 1 Criticality, Step 2 Exposure,
 Step 2 Sensitivity, Step 3 Disruption, or Context / TRIP for elements that support the plan or Task
 3.4 rather than the scoring), plus the model/tool inventory, are catalogued in the **Data and Model
 Inventory** tab of the [reference hub](html/reference-hub.html) (the source of record) and
