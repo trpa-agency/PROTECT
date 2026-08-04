@@ -50,10 +50,20 @@
     .page-card li{padding-left:1rem;position:relative;margin:.18rem 0;}
     .page-card li::before{content:"";position:absolute;left:0;top:.52em;width:6px;height:6px;border-radius:2px;background:var(--trpa-ice);}
     .page-card .open{margin-top:auto;font-size:.82rem;font-weight:700;color:var(--trpa-blue);}
+    /* Compact cards for supporting pages */
+    .card-grid.compact{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.7rem;}
+    a.page-card.compact{padding:.7rem .85rem;}
+    .page-card.compact .card-head{margin-bottom:.2rem;}
+    .page-card.compact h3{font-size:.9rem;}
+    .page-card.compact .chip{font-size:.62rem;padding:.1rem .45rem;}
+    .page-card.compact p{font-size:.79rem;margin:.1rem 0 .4rem;}
+    .page-card.compact .open{font-size:.76rem;}
     /* Flow strip */
     .flow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-size:.82rem;font-weight:600;margin:.6rem 0 .2rem;}
     .flow .step{background:#eaf3fb;border:1px solid var(--trpa-ice);border-radius:6px;padding:.45rem .7rem;color:var(--trpa-navy);}
     .flow .arrow{color:var(--gray-text);}
+    /* Two sub-steps that run at the same time, stacked in one flow position */
+    .flow .stack{display:flex;flex-direction:column;align-items:stretch;gap:.3rem;}
     .panel{background:var(--white);border:1px solid var(--gray-border);border-radius:8px;padding:1.1rem 1.3rem;margin:.9rem 0;}
     .panel p{font-size:.9rem;margin:.4rem 0;max-width:72rem;}
     /* Timeline */
@@ -123,10 +133,13 @@
         avalanche hazards. Results feed the 2027 Resilience Improvement Plan.
       </p>
       <div class="flow">
-        <span class="step">Source layers + pipelines<i class="i" tabindex="0" data-tip="Climate projections, trigger-storm climatology, the compiled culvert layer, and modeled debris-flow hazard.">i</i></span><span class="arrow">&rarr;</span>
-        <span class="step">1. Criticality</span><span class="arrow">&rarr;</span>
+        <span class="step">Source layers + pipelines<i class="i" tabindex="0" data-tip="The street network built from Overture data, which is the base network for both criticality and RA2CE, plus climate projections, trigger-storm climatology, the compiled culvert layer, and modeled debris-flow hazard.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="stack">
+          <span class="step">1a. Criticality<i class="i" tabindex="0" data-tip="Segment-level criticality scoring on the Overture street network: 18,253 segments scored on three sub-indices, Equity, Detour Length, and Traffic, with adjustable sub-index and variable weights. Runs in parallel with exposure.">i</i></span>
+          <span class="step">1b. Exposure<i class="i" tabindex="0" data-tip="Per-hazard exposure scoring from the hazard layers and climate projections: wildfire, flooding, landslide, debris flow, and avalanche. Runs in parallel with criticality.">i</i></span>
+        </span><span class="arrow">&rarr;</span>
         <span class="step">2. Screening: (E + S) &times; C<i class="i" tabindex="0" data-tip="Exposure plus Sensitivity, multiplied by Criticality. Asset-level 0-3 scores bucketed High / Medium / Low.">i</i></span><span class="arrow">&rarr;</span>
-        <span class="step">3. Disruption scenarios<i class="i" tabindex="0" data-tip="RA2CE on the Overture street network: detours, travel-time change, blocked assets, populations impacted.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="step">3. Disruption scenarios<i class="i" tabindex="0" data-tip="RA2CE on the Overture street network: detours, travel-time change, blocked assets, populations impacted. The Steering Committee will guide scenario planning.">i</i></span><span class="arrow">&rarr;</span>
         <span class="step">2027 Resilience Improvement Plan</span>
       </div>
     </section>
@@ -134,24 +147,6 @@
 
     <h2 class="section">Project pages</h2>
     <section class="card-grid">
-
-      <a class="page-card featured" href="risk-index-tool.html">
-        <div class="card-head">
-          <h3>Risk Index Tool</h3>
-          <span class="chip blue">MVP</span>
-        </div>
-        <p>Map of live TRPA hazard and asset layers, plus the status of each assessment step.<i class="i" tabindex="0" data-tip="Flood zones, avalanche zones, fire severity probability, the equity tessellation, community priority zones, transit, and emergency services. Scored screening layers are added as they are computed.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-
-      <a class="page-card" href="criticality-index.html">
-        <div class="card-head">
-          <h3>Criticality Index</h3>
-          <span class="chip blue">Live</span>
-        </div>
-        <p>Criticality scoring for 18,253 street segments, with adjustable weights.<i class="i" tabindex="0" data-tip="Step 1 of the assessment. Sub-index and variable weights are adjustable, with hazard exposure filters for flood, fire, and landslide, and CSV export of the scored network. Runs on the Overture-derived street network.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
 
       <a class="page-card" href="reference-hub.html">
         <div class="card-head">
@@ -162,7 +157,30 @@
         <span class="open">Open &rarr;</span>
       </a>
 
-      <a class="page-card" href="climate-data.html">
+      <a class="page-card" href="criticality-index.html">
+        <div class="card-head">
+          <h3>Criticality Index</h3>
+          <span class="chip blue">Live</span>
+        </div>
+        <p>Criticality scoring for 18,253 street segments, with adjustable weights.<i class="i" tabindex="0" data-tip="Step 1a of the assessment. Sub-index and variable weights are adjustable, with hazard exposure filters for flood, fire, and landslide, and CSV export of the scored network. Runs on the Overture-derived street network.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+
+      <a class="page-card featured" href="risk-index-tool.html">
+        <div class="card-head">
+          <h3>Risk Index Tool</h3>
+          <span class="chip blue">MVP</span>
+        </div>
+        <p>Map of live TRPA hazard and asset layers, plus the status of each assessment step.<i class="i" tabindex="0" data-tip="Flood zones, avalanche zones, fire severity probability, the equity tessellation, community priority zones, transit, and emergency services. Scored screening layers are added as they are computed.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+
+    </section>
+
+    <h2 class="section">Other pages</h2>
+    <section class="card-grid compact">
+
+      <a class="page-card compact" href="climate-data.html">
         <div class="card-head">
           <h3>Climate Data</h3>
           <span class="chip">v0.2</span>
@@ -171,7 +189,7 @@
         <span class="open">Open &rarr;</span>
       </a>
 
-      <a class="page-card" href="tahoe-precip-events.html">
+      <a class="page-card compact" href="tahoe-precip-events.html">
         <div class="card-head">
           <h3>Storm Events</h3>
           <span class="chip">New</span>

@@ -137,22 +137,16 @@
           <div class="map-wrap" style="margin-top:.8rem;">
             <div class="layer-panel">
               <h3>Hazards (Exposure)</h3>
+              <div class="note">Symbolized as they are today. Exposure scoring is baked into these layers as step 1b runs.</div>
               <label class="lyr"><calcite-switch id="tg-flood" class="sw"></calcite-switch> Flood zones</label>
               <label class="lyr"><calcite-switch id="tg-avy" class="sw"></calcite-switch> Avalanche zones</label>
               <label class="lyr"><calcite-switch id="tg-fire" class="sw"></calcite-switch> Fire severity probability</label>
               <div class="grp">
-                <h3>Community (Criticality / Sensitivity)</h3>
-                <label class="lyr"><calcite-switch id="tg-equity" class="sw" checked></calcite-switch> Equity tessellation</label>
-                <label class="lyr"><calcite-switch id="tg-cpz" class="sw"></calcite-switch> Community Priority Zones</label>
-                <label class="lyr"><calcite-switch id="tg-transit" class="sw"></calcite-switch> Transit network</label>
-                <label class="lyr"><calcite-switch id="tg-ems" class="sw"></calcite-switch> Emergency services</label>
-              </div>
-              <div class="grp">
-                <h3>Scored layers</h3>
-                <div class="note">Step 1 criticality is live as its own app: <a href="criticality-index.html">open the Criticality Index</a>. The screening layers below appear here as step 2 runs.</div>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Exposure score (per pair)</label>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Sensitivity score (per pair)</label>
-                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Vulnerability rating (H / M / L)</label>
+                <h3>Assets</h3>
+                <div class="note">Assets arrive with criticality already attributed from the <a href="criticality-index.html">Criticality Index</a>.</div>
+                <label class="lyr"><calcite-switch id="tg-roads" class="sw" checked></calcite-switch> Roads by criticality<i class="i" tabindex="0" data-tip="18,253 in-basin street segments from the Overture-derived network, colored by criticality at the default equal weights across the three sub-indices: Equity, Detour Length, and Traffic. Adjust the weights in the Criticality Index app.">i</i></label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Bridges<i class="i" tabindex="0" data-tip="Arrives with the consolidated TRPA Assets service, carrying National Bridge Inventory condition and the criticality score inherited from its road segment.">i</i></label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Culverts<i class="i" tabindex="0" data-tip="7,858 culverts compiled from six jurisdictions with a condition table. Arrives with the consolidated TRPA Assets service, carrying the criticality score inherited from its road segment.">i</i></label>
               </div>
             </div>
             <div id="map-view"></div>
@@ -198,27 +192,49 @@
   </main>
 
   <footer class="app-footer">
-    <p>PROTECT Risk Index Tool (MVP, Phase 1). Live layers: <code>Streams_and_Flood_Zone</code>, <code>Avalanche_Zones</code>, <code>Fire</code>, <code>Transportation_Equity_Analysis_Tessellation</code>, <code>Transportation</code> (Community Priority Zones, Transit), <code>Emergency_Services</code>. Internal review draft.</p>
+    <p>PROTECT Risk Index Tool (MVP, Phase 1). Live layers: <code>Streams_and_Flood_Zone</code>, <code>Avalanche_Zones</code>, <code>Fire</code>, and the criticality network <code>PROTECT_VA</code> (<code>Streets_Network_Tahoe</code>). Internal review draft.</p>
   </footer>
 
   <script>
   (function () {
     const SVC = "https://maps.trpa.org/server/rest/services";
-    const EQUITY_URL  = SVC + "/Transportation_Equity_Analysis_Tessellation/FeatureServer/0";
-    const CPZ_URL     = SVC + "/Transportation/MapServer/6";
-    const TRANSIT_URL = SVC + "/Transportation/MapServer/5";
     const FLOOD_URL   = SVC + "/Streams_and_Flood_Zone/MapServer/0";
     const AVY_URL     = SVC + "/Avalanche_Zones/MapServer/0";
     const FIRE_URL    = SVC + "/Fire/MapServer/3";
-    const EMS_URLS    = [SVC + "/Emergency_Services/MapServer/3",   // fire stations
-                         SVC + "/Emergency_Services/MapServer/5",   // medical facilities
-                         SVC + "/Emergency_Services/MapServer/2"];  // evacuation shelters
+    // Criticality network - same service the Criticality Index app scores.
+    const ROADS_URL   = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0";
+
+    // Criticality at the app's default equal weights: the two Jenks scores (1-10) rescaled to
+    // 0-1 and averaged with the already-normalized equity score.
+    const CRIT_EXPR =
+      "var traffic = ($feature.AADT_Jenks_Score - 1) / 9;" +
+      "var detour  = ($feature.SLR_Diff_Length_Jenks_Score - 1) / 9;" +
+      "var equity  = $feature.Equity_Score_Normalized;" +
+      "return (equity + detour + traffic) / 3;";
+    // Criticality Index ramp, low to high.
+    const CRIT_RAMP = ["#2c7bb6","#ffffbf","#d7191c"];
 
     require([
-      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GroupLayer",
+      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer",
       "esri/widgets/Legend","esri/widgets/Home","esri/widgets/BasemapToggle",
-      "esri/smartMapping/renderers/color"
-    ], function(Map, MapView, FeatureLayer, GroupLayer, Legend, Home, BasemapToggle, colorRenderer){
+      "esri/smartMapping/statistics/histogram"
+    ], function(Map, MapView, FeatureLayer, Legend, Home, BasemapToggle, histogram){
+
+      // Percentile off a histogram, interpolated inside the straddling bin.
+      function pct(h, p){
+        const total = h.bins.reduce(function(s,b){ return s + b.count; }, 0);
+        const target = p * total;
+        let cum = 0;
+        for(let i = 0; i < h.bins.length; i++){
+          const b = h.bins[i];
+          if(cum + b.count >= target){
+            const frac = b.count ? (target - cum) / b.count : 0;
+            return b.minValue + frac * (b.maxValue - b.minValue);
+          }
+          cum += b.count;
+        }
+        return h.maxValue;
+      }
 
       const flood = new FeatureLayer({
         url: FLOOD_URL, title: "Flood zones", visible:false, opacity:0.55,
@@ -231,42 +247,57 @@
       const fire = new FeatureLayer({
         url: FIRE_URL, title: "Fire severity probability", visible:false, opacity:0.5
       });
-      const equity = new FeatureLayer({
-        url: EQUITY_URL, title: "Equity tessellation", opacity: 0.8,
-        renderer: {type:"simple", symbol:{type:"simple-fill", color:[180,203,232,0.45], outline:{color:[255,255,255,0.5], width:0.4}}},
-        popupTemplate: {title:"Equity cell {GRID_ID}", content:[{type:"fields", fieldInfos:[
-          {fieldName:"ZEROVHH_DENSITY", label:"Zero-vehicle household density"},
-          {fieldName:"POVERTY_DENSITY", label:"Poverty density"},
-          {fieldName:"SENIOR_DENSITY", label:"Senior density"},
-          {fieldName:"DISABILITY_DENSITY", label:"Disability density"},
-          {fieldName:"FOOD_ACCESS_DISTANCE", label:"Food access distance"},
-          {fieldName:"MEDICARE_ACCESS_DISTANCE", label:"Medical access distance"}
-        ]}]}
-      });
-      const cpz = new FeatureLayer({
-        url: CPZ_URL, title: "Community Priority Zones", opacity: 0.5, visible:false,
-        renderer: {type:"simple", symbol:{type:"simple-fill", color:[232,119,34,0.22], outline:{color:[232,119,34,0.9], width:1}}}
-      });
-      const transit = new FeatureLayer({
-        url: TRANSIT_URL, title: "Transit network", visible:false,
-        renderer: {type:"simple", symbol:{type:"simple-line", color:[0,114,206], width:1.6}}
-      });
-      const ems = new GroupLayer({
-        title: "Emergency services", visible:false,
-        layers: EMS_URLS.map(u => new FeatureLayer({url:u}))
+      // Roads carry criticality as an attribute. The 32 segments with no equity score are
+      // dropped, which is what brings the network to the 18,253 the Criticality Index reports.
+      const roads = new FeatureLayer({
+        url: ROADS_URL, title: "Roads by criticality",
+        definitionExpression: "Equity_Score_Normalized IS NOT NULL",
+        renderer: {type:"simple", symbol:{type:"simple-line", color:[0,59,113,0.85], width:1.3}},
+        popupTemplate: {
+          title: "{name}",
+          expressionInfos: [{name:"crit", title:"Criticality (equal weights)", expression:CRIT_EXPR}],
+          content: [{type:"fields", fieldInfos:[
+            {fieldName:"expression/crit", label:"Criticality score", format:{places:3}},
+            {fieldName:"class", label:"Road class"},
+            {fieldName:"Equity_Score_Normalized", label:"Equity sub-index", format:{places:3}},
+            {fieldName:"SLR_Diff_Length_Jenks_Score", label:"Detour length sub-index (1-10)"},
+            {fieldName:"AADT_Jenks_Score", label:"Traffic sub-index (1-10)"},
+            {fieldName:"Estimated_2024_AADT_Filled", label:"Estimated 2024 AADT", format:{digitSeparator:true, places:0}},
+            {fieldName:"segment_id", label:"Segment ID"}
+          ]}]
+        }
       });
 
-      const map = new Map({ basemap:"gray-vector", layers:[fire, flood, avy, equity, cpz, transit, ems] });
+      const map = new Map({ basemap:"gray-vector", layers:[fire, flood, avy, roads] });
       const view = new MapView({ container:"map-view", map:map, center:[-120.04, 39.09], zoom:10 });
 
       view.when(function(){
         view.ui.add(new Home({view:view}), "top-left");
         view.ui.add(new BasemapToggle({view:view, nextBasemap:"topo-vector"}), "bottom-right");
         view.ui.add(new Legend({view:view}), "bottom-left");
-        // upgrade equity to a choropleth on zero-vehicle household density (smart mapping computes the range)
-        colorRenderer.createContinuousRenderer({ layer:equity, field:"ZEROVHH_DENSITY", theme:"high-to-low" })
-          .then(function(res){ equity.renderer = res.renderer; })
-          .catch(function(){ /* keep the simple fill if smart mapping is unavailable */ });
+        // Color roads by criticality, color only and uniform line weight as in the Criticality
+        // Index app. Scores are strongly right-skewed (median ~0.05, max ~0.60), so the ramp is
+        // stretched on percentiles rather than mean +/- sd, which would spend half its range
+        // below the zero floor. Computed at run time so it tracks a republished network.
+        histogram({ layer: roads, view: view, valueExpression: CRIT_EXPR, numBins: 100 })
+          .then(function(h){
+            roads.renderer = {
+              type: "simple",
+              symbol: {type:"simple-line", width:2, cap:"round", join:"round"},
+              visualVariables: [{
+                type: "color", valueExpression: CRIT_EXPR,
+                legendOptions: {title: "Criticality (equal weights)"},
+                stops: [
+                  {value: pct(h, 0.10), color: CRIT_RAMP[0], label: "Lower"},
+                  {value: pct(h, 0.50), color: CRIT_RAMP[1], label: "Median"},
+                  {value: pct(h, 0.95), color: CRIT_RAMP[2], label: "Higher"}
+                ]
+              }]
+            };
+          })
+          .catch(function(err){
+            console.warn("Criticality renderer unavailable, keeping the flat navy line:", err);
+          });
       }).catch(function(){ /* view failed (e.g., CORS) - basemap still shows */ });
 
       function bindToggle(id, layer){
@@ -276,10 +307,7 @@
       bindToggle("tg-flood", flood);
       bindToggle("tg-avy", avy);
       bindToggle("tg-fire", fire);
-      bindToggle("tg-equity", equity);
-      bindToggle("tg-cpz", cpz);
-      bindToggle("tg-transit", transit);
-      bindToggle("tg-ems", ems);
+      bindToggle("tg-roads", roads);
     });
 
     // Flip tooltips that would otherwise extend past a viewport edge.
