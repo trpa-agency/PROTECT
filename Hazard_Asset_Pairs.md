@@ -113,7 +113,18 @@ Inventory** tab of the [reference hub](html/reference-hub.html) (the source of r
 
 ## 7. Open decisions
 
-Headline items: exposure and sensitivity scoring rubrics per pair (finalize with screening
+**How pair scores aggregate to an asset-level rating.** One asset appears in several pairs: a
+culvert carries FL-C, DF-C, and LS-C; a bridge carries FL-B, DF-B, LS-B, and AV-B. Whether the
+asset's rating is the highest pair, the sum, or a weighted combination is not decided. Summing
+risks double-counting what is physically one failure mode at a location.
+
+Landslide and debris flow stay separate hazards (confirmed Aug. 3, 2026). Their triggers differ:
+landslides are multi-day saturation failures scored against static geology and slope, while debris
+flows are burst-driven and fire-conditioned, with a 15-minute intensity threshold and a burn-severity
+exposure surface. Merging them would force one rainfall metric and lose that resolution. The split
+makes the aggregation rule above matter more, not less.
+
+Other headline items: exposure and sensitivity scoring rubrics per pair (finalize with screening
 datasets, Aug 2026), scenario definitions for step 3 (after screening), analysis grain (segment
 vs. parcel), climate-data sourcing for commercial flood data (TRPA purchase vs. add to ICF
 contract), data hand-off contract, hosting domain, and public visibility. Climate-specific

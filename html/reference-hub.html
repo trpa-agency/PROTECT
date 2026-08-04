@@ -96,6 +96,7 @@
     .card p{font-size:.86rem;margin-bottom:.4rem;}
 
     .formula{background:#f0f4f9;border:1px solid #dbe5f0;border-radius:6px;padding:.5rem .75rem;font-size:.84rem;margin:.35rem 0;}
+    .note{background:#fdf6ee;border-left:4px solid var(--trpa-orange);padding:.6rem .9rem;font-size:.85rem;border-radius:0 6px 6px 0;margin:.7rem 0;max-width:95ch;}
     .index-flow{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.8rem;margin:.6rem 0 1rem;}
     .index-flow .node{background:#fff;border:1px solid var(--gray-border);border-left:4px solid var(--c,var(--trpa-blue));border-radius:6px;padding:.4rem .7rem;font-weight:600;}
     .index-flow .arrow{color:var(--trpa-blue);font-weight:700;}
@@ -208,6 +209,11 @@
           <h2 class="sec">Three-step assessment approach</h2>
           <p class="lead">Adopted at the June 25, 2026 VA discussion.<i class="i" tabindex="0" data-tip="Builds on FHWA VAST guidance. Network redundancy and adaptive capacity are handled in the scenario step (RA2CE), not as a separate sub-index.">i</i></p>
           <div class="formula"><strong>Screening:</strong> Vulnerability Rating = (Exposure + Sensitivity) &times; Criticality. Asset-level 0-3 scores, bucketed High / Medium / Low.</div>
+          <div class="note">
+            <strong>Open: how pair scores aggregate per asset.</strong> One asset appears in several pairs. A culvert
+            carries FL-C, DF-C, and LS-C; a bridge carries FL-B, DF-B, LS-B, and AV-B. How those combine into a
+            single asset-level rating is not decided: highest pair, sum, or weighted.<i class="i" tabindex="0" data-tip="Summing risks double-counting what is physically one failure mode at a location. Landslide and debris flow are kept as separate hazards because their triggers differ (multi-day saturation vs short-duration burst intensity) and debris-flow exposure is fire-conditioned, but that split makes the aggregation rule matter more, not less.">i</i>
+          </div>
 
           <div class="card-grid">
             <div class="card" style="--c:#003B71"><h3>1. Criticality</h3><p><em>What are the critical assets?</em></p><ul><li>Roads, bridges, trails, transit centers<i class="i" tabindex="0" data-tip="Indicators: evacuation route, detour length, AADT, proximity to strategic community assets, and community priority zones.">i</i></li><li>Live: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a></li></ul></div>
