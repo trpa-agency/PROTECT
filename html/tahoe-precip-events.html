@@ -66,6 +66,18 @@
     .chain .step { background:#fff; border-radius:8px; padding:1rem 1.1rem; box-shadow:0 1px 3px rgba(0,0,0,0.08); border-top:3px solid var(--step-c,#0072CE); font-size:0.85rem; line-height:1.5; }
     .chain .step h4 { margin:0 0 0.3rem; font-size:0.92rem; color:var(--trpa-navy); }
     .chain .step .who { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--step-c,#0072CE); }
+    /* Hover/focus info affordance: detail lives here instead of on the page */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
   </style>
 </head>
 <body>
@@ -122,7 +134,7 @@
     </div>
 
     <div class="context-bar" id="context-bar">
-      <b>Why this page exists.</b> Extreme precipitation events have triggered damaging landslides and debris flows in the basin; this explorer reconstructs each trigger storm hour by hour from MRMS radar-gauge QPE (~1 km) and scores it against NOAA Atlas 14 precipitation frequency. Storm structure and rates here feed the debris-flow response models (WEPP Cloud, USGS WildCat, HEC-HMS post-fire) and the extreme-precip metric decision pending with ICF.
+      Reconstructs each debris-flow trigger storm hour by hour from MRMS radar-gauge QPE and scores it against NOAA Atlas 14 precipitation frequency.<i class="i" tabindex="0" data-tip="MRMS MultiSensor QPE Pass 2, roughly 1 km resolution. Storm structure and rates here feed the debris-flow response models (WEPP Cloud, USGS WildCat, HEC-HMS post-fire) and the extreme-precip metric decision pending with ICF.">i</i>
     </div>
 
     <calcite-tabs>
@@ -157,7 +169,7 @@
       <calcite-tab>
         <div class="chart-container">
           <h3>Hourly precipitation over the event window</h3>
-          <p class="chart-sub">Bars are the bbox-average rate; the line is the single wettest cell each hour (convective cores are much more intense than the basin average). Times in Pacific local time. Vertical marker tracks the hour slider.</p>
+          <p class="chart-sub">Bars are the bbox-average rate; the line is the wettest cell each hour.<i class="i" tabindex="0" data-tip="Convective cores are much more intense than the basin average. Times are Pacific local. The vertical marker tracks the hour slider.">i</i></p>
           <div id="hyeto-chart" style="height:380px;"></div>
         </div>
         <div class="chart-container">
@@ -195,12 +207,12 @@
         </div>
         <div class="chart-container">
           <h3>From anomaly to sediment, each cataloged burst through WEPP</h3>
-          <p class="chart-sub">Every ≥10-yr burst episode run through WEPP as a single storm using its observed depth, duration, and peak 1-hr rate at the wettest cell (CAGWIN soil, BAER managements), plus a +37% future twin per the WRF late-century factor. The unburned slope barely responds until storms cross its runoff threshold, then jumps - burned slopes respond to every event. This is the trigger-to-consequence link for the LS pairs.</p>
+          <p class="chart-sub">Each burst episode run through WEPP as a single storm. Unburned slopes barely respond until storms cross a runoff threshold; burned slopes respond to every event.<i class="i" tabindex="0" data-tip="Every episode at or above the 10-year return level, using its observed depth, duration, and peak 1-hour rate at the wettest cell (CAGWIN soil, BAER managements), plus a +37 percent future twin per the WRF late-century factor. This is the trigger-to-consequence link for the landslide pairs.">i</i></p>
           <div id="freq-events" style="height:380px;"></div>
         </div>
         <div class="chart-container">
           <h3>WEPP 30-year climate matrix (pilot run)</h3>
-          <p class="chart-sub">30-year WEPP runs on a Tahoe City CLIGEN climate, CAGWIN loamy-coarse-sand soil (classic basin granitic), BAER unburned vs high-severity-fire management with burned-soil conductivity. "Future" scales days ≥20 mm by +25% per the WRF change factor. Demonstration of the chain, not a calibrated site prediction - production runs go through WEPPcloud on real hillslopes. Log scale.</p>
+          <p class="chart-sub">30-year WEPP runs, unburned vs high-severity fire. Log scale. Demonstration of the chain, not a calibrated site prediction.<i class="i" tabindex="0" data-tip="Tahoe City CLIGEN climate, CAGWIN loamy-coarse-sand soil (classic basin granitic), BAER managements with burned-soil conductivity. Future scales days at or above 20 mm by +25 percent per the WRF change factor. Production runs go through WEPPcloud on real hillslopes.">i</i></p>
           <div id="freq-wepp" style="height:340px;"></div>
         </div>
       </calcite-tab>
@@ -215,7 +227,7 @@
         </div>
         <div class="chart-container">
           <h3>Getting started with the current culvert layer</h3>
-          <p class="chart-sub">The map's "Culverts (TRPA)" toggle is live: the engineered culvert layer from the data-engineering session is embedded in this page - 7,858 crossings compiled from El Dorado, Washoe, Placer, Douglas, City of South Lake Tahoe, Caltrans district drainage logs, and the TRPA legacy inventory, with the latest condition inspection joined where one exists (2,253 records across five jurisdiction-specific rating schemes, semantics still being reconciled). Toggle it alongside "WEPP sediment" (TRPA's published basin-wide WEPP runs, high-severity-fire sediment yield per catchment) and the burst-hotspot layer to see crossings sitting under both high sediment supply and repeat storm cores. Recommended pilot, the West Shore corridor around the July 14 failure - upload those crossings to CULVERT, compare EHVI rankings against this map. A production swap to a hosted feature service is a one-line change (<code>CULVERT_LAYER_URL</code> at the top of the script).</p>
+          <p class="chart-sub">The map's Culverts toggle carries all 7,858 compiled crossings with condition where it exists.<i class="i" tabindex="0" data-tip="Compiled from El Dorado, Washoe, Placer, Douglas, City of South Lake Tahoe, Caltrans district drainage logs, and the TRPA legacy inventory. 2,253 condition records across five jurisdiction-specific rating schemes, semantics still being reconciled. Swapping to a hosted feature service is a one-line change: CULVERT_LAYER_URL at the top of the script.">i</i> Toggle it with WEPP sediment and burst hotspots to find crossings under both high sediment supply and repeat storm cores.<i class="i" tabindex="0" data-tip="WEPP sediment is TRPA's published basin-wide runs: high-severity-fire sediment yield per catchment. Recommended pilot is the West Shore corridor around the July 14 failure: upload those crossings to CULVERT and compare EHVI rankings against this map.">i</i></p>
           <p class="chart-sub" style="color:#9C3E27;"><b>Data governance.</b> This embedded layer contains no NDOT records (county, Caltrans, and TRPA legacy sources only), so it is clean for CULVERT upload. If NDOT state-highway culverts are added later, they are TRPA-only under the sharing agreement - do not upload NDOT-derived data to CULVERT or any third-party service without NDOT sign-off.</p>
         </div>
       </calcite-tab>
@@ -712,7 +724,19 @@
         setTimeout(() => { const el = document.getElementById('i15-chart');
           if (el && el.data) Plotly.Plots.resize(el); }, 60);
       }
+      setTimeout(placeTips, 60);
     }
+    // Flip tooltips that would otherwise extend past a viewport edge.
+    function placeTips() {
+      const w = document.documentElement.clientWidth, pad = 150;
+      document.querySelectorAll('.i').forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle('tip-right', x > w - pad);
+        el.classList.toggle('tip-left', x < pad);
+      });
+    }
+    placeTips();
+    window.addEventListener('resize', placeTips);
     document.querySelectorAll('calcite-tab-title').forEach((t, i) => t.addEventListener('click', () => onTabActivated(i)));
 
     document.getElementById('time-slider').addEventListener('calciteSliderInput', e => {
