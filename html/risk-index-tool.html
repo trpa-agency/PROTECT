@@ -45,8 +45,8 @@
     header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
     header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.6rem;font-size:.78rem;}
     header.app-header .badge{background:var(--trpa-orange);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
-    header.app-header a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:.28rem .65rem;border-radius:6px;white-space:nowrap;}
-    header.app-header a:hover{background:rgba(255,255,255,.12);}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
     main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
     .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem;}
     .kpi-card{background:#fff;border-radius:8px;padding:.8rem 1.1rem;flex:1;min-width:160px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
@@ -85,6 +85,7 @@
 
   <header class="app-header">
     <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
         <h1>Risk Index Tool</h1>
@@ -94,7 +95,10 @@
         <span class="badge">MVP &middot; Phase 1</span>
         <a href="#" id="methods-link">Methods</a>
         <a href="index.html">Home</a>
-        <a href="reference-hub.html">Reference hub</a>
+        <a href="criticality-index.html">Criticality Index</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="climate-data.html">Climate Data</a>
+        <a href="tahoe-precip-events.html">Storm Events</a>
       </div>
     </div>
   </header>

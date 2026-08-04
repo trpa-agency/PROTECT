@@ -84,6 +84,16 @@
 
     .hdr-r { display: flex; align-items: center; gap: 18px; }
 
+    .hdr-nav { display: flex; align-items: center; gap: 14px; }
+    .hdr-nav a {
+      font-size: 10px; font-weight: 700;
+      color: var(--ice);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .hdr-nav a:hover { color: #ffffff; }
+
     .live-badge {
       display: flex; align-items: center; gap: 6px;
       font-size: 10px; font-weight: 700;
@@ -508,6 +518,11 @@
     </div>
   </div>
   <div class="hdr-r">
+    <nav class="hdr-nav">
+      <a href="index.html">Home</a>
+      <a href="risk-index-tool.html">Risk Index Tool</a>
+      <a href="reference-hub.html">Reference Hub</a>
+    </nav>
     <span id="feat-count">Loading&hellip;</span>
     <div class="live-badge"><div class="live-dot"></div>Live</div>
   </div>

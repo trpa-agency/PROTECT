@@ -22,6 +22,8 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
     header.app-header{background:var(--trpa-navy);color:#fff;}
     .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:52px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
     .header-text .agency{color:var(--trpa-ice);font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
     .header-text h1{font-size:1.45rem;font-weight:700;color:#fff;line-height:1.25;}
@@ -90,6 +92,7 @@
 
   <header class="app-header">
     <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
         <h1>PROTECT Risk Index and Resilience Tool</h1>
