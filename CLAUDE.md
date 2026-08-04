@@ -55,8 +55,7 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   **Hazards** services, and a **WEPP** erosion/sediment service (post-fire; feeds debris-flow/flood exposure).
 - **Needed (not created):** Landslide, Debris Flow, Earthquake, Wind, Winter Storm hazard layers;
   asset-condition (Caltrans/NDOT request).
-- **External (non-TRPA):** FEMA NRI, HIFLD, Cal-Adapt, Climate Engine, USGS StreamStats, RAMMS
-  (sole-source). Competitive commercial data vendors (mobility, fire, flood, climate, geohazard, asset
+- **External (non-TRPA):** FEMA NRI, HIFLD, Cal-Adapt, Climate Engine, USGS StreamStats. Competitive commercial data vendors (mobility, fire, flood, climate, geohazard, asset
   condition, multi-peril cat) are NOT named on the public pages - the researched landscape + outreach
   candidates live in `data/vendors.csv` (gitignored) and the project memory (`reference_data_vendors`).
   Keep only open-source / public / sole-source tools in the HTML; do not enumerate commercial vendor
@@ -113,8 +112,8 @@ PROTECT/
   `window.Plotly` / `window.agGrid` end up undefined and the map fails). Pages without ArcGIS (the hub,
   the inventory) are unaffected.
 - **`html/reference-hub.html` and `Hazard_Asset_Pairs.md` mirror the pair list.** When pairs change, update
-  the grid's `pairs` array in the HTML and the markdown table. The 33-element data inventory (32 from
-  the workbook + WEPP) lives in the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.
+  the grid's `pairs` array in the HTML and the markdown table. The 32-element data inventory lives in
+  the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.
 - **Punctuation**: no em-dashes (use a hyphen or colon), following the Reporting house style.
 - **No staff names** in committed files. Neutral attribution ("the analyst", "the agency"); naming
   the orgs ("TRPA", "ICF") is fine.

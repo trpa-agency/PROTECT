@@ -1,4 +1,4 @@
-# PROTECT: Hazard x Asset Pairs & Risk Index (v0.6)
+# PROTECT: Hazard x Asset Pairs & Risk Index (v0.7)
 
 **Task 3.3 Interactive Risk Index Mapping Tool** (PROTECT Plan, Task 3 Resilience Improvement Plan)
 
@@ -9,6 +9,12 @@ version (with the data and model inventory and full framework) is the
 Sources: 6/25/2026 VA discussion deck (decided pairs, three-step approach), 5/20/2026 ICF/TRPA VA
 deck (sensitivity & criticality approach), `PROTECT_RiskIndexTool_Scoping_v0.1.docx`.
 
+> v0.7 (Aug. 4, 2026) revises the 6/25 decision on three points: every flooding pair is now scored
+> in the VA (FL-AT and FL-TC move in from TRIP discussion), avalanche on bridges moves out of the VA
+> to TRIP discussion, and the marina pair (WF-M) is dropped, retiring marinas as an asset class.
+> Counts go from 14 in the VA and 9 TRIP-discussion to **15 in the VA and 7 TRIP-discussion**, plus
+> the 4 proposed pairs.
+>
 > v0.6 (Aug. 3, 2026) adds four **proposed** pairs for Steering Committee review: seiche and high
 > lake level against roads and active transport. Seiche resolves an existing inconsistency (tracked
 > as data and rated in the sensitivity matrix, but with no pair). Shallow groundwater is handled as a
@@ -33,7 +39,7 @@ Adopted at the 6/25 VA discussion, building on FHWA VAST guidance:
    [`html/criticality-index.html`](html/criticality-index.html) (18,253 segments, adjustable weights);
    bridges and culverts inherit their segment's score.
 2. **System-wide, indicator-based screening** - *Where are the greatest vulnerabilities?* Scope:
-   the 14 Include-in-VA pairs below. Score exposure and sensitivity per asset (0-3), then:
+   the 15 Include-in-VA pairs below. Score exposure and sensitivity per asset (0-3), then:
    **Vulnerability Rating = (Exposure + Sensitivity) x Criticality**, bucketed High / Medium / Low,
    delivered on an interactive map.
 3. **Scenario-based disruption analyses** - *How does the system react to an event? Where are the
@@ -45,7 +51,7 @@ Adopted at the 6/25 VA discussion, building on FHWA VAST guidance:
 Network redundancy and adaptive-capacity questions are handled in step 3, not as a separate
 sub-index.
 
-## 2. Hazard x Asset pairs (6/25 decided: 14 in the VA, 9 TRIP-discussion; plus 4 proposed)
+## 2. Hazard x Asset pairs (15 in the VA, 7 TRIP-discussion; plus 4 proposed)
 
 Impact: **PC** = physical damage + cascading operational disruption; **OP** = operational only.
 Status: **Include in VA** = scored in the risk-based vulnerability assessment;
@@ -54,30 +60,29 @@ Resilience Improvement Plan instead; **Proposed** = added after the 6/25 decisio
 
 | ID | Hazard | Asset | Impact | Status | Exposure inputs | Sensitivity indicators | Notes |
 |----|--------|-------|--------|--------|-----------------|------------------------|-------|
-| AV-R | Avalanche | Roads | OP | Include in VA | SNODAS / Topofire SWE; OpenTopography LiDAR + RAMMS runout | Road elevation (no unique sensitivity) | Initial focus: Hwy 89, 207, 431; confirm scope with NDOT/Caltrans |
-| AV-B | Avalanche | Bridges | PC | Include in VA | | | |
-| DF-B | Debris Flow | Bridges | PC | Include in VA | | | Added at the 6/25 VA review |
-| DF-C | Debris Flow | Culverts | PC | Include in VA | Post-fire debris flow (HEC-HMS); CA Pyregence; precip (Cal-Adapt) | Culvert condition, capacity, scour | Split from landslide per 5/20; post-fire compounding required per ICF; WildCat modeling planned |
-| DF-R | Debris Flow | Roads | PC | Include in VA | Post-fire debris flow (HEC-HMS); LiDAR runout; precip | Pavement condition, road elevation | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
-| FL-B | Flooding | Bridges | PC | Include in VA | HEC-RAS bridge scour; USGS StreamStats; FEMA floodplains | Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy | Bridge condition and scour criticality from the FHWA National Bridge Inventory |
-| FL-C | Flooding | Culverts | PC | Include in VA | USGS StreamStats (peak discharge); NOAA Atlas 14; FEMA floodplains; HEC-RAS scour; lake stage as tailwater at shoreline outlets | Culvert condition, scour, capacity, age, channel condition | TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall |
-| FL-R | Flooding | Roads | PC | Include in VA | FEMA floodplains; USGS StreamStats; HEC-RAS; road elevation vs. inundation | Pavement condition, foundation / permeable sub-base, elevation, age | Lowland and valley segments most exposed |
+| AV-R | Avalanche | Roads | OP | Include in VA | Slope proxy / local knowledge | Road elevation (no unique sensitivity) | Initial focus: Hwy 50, 89, 28, 207, 431; confirm scope with NDOT/Caltrans |
+| AV-B | Avalanche | Bridges | PC | TRIP discussion | | | Moved out of the VA after 6/25: not being scored, impacts covered in the plan |
+| DF-B | Debris Flow | Bridges | PC | Include in VA | Contracted predicted soil burn severity; post-fire debris flow UofI model | Scour criticality, bridge elevation | Added at the 6/25 VA review |
+| DF-C | Debris Flow | Culverts | PC | Include in VA | Contracted predicted soil burn severity; post-fire debris flow UofI model | Culvert condition, capacity, scour | Split from landslide per 5/20; post-fire compounding required per ICF; WildCat modeling planned |
+| DF-R | Debris Flow | Roads | PC | Include in VA | Contracted predicted soil burn severity; post-fire debris flow UofI model | Pavement condition, road elevation | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
+| FL-B | Flooding | Bridges | PC | Include in VA | Contracted flood model (~10 m depths, 8 return periods); FEMA floodplains | Bridge condition, deck rating/type, scour criticality, elevation, channel & water-opening adequacy | Bridge condition and scour criticality from the FHWA National Bridge Inventory |
+| FL-C | Flooding | Culverts | PC | Include in VA | Contracted flood model (~10 m depths, 8 return periods); FEMA floodplains | Culvert condition, scour, capacity, age, channel condition | TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall |
+| FL-R | Flooding | Roads | PC | Include in VA | Contracted flood model (~10 m depths, 8 return periods); FEMA floodplains | Pavement condition, foundation / permeable sub-base, elevation, age | Lowland and valley segments most exposed |
+| FL-AT | Flooding | Active Transport | PC | Include in VA | Contracted flood model (~10 m depths, 8 return periods); FEMA floodplains | Elevation above inundation, paved vs. unpaved, trail slope | Moved into the VA after 6/25: all flooding pairs are scored |
+| FL-TC | Flooding | Transit Centers | PC | Include in VA | Contracted flood model (~10 m depths, 8 return periods); FEMA floodplains | Site elevation above inundation | Added at the 6/25 VA review; moved into the VA so all flooding pairs are scored |
 | LS-B | Landslide | Bridges | PC | Include in VA | | | |
-| LS-C | Landslide | Culverts | PC | Include in VA | USGS Landslide Susceptibility; CA Geological Survey; post-fire debris-flow | Culvert condition, capacity, scour | Post-fire compounding required per ICF |
-| LS-R | Landslide | Roads | PC | Include in VA | USGS Landslide Susceptibility; CA Geological Survey; LiDAR + RAMMS runout | Pavement condition, road elevation | Runout extents via RAMMS or r.avaflow |
-| WF-AT | Wildfire | Active Transport | PC | Include in VA | | Paved vs. unpaved, trail slope | |
-| WF-R | Wildfire | Roads | PC | Include in VA | Wildfire Risk to Communities; CA Pyregence; fire-weather index (Cal-Adapt); commercial fire modeling | No unique sensitivity indicators | Fire-modeling procurement is the critical-path dependency |
-| WF-TC | Wildfire | Transit Centers | PC | Include in VA | | | |
+| LS-C | Landslide | Culverts | PC | Include in VA | USGS Landslide Susceptibility; CA Geological Survey | Culvert condition, capacity, scour | Post-fire compounding required per ICF |
+| LS-R | Landslide | Roads | PC | Include in VA | USGS Landslide Susceptibility; CA Geological Survey | Pavement condition, road elevation | Scored on susceptibility; runout modeling is not being pursued |
+| WF-AT | Wildfire | Active Transport | PC | Include in VA | Contracted wildfire risk | Paved vs. unpaved, trail slope | |
+| WF-R | Wildfire | Roads | PC | Include in VA | Contracted wildfire risk | Suppression difficulty (harder suppression means longer closure) | Fire modeling is procured: burn probability, flame length, intensity classes, ember load, fire pathways, and firesheds. Delivery pending |
+| WF-TC | Wildfire | Transit Centers | PC | Include in VA | Contracted wildfire risk | | |
 | EQ-B | Earthquake | Bridges | PC | TRIP discussion | USGS Seismic Hazard Maps; ComCat; ShakeMaps | Seismic retrofit status, bridge condition, age | |
-| EQ-R | Earthquake | Roads | PC | TRIP discussion | | | |
-| FL-AT | Flooding | Active Transport | PC | TRIP discussion | | | |
-| FL-TC | Flooding | Transit Centers | PC | TRIP discussion | | | Added at the 6/25 VA review |
-| WF-M | Wildfire | Marinas | PC | TRIP discussion | | | |
+| EQ-R | Earthquake | Roads | PC | TRIP discussion | USGS Seismic Hazard Maps; ComCat; ShakeMaps | | |
 | WD-R | Wind | Roads | OP | TRIP discussion | gridMET wind (Climate Engine); ASCE 7 | Operational: tree blow-down, power-line breaks | |
 | WS-AT | Winter Storm | Active Transport | OP | TRIP discussion | | | |
 | WS-R | Winter Storm | Roads | OP | TRIP discussion | SNODAS SWE; Cal-Adapt snow projections; NRI Winter Storm | Operational: extended closure, plow-depot overrun, ITS power loss | |
 | WS-TC | Winter Storm | Transit Centers | OP | TRIP discussion | | | |
-| SE-R | Seiche | Roads | PC | **Proposed** | TRPA bathymetry + wind models; USGS seismic | Road elevation above lake stage, shoreline armoring, pavement foundation | Shoreline routes: Hwy 28 and US-50 East Shore |
+| SE-R | Seiche | Roads | PC | **Proposed** | TRPA bathymetry + wind models; USGS seismic (seismically triggered seiche) | Road elevation above lake stage, shoreline armoring, pavement foundation | Shoreline routes: Hwy 28 and US-50 East Shore |
 | SE-AT | Seiche | Active Transport | PC | **Proposed** | TRPA bathymetry + wind models | Elevation above lake stage, paved vs. unpaved | East Shore Trail and shoreline bike paths |
 | LL-R | High Lake Level | Roads | PC | **Proposed** | TRPA Lake Tahoe at High Water (live); lake stage exceedance frequency | Road elevation, pavement foundation, depth to groundwater | Data live today; lake stage is regulated, so exceedance frequency is tractable |
 | LL-AT | High Lake Level | Active Transport | PC | **Proposed** | TRPA Lake Tahoe at High Water (live) | Elevation above lake stage | Shoreline paths inundate at sustained high stand |
@@ -87,6 +92,10 @@ already tracked as a data element and rated in the asset and vulnerability matri
 which is the inconsistency these entries resolve. High lake level also acts as **tailwater at
 shoreline culvert outlets**, reducing capacity independent of rainfall; that is carried as an
 exposure input on FL-C rather than a separate culvert pair.
+
+**Marinas are retired as an asset class.** The wildfire-marina pair (WF-M) was the only pair that
+used them, and it is dropped. Marinas are privately owned, which made both criticality scoring and
+an agency response pathway awkward, and no other pair depended on the class.
 
 **Shallow groundwater is deliberately not a hazard.** It is a persistent site condition with no
 event frequency, so it enters as a *sensitivity* attribute (depth to groundwater on roads and
@@ -126,7 +135,7 @@ EAD/EAL).
 
 ## 6. Data inventory
 
-37 data elements, each mapped to the assessment step it feeds (Step 1 Criticality, Step 2 Exposure,
+32 data elements, each mapped to the assessment step it feeds (Step 1 Criticality, Step 2 Exposure,
 Step 2 Sensitivity, Step 3 Disruption, or Context / TRIP for elements that support the plan or Task
 3.4 rather than the scoring), plus the model/tool inventory, are catalogued in the **Data and Model
 Inventory** tab of the [reference hub](html/reference-hub.html) (the source of record) and
