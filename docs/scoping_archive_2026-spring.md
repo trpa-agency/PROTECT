@@ -14,7 +14,6 @@ meeting), and the Criticality Index app (segment criticality scoring, which sett
 | Active Transport | Maybe a network analysis or just expense of replacement? | | |
 | Bridges | From road segment values | Age or National Bridge Inventory data | |
 | Culverts | Get criticality from Road criticality of section they are on | Possibly county or transportation department condition information | |
-| Marinas | Size? This could be weird since they are privately owned | | |
 | Roads | Traffic counts, RA2CE detour and impact of disruption analysis | DOT road condition information? | This is going to be the hard one |
 | Transit Centers | Size/Number of passengers served | | |
 
@@ -27,7 +26,6 @@ compiled six-jurisdiction culvert layer (`outputs/culverts.gdb`, 7,858 assets).
 
 | Hazard | Data source | TRPA status | Link | Details |
 |---|---|---|---|---|
-| Avalanche | RAMMS::Avalanche | Need to buy | | |
 | Fire | Wildfire Exposure | Have | Forest_Health_Composition_Age/MapServer | Wildfire Risk to Communities; CA Pyregence; CA Forest Observatory |
 | Fire | Completed forest thinning | Have | TFFT | Use this to adjust wildfire risk |
 | Fire | Fire Behavior Modeling | Purchase | Commercial vendors (RFP) | |
@@ -43,5 +41,9 @@ compiled six-jurisdiction culvert layer (`outputs/culverts.gdb`, 7,858 assets).
 Resolution notes (Aug. 2026): the open questions here were superseded by the Exposure Datasets
 evaluation (4/30 ICF data meeting) on the hub, which names a primary dataset per hazard and flags
 availability. WEPP is confirmed in use (post-fire erosion / sediment chain on the Storm Events
-page); SNODAS / SWE went to the avalanche exposure approach; RAMMS remains a sole-source purchase
-candidate for runout zones.
+page); SNODAS / SWE went to the avalanche exposure approach. Runout modeling was dropped from scope
+in Aug. 2026, so no runout model or terrain data is being purchased.
+
+Marinas were retired as an asset class in Aug. 2026 along with the wildfire-marina pair, and the
+avalanche runout-model row was removed here when runout went out of scope; both were struck from
+this archive rather than left as stale entries.
