@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Criticality by Hazard &middot; PROTECT</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css"/>
+  <script src="https://js.arcgis.com/4.30/"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─────────────────────────────────────────────
+       TRPA BRAND TOKENS
+    ───────────────────────────────────────────── */
+    :root {
+      --navy:       #003B71;
+      --blue:       #0072CE;
+      --blue-lt:    #2f92e0;
+      --ice:        #B4CBE8;
+
+      --hz-flood:   #0072CE;
+      --hz-fire:    #B03A1A;
+      --hz-slide:   #7A5C2E;
+
+      --bg:         #f4f6f9;
+      --panel:      #ffffff;
+      --panel-dk:   #eef1f6;
+      --border:     #d0d8e4;
+      --border-lt:  #e4eaf2;
+
+      --text:       #003B71;
+      --text-mid:   #3a5278;
+      --text-dim:   #7a90aa;
+
+      --font-display: 'Open Sans', 'Segoe UI', sans-serif;
+      --font-body:    'Open Sans', 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ───────────────────────────────── */
+    .app-header {
+      background: var(--navy);
+      height: 56px;
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .hdr-l { display: flex; align-items: center; gap: 14px; }
+    .hdr-logo { height: 38px; flex-shrink: 0; display: flex; align-items: center; }
+    .hdr-logo img { height: 38px; width: auto; display: block; }
+
+    .hdr-title {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #ffffff;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+    .hdr-sub {
+      font-size: 10px; font-weight: 400;
+      color: var(--ice);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hdr-r { display: flex; align-items: center; gap: 16px; }
+    #feat-count {
+      font-size: 11px; font-weight: 400;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.04em;
+    }
+    .hdr-btn {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      background: transparent;
+      border: 1.5px solid rgba(180,203,232,0.5);
+      color: var(--ice);
+      border-radius: 5px; padding: 7px 12px;
+      cursor: pointer; transition: all .18s;
+    }
+    .hdr-btn:hover:not(:disabled) { background: rgba(180,203,232,0.15); border-color: var(--ice); color: #fff; }
+    .hdr-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* ── MAP ── */
+    .main-area { flex: 1; position: relative; overflow: hidden; }
+    #viewDiv { width: 100%; height: 100%; }
+
+    /* ── HAZARD CHIP BAR ── */
+    .chip-wrap {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 50;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      width: 620px; max-width: calc(100% - 32px);
+      box-shadow: 0 2px 14px rgba(0,59,113,0.16);
+    }
+    .chip-row { display: flex; align-items: center; gap: 6px; }
+    .chip-lbl {
+      font-family: var(--font-display);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      padding: 0 8px 0 2px;
+      border-right: 1px solid var(--border);
+      margin-right: 2px;
+      white-space: nowrap;
+    }
+    .chip {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-mid);
+      border-radius: 6px;
+      padding: 9px 8px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      white-space: nowrap;
+    }
+    .chip:hover { border-color: var(--hz-color, var(--navy)); color: var(--hz-color, var(--navy)); background: var(--panel-dk); }
+    .chip.active {
+      color: #fff;
+      border-color: var(--hz-color, var(--navy));
+      background: var(--hz-color, var(--navy));
+    }
+    .chip-swatch { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; background: var(--hz-color, var(--text-dim)); }
+    .chip.active .chip-swatch { background: rgba(255,255,255,0.85); }
+    .chip-n {
+      font-size: 10px; font-weight: 600;
+      opacity: .7; letter-spacing: 0;
+    }
+
+    /* ── threshold slider row ── */
+    .thresh-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 9px; padding-top: 9px;
+      border-top: 1px solid var(--border-lt);
+    }
+    .thresh-row.hidden { display: none; }
+    .thresh-lbl {
+      font-family: var(--font-display);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .thresh-val {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700;
+      color: var(--hz-slide);
+      width: 28px; text-align: right; flex-shrink: 0;
+    }
+    .thresh-hint {
+      font-size: 10px; color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--hz-slide);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(122,92,46,0.45);
+      cursor: pointer; transition: transform .1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    /* ── STATUS READOUT ── */
+    .status-bar {
+      position: absolute; top: 14px; left: 16px;
+      z-index: 50;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--hz-color, var(--navy));
+      border-radius: 6px;
+      padding: 10px 14px; width: 210px;
+      box-shadow: 0 2px 12px rgba(0,59,113,0.12);
+    }
+    .status-lbl {
+      font-family: var(--font-display);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase; margin-bottom: 5px;
+    }
+    .status-big {
+      font-family: var(--font-display);
+      font-size: 24px; font-weight: 700;
+      color: var(--navy); line-height: 1.1;
+    }
+    .status-sub {
+      font-size: 10px; color: var(--text-dim);
+      margin-top: 3px; line-height: 1.45;
+    }
+    .status-mean {
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid var(--border-lt);
+      font-size: 10px; color: var(--text-dim);
+    }
+    .status-mean strong {
+      font-family: var(--font-display);
+      font-size: 13px; color: var(--navy); font-weight: 700;
+    }
+
+    /* ── LEGEND ── */
+    .map-legend {
+      position: absolute; bottom: 20px; right: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px; width: 230px; z-index: 50;
+      box-shadow: 0 2px 12px rgba(0,59,113,0.12);
+    }
+    .legend-title {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--navy);
+      text-transform: uppercase;
+      margin-bottom: 9px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .legend-title::before {
+      content: '';
+      width: 14px; height: 3px;
+      background: linear-gradient(90deg,#2c7bb6,#d7191c);
+      border-radius: 2px; flex-shrink: 0;
+    }
+    .cbar {
+      height: 10px; border-radius: 3px; margin-bottom: 5px;
+      background: linear-gradient(to right, #2c7bb6 0%, #ffffbf 50%, #d7191c 100%);
+    }
+    .cbar-labels {
+      display: flex; justify-content: space-between;
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim); letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .legend-note {
+      margin-top: 9px; padding-top: 9px;
+      border-top: 1px solid var(--border-lt);
+      font-size: 10px; color: var(--text-dim); line-height: 1.5;
+    }
+
+    /* ── LOADING ── */
+    .loading-overlay {
+      position: absolute; inset: 0;
+      background: rgba(244,246,249,0.92);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px; z-index: 200;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────── -->
+<div class="app-header">
+  <div class="hdr-l">
+    <a class="hdr-logo" href="https://www.trpa.gov" target="_blank" rel="noopener">
+      <img src="trpa-logo-color.png" alt="TRPA"/>
+    </a>
+    <div class="hdr-titles">
+      <div class="hdr-title">Criticality by Hazard</div>
+      <div class="hdr-sub">PROTECT &middot; Equal-Weight Criticality Index</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <span id="feat-count">Loading&hellip;</span>
+    <button class="hdr-btn" id="exportBtn" disabled>&#8681; Export CSV</button>
+  </div>
+</div>
+
+<!-- ── MAP ─────────────────────────────────────────────── -->
+<div class="main-area">
+  <div id="viewDiv"></div>
+
+  <!-- Hazard chips + threshold slider -->
+  <div class="chip-wrap">
+    <div class="chip-row">
+      <span class="chip-lbl">Hazard</span>
+      <button class="chip active" data-haz="none" style="--hz-color: var(--navy)">
+        <span class="chip-swatch"></span>All <span class="chip-n" id="n-none"></span>
+      </button>
+      <button class="chip" data-haz="flood" style="--hz-color: var(--hz-flood)">
+        <span class="chip-swatch"></span>Flood <span class="chip-n" id="n-flood"></span>
+      </button>
+      <button class="chip" data-haz="fire" style="--hz-color: var(--hz-fire)">
+        <span class="chip-swatch"></span>Fire <span class="chip-n" id="n-fire"></span>
+      </button>
+      <button class="chip" data-haz="landslide" style="--hz-color: var(--hz-slide)">
+        <span class="chip-swatch"></span>Landslide <span class="chip-n" id="n-landslide"></span>
+      </button>
+    </div>
+
+    <div class="thresh-row hidden" id="thresh-row">
+      <span class="thresh-lbl">Landslide mean &ge;</span>
+      <span class="thresh-val" id="thresh-val">22</span>
+      <input type="range" id="thresh-slider" min="0" max="81" step="1" value="22">
+      <span class="thresh-hint">0 &ndash; 81 &middot; median 3 &middot; p75 22</span>
+    </div>
+  </div>
+
+  <!-- Status readout -->
+  <div class="status-bar" id="status-bar" style="--hz-color: var(--navy)">
+    <div class="status-lbl" id="status-lbl">All Segments</div>
+    <div class="status-big" id="status-big">&mdash;</div>
+    <div class="status-sub" id="status-sub">of the Tahoe street network</div>
+    <div class="status-mean" id="status-mean"></div>
+  </div>
+
+  <div class="map-legend">
+    <div class="legend-title">Criticality Score</div>
+    <div class="cbar"></div>
+    <div class="cbar-labels"><span>Low</span><span>Mean</span><span>High</span></div>
+    <div class="legend-note">Equal weights: Equity, Traffic, and Detour Length contribute one third each. Scores are z-scored across the full network, so colors stay comparable when a hazard filter is on.</div>
+  </div>
+
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-msg">Loading street segments&hellip;</div>
+  </div>
+</div>
+
+<script>
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, CustomContent) => {
+
+  // ═══════════════════════════════════════════════════════
+  //  BAKED-IN CRITICALITY INDEX
+  //  Three subindices at 1/3 each; variables equally weighted
+  //  within each subindex. Every variable is z-scored across the
+  //  full network before weighting. No user-facing weight controls.
+  // ═══════════════════════════════════════════════════════
+  const SUBINDEX_DEFS = [
+    {
+      key: "equity", label: "Equity", color: "#0072CE",
+      vars: [
+        { field: "Below_Poverty_Household_max",         label: "Households Below Poverty" },
+        { field: "Speak_English_Not_Well_Not_at_A_max", label: "Limited English Proficiency" },
+        { field: "Vehicle_Available_0_max",             label: "Zero-Vehicle Households" },
+        { field: "With_Disability_max",                 label: "Population with a Disability" }
+      ]
+    },
+    {
+      key: "traffic", label: "Traffic", color: "#E87722",
+      vars: [ { field: "AADT_Jenks_Score", label: "AADT Jenks Score (1-10)" } ]
+    },
+    {
+      key: "detour", label: "Detour Length", color: "#007681",
+      vars: [ { field: "SLR_Diff_Length_Jenks_Score", label: "SLR Detour Length Jenks (1-10)" } ]
+    }
+  ];
+
+  // Equal weights, derived rather than typed so they always sum to 1.
+  const SUB_WEIGHT = 1 / SUBINDEX_DEFS.length;
+  const varWeight  = si => 1 / si.vars.length;
+
+  const LAYER_URL     = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0";
+  const HAZARD_FIELDS = ["in_flood_zone", "high_sev_fire", "landslide_mean"];
+  const ID_FIELDS     = ["OBJECTID", "segment_id", "name", "class",
+                         "Estimated_2024_AADT_Filled", "slr_diff_length_max", ...HAZARD_FIELDS];
+
+  // ═══════════════════════════════════════════════════════
+  //  HAZARD FILTERS (one at a time)
+  //  Flood and fire are 0/1 flags. landslide_mean is continuous
+  //  (0-81), so it filters on a user-set threshold.
+  // ═══════════════════════════════════════════════════════
+  const HAZARDS = {
+    none:      { label: "All Segments", sub: "of the Tahoe street network", color: "var(--navy)" },
+    flood:     { label: "Flood Zone", sub: "segments in a FEMA flood zone", color: "var(--hz-flood)",
+                 where: () => "in_flood_zone = 1",
+                 test:  a => a.in_flood_zone === 1 },
+    fire:      { label: "High-Severity Fire", sub: "segments in a high-severity fire area", color: "var(--hz-fire)",
+                 where: () => "high_sev_fire = 1",
+                 test:  a => a.high_sev_fire === 1 },
+    landslide: { label: "Landslide", sub: "segments above the landslide threshold", color: "var(--hz-slide)",
+                 where: () => `landslide_mean >= ${landslideThreshold}`,
+                 test:  a => a.landslide_mean != null && a.landslide_mean >= landslideThreshold }
+  };
+
+  // ── State ────────────────────────────────────────────────
+  const rawStats          = {};   // field -> { mean, std }
+  let   allFeatures       = [];
+  let   featureLayer;
+  let   activeHazard      = "none";
+  let   landslideThreshold = 22;  // ~75th percentile of landslide_mean
+
+  const RAMP = { lo: "#2c7bb6", mid: "#ffffbf", hi: "#d7191c" };
+
+  const allVarFields = SUBINDEX_DEFS.flatMap(si => si.vars.map(v => v.field));
+
+  // ═══════════════════════════════════════════════════════
+  //  SCORING
+  // ═══════════════════════════════════════════════════════
+  function computeFieldStats() {
+    allVarFields.forEach(field => {
+      const vals = allFeatures.map(f => f.attributes[field]).filter(v => v != null && !isNaN(v));
+      if (!vals.length) { rawStats[field] = { mean: 0, std: 1 }; return; }
+      const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const std  = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length) || 1;
+      rawStats[field] = { mean, std };
+    });
+  }
+
+  function zScore(field, raw) {
+    const st = rawStats[field] || { mean: 0, std: 1 };
+    const v  = (raw != null && !isNaN(raw)) ? raw : st.mean;
+    return (v - st.mean) / st.std;
+  }
+
+  function subScore(si, attrs) {
+    return si.vars.reduce((s, v) => s + zScore(v.field, attrs[v.field]) * varWeight(si), 0);
+  }
+
+  function calcCriticality(attrs) {
+    return SUBINDEX_DEFS.reduce((s, si) => s + subScore(si, attrs) * SUB_WEIGHT, 0);
+  }
+
+  // Ramp stops come from the full network so a segment keeps the
+  // same color no matter which hazard filter is active.
+  function networkStats() {
+    const scores = allFeatures.map(f => calcCriticality(f.attributes));
+    const n    = scores.length || 1;
+    const mean = scores.reduce((a, b) => a + b, 0) / n;
+    const std  = Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / n) || 1;
+    return { mean, std };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  ARCADE
+  // ═══════════════════════════════════════════════════════
+  function buildCriticalityArcade() {
+    const lines = [];
+    SUBINDEX_DEFS.forEach(si => {
+      const terms = si.vars.map(v => {
+        const st = rawStats[v.field] || { mean: 0, std: 1 };
+        const z  = `((IIf(IsEmpty($feature.${v.field}), ${st.mean}, $feature.${v.field}) - ${st.mean}) / ${st.std})`;
+        return `(${z} * ${varWeight(si).toFixed(6)})`;
+      });
+      lines.push(`var si_${si.key} = ${terms.join(" + ")};`);
+    });
+    lines.push(`return ${SUBINDEX_DEFS.map(si => `(si_${si.key} * ${SUB_WEIGHT.toFixed(6)})`).join(" + ")};`);
+    return lines.join("\n");
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  POPUP
+  // ═══════════════════════════════════════════════════════
+  function buildPopupHTML(attrs) {
+    const style      = `font-family:'Open Sans','Segoe UI',sans-serif;font-size:12px;color:#003B71;line-height:1.6;`;
+    const hrStyle    = `border:none;border-top:1px solid #d0d8e4;margin:6px 0;`;
+    const scoreStyle = `font-size:15px;font-weight:700;color:#0072CE;`;
+    const varStyle   = `color:#3a5278;padding-left:10px;`;
+    const zStyle     = `color:#7a90aa;font-size:11px;`;
+    const metaStyle  = `color:#7a90aa;font-size:11px;margin-bottom:6px;`;
+
+    let html = `<div style="${style}">`;
+    html += `<div style="${metaStyle}">${attrs.class || "segment"} &middot; segment ${attrs.segment_id || attrs.OBJECTID}</div>`;
+
+    const flags = [];
+    if (attrs.in_flood_zone === 1) flags.push(`<span style="color:#0072CE;font-weight:700;">Flood zone</span>`);
+    if (attrs.high_sev_fire === 1) flags.push(`<span style="color:#B03A1A;font-weight:700;">High-severity fire</span>`);
+    if (attrs.landslide_mean != null)
+      flags.push(`<span style="color:#7A5C2E;">Landslide mean ${Number(attrs.landslide_mean).toFixed(0)}</span>`);
+    if (flags.length) html += `<div style="${metaStyle}">Hazards: ${flags.join(" &middot; ")}</div>`;
+
+    html += `<div>Criticality Score: <span style="${scoreStyle}">${calcCriticality(attrs).toFixed(3)}</span></div>`;
+    html += `<hr style="${hrStyle}">`;
+    SUBINDEX_DEFS.forEach(si => {
+      html += `<div style="font-weight:700;color:${si.color};">${si.label} `
+           +  `<span style="font-weight:400;font-size:11px;color:#7a90aa;">(wt=${SUB_WEIGHT.toFixed(2)})</span>: `
+           +  `${subScore(si, attrs).toFixed(3)}</div>`;
+      si.vars.forEach(v => {
+        const raw = attrs[v.field] != null ? Number(attrs[v.field]).toFixed(2) : "N/A";
+        html += `<div style="${varStyle}">${v.label}: ${raw} `
+             +  `<span style="${zStyle}">(z=${zScore(v.field, attrs[v.field]).toFixed(2)})</span></div>`;
+      });
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  RENDERER
+  // ═══════════════════════════════════════════════════════
+  function drawMap() {
+    if (!featureLayer || !Object.keys(rawStats).length) return;
+    const st     = networkStats();
+    const lo     = st.mean - 1.8 * st.std;
+    const hi     = st.mean + 1.8 * st.std;
+    const arcade = buildCriticalityArcade();
+
+    featureLayer.renderer = {
+      type: "simple",
+      // Uniform line weight: score is encoded by color only.
+      symbol: { type: "simple-line", width: 2, cap: "round", join: "round" },
+      visualVariables: [{
+        type: "color",
+        valueExpression: arcade,
+        stops: [
+          { value: lo,             color: RAMP.lo  },
+          { value: (lo + hi) / 2,  color: RAMP.mid },
+          { value: hi,             color: RAMP.hi  }
+        ]
+      }]
+    };
+
+    featureLayer.popupTemplate = {
+      title: "{name}",
+      content: [new CustomContent({
+        outFields: ["*"],
+        creator: (event) => {
+          const div = document.createElement("div");
+          div.innerHTML = buildPopupHTML(event.graphic.attributes);
+          return div;
+        }
+      })],
+      actions: []
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  HAZARD FILTER
+  // ═══════════════════════════════════════════════════════
+  function featuresFor(key) {
+    const hz = HAZARDS[key];
+    return hz && hz.test ? allFeatures.filter(f => hz.test(f.attributes)) : allFeatures;
+  }
+
+  function applyHazardFilter() {
+    const hz = HAZARDS[activeHazard];
+
+    if (featureLayer) {
+      featureLayer.definitionExpression = hz.where ? `${WHERE} AND ${hz.where()}` : WHERE;
+    }
+
+    document.getElementById("thresh-row").classList.toggle("hidden", activeHazard !== "landslide");
+    document.getElementById("thresh-val").textContent = landslideThreshold;
+
+    if (!allFeatures.length) return;
+
+    // Chip counts
+    Object.keys(HAZARDS).forEach(k => {
+      const el = document.getElementById(`n-${k}`);
+      if (el) el.textContent = featuresFor(k).length.toLocaleString();
+    });
+
+    // Status readout
+    const shown = featuresFor(activeHazard);
+    const pct   = (100 * shown.length / allFeatures.length).toFixed(1);
+    const mean  = shown.length
+      ? shown.reduce((s, f) => s + calcCriticality(f.attributes), 0) / shown.length
+      : 0;
+
+    document.getElementById("status-bar").style.setProperty("--hz-color", hz.color);
+    document.getElementById("status-lbl").textContent = hz.label;
+    document.getElementById("status-big").textContent = shown.length.toLocaleString();
+    document.getElementById("status-sub").innerHTML   = activeHazard === "none"
+      ? hz.sub
+      : `${hz.sub} &middot; ${pct}% of the network`;
+    document.getElementById("status-mean").innerHTML  =
+      `Mean criticality <strong>${mean.toFixed(3)}</strong>`
+      + (activeHazard === "none" ? "" : ` <span style="opacity:.8">(network 0.000)</span>`);
+
+    document.getElementById("feat-count").textContent = activeHazard === "none"
+      ? `${allFeatures.length.toLocaleString()} segments`
+      : `${shown.length.toLocaleString()} of ${allFeatures.length.toLocaleString()} segments`;
+  }
+
+  document.querySelectorAll(".chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeHazard = btn.dataset.haz;
+      document.querySelectorAll(".chip").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyHazardFilter();
+    });
+  });
+
+  document.getElementById("thresh-slider").addEventListener("input", e => {
+    landslideThreshold = parseInt(e.target.value, 10);
+    applyHazardFilter();
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  ESRI SETUP
+  // ═══════════════════════════════════════════════════════
+  const OUT_FIELDS = [...ID_FIELDS, ...allVarFields];
+  const WHERE      = allVarFields.map(f => `${f} IS NOT NULL`).join(" AND ");
+
+  featureLayer = new FeatureLayer({
+    url: LAYER_URL,
+    title: "Tahoe Street Network",
+    outFields: OUT_FIELDS,
+    definitionExpression: WHERE
+  });
+
+  const map  = new Map({ basemap: "gray-vector", layers: [featureLayer] });
+  const view = new MapView({
+    container: "viewDiv", map,
+    center: [-120.03, 39.09], zoom: 10,
+    popup: { defaultPopupTemplateEnabled: false }
+  });
+
+  // The service caps a single query at 2,000 records, so page through by OBJECTID.
+  async function loadAllFeatures() {
+    const PAGE = 2000;
+    const out  = [];
+    let start  = 0;
+    while (true) {
+      const res = await featureLayer.queryFeatures({
+        where: WHERE,
+        outFields: OUT_FIELDS,
+        orderByFields: ["OBJECTID ASC"],
+        returnGeometry: false,
+        start, num: PAGE
+      });
+      out.push(...res.features);
+      document.getElementById("loading-msg").textContent =
+        `Loading street segments… ${out.length.toLocaleString()}`;
+      if (res.features.length < PAGE) break;
+      start += PAGE;
+    }
+    return out;
+  }
+
+  loadAllFeatures().then(features => {
+    allFeatures = features;
+    computeFieldStats();
+    drawMap();
+    applyHazardFilter();
+    document.getElementById("exportBtn").disabled = false;
+    document.getElementById("loading").style.display = "none";
+  }).catch(err => {
+    document.getElementById("loading").innerHTML =
+      `<div class="spinner" style="border-top-color:#B03A1A"></div>
+       <div class="loading-text" style="color:#B03A1A">Error: ${err.message}</div>`;
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  CSV EXPORT (matches what the map shows)
+  // ═══════════════════════════════════════════════════════
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    if (!allFeatures.length) return;
+    const rowsIn = featuresFor(activeHazard);
+    const hazTag = activeHazard === "none" ? "none"
+                 : activeHazard === "landslide" ? `landslide_mean>=${landslideThreshold}`
+                 : activeHazard;
+
+    const header = ["OBJECTID","segment_id","name","class", ...HAZARD_FIELDS, "hazard_filter"];
+    allVarFields.forEach(f => header.push(`${f}_raw`));
+    allVarFields.forEach(f => header.push(`${f}_z`));
+    SUBINDEX_DEFS.forEach(si => header.push(`${si.key}_subindex_score`));
+    header.push("criticality_score");
+
+    const q = s => {
+      const t = s == null ? "" : String(s);
+      return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+    };
+
+    const rows = [header.join(",")];
+    rowsIn.forEach(feat => {
+      const a = feat.attributes;
+      const row = [a.OBJECTID, a.segment_id, a.name, a.class,
+                   ...HAZARD_FIELDS.map(f => a[f] != null ? a[f] : ""), hazTag].map(q);
+      allVarFields.forEach(f => row.push(a[f] != null ? a[f] : ""));
+      allVarFields.forEach(f => row.push(zScore(f, a[f]).toFixed(6)));
+      SUBINDEX_DEFS.forEach(si => row.push(subScore(si, a).toFixed(6)));
+      row.push(calcCriticality(a).toFixed(6));
+      rows.push(row.join(","));
+    });
+
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url;
+    a.download = `PROTECT_Criticality_${hazTag.replace(/[^A-Za-z0-9]/g, "")}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+});
+</script>
+</body>
+</html>
