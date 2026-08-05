@@ -121,7 +121,8 @@
       "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/fix_test.py\")",
       "Bash(python \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/patch_nb.py\")",
       "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/test_helper.py\")",
-      "Bash(curl -s -o /dev/null -w \"page:%{http_code}\\\\n\" \"http://localhost:8011/criticality-index-hazards.html\")"
+      "Bash(curl -s -o /dev/null -w \"page:%{http_code}\\\\n\" \"http://localhost:8011/criticality-index-hazards.html\")",
+      "PowerShell(git count-objects -vH)"
     ]
   }
 }
