@@ -74,6 +74,11 @@
     .lg-line{flex:0 0 22px;height:0;border-top-width:2px;border-top-style:solid;}
     .lg-line.boundary{border-top-color:#003B71;border-top-width:3px;}
     .lg-line.juris{border-top-color:#7B6A8A;border-top-style:dashed;}
+    .lg-sw{flex:0 0 22px;height:11px;border-radius:2px;display:inline-block;}
+    .lg-sw.slide{background:rgba(139,90,60,.45);border:1px solid #5c3a26;}
+    .lg-tri{flex:0 0 22px;height:11px;position:relative;display:inline-block;}
+    .lg-tri::after{content:"";position:absolute;left:6px;top:0;width:0;height:0;
+      border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid rgba(139,90,60,.9);}
     .lg-dot{flex:0 0 22px;display:inline-block;height:9px;position:relative;}
     .lg-dot::after{content:"";position:absolute;left:6px;top:0;width:9px;height:9px;border-radius:50%;
       background:rgba(181,166,76,.75);border:1px solid #7a6f2e;}
@@ -130,16 +135,23 @@
 
   <main>
     <p class="lead">
-      The observed fire record for the Lake Tahoe Region, mapped against the TRPA boundary and member
-      jurisdictions. Historical hazards are the ground truth the predictive exposure models are checked
+      The observed hazard record for the Lake Tahoe Region: fire perimeters, mapped landslides, and
+      earthquake epicenters against the TRPA boundary and member jurisdictions. Historical hazards are
+      the ground truth the predictive exposure models are checked
       against.<i class="i" tabindex="0" data-tip="Historical Hazards is a Step 2 Exposure element in the data inventory. Its use is to ground-truth predictive models: a burn-probability or debris-flow surface that disagrees with where fires actually burned is a surface to re-examine before it feeds the vulnerability screening.">i</i>
-      The record is queried live from the CAL FIRE service and clipped to the TRPA boundary polygon.
-      <strong>California only:</strong> fires on the Nevada side of the basin are not in this dataset.<i class="i" tabindex="0" data-tip="CAL FIRE FRAP covers California. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area.">i</i>
+      The fire record is queried live from CAL FIRE and clipped to the TRPA boundary polygon;
+      <strong>it is California only</strong>, so fires on the Nevada side are missing.<i class="i" tabindex="0" data-tip="CAL FIRE FRAP covers California. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area. The landslide and earthquake layers do cover both states.">i</i>
+      The landslide and earthquake layers cover both states.
     </p>
 
     <div class="map-wrap" id="map-wrap">
       <div class="layer-panel" id="layer-panel">
-        <h3>Earthquakes</h3>
+        <h3>Landslides</h3>
+        <label class="lyr"><calcite-switch id="tg-lspoly" class="sw"></calcite-switch> Mapped deposits<i class="i" tabindex="0" data-tip="USGS US Landslide Inventory v3, a compilation of state inventories. Only 2 mapped deposits fall inside the TRPA boundary, both from the Nevada Bureau of Mines and Geology. The 57 CA Geological Survey polygons nearby (Spittler and Wagner 1997) all sit outside the Region.">i</i></label>
+        <label class="lyr"><calcite-switch id="tg-lspoint" class="sw"></calcite-switch> Landslide points<i class="i" tabindex="0" data-tip="Three point records inside the TRPA boundary, used where the source inventory located a slide but did not map its extent.">i</i></label>
+        <div class="note"><strong>Sparse inside the Region:</strong> 2 deposits and 3 points. Mapped features, not dated events, so they do not respond to the year filter. The basin has effectively no systematic landslide inventory.</div>
+
+        <h3 style="margin-top:1rem;">Earthquakes</h3>
         <label class="lyr"><calcite-switch id="tg-eq" class="sw"></calcite-switch> USGS epicenters M2.5+<i class="i" tabindex="0" data-tip="USGS ComCat, magnitude 2.5 and above since 1900, within the basin bounding box. Circles are sized and shaded by magnitude. Earthquake pairs (EQ-B, EQ-R) are TRIP-discussion rather than VA-scored, so this is context for the plan.">i</i></label>
 
         <h3 style="margin-top:1rem;">Fire history</h3>
@@ -165,6 +177,8 @@
           <div class="lg-t">Fire year</div>
           <div class="lg-ramp"></div>
           <div class="lg-scale"><span>1910</span><span>1970</span><span>2025</span></div>
+          <div class="lg-row" id="lg-ls" hidden><span class="lg-sw slide"></span> Landslide deposits</div>
+          <div class="lg-row" id="lg-lspt" hidden><span class="lg-tri"></span> Landslide points</div>
           <div class="lg-row" id="lg-eq" hidden><span class="lg-dot"></span> Earthquake M2.5+ (sized by magnitude)</div>
           <div class="lg-row"><span class="lg-line boundary"></span> TRPA boundary</div>
           <div class="lg-row"><span class="lg-line juris"></span> Jurisdictions</div>
@@ -183,6 +197,8 @@
 
   <footer class="app-footer">
     <p>Historic Hazards v0.1. Fire perimeters: <a href="https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0" target="_blank" rel="noopener">CAL FIRE California Historic Fire Perimeters</a> (FRAP), California only.
+    Landslides: <a href="https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12" target="_blank" rel="noopener">USGS US Landslide Inventory v3</a> (CA Geological Survey and Nevada Bureau of Mines and Geology compilations).
+    Earthquakes: <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noopener">USGS ComCat</a>, M2.5+ since 1900.
     Boundaries: TRPA <code>Boundaries</code> FeatureServer (<code>TRPA Boundary</code> /4, <code>Jurisdictions Combined</code> /10). Internal review draft.</p>
   </footer>
 
@@ -196,6 +212,11 @@
     const EQ_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson" +
       "&starttime=1900-01-01&minmagnitude=2.5" +
       "&minlatitude=38.7&maxlatitude=39.4&minlongitude=-120.3&maxlongitude=-119.8";
+    // USGS US Landslide Inventory v3, a compilation of state inventories. In the basin the
+    // polygons come from the CA Geological Survey and the Nevada Bureau of Mines and Geology.
+    const LS_BASE  = "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services";
+    const LS_POLY_URL  = LS_BASE + "/US_Landslide_poly_v2/FeatureServer/12";
+    const LS_POINT_URL = LS_BASE + "/US_Landslide_point_v2/FeatureServer/11";
 
     // CAL FIRE coded-value domains, decoded for display rather than shown as raw codes.
     const CAUSE = {1:"Lightning",2:"Equipment use",3:"Smoking",4:"Campfire",5:"Debris",6:"Railroad",
@@ -313,7 +334,32 @@
         }
       });
 
-      const map = new Map({ basemap:"gray-vector", layers:[fires, juris, bound, quakes] });
+      // Mapped landslide deposits, not dated events: the inventory carries no usable date range,
+      // so these sit outside the year filter that drives the fire layer.
+      const lsPolyPopup = {
+        title:"Mapped landslide",
+        content:[{type:"fields", fieldInfos:[
+          {fieldName:"LS_Type",    label:"Type"},
+          {fieldName:"Confidence", label:"Confidence (1 low - 3 high)"},
+          {fieldName:"Inventory",  label:"Source inventory"},
+          {fieldName:"Info_Sourc", label:"Reference"},
+          {fieldName:"USGS_ID",    label:"USGS ID"}
+        ]}]
+      };
+      const slidePoly = new FeatureLayer({
+        url: LS_POLY_URL, title:"Landslide deposits", visible:false, opacity:0.75,
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[139,90,60,0.45],
+          outline:{color:[92,58,38,0.95], width:0.7}}},
+        popupTemplate: lsPolyPopup
+      });
+      const slidePoint = new FeatureLayer({
+        url: LS_POINT_URL, title:"Landslide points", visible:false,
+        renderer:{type:"simple", symbol:{type:"simple-marker", style:"triangle", size:8,
+          color:[139,90,60,0.9], outline:{color:[92,58,38,1], width:0.8}}},
+        popupTemplate: lsPolyPopup
+      });
+
+      const map = new Map({ basemap:"gray-vector", layers:[fires, slidePoly, juris, bound, slidePoint, quakes] });
       const view = new MapView({ container:"map-view", map:map, center:[-120.02, 39.09], zoom:9 });
 
       view.when(function(){
@@ -396,10 +442,13 @@
       bindToggle("tg-juris", juris);
       bindToggle("tg-bound", bound);
       bindToggle("tg-eq", quakes);
-      // The earthquake legend row only appears while that layer is on.
-      const eqSwitch = document.getElementById("tg-eq"), eqRow = document.getElementById("lg-eq");
-      if(eqSwitch && eqRow) eqSwitch.addEventListener("calciteSwitchChange", function(){
-        eqRow.hidden = !eqSwitch.checked;
+      bindToggle("tg-lspoly", slidePoly);
+      bindToggle("tg-lspoint", slidePoint);
+
+      // Legend rows for the off-by-default layers appear only while their layer is on.
+      [["tg-eq","lg-eq"],["tg-lspoly","lg-ls"],["tg-lspoint","lg-lspt"]].forEach(function(pair){
+        const sw = document.getElementById(pair[0]), row = document.getElementById(pair[1]);
+        if(sw && row) sw.addEventListener("calciteSwitchChange", function(){ row.hidden = !sw.checked; });
       });
     });
 
