@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historic Hazards | PROTECT | TRPA</title>
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Calcite 5. Required: ArcGIS 4.31's bundled Calcite lazy-loads only the components its own
+       widgets use, so calcite-switch and calcite-slider are undefined without this tag. -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+
+  <!-- AG Grid pinned to 31.3.2 (v33+ drops the legacy quartz CSS this page uses).
+       UMD bundles MUST load before the ArcGIS SDK or Dojo's AMD loader swallows them. -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <!-- ArcGIS Maps SDK (loads after the UMD bundles above) -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;flex-wrap:wrap;}
+    header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
+    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    /* Map layout */
+    .map-wrap{display:flex;gap:0;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
+    .layer-panel{width:280px;flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;}
+    .map-wrap.collapsed .layer-panel{display:none;}
+    /* Thin rail that collapses the side panel; stays visible so the panel can be brought back. */
+    .panel-rail{flex:0 0 20px;background:#fff;border-left:1px solid var(--gray-border);border-right:1px solid var(--gray-border);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--trpa-navy);
+      font-size:.8rem;font-weight:700;line-height:1;padding:0;font-family:inherit;}
+    .panel-rail:hover{background:#eaf3fb;color:var(--trpa-blue);}
+    .panel-rail:focus-visible{outline:2px solid var(--trpa-blue);outline-offset:-2px;}
+    /* Collapsible legend. Hand-rolled rather than esri/widgets/Expand: ArcGIS 4.31 bundles
+       Calcite 2.13 while this page loads Calcite 5, and Expand's content never attaches under
+       that collision. The Legend widget itself renders fine into a container we own. */
+    /* Collapsible legend docked in the map corner. calcite-block owns the header and toggle. */
+    .legend-box{width:222px;box-shadow:0 1px 4px rgba(0,0,0,.28);border-radius:4px;overflow:hidden;
+      --calcite-block-padding:0;}
+    .legend-body{padding:.5rem .65rem .6rem;}
+    .lg-t{font-size:.7rem;font-weight:700;color:var(--trpa-navy);margin-bottom:.25rem;}
+    .lg-ramp{height:11px;border-radius:2px;border:1px solid #d5dae1;
+      background:linear-gradient(to right,#DCE9F5 0%,#E8A05A 52%,#9C3E27 100%);}
+    .lg-scale{display:flex;justify-content:space-between;font-size:.65rem;color:var(--gray-text);margin-top:2px;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.72rem;color:var(--trpa-navy);margin-top:.45rem;}
+    .lg-line{flex:0 0 22px;height:0;border-top-width:2px;border-top-style:solid;}
+    .lg-line.boundary{border-top-color:#003B71;border-top-width:3px;}
+    .lg-line.juris{border-top-color:#7B6A8A;border-top-style:dashed;}
+    .lg-dot{flex:0 0 22px;display:inline-block;height:9px;position:relative;}
+    .lg-dot::after{content:"";position:absolute;left:6px;top:0;width:9px;height:9px;border-radius:50%;
+      background:rgba(181,166,76,.75);border:1px solid #7a6f2e;}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .layer-panel .note a{color:var(--trpa-blue);font-weight:600;}
+    .yr-read{font-size:.78rem;font-weight:700;color:var(--trpa-navy);margin:.1rem 0 .5rem;}
+    #map-view{flex:1;height:620px;}
+    /* Table */
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
+    .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
+    .grid-wrap{width:100%;height:430px;}
+    .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
+      --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
+    footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+    /* Hover/focus info affordance */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(300px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Historic Hazards</h1>
+        <div class="header-sub">PROTECT Task 3.2 &middot; Historical hazard record</div>
+      </div>
+      <div class="right">
+        <span class="chip">v0.1</span>
+        <a href="index.html">Home</a>
+        <a href="risk-index-tool.html">Risk Index Tool</a>
+        <a href="criticality-index.html">Criticality Index</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="tahoe-precip-events.html">Storm Events</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <p class="lead">
+      The observed fire record for the Lake Tahoe Region, mapped against the TRPA boundary and member
+      jurisdictions. Historical hazards are the ground truth the predictive exposure models are checked
+      against.<i class="i" tabindex="0" data-tip="Historical Hazards is a Step 2 Exposure element in the data inventory. Its use is to ground-truth predictive models: a burn-probability or debris-flow surface that disagrees with where fires actually burned is a surface to re-examine before it feeds the vulnerability screening.">i</i>
+      The record is queried live from the CAL FIRE service and clipped to the TRPA boundary polygon.
+      <strong>California only:</strong> fires on the Nevada side of the basin are not in this dataset.<i class="i" tabindex="0" data-tip="CAL FIRE FRAP covers California. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area.">i</i>
+    </p>
+
+    <div class="map-wrap" id="map-wrap">
+      <div class="layer-panel" id="layer-panel">
+        <h3>Earthquakes</h3>
+        <label class="lyr"><calcite-switch id="tg-eq" class="sw"></calcite-switch> USGS epicenters M2.5+<i class="i" tabindex="0" data-tip="USGS ComCat, magnitude 2.5 and above since 1900, within the basin bounding box. Circles are sized and shaded by magnitude. Earthquake pairs (EQ-B, EQ-R) are TRIP-discussion rather than VA-scored, so this is context for the plan.">i</i></label>
+
+        <h3 style="margin-top:1rem;">Fire history</h3>
+        <label class="lyr"><calcite-switch id="tg-fire" class="sw" checked></calcite-switch> CAL FIRE perimeters<i class="i" tabindex="0" data-tip="California Historic Fire Perimeters, CAL FIRE FRAP. Shaded by year: paler for older fires, deep brick for recent. Overlapping polygons mean repeat burns.">i</i></label>
+        <div class="yr-read" id="yr-read">All years</div>
+        <calcite-slider id="yr-slider" min="1910" max="2025" min-value="1910" max-value="2025" step="1" label-handles></calcite-slider>
+        <div class="note">Drag either handle to filter the record by year. The table below follows the map.</div>
+
+        <div class="grp">
+          <h3>Boundaries</h3>
+          <label class="lyr"><calcite-switch id="tg-bound" class="sw" checked></calcite-switch> TRPA boundary</label>
+          <label class="lyr"><calcite-switch id="tg-juris" class="sw"></calcite-switch> Jurisdictions<i class="i" tabindex="0" data-tip="Jurisdictions Combined: El Dorado, Placer, Alpine, Washoe, Douglas, Carson City, and the City of South Lake Tahoe.">i</i></label>
+          <div class="note">TRPA <code>Boundaries</code> FeatureServer, layers 4 and 10.</div>
+        </div>
+      </div>
+      <button class="panel-rail" id="panel-rail" type="button" aria-controls="layer-panel" aria-expanded="true" title="Hide the layer panel">&#8249;</button>
+      <div id="map-view"></div>
+      <!-- Docked into the map UI by view.ui.add() once the view is ready. calcite-block supplies
+           the expand/collapse; it starts closed so the legend costs one header row until opened. -->
+      <calcite-block class="legend-box" id="legend-box" heading="Legend" collapsible scale="s">
+        <calcite-icon slot="icon" icon="legend" scale="s"></calcite-icon>
+        <div class="legend-body" id="legend-body">
+          <div class="lg-t">Fire year</div>
+          <div class="lg-ramp"></div>
+          <div class="lg-scale"><span>1910</span><span>1970</span><span>2025</span></div>
+          <div class="lg-row" id="lg-eq" hidden><span class="lg-dot"></span> Earthquake M2.5+ (sized by magnitude)</div>
+          <div class="lg-row"><span class="lg-line boundary"></span> TRPA boundary</div>
+          <div class="lg-row"><span class="lg-line juris"></span> Jurisdictions</div>
+        </div>
+      </calcite-block>
+    </div>
+
+    <h2 class="sec">Fire record</h2>
+    <p class="lead">Every perimeter intersecting the TRPA boundary, newest first. Follows the year filter on the map.</p>
+    <div class="toolbar">
+      <input id="fire-qf" class="qf" type="text" placeholder="Quick search by fire name, cause, or agency..." aria-label="Quick search fires" />
+      <calcite-button id="fire-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+    </div>
+    <div id="fire-grid" class="ag-theme-quartz grid-wrap"></div>
+  </main>
+
+  <footer class="app-footer">
+    <p>Historic Hazards v0.1. Fire perimeters: <a href="https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0" target="_blank" rel="noopener">CAL FIRE California Historic Fire Perimeters</a> (FRAP), California only.
+    Boundaries: TRPA <code>Boundaries</code> FeatureServer (<code>TRPA Boundary</code> /4, <code>Jurisdictions Combined</code> /10). Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const TRPA   = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer";
+    const BOUND_URL = TRPA + "/4";
+    const JURIS_URL = TRPA + "/10";
+    const FIRE_URL  = "https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0";
+    // USGS ComCat GeoJSON feed, bounded to the basin. Unlike CAL FIRE this covers both states.
+    const EQ_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson" +
+      "&starttime=1900-01-01&minmagnitude=2.5" +
+      "&minlatitude=38.7&maxlatitude=39.4&minlongitude=-120.3&maxlongitude=-119.8";
+
+    // CAL FIRE coded-value domains, decoded for display rather than shown as raw codes.
+    const CAUSE = {1:"Lightning",2:"Equipment use",3:"Smoking",4:"Campfire",5:"Debris",6:"Railroad",
+      7:"Arson",8:"Playing with fire",9:"Miscellaneous",10:"Vehicle",11:"Electrical power",
+      12:"Firefighter training",13:"Non-firefighter training",14:"Unknown",15:"Structure",16:"Aircraft"};
+    const AGENCY = {BIA:"USDI Bureau of Indian Affairs",BLM:"Bureau of Land Management",CCO:"Contract county",
+      CDF:"CAL FIRE",DOD:"Department of Defense",FWS:"USDI Fish and Wildlife Service",LRA:"Local response area",
+      NOP:"No protection",NPS:"National Park Service",OTH:"Other",PVT:"Private",USF:"USDA Forest Service"};
+
+    const fmtInt = n => (n == null ? "-" : Math.round(n).toLocaleString());
+    const fmtDate = v => { if(!v) return "-"; const d = new Date(v);
+      return isNaN(d) ? "-" : d.toISOString().slice(0,10); };
+
+    // ---------- TABLE ----------
+    let gridApi = null;
+    const fireCols = [
+      {field:"year",   headerName:"Year",   width:90,  sort:"desc", filter:"agNumberColumnFilter"},
+      {field:"name",   headerName:"Fire name", minWidth:170, flex:1, filter:"agTextColumnFilter",
+        valueFormatter:p=>p.value||"Unnamed"},
+      {field:"acres",  headerName:"Acres",  width:110, filter:"agNumberColumnFilter",
+        valueFormatter:p=>fmtInt(p.value), type:"numericColumn"},
+      {field:"alarm",  headerName:"Alarm date", width:130, valueFormatter:p=>p.value||"-"},
+      {field:"cause",  headerName:"Cause",  width:150, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+      {field:"agency", headerName:"Reporting agency", minWidth:200, flex:1, filter:"agTextColumnFilter",
+        valueFormatter:p=>p.value||"-"}
+    ];
+    const gridDiv = document.getElementById("fire-grid");
+    agGrid.createGrid(gridDiv, {
+      columnDefs: fireCols, rowData: [],
+      defaultColDef:{sortable:true, resizable:true},
+      onGridReady: e => { gridApi = e.api; }
+    });
+    document.getElementById("fire-qf").addEventListener("input", e => {
+      if(gridApi) gridApi.setGridOption("quickFilterText", e.target.value);
+    });
+    document.getElementById("fire-export").addEventListener("click", () => {
+      if(gridApi) gridApi.exportDataAsCsv({fileName:"PROTECT_Historic_Fire_Perimeters.csv"});
+    });
+
+    require([
+      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer",
+      "esri/layers/GeoJSONLayer","esri/widgets/Home","esri/widgets/BasemapToggle","esri/rest/support/Query"
+    ], function(Map, MapView, FeatureLayer, GeoJSONLayer, Home, BasemapToggle, Query){
+
+      // Year ramp: pale ice for the oldest fires through brick for the most recent.
+      const fires = new FeatureLayer({
+        url: FIRE_URL, title: "CAL FIRE perimeters", opacity: 0.72, outFields:["*"],
+        renderer: {
+          type:"simple",
+          symbol:{type:"simple-fill", color:[232,119,34,0.35], outline:{color:[156,62,39,0.9], width:0.6}},
+          visualVariables:[{
+            type:"color", field:"YEAR_",
+            legendOptions:{title:"Fire year"},
+            stops:[
+              {value:1910, color:"#DCE9F5", label:"1910"},
+              {value:1970, color:"#E8A05A", label:"1970"},
+              {value:2025, color:"#9C3E27", label:"2025"}
+            ]
+          }]
+        },
+        popupTemplate:{
+          title:"{FIRE_NAME} fire ({YEAR_})",
+          content:[{type:"fields", fieldInfos:[
+            {fieldName:"YEAR_", label:"Year"},
+            {fieldName:"GIS_ACRES", label:"Acres", format:{digitSeparator:true, places:0}},
+            {fieldName:"ALARM_DATE", label:"Alarm date"},
+            {fieldName:"CONT_DATE", label:"Contained"},
+            {fieldName:"CAUSE", label:"Cause"},
+            {fieldName:"AGENCY", label:"Reporting agency"},
+            {fieldName:"UNIT_ID", label:"Unit"}
+          ]}]
+        }
+      });
+
+      const juris = new FeatureLayer({
+        url: JURIS_URL, title:"Jurisdictions", visible:false, opacity:0.9,
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0],
+          outline:{color:[123,106,138,0.95], width:1.1, style:"short-dash"}}},
+        labelingInfo:[{labelExpressionInfo:{expression:"$feature.JURISDICTION"},
+          symbol:{type:"text", color:"#4b3f5c", haloColor:"#fff", haloSize:1.4, font:{size:9, weight:"bold"}}}],
+        popupTemplate:{title:"{JURISDICTION}", content:"County: {COUNTY}"}
+      });
+
+      // Boundary drawn as an outline on top so perimeters stay readable underneath.
+      const bound = new FeatureLayer({
+        url: BOUND_URL, title:"TRPA boundary",
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0],
+          outline:{color:[0,59,113,1], width:2.4}}}
+      });
+
+      // USGS ComCat serves GeoJSON directly, so this is a live feed rather than a hosted service.
+      const quakes = new GeoJSONLayer({
+        url: EQ_URL, title:"Earthquakes M2.5+", visible:false,
+        copyright:"USGS Earthquake Hazards Program",
+        fields:[
+          {name:"mag",   alias:"Magnitude", type:"double"},
+          {name:"place", alias:"Location",  type:"string"},
+          {name:"time",  alias:"Date",      type:"date"}
+        ],
+        renderer:{
+          type:"simple",
+          symbol:{type:"simple-marker", color:[181,166,76,0.7], outline:{color:[122,111,46,0.95], width:0.7}},
+          visualVariables:[{
+            type:"size", field:"mag", legendOptions:{title:"Magnitude"},
+            stops:[{value:2.5, size:4},{value:4, size:10},{value:6, size:22}]
+          }]
+        },
+        popupTemplate:{
+          title:"M{mag} earthquake",
+          content:[{type:"fields", fieldInfos:[
+            {fieldName:"place", label:"Location"},
+            {fieldName:"time",  label:"Date", format:{dateFormat:"short-date"}},
+            {fieldName:"mag",   label:"Magnitude", format:{places:1}}
+          ]}]
+        }
+      });
+
+      const map = new Map({ basemap:"gray-vector", layers:[fires, juris, bound, quakes] });
+      const view = new MapView({ container:"map-view", map:map, center:[-120.02, 39.09], zoom:9 });
+
+      view.when(function(){
+        view.ui.add(new Home({view:view}), "top-left");
+        view.ui.add(new BasemapToggle({view:view, nextBasemap:"topo-vector"}), "bottom-right");
+        // Legend docked into the map UI. Deliberately a calcite-block rather than
+        // esri/widgets/Expand: ArcGIS 4.31 bundles Calcite 2.13 while this page needs Calcite 5
+        // for calcite-switch and calcite-slider, and under that double registration Expand renders
+        // its toggle with no content panel (verified with both a widget and a DOM node as content).
+        // The contents are hand-built markup for the same reason: esri/widgets/Legend renders an
+        // empty root here. If the layer renderers change, update .legend-body to match.
+        view.ui.add(document.getElementById("legend-box"), "bottom-left");
+        loadBoundaryThenFires();
+      }).catch(function(err){ console.warn("Map view failed:", err); });
+
+      // The boundary polygon (not its envelope) is the spatial filter, so the counts and the
+      // table describe fires that actually touch the Region.
+      let boundaryGeom = null;
+      function loadBoundaryThenFires(){
+        bound.queryFeatures({where:"1=1", returnGeometry:true, outFields:["OBJECTID"]})
+          .then(function(res){
+            if(res.features.length){
+              boundaryGeom = res.features[0].geometry;
+              view.goTo(boundaryGeom.extent.expand(1.12)).catch(function(){});
+            }
+            refresh();
+          })
+          .catch(function(err){
+            console.warn("TRPA boundary unavailable, falling back to the map extent:", err);
+            refresh();
+          });
+      }
+
+      function currentWhere(){
+        const s = document.getElementById("yr-slider");
+        const lo = s ? s.minValue : 1910, hi = s ? s.maxValue : 2025;
+        return (lo <= 1910 && hi >= 2025) ? "1=1" : "YEAR_ >= " + lo + " AND YEAR_ <= " + hi;
+      }
+
+      function refresh(){
+        const where = currentWhere();
+        fires.definitionExpression = (where === "1=1") ? null : where;
+
+        const q = new Query({ where: where, outFields:["*"], returnGeometry:false, orderByFields:["YEAR_ DESC"] });
+        if(boundaryGeom){ q.geometry = boundaryGeom; q.spatialRelationship = "intersects"; }
+
+        fires.queryFeatures(q).then(function(res){
+          const rows = res.features.map(function(f){
+            const a = f.attributes;
+            return {
+              year: a.YEAR_, name: a.FIRE_NAME, acres: a.GIS_ACRES,
+              alarm: fmtDate(a.ALARM_DATE), cause: CAUSE[a.CAUSE] || null,
+              agency: AGENCY[a.AGENCY] || a.AGENCY || null
+            };
+          });
+          if(gridApi) gridApi.setGridOption("rowData", rows);
+        }).catch(function(err){
+          console.warn("Fire perimeter query failed:", err);
+        });
+      }
+
+      // Year filter. Calcite fires input events continuously while dragging, so the label updates
+      // live and the (more expensive) query waits for the handle to be released.
+      const slider = document.getElementById("yr-slider");
+      function readout(){
+        const lo = slider.minValue, hi = slider.maxValue;
+        document.getElementById("yr-read").textContent =
+          (lo <= 1910 && hi >= 2025) ? "All years" : lo + " to " + hi;
+      }
+      if(slider){
+        slider.addEventListener("calciteSliderInput", readout);
+        slider.addEventListener("calciteSliderChange", function(){ readout(); refresh(); });
+      }
+
+      function bindToggle(id, layer){
+        const el = document.getElementById(id);
+        if(el) el.addEventListener("calciteSwitchChange", function(){ layer.visible = el.checked; });
+      }
+      bindToggle("tg-fire", fires);
+      bindToggle("tg-juris", juris);
+      bindToggle("tg-bound", bound);
+      bindToggle("tg-eq", quakes);
+      // The earthquake legend row only appears while that layer is on.
+      const eqSwitch = document.getElementById("tg-eq"), eqRow = document.getElementById("lg-eq");
+      if(eqSwitch && eqRow) eqSwitch.addEventListener("calciteSwitchChange", function(){
+        eqRow.hidden = !eqSwitch.checked;
+      });
+    });
+
+    // Collapse the side panel. The map is a flex sibling, so it reflows into the space on its own
+    // and the MapView picks the resize up without an explicit call.
+    const rail = document.getElementById("panel-rail");
+    const wrap = document.getElementById("map-wrap");
+    if(rail && wrap){
+      rail.addEventListener("click", function(){
+        const collapsed = wrap.classList.toggle("collapsed");
+        rail.innerHTML = collapsed ? "&#8250;" : "&#8249;";
+        rail.setAttribute("aria-expanded", String(!collapsed));
+        rail.title = collapsed ? "Show the layer panel" : "Hide the layer panel";
+      });
+    }
+
+    // Flip tooltips that would otherwise extend past a viewport edge.
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 160;
+      document.querySelectorAll(".i").forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle("tip-right", x > w - pad);
+        el.classList.toggle("tip-left", x < pad);
+      });
+    }
+    placeTips();
+    window.addEventListener("resize", placeTips);
+  })();
+  </script>
+</body>
+</html>
