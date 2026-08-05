@@ -14,6 +14,14 @@ Thumbs.db
 scripts/ra2ce/output/
 scripts/ra2ce/static/output_graph/
 
+# RA2CE rerun outputs. The geopackages / feather graphs run 20-440 MB each (GitHub
+# hard-rejects anything over 100 MB) and the per-OD route tables are 34-66 MB, so
+# none of them are committed - the notebook regenerates them. Summary PNGs and the
+# small weights CSVs alongside them stay tracked.
+scripts/ra2ce/output_rerun/**/*.gpkg
+scripts/ra2ce/output_rerun/**/*.feather
+scripts/ra2ce/output_rerun/optimal_route_origin_destination/*.csv
+
 # Shapefiles and dbf tables - regenerated from the source GDB / SDE by the
 # notebooks, so they are outputs rather than source. Every sidecar counts:
 # a shapefile is unusable if one of .shp / .shx / .dbf / .prj goes missing.

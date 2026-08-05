@@ -101,7 +101,27 @@
       "Bash(curl -s -o /dev/null -w \"logo:%{http_code}\\\\n\" \"http://localhost:8011/trpa-logo-color.png\")",
       "Bash(curl -s -G https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0/query --data-urlencode where=1=1 --data-urlencode f=json --data-urlencode groupByFieldsForStatistics=in_flood_zone --data-urlencode 'outStatistics=[{\"statisticType\":\"count\",\"onStatisticField\":\"OBJECTID\",\"outStatisticFieldName\":\"n\"}]')",
       "Bash(python -c \"import json,sys;print\\([f['attributes'] for f in json.load\\(sys.stdin\\)['features']]\\)\")",
-      "Bash(curl -s -o /dev/null -w \"page:%{http_code}\\\\n\" \"http://localhost:8011/criticality-index.html\")"
+      "Bash(curl -s -o /dev/null -w \"page:%{http_code}\\\\n\" \"http://localhost:8011/criticality-index.html\")",
+      "Bash(conda env *)",
+      "Read(//c/Users/amcclary/AppData/Local/anaconda3/**)",
+      "Read(//c/Users/amcclary/miniforge3/**)",
+      "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag.py\")",
+      "Bash(PROJ_LIB='C:\\\\Users\\\\amcclary\\\\AppData\\\\Local\\\\ESRI\\\\conda\\\\envs\\\\arcgispro-py3-plotly\\\\Library\\\\share\\\\proj' PROJ_DATA='C:\\\\Users\\\\amcclary\\\\AppData\\\\Local\\\\ESRI\\\\conda\\\\envs\\\\arcgispro-py3-plotly\\\\Library\\\\share\\\\proj' \"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag.py\")",
+      "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag2.py\")",
+      "Bash(cd \"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce\" && grep -rn \"optimal_route_od_link\\\\|TrafficAnalysisFactory\\\\|get_analysis\" --include=*.py . | head -30)",
+      "Bash(cd \"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce/analysis/losses\" && grep -rn \"traffic_analysis\\\\|optimal_route_od_link\\\\|calc_pop_per_route\\\\|origin_closest_destination\" origin_closest_destination.py | head -40)",
+      "Read(//c/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce/analysis/losses/**)",
+      "Bash(cd \"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce\" && grep -rn \"TrafficAnalysisFactory\\\\|optimal_route_od_link\" --include=*.py . | grep -v traffic_analysis/)",
+      "Bash(sed -n 150,270p \"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/ra2ce/analysis/losses/optimal_route_origin_destination.py\")",
+      "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/Lib/site-packages/../../python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag3.py\")",
+      "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag4.py\")",
+      "Bash(sed -i 's/exy = r\\\\[.geometry.\\\\].coords\\\\[0\\\\]/exy = shapely.from_wkb\\(r[\"geometry\"]\\).coords[0] if isinstance\\(r[\"geometry\"], \\(bytes, bytearray\\)\\) else r[\"geometry\"].coords[0]/' \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag4.py\")",
+      "Bash(sed -i 's/^import pandas as pd, pyarrow.feather as feather, numpy as np/import pandas as pd, pyarrow.feather as feather, numpy as np, shapely/' \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag4.py\")",
+      "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/diag5.py\")",
+      "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/fix_test.py\")",
+      "Bash(python \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/patch_nb.py\")",
+      "Bash(\"C:/Users/amcclary/AppData/Local/ESRI/conda/envs/arcgispro-py3-plotly/python.exe\" \"C:/Users/amcclary/AppData/Local/Temp/claude/c--Users-amcclary-Documents-GitHub-PROTECT/721736c7-cc6e-4bfe-9ba6-d11d45a92c11/scratchpad/test_helper.py\")",
+      "Bash(curl -s -o /dev/null -w \"page:%{http_code}\\\\n\" \"http://localhost:8011/criticality-index-hazards.html\")"
     ]
   }
 }
