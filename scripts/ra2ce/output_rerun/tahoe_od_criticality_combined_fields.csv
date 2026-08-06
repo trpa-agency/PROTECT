@@ -1,0 +1,21 @@
+gpkg_field,shapefile_field,analysis,metric,routing_mode,destinations,meaning
+traffic_evacuation,trf_evac,evacuation,traffic,nearest,7 basin highway exit points (Destinations.shp),population routed over this segment (utilitarian)
+egalitarian_evacuation,egl_evac,evacuation,egalitarian,nearest,7 basin highway exit points (Destinations.shp),"number of trips over this segment, unweighted by population"
+prioritarian_evacuation,pri_evac,evacuation,prioritarian,nearest,7 basin highway exit points (Destinations.shp),"population x equity weight (1.0-2.0, poverty rate)"
+routed_evacuation,rtd_evac,evacuation,routed,nearest,7 basin highway exit points (Destinations.shp),1 = on at least one optimal route
+par_alt_evacuation,alt_evac,evacuation,par_alt,nearest,7 basin highway exit points (Destinations.shp),1 = lies only on a parallel alternative edge; never carries routed traffic
+traffic_law_enforcement,trf_law,law_enforcement,traffic,nearest,7 police/sheriff/CHP facilities,population routed over this segment (utilitarian)
+egalitarian_law_enforcement,egl_law,law_enforcement,egalitarian,nearest,7 police/sheriff/CHP facilities,"number of trips over this segment, unweighted by population"
+prioritarian_law_enforcement,pri_law,law_enforcement,prioritarian,nearest,7 police/sheriff/CHP facilities,"population x equity weight (1.0-2.0, poverty rate)"
+routed_law_enforcement,rtd_law,law_enforcement,routed,nearest,7 police/sheriff/CHP facilities,1 = on at least one optimal route
+par_alt_law_enforcement,alt_law,law_enforcement,par_alt,nearest,7 police/sheriff/CHP facilities,1 = lies only on a parallel alternative edge; never carries routed traffic
+traffic_medical_facilities,trf_med,medical_facilities,traffic,gravity,5 hospitals / urgent care,population routed over this segment (utilitarian)
+egalitarian_medical_facilities,egl_med,medical_facilities,egalitarian,gravity,5 hospitals / urgent care,"number of trips over this segment, unweighted by population"
+prioritarian_medical_facilities,pri_med,medical_facilities,prioritarian,gravity,5 hospitals / urgent care,"population x equity weight (1.0-2.0, poverty rate)"
+routed_medical_facilities,rtd_med,medical_facilities,routed,gravity,5 hospitals / urgent care,1 = on at least one optimal route
+par_alt_medical_facilities,alt_med,medical_facilities,par_alt,gravity,5 hospitals / urgent care,1 = lies only on a parallel alternative edge; never carries routed traffic
+traffic_emergency_shelters,trf_shel,emergency_shelters,traffic,gravity,9 community centres / schools,population routed over this segment (utilitarian)
+egalitarian_emergency_shelters,egl_shel,emergency_shelters,egalitarian,gravity,9 community centres / schools,"number of trips over this segment, unweighted by population"
+prioritarian_emergency_shelters,pri_shel,emergency_shelters,prioritarian,gravity,9 community centres / schools,"population x equity weight (1.0-2.0, poverty rate)"
+routed_emergency_shelters,rtd_shel,emergency_shelters,routed,gravity,9 community centres / schools,1 = on at least one optimal route
+par_alt_emergency_shelters,alt_shel,emergency_shelters,par_alt,gravity,9 community centres / schools,1 = lies only on a parallel alternative edge; never carries routed traffic
