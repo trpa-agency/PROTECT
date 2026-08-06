@@ -21,6 +21,12 @@ scripts/ra2ce/static/output_graph/
 scripts/ra2ce/output_rerun/**/*.gpkg
 scripts/ra2ce/output_rerun/**/*.feather
 scripts/ra2ce/output_rerun/optimal_route_origin_destination/*.csv
+scripts/ra2ce/output_rerun/*.parquet
+
+# ArcGIS file geodatabases. A .gdb is a directory of binary tables that ArcGIS Pro
+# rewrites in place, so it neither diffs nor merges - treat the whole thing as an
+# output no matter where a script drops it.
+*.gdb/
 
 # Shapefiles and dbf tables - regenerated from the source GDB / SDE by the
 # notebooks, so they are outputs rather than source. Every sidecar counts:

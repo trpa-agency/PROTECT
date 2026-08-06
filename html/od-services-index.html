@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Origin Destination Index for Services &middot; PROTECT</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css"/>
+  <script src="https://js.arcgis.com/4.30/"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─────────────────────────────────────────────
+       TRPA BRAND TOKENS
+       Navy  #003B71   Blue #0072CE   Ice #B4CBE8
+    ───────────────────────────────────────────── */
+    :root {
+      --navy:       #003B71;
+      --blue:       #0072CE;
+      --blue-lt:    #2f92e0;
+      --ice:        #B4CBE8;
+      --green:      #4a7729;
+      --green-lt:   #6b9c46;
+      --red:        #B03A1A;
+      --red-lt:     #cf5a38;
+      --orange:     #E87722;
+      --orange-lt:  #f0913f;
+      --teal:       #007681;
+
+      --hz-flood:   #0072CE;
+      --hz-fire:    #B03A1A;
+      --hz-slide:   #7A5C2E;
+
+      --bg:         #f4f6f9;
+      --panel:      #ffffff;
+      --panel-dk:   #eef1f6;
+      --card:       #ffffff;
+      --border:     #d0d8e4;
+      --border-lt:  #e4eaf2;
+
+      --text:       #003B71;
+      --text-mid:   #3a5278;
+      --text-dim:   #7a90aa;
+
+      --font-display: 'Open Sans', 'Segoe UI', sans-serif;
+      --font-body:    'Open Sans', 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ───────────────────────────────── */
+    .app-header {
+      background: var(--navy);
+      height: 56px;
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .hdr-l { display: flex; align-items: center; gap: 14px; }
+    .hdr-logo { height: 38px; flex-shrink: 0; display: flex; align-items: center; }
+    .hdr-logo img { height: 38px; width: auto; display: block; }
+
+    .hdr-title {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #ffffff;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+    .hdr-sub {
+      font-size: 10px; font-weight: 400;
+      color: var(--ice);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hdr-r { display: flex; align-items: center; gap: 18px; }
+
+    .live-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 700;
+      color: var(--ice);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--ice);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(180,203,232,.5); }
+      50%      { opacity:.8; box-shadow: 0 0 0 5px rgba(180,203,232,0); }
+    }
+
+    #feat-count {
+      font-size: 11px; font-weight: 400;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── LAYOUT ───────────────────────────────── */
+    .app-body { display: flex; flex: 1; overflow: hidden; }
+
+    .left-panel {
+      width: 324px; flex-shrink: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 2px 0 8px rgba(0,59,113,0.07);
+    }
+
+    /* ── normalization switch ── */
+    .norm-bar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-dk);
+      flex-shrink: 0;
+    }
+    .norm-lbl {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase; margin-bottom: 6px;
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    }
+
+    /* ── INFO BUTTONS + SHARED POPOVER ── */
+    .info-btn {
+      width: 15px; height: 15px; flex-shrink: 0;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--panel);
+      color: var(--text-dim);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 10px; font-weight: 700; font-style: italic;
+      line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0;
+      transition: all .15s;
+    }
+    .info-btn::before { content: 'i'; }
+    .info-btn:hover, .info-btn.open {
+      border-color: var(--blue); background: var(--blue); color: #fff;
+    }
+    .si-head .info-btn { margin-left: auto; }
+    .legend-title .info-btn { margin-left: auto; }
+
+    .info-pop {
+      position: fixed; z-index: 400;
+      width: 272px; max-width: calc(100vw - 24px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue);
+      border-radius: 6px;
+      padding: 12px 14px;
+      box-shadow: 0 6px 22px rgba(0,59,113,0.22);
+    }
+    .info-pop.hidden { display: none; }
+    .info-pop h4 {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--navy);
+      margin-bottom: 7px;
+    }
+    .info-pop p {
+      font-size: 11px; line-height: 1.6; color: var(--text-mid);
+      margin-bottom: 7px;
+    }
+    .info-pop p:last-child { margin-bottom: 0; }
+    .info-pop code {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 10px; color: var(--navy);
+      background: var(--panel-dk);
+      padding: 1px 4px; border-radius: 3px;
+    }
+    .info-pop .src {
+      margin-top: 9px; padding-top: 8px;
+      border-top: 1px solid var(--border-lt);
+      font-size: 10px; color: var(--text-dim);
+    }
+    .norm-btns { display: flex; gap: 6px; }
+    .norm-btn {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: var(--panel);
+      color: var(--text-mid);
+      border-radius: 5px; padding: 7px 4px;
+      cursor: pointer; transition: all .15s;
+    }
+    .norm-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .norm-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+    /* trip-ranking switch shares the norm-btn shape, accented in teal */
+    .rank-btn {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: var(--panel);
+      color: var(--text-mid);
+      border-radius: 5px; padding: 7px 4px;
+      cursor: pointer; transition: all .15s;
+    }
+    .rank-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .rank-btn.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+    .norm-note {
+      margin-top: 7px;
+      font-size: 10px; color: var(--text-dim); line-height: 1.45;
+    }
+
+    /* ── hazard exposure filter ── */
+    .haz-bar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-dk);
+      flex-shrink: 0;
+    }
+    .haz-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .haz-btn {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: var(--panel);
+      color: var(--text-mid);
+      border-radius: 5px; padding: 7px 4px;
+      cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .haz-btn:hover { border-color: var(--hz-color, var(--navy)); color: var(--hz-color, var(--navy)); }
+    .haz-btn.active {
+      background: var(--hz-color, var(--navy));
+      border-color: var(--hz-color, var(--navy));
+      color: #fff;
+    }
+    .haz-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; background: var(--hz-color, var(--text-dim)); }
+    .haz-btn.active .haz-swatch { background: rgba(255,255,255,0.85); }
+
+    .haz-thresh { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--border); }
+    .haz-thresh.hidden { display: none; }
+    .haz-thresh-row { display: flex; align-items: center; gap: 8px; }
+    .haz-thresh-lbl {
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      width: 74px; flex-shrink: 0;
+    }
+    .haz-thresh-val {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700;
+      color: var(--hz-slide);
+      width: 30px; text-align: right; flex-shrink: 0;
+    }
+    .haz-count { margin-top: 8px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
+    .haz-count strong { color: var(--navy); font-weight: 700; }
+
+    .cards-scroll {
+      flex: 1; overflow-y: auto;
+      padding: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .cards-scroll::-webkit-scrollbar { width: 4px; }
+    .cards-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── SUBINDEX CARD ── */
+    .si-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 1px 4px rgba(0,59,113,0.06);
+      transition: box-shadow .2s;
+    }
+    .si-card:hover { box-shadow: 0 3px 10px rgba(0,59,113,0.1); }
+    .si-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--si-color, var(--blue));
+    }
+
+    .si-head {
+      display: flex; align-items: center; gap: 9px;
+      padding: 10px 12px 10px 16px;
+      cursor: pointer; user-select: none;
+      border-bottom: 1px solid var(--border-lt);
+      transition: background .15s;
+    }
+    .si-head:hover { background: var(--panel-dk); }
+
+    .si-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; background: var(--si-color, var(--blue)); }
+    .si-name {
+      font-family: var(--font-display);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--navy);
+      flex: 1;
+    }
+    .si-badge {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 700;
+      color: var(--blue);
+    }
+    .chevron { font-size: 9px; color: var(--text-dim); transition: transform .2s; }
+    .si-card.collapsed .chevron { transform: rotate(-90deg); }
+    .si-card.collapsed .si-body { display: none; }
+
+    .si-body { padding: 10px 12px 12px 16px; }
+
+    .si-wt-row { display: flex; align-items: center; gap: 8px; }
+    .si-wt-label {
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      width: 78px; flex-shrink: 0;
+    }
+    .si-wt-val {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700;
+      color: var(--blue);
+      width: 34px; text-align: right; flex-shrink: 0;
+    }
+
+    .si-meta {
+      margin-top: 9px; padding-top: 9px;
+      border-top: 1px solid var(--border-lt);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .si-field {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 10px; color: var(--text-dim);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .invert-pill {
+      font-family: var(--font-display);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; padding: 2px 7px;
+      border-radius: 10px; border: 1px solid;
+      cursor: pointer; transition: all .15s;
+      text-transform: uppercase; flex-shrink: 0;
+    }
+    .invert-pill.off { background: transparent; border-color: var(--border); color: var(--text-dim); }
+    .invert-pill.on  { background: rgba(232,119,34,0.1); border-color: rgba(232,119,34,0.5); color: var(--orange); }
+
+    .si-stat {
+      margin-top: 7px;
+      font-size: 10px; color: var(--text-dim); line-height: 1.5;
+    }
+    .si-stat strong { font-family: var(--font-display); color: var(--navy); font-weight: 700; }
+
+    input[type=range] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--blue);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,114,206,0.4);
+      cursor: pointer; transition: transform .1s, background .1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); background: var(--blue-lt); }
+
+    .wsum-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 2px 0 8px;
+      padding: 6px 10px;
+      background: var(--panel-dk);
+      border-radius: 4px;
+      border: 1px solid var(--border-lt);
+    }
+    .wsum-label {
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .wsum-val {
+      font-family: var(--font-display);
+      font-size: 14px; font-weight: 700;
+      color: var(--green);
+      transition: color .2s;
+    }
+    .wsum-val.warn { color: var(--orange); }
+
+    /* ── FOOTER ── */
+    .panel-footer {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      background: var(--panel-dk);
+      display: flex; flex-direction: column; gap: 7px;
+      flex-shrink: 0;
+    }
+    .btn-row { display: flex; gap: 8px; }
+    .btn {
+      flex: 1; padding: 9px;
+      border-radius: 5px;
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      cursor: pointer; border: none; transition: all .18s;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-lt); }
+    .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-mid); }
+    .btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+    .btn-export {
+      width: 100%;
+      background: rgba(0,114,206,0.08);
+      border: 1.5px solid rgba(0,114,206,0.4);
+      color: var(--navy);
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      padding: 9px; border-radius: 5px;
+      cursor: pointer; transition: all .18s;
+    }
+    .btn-export:hover { background: rgba(0,114,206,0.16); border-color: var(--blue); }
+    .btn-export:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* ── MAP ── */
+    .main-area { flex: 1; position: relative; overflow: hidden; }
+    #viewDiv { width: 100%; height: 100%; }
+
+    .map-legend {
+      position: absolute; bottom: 20px; right: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px; width: 236px; z-index: 50;
+      box-shadow: 0 2px 12px rgba(0,59,113,0.12);
+    }
+    .legend-title {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--navy);
+      text-transform: uppercase;
+      margin-bottom: 9px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .legend-title::before {
+      content: '';
+      width: 14px; height: 3px;
+      background: var(--blue); border-radius: 2px; flex-shrink: 0;
+    }
+    .cbar { height: 10px; border-radius: 3px; margin-bottom: 5px; }
+    .cbar-labels {
+      display: flex; justify-content: space-between;
+      font-size: 9px; font-weight: 600;
+      color: var(--text-dim); letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .legend-note {
+      margin-top: 9px; padding-top: 9px;
+      border-top: 1px solid var(--border-lt);
+      font-size: 10px; color: var(--text-dim); line-height: 1.5;
+    }
+
+    .loading-overlay {
+      position: absolute; inset: 0;
+      background: rgba(244,246,249,0.92);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px; z-index: 200;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* ── SYMBOLOGY TOGGLE BAR ── */
+    .sym-bar {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 50;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 12px rgba(0,59,113,0.14);
+    }
+    .sym-lbl {
+      font-family: var(--font-display);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      padding: 0 6px 0 2px;
+      border-right: 1px solid var(--border);
+      margin-right: 2px;
+      white-space: nowrap;
+    }
+    .sym-btn {
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-mid);
+      border-radius: 6px;
+      padding: 8px 13px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+    .sym-btn:hover { border-color: var(--sym-color, var(--navy)); color: var(--sym-color, var(--navy)); background: var(--panel-dk); }
+    .sym-btn.active { color: #fff; border-color: var(--sym-color, var(--navy)); background: var(--sym-color, var(--navy)); }
+    .sym-btn .sym-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; background: var(--sym-color, var(--text-dim)); }
+    .sym-btn.active .sym-swatch { background: rgba(255,255,255,0.85); }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────── -->
+<div class="app-header">
+  <div class="hdr-l">
+    <a class="hdr-logo" href="https://www.trpa.gov" target="_blank" rel="noopener">
+      <img src="trpa-logo-color.png" alt="TRPA"/>
+    </a>
+    <div class="hdr-titles">
+      <div class="hdr-title">Origin Destination Index for Services</div>
+      <div class="hdr-sub">PROTECT &middot; RA2CE Routed Trips to Critical Services</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <span id="feat-count">Loading&hellip;</span>
+    <div class="live-badge"><div class="live-dot"></div>Live</div>
+  </div>
+</div>
+
+<div class="app-body">
+
+  <!-- ── LEFT PANEL ──────────────────────────────────────── -->
+  <div class="left-panel">
+
+    <div class="norm-bar">
+      <span class="norm-lbl">Trip Ranking<button class="info-btn" data-info="ranking"></button></span>
+      <div class="norm-btns">
+        <button class="rank-btn active" data-rank="traffic">Traffic</button>
+        <button class="rank-btn" data-rank="prioritarian">Prioritarian</button>
+      </div>
+      <div class="norm-note" id="rank-note">
+        Unweighted RA2CE routed trip volumes.
+      </div>
+    </div>
+
+    <div class="norm-bar">
+      <span class="norm-lbl">Normalization<button class="info-btn" data-info="norm"></button></span>
+      <div class="norm-btns">
+        <button class="norm-btn active" data-norm="log">Log Z</button>
+        <button class="norm-btn" data-norm="zscore">Z-Score</button>
+        <button class="norm-btn" data-norm="minmax">Min-Max</button>
+      </div>
+      <div class="norm-note" id="norm-note">
+        Trip volumes are heavily right-skewed, so log Z (ln(trips + 1), then z-scored) is the default.
+      </div>
+    </div>
+
+    <div class="haz-bar">
+      <span class="norm-lbl">Hazard Exposure Filter<button class="info-btn" data-info="hazard"></button></span>
+      <div class="haz-btns">
+        <button class="haz-btn active" data-haz="none" style="--hz-color: var(--navy)">
+          <span class="haz-swatch"></span>All Segments
+        </button>
+        <button class="haz-btn" data-haz="flood" style="--hz-color: var(--hz-flood)">
+          <span class="haz-swatch"></span>Flood Zone
+        </button>
+        <button class="haz-btn" data-haz="fire" style="--hz-color: var(--hz-fire)">
+          <span class="haz-swatch"></span>High-Sev Fire
+        </button>
+        <button class="haz-btn" data-haz="landslide" style="--hz-color: var(--hz-slide)">
+          <span class="haz-swatch"></span>Landslide
+        </button>
+      </div>
+
+      <div class="haz-thresh hidden" id="haz-thresh">
+        <div class="haz-thresh-row">
+          <span class="haz-thresh-lbl">Mean &ge;</span>
+          <input type="range" id="haz-slider" min="0" max="81" step="1" value="22" style="flex:1">
+          <span class="haz-thresh-val" id="haz-slider-val">22</span>
+        </div>
+      </div>
+
+      <div class="haz-count" id="haz-count">Showing all segments</div>
+    </div>
+
+    <div class="cards-scroll">
+
+      <div class="wsum-row">
+        <span class="wsum-label">Destination Weights &Sigma;</span>
+        <button class="info-btn" data-info="weights" style="margin-left:auto;margin-right:8px"></button>
+        <span class="wsum-val" id="wsum">1.00</span>
+      </div>
+
+      <!-- ── EMERGENCY SHELTERS ── -->
+      <div class="si-card" id="card-shelters" style="--si-color: var(--green)">
+        <div class="si-head" onclick="toggleCard('shelters')">
+          <div class="si-dot"></div>
+          <span class="si-name">Emergency Shelters</span>
+          <button class="info-btn" data-info="shelters"></button>
+          <span class="si-badge" id="sidisp-shelters">0.25</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Weight</span>
+            <input type="range" id="siw-shelters" min="0" max="1" step="0.01" value="0.25" style="flex:1">
+            <span class="si-wt-val" id="siwv-shelters">0.25</span>
+          </div>
+          <div class="si-meta">
+            <span class="si-field" id="field-shelters">traffic_emergency_shelters</span>
+            <button class="invert-pill off" id="inv-shelters">INV</button>
+          </div>
+          <div class="si-stat" id="stat-shelters"></div>
+        </div>
+      </div>
+
+      <!-- ── MEDICAL FACILITIES ── -->
+      <div class="si-card" id="card-medical" style="--si-color: var(--red)">
+        <div class="si-head" onclick="toggleCard('medical')">
+          <div class="si-dot"></div>
+          <span class="si-name">Medical Facilities</span>
+          <button class="info-btn" data-info="medical"></button>
+          <span class="si-badge" id="sidisp-medical">0.25</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Weight</span>
+            <input type="range" id="siw-medical" min="0" max="1" step="0.01" value="0.25" style="flex:1">
+            <span class="si-wt-val" id="siwv-medical">0.25</span>
+          </div>
+          <div class="si-meta">
+            <span class="si-field" id="field-medical">traffic_medical_facilities</span>
+            <button class="invert-pill off" id="inv-medical">INV</button>
+          </div>
+          <div class="si-stat" id="stat-medical"></div>
+        </div>
+      </div>
+
+      <!-- ── LAW ENFORCEMENT ── -->
+      <div class="si-card" id="card-law" style="--si-color: var(--blue)">
+        <div class="si-head" onclick="toggleCard('law')">
+          <div class="si-dot"></div>
+          <span class="si-name">Law Enforcement</span>
+          <button class="info-btn" data-info="law"></button>
+          <span class="si-badge" id="sidisp-law">0.25</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Weight</span>
+            <input type="range" id="siw-law" min="0" max="1" step="0.01" value="0.25" style="flex:1">
+            <span class="si-wt-val" id="siwv-law">0.25</span>
+          </div>
+          <div class="si-meta">
+            <span class="si-field" id="field-law">traffic_law_enforcement</span>
+            <button class="invert-pill off" id="inv-law">INV</button>
+          </div>
+          <div class="si-stat" id="stat-law"></div>
+        </div>
+      </div>
+
+      <!-- ── EVACUATION ── -->
+      <div class="si-card" id="card-evac" style="--si-color: var(--orange)">
+        <div class="si-head" onclick="toggleCard('evac')">
+          <div class="si-dot"></div>
+          <span class="si-name">Evacuation</span>
+          <button class="info-btn" data-info="evac"></button>
+          <span class="si-badge" id="sidisp-evac">0.25</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Weight</span>
+            <input type="range" id="siw-evac" min="0" max="1" step="0.01" value="0.25" style="flex:1">
+            <span class="si-wt-val" id="siwv-evac">0.25</span>
+          </div>
+          <div class="si-meta">
+            <span class="si-field" id="field-evac">traffic_evacuation</span>
+            <button class="invert-pill off" id="inv-evac">INV</button>
+          </div>
+          <div class="si-stat" id="stat-evac"></div>
+        </div>
+      </div>
+
+    </div><!-- /cards-scroll -->
+
+    <div class="panel-footer">
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="resetBtn">&#8635; Reset</button>
+        <button class="btn btn-primary" id="applyBtn">&#9654; Apply</button>
+      </div>
+      <button class="btn-export" id="exportBtn" disabled>&#8681; Export Scores CSV</button>
+    </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- ── MAP ─────────────────────────────────────────────── -->
+  <div class="main-area">
+    <div id="viewDiv"></div>
+
+    <div class="sym-bar">
+      <span class="sym-lbl">Map View</span>
+      <button class="sym-btn active" data-sym="od" style="--sym-color: var(--navy)">
+        <span class="sym-swatch" style="background:linear-gradient(90deg,#2c7bb6,#d7191c)"></span>
+        OD Index
+      </button>
+      <button class="sym-btn" data-sym="shelters" style="--sym-color: var(--green)">
+        <span class="sym-swatch"></span>Shelters
+      </button>
+      <button class="sym-btn" data-sym="medical" style="--sym-color: var(--red)">
+        <span class="sym-swatch"></span>Medical
+      </button>
+      <button class="sym-btn" data-sym="law" style="--sym-color: var(--blue)">
+        <span class="sym-swatch"></span>Law Enf.
+      </button>
+      <button class="sym-btn" data-sym="evac" style="--sym-color: var(--orange)">
+        <span class="sym-swatch"></span>Evacuation
+      </button>
+    </div>
+
+    <div class="map-legend">
+      <div class="legend-title"><span id="legend-title-text">OD Services Index</span><button class="info-btn" data-info="od"></button></div>
+      <div class="cbar" id="legend-cbar"></div>
+      <div class="cbar-labels"><span>Low</span><span>Mid</span><span>High</span></div>
+      <div class="legend-note" id="legend-note"></div>
+    </div>
+
+    <div class="loading-overlay" id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loading-msg">Loading street segments&hellip;</div>
+    </div>
+  </div>
+
+</div><!-- /app-body -->
+
+<div class="info-pop hidden" id="info-pop"></div>
+
+<script>
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, CustomContent) => {
+
+  // ═══════════════════════════════════════════════════════
+  //  DESTINATION DEFINITIONS
+  //  Each field holds RA2CE routed trip volume on the segment for
+  //  trips bound for that destination type. One field per index
+  //  component, each normalized on its own before weighting.
+  // ═══════════════════════════════════════════════════════
+  const DESTS = [
+    { key: "shelters", label: "Emergency Shelters", short: "Shelters",   base: "emergency_shelters", color: "#4a7729",
+      ramp: { lo: "#e8efe1", mid: "#6b9c46", hi: "#2f4d18" } },
+    { key: "medical",  label: "Medical Facilities", short: "Medical",    base: "medical_facilities", color: "#B03A1A",
+      ramp: { lo: "#f8e3dc", mid: "#cf5a38", hi: "#6e2110" } },
+    { key: "law",      label: "Law Enforcement",    short: "Law Enf.",   base: "law_enforcement",    color: "#0072CE",
+      ramp: { lo: "#dcebf8", mid: "#3f9bdd", hi: "#00406f" } },
+    { key: "evac",     label: "Evacuation",         short: "Evacuation", base: "evacuation",         color: "#E87722",
+      ramp: { lo: "#fbe6d3", mid: "#f0913f", hi: "#8c4a06" } }
+  ];
+
+  // ═══════════════════════════════════════════════════════
+  //  TRIP RANKING FAMILIES
+  //  Same four destinations, two RA2CE result sets. Both families are
+  //  loaded up front so the switch is instant with no re-query.
+  // ═══════════════════════════════════════════════════════
+  const RANKINGS = {
+    traffic:      { label: "Traffic",
+                    note: "Unweighted RA2CE routed trip volumes." },
+    prioritarian: { label: "Prioritarian",
+                    note: "Equity-weighted RA2CE trips: volumes are scaled up where the routed population scores higher on the equity index, so disadvantaged-community access counts for more." }
+  };
+
+  const OD_RAMP = { lo: "#2c7bb6", mid: "#ffffbf", hi: "#d7191c" };
+
+  const LAYER_URL     = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0";
+  const HAZARD_FIELDS = ["in_flood_zone", "high_sev_fire", "landslide_mean"];
+  const ID_FIELDS     = ["OBJECTID", "segment_id", "name", "class", ...HAZARD_FIELDS];
+
+  // Field for a destination under the active ranking, e.g. prioritarian_evacuation
+  const fieldOf   = d => `${rankMode}_${d.base}`;
+  const ALL_FIELDS = Object.keys(RANKINGS).flatMap(r => DESTS.map(d => `${r}_${d.base}`));
+  const activeFields = () => DESTS.map(fieldOf);
+
+  // ═══════════════════════════════════════════════════════
+  //  HAZARD FILTERS (one at a time)
+  // ═══════════════════════════════════════════════════════
+  const HAZARDS = {
+    none:      { label: "all segments" },
+    flood:     { label: "in a flood zone",
+                 where: () => "in_flood_zone = 1",
+                 test:  a => a.in_flood_zone === 1 },
+    fire:      { label: "in a high-severity fire area",
+                 where: () => "high_sev_fire = 1",
+                 test:  a => a.high_sev_fire === 1 },
+    landslide: { label: "landslide exposure",
+                 where: () => `landslide_mean >= ${landslideThreshold}`,
+                 test:  a => a.landslide_mean != null && a.landslide_mean >= landslideThreshold }
+  };
+
+  // ── State ────────────────────────────────────────────────
+  const weights = { shelters: 0.25, medical: 0.25, law: 0.25, evac: 0.25 };
+  const invertFlags = { shelters: false, medical: false, law: false, evac: false };
+
+  let   rankMode          = "traffic"; // "traffic" | "prioritarian"
+  let   normMode          = "log";     // "log" | "zscore" | "minmax"
+  const statsByMode       = {};        // mode -> field -> { mean, std, min, max }
+  const rawSummary        = {};        // field -> { min, max, mean, zeroPct }
+  let   allFeatures       = [];
+  let   featureLayer;
+  let   currentSym        = "od";      // "od" | dest key
+  let   activeHazard      = "none";
+  let   landslideThreshold = 22;
+
+  const NORM_NOTES = {
+    log:    "Trip volumes are heavily right-skewed, so log Z (ln(trips + 1), then z-scored) is the default.",
+    zscore: "Raw z-score. A handful of very high-volume segments dominate, so most of the network reads flat.",
+    minmax: "Rescales each field to 0-1 by its own min and max. Extreme maxima compress everything else near 0."
+  };
+
+  // ═══════════════════════════════════════════════════════
+  //  NORMALIZATION
+  //  transform() then (value - offset) / scale, so one code path
+  //  serves all three modes in JS and in Arcade.
+  // ═══════════════════════════════════════════════════════
+  const transform = v => normMode === "log" ? Math.log(v + 1) : v;
+
+  function computeStats(mode) {
+    if (statsByMode[mode]) return statsByMode[mode];
+    const prev = normMode;
+    normMode = mode;
+    const out = {};
+    ALL_FIELDS.forEach(field => {
+      const vals = allFeatures
+        .map(f => f.attributes[field])
+        .filter(v => v != null && !isNaN(v))
+        .map(transform);
+      if (!vals.length) { out[field] = { mean: 0, std: 1, min: 0, max: 1 }; return; }
+      const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const std  = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length) || 1;
+      out[field] = { mean, std, min: Math.min(...vals), max: Math.max(...vals) };
+    });
+    normMode = prev;
+    statsByMode[mode] = out;
+    return out;
+  }
+
+  function normParams(field) {
+    const st = computeStats(normMode)[field] || { mean: 0, std: 1, min: 0, max: 1 };
+    return normMode === "minmax"
+      ? { offset: st.min,  scale: (st.max - st.min) || 1 }
+      : { offset: st.mean, scale: st.std || 1 };
+  }
+
+  // Nulls are excluded by the layer's definitionExpression; if one slips
+  // through it is treated as zero trips, matching the Arcade expression.
+  function normValue(field, raw) {
+    const p = normParams(field);
+    const v = (raw != null && !isNaN(raw)) ? raw : 0;
+    return (transform(v) - p.offset) / p.scale;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  SCORING
+  // ═══════════════════════════════════════════════════════
+  function destScore(key, attrs) {
+    const d = DESTS.find(x => x.key === key);
+    const f = fieldOf(d);
+    const n = normValue(f, attrs[f]);
+    return invertFlags[key] ? -n : n;
+  }
+
+  function calcOD(attrs) {
+    return DESTS.reduce((s, d) => s + destScore(d.key, attrs) * weights[d.key], 0);
+  }
+
+  function scoreFor(attrs) {
+    return currentSym === "od" ? calcOD(attrs) : destScore(currentSym, attrs);
+  }
+
+  // Color stops from percentiles of the active score, not mean +/- sd.
+  // With this much skew a mean-anchored ramp puts nearly every segment
+  // in one bin; percentiles keep the map readable in every mode.
+  function rampStops() {
+    const scores = allFeatures.map(f => scoreFor(f.attributes)).sort((a, b) => a - b);
+    const at = q => scores[Math.min(scores.length - 1, Math.max(0, Math.round(q * (scores.length - 1))))];
+    let lo = at(0.05), mid = at(0.50), hi = at(0.95);
+    if (!(hi > lo)) { lo = scores[0]; hi = scores[scores.length - 1] || lo + 1; mid = (lo + hi) / 2; }
+    if (!(mid > lo && mid < hi)) mid = (lo + hi) / 2;   // guard against ties at the median
+    return { lo, mid, hi };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  ARCADE
+  // ═══════════════════════════════════════════════════════
+  function destTerm(key) {
+    const d = DESTS.find(x => x.key === key);
+    const f = fieldOf(d);
+    const p = normParams(f);
+    const raw = `IIf(IsEmpty($feature.${f}), 0, $feature.${f})`;
+    const t   = normMode === "log" ? `Log(${raw} + 1)` : `(${raw})`;
+    const n   = `((${t} - ${p.offset}) / ${p.scale})`;
+    return invertFlags[key] ? `(-1 * ${n})` : n;
+  }
+
+  function buildArcade() {
+    if (currentSym !== "od") return `return ${destTerm(currentSym)};`;
+    const lines = DESTS.map(d => `var d_${d.key} = ${destTerm(d.key)};`);
+    lines.push(`return ${DESTS.map(d => `(d_${d.key} * ${weights[d.key].toFixed(6)})`).join(" + ")};`);
+    return lines.join("\n");
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  SLIDERS
+  // ═══════════════════════════════════════════════════════
+  function onWeightSlider(key) {
+    const newVal = parseFloat(document.getElementById(`siw-${key}`).value);
+    const others = DESTS.map(d => d.key).filter(k => k !== key);
+    const sumOther = others.reduce((s, k) => s + weights[k], 0);
+    if (sumOther === 0) {
+      others.forEach(k => weights[k] = (1 - newVal) / others.length);
+    } else {
+      const scale = (1 - newVal) / sumOther;
+      others.forEach(k => weights[k] = weights[k] * scale);
+    }
+    weights[key] = newVal;
+    syncSliders();
+    updateMap();
+  }
+
+  function syncSliders() {
+    let total = 0;
+    DESTS.forEach(d => {
+      const w = Math.max(0, weights[d.key]);
+      weights[d.key] = w;
+      document.getElementById(`siw-${d.key}`).value          = w.toFixed(3);
+      document.getElementById(`sidisp-${d.key}`).textContent = w.toFixed(2);
+      document.getElementById(`siwv-${d.key}`).textContent   = w.toFixed(2);
+      total += w;
+    });
+    const el = document.getElementById("wsum");
+    el.textContent = total.toFixed(2);
+    el.className   = `wsum-val${Math.abs(total - 1) > 0.05 ? ' warn' : ''}`;
+  }
+
+  function renderFieldStats() {
+    DESTS.forEach(d => {
+      const f = fieldOf(d);
+      const s = rawSummary[f];
+      const fieldEl = document.getElementById(`field-${d.key}`);
+      if (fieldEl) fieldEl.textContent = f;
+      if (!s) return;
+      document.getElementById(`stat-${d.key}`).innerHTML =
+        `Trips: <strong>${Math.round(s.min).toLocaleString()}</strong> to `
+        + `<strong>${Math.round(s.max).toLocaleString()}</strong> &middot; `
+        + `mean <strong>${Math.round(s.mean).toLocaleString()}</strong> &middot; `
+        + `${s.zeroPct.toFixed(0)}% carry no trips`;
+    });
+  }
+
+  DESTS.forEach(d => {
+    document.getElementById(`siw-${d.key}`).addEventListener("input", () => onWeightSlider(d.key));
+    document.getElementById(`inv-${d.key}`).addEventListener("click", e => {
+      e.stopPropagation();
+      invertFlags[d.key] = !invertFlags[d.key];
+      e.currentTarget.className = `invert-pill ${invertFlags[d.key] ? 'on' : 'off'}`;
+      updateMap();
+    });
+  });
+
+  document.querySelectorAll(".rank-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      rankMode = btn.dataset.rank;
+      document.querySelectorAll(".rank-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("rank-note").textContent = RANKINGS[rankMode].note;
+      renderFieldStats();
+      updateMap();
+    });
+  });
+
+  document.querySelectorAll(".norm-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      normMode = btn.dataset.norm;
+      document.querySelectorAll(".norm-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("norm-note").textContent = NORM_NOTES[normMode];
+      updateMap();
+    });
+  });
+
+  window.toggleCard = key => document.getElementById(`card-${key}`).classList.toggle("collapsed");
+
+  // ═══════════════════════════════════════════════════════
+  //  INFO POPOVERS
+  //  Method notes drawn from the RA2CE notebook that produced these
+  //  fields (scripts/ra2ce/ra2ce_tahoe.ipynb).
+  // ═══════════════════════════════════════════════════════
+  const SRC = `<div class="src">Source: RA2CE (Deltares) run on the Overture drive-routable network.</div>`;
+
+  const INFO = {
+    od: {
+      title: "What the OD numbers mean",
+      body: `<p>Origin-destination analysis routes the population of every origin across the
+             drivable street network to facilities of a given type, then counts how much of that
+             population travels over each segment.</p>
+             <p>Origins are census hex-grid centroids carrying a <code>POPULATION</code> count.
+             A segment's value is therefore <strong>the number of residents whose route to that
+             service runs over it</strong>: person-trips, not vehicles. High values mark roads that
+             a lot of service access depends on.</p>
+             <p>The index combines the four destination types, each normalized on its own, into a
+             single weighted score.</p>${SRC}`
+    },
+    weights: {
+      title: "Destination weights",
+      body: `<p>Each destination's normalized score is multiplied by its weight, and the four are
+             summed into the OD Services Index.</p>
+             <p>Moving one slider rescales the other three so the weights always total 1.00. The
+             <code>INV</code> pill flips a destination's sign, so high trip volume pushes the index
+             down instead of up.</p>`
+    },
+    shelters: {
+      title: "Emergency Shelters",
+      body: `<p>Trips routed from each origin to designated emergency shelters.</p>
+             <p>Uses <strong>gravity routing</strong>: an origin's population is split across
+             shelters by distance decay rather than being handed entirely to the closest one.
+             Several shelters sit close together (three inside Incline Village), so a
+             nearest-only rule would give one of them the whole catchment.</p>${SRC}`
+    },
+    medical: {
+      title: "Medical Facilities",
+      body: `<p>Trips routed from each origin to hospitals, urgent care, and clinics.</p>
+             <p>Also uses <strong>gravity routing</strong>. Barton Memorial and Tahoe Urgent Care
+             are about 600 m apart, and 47% of origins have a second-nearest facility within 10% of
+             the distance to their nearest, so nearest-only assignment would be close to a coin
+             flip.</p>${SRC}`
+    },
+    law: {
+      title: "Law Enforcement",
+      body: `<p>Trips routed from each origin to sheriff and police facilities.</p>
+             <p>Uses <strong>nearest-destination routing</strong>: each origin sends its full
+             population to the closest facility. The covering jurisdiction is effectively a forced
+             choice and there are few near-ties.</p>${SRC}`
+    },
+    evac: {
+      title: "Evacuation",
+      body: `<p>Trips routed from each origin to the seven major highway exit points from the Tahoe
+             Basin, so what is being measured is leaving the basin.</p>
+             <p>Uses <strong>nearest-destination routing</strong>: every origin sends its full
+             population to its closest exit. The value is how many residents would move over the
+             segment on their way out.</p>${SRC}`
+    },
+    ranking: {
+      title: "Traffic vs Prioritarian",
+      body: `<p><strong>Traffic</strong> is the raw person-trip volume: every resident counts
+             once.</p>
+             <p><strong>Prioritarian</strong> reruns the same routing with each origin's population
+             scaled by an equity weight taken from its census block group,
+             <code>1.0 + normalized poverty rate</code>. Weights land on [1, 2], so nobody counts
+             less than once and the highest-poverty areas count roughly twice. Origins outside a
+             weighted region fall back to 1.0.</p>
+             <p>Flipping between the two shows where equity weighting changes which roads
+             matter.</p>${SRC}`
+    },
+    norm: {
+      title: "Normalization",
+      body: `<p>Each field is rescaled before weighting so the four destinations are comparable.</p>
+             <p><strong>Log Z</strong> takes <code>ln(trips + 1)</code> and then z-scores it. It is
+             the default because trip volumes are heavily right-skewed: the median segment carries
+             none, while the busiest carries tens of thousands.</p>
+             <p><strong>Z-Score</strong> uses the raw volumes, so a few arterials dominate and most
+             of the network reads flat. <strong>Min-Max</strong> rescales to 0-1 on each field's own
+             range, which the extreme maxima compress.</p>
+             <p>Color breaks are always the 5th, 50th, and 95th percentile of the resulting
+             score.</p>`
+    },
+    hazard: {
+      title: "Hazard exposure filter",
+      body: `<p>Limits the map to segments exposed to one hazard at a time.</p>
+             <p><strong>Flood zone</strong> and <strong>high-severity fire</strong> are 0/1 flags on
+             the segment. <strong>Landslide</strong> is a continuous mean susceptibility from 0 to
+             81, so it filters on a threshold you set (default 22, the 75th percentile).</p>
+             <p>Scores and color breaks always come from the full network, so a segment keeps the
+             same color whether or not a filter is on.</p>`
+    }
+  };
+
+  const infoPop = document.getElementById("info-pop");
+  let infoAnchor = null;
+
+  function hideInfo() {
+    infoPop.classList.add("hidden");
+    document.querySelectorAll(".info-btn.open").forEach(b => b.classList.remove("open"));
+    infoAnchor = null;
+  }
+
+  function showInfo(key, btn) {
+    const item = INFO[key];
+    if (!item) return;
+    infoPop.innerHTML = `<h4>${item.title}</h4>${item.body}`;
+    infoPop.classList.remove("hidden");
+    document.querySelectorAll(".info-btn.open").forEach(b => b.classList.remove("open"));
+    btn.classList.add("open");
+    infoAnchor = btn;
+
+    // Prefer the right of the button, fall back to the left, then clamp on screen.
+    const r = btn.getBoundingClientRect();
+    const w = infoPop.offsetWidth, h = infoPop.offsetHeight;
+    let left = r.right + 10;
+    if (left + w > window.innerWidth - 10) left = r.left - w - 10;
+    if (left < 10) left = 10;
+    let top = r.top - 6;
+    if (top + h > window.innerHeight - 10) top = window.innerHeight - h - 10;
+    if (top < 10) top = 10;
+    infoPop.style.left = `${left}px`;
+    infoPop.style.top  = `${top}px`;
+  }
+
+  document.querySelectorAll(".info-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();          // card headers toggle on click
+      if (infoAnchor === btn) hideInfo();
+      else showInfo(btn.dataset.info, btn);
+    });
+  });
+
+  document.addEventListener("click", e => {
+    if (!infoPop.classList.contains("hidden") && !infoPop.contains(e.target)) hideInfo();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") hideInfo(); });
+  window.addEventListener("resize", hideInfo);
+  document.querySelector(".cards-scroll").addEventListener("scroll", hideInfo);
+
+  // ═══════════════════════════════════════════════════════
+  //  POPUP
+  // ═══════════════════════════════════════════════════════
+  function buildPopupHTML(attrs) {
+    const style      = `font-family:'Open Sans','Segoe UI',sans-serif;font-size:12px;color:#003B71;line-height:1.6;`;
+    const hrStyle    = `border:none;border-top:1px solid #d0d8e4;margin:6px 0;`;
+    const scoreStyle = `font-size:15px;font-weight:700;color:#0072CE;`;
+    const nStyle     = `color:#7a90aa;font-size:11px;`;
+    const metaStyle  = `color:#7a90aa;font-size:11px;margin-bottom:6px;`;
+    const nLabel     = normMode === "minmax" ? "n" : "z";
+    const tripWord   = rankMode === "prioritarian" ? "weighted trips" : "trips";
+
+    let html = `<div style="${style}">`;
+    html += `<div style="${metaStyle}">${attrs.class || "segment"} &middot; segment ${attrs.segment_id || attrs.OBJECTID}</div>`;
+
+    const flags = [];
+    if (attrs.in_flood_zone === 1) flags.push(`<span style="color:#0072CE;font-weight:700;">Flood zone</span>`);
+    if (attrs.high_sev_fire === 1) flags.push(`<span style="color:#B03A1A;font-weight:700;">High-severity fire</span>`);
+    if (attrs.landslide_mean != null)
+      flags.push(`<span style="color:#7A5C2E;">Landslide mean ${Number(attrs.landslide_mean).toFixed(0)}</span>`);
+    if (flags.length) html += `<div style="${metaStyle}">Hazards: ${flags.join(" &middot; ")}</div>`;
+
+    if (currentSym === "od") {
+      html += `<div>OD Services Index: <span style="${scoreStyle}">${calcOD(attrs).toFixed(3)}</span></div>`;
+      html += `<hr style="${hrStyle}">`;
+      DESTS.forEach(d => {
+        const f   = fieldOf(d);
+        const raw = attrs[f] != null ? Math.round(attrs[f]).toLocaleString() : "N/A";
+        const inv = invertFlags[d.key] ? " &#8597;" : "";
+        html += `<div style="color:${d.color};font-weight:700;">${d.label}${inv} `
+             +  `<span style="font-weight:400;font-size:11px;color:#7a90aa;">(wt=${weights[d.key].toFixed(2)})</span></div>`;
+        html += `<div style="padding-left:10px;color:#3a5278;">${raw} ${tripWord} `
+             +  `<span style="${nStyle}">(${nLabel}=${normValue(f, attrs[f]).toFixed(2)}, `
+             +  `score ${destScore(d.key, attrs).toFixed(2)})</span></div>`;
+      });
+    } else {
+      const d   = DESTS.find(x => x.key === currentSym);
+      const f   = fieldOf(d);
+      const raw = attrs[f] != null ? Math.round(attrs[f]).toLocaleString() : "N/A";
+      const inv = invertFlags[d.key] ? " &#8597;" : "";
+      html += `<div style="font-weight:700;font-size:14px;color:${d.color};">${d.label}${inv} Score: `
+           +  `<span style="${scoreStyle};color:${d.color};">${destScore(d.key, attrs).toFixed(3)}</span></div>`;
+      html += `<hr style="${hrStyle}">`;
+      html += `<div>${rankMode === "prioritarian" ? "Weighted trips" : "Routed trips"}: <strong>${raw}</strong> `
+           +  `<span style="${nStyle}">(${nLabel}=${normValue(f, attrs[f]).toFixed(2)})</span></div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  RENDERER
+  // ═══════════════════════════════════════════════════════
+  function updateMap() {
+    if (!featureLayer || !allFeatures.length) return;
+    const d      = DESTS.find(x => x.key === currentSym);
+    const ramp   = currentSym === "od" ? OD_RAMP : d.ramp;
+    const stops  = rampStops();
+    const arcade = buildArcade();
+
+    featureLayer.renderer = {
+      type: "simple",
+      // Uniform line weight: score is encoded by color only.
+      symbol: { type: "simple-line", width: 2, cap: "round", join: "round" },
+      visualVariables: [{
+        type: "color",
+        valueExpression: arcade,
+        stops: [
+          { value: stops.lo,  color: ramp.lo  },
+          { value: stops.mid, color: ramp.mid },
+          { value: stops.hi,  color: ramp.hi  }
+        ]
+      }]
+    };
+
+    const rankTag = rankMode === "prioritarian" ? " &middot; Prioritarian" : "";
+    document.getElementById("legend-title-text").innerHTML =
+      (currentSym === "od" ? "OD Services Index" : `${d.label} Trips`) + rankTag;
+    document.getElementById("legend-cbar").style.background =
+      `linear-gradient(to right, ${ramp.lo} 0%, ${ramp.mid} 50%, ${ramp.hi} 100%)`;
+    document.getElementById("legend-note").textContent =
+      `Color breaks at the 5th, 50th, and 95th percentile of the ${normMode === "log" ? "log" : normMode === "minmax" ? "min-max" : "z-scored"} score.`;
+
+    featureLayer.popupTemplate = {
+      title: "{name}",
+      content: [new CustomContent({
+        outFields: ["*"],
+        creator: (event) => {
+          const div = document.createElement("div");
+          div.innerHTML = buildPopupHTML(event.graphic.attributes);
+          return div;
+        }
+      })],
+      actions: []
+    };
+  }
+
+  document.querySelectorAll(".sym-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentSym = btn.dataset.sym;
+      document.querySelectorAll(".sym-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      updateMap();
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  HAZARD FILTER
+  //  Scores and ramp breaks always come from the full network, so a
+  //  segment keeps the same color whether or not a filter is on.
+  // ═══════════════════════════════════════════════════════
+  function filteredFeatures() {
+    const hz = HAZARDS[activeHazard];
+    return hz && hz.test ? allFeatures.filter(f => hz.test(f.attributes)) : allFeatures;
+  }
+
+  function applyHazardFilter() {
+    const hz = HAZARDS[activeHazard];
+    if (featureLayer) {
+      featureLayer.definitionExpression = hz.where ? `${WHERE} AND ${hz.where()}` : WHERE;
+    }
+
+    document.getElementById("haz-thresh").classList.toggle("hidden", activeHazard !== "landslide");
+    document.getElementById("haz-slider-val").textContent = landslideThreshold;
+
+    if (!allFeatures.length) return;
+
+    const countEl = document.getElementById("haz-count");
+    const headEl  = document.getElementById("feat-count");
+
+    if (activeHazard === "none") {
+      countEl.textContent = "Showing all segments";
+      headEl.textContent  = `${allFeatures.length.toLocaleString()} segments`;
+    } else {
+      const n    = filteredFeatures().length;
+      const pct  = (100 * n / allFeatures.length).toFixed(1);
+      const what = activeHazard === "landslide"
+        ? `with landslide mean &ge; ${landslideThreshold}`
+        : hz.label;
+      countEl.innerHTML  = `Showing <strong>${n.toLocaleString()}</strong> of `
+                         + `${allFeatures.length.toLocaleString()} segments ${what} (${pct}%)`;
+      headEl.textContent = `${n.toLocaleString()} of ${allFeatures.length.toLocaleString()} segments`;
+    }
+  }
+
+  document.querySelectorAll(".haz-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeHazard = btn.dataset.haz;
+      document.querySelectorAll(".haz-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyHazardFilter();
+    });
+  });
+
+  document.getElementById("haz-slider").addEventListener("input", e => {
+    landslideThreshold = parseInt(e.target.value, 10);
+    applyHazardFilter();
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  ESRI SETUP
+  // ═══════════════════════════════════════════════════════
+  const OUT_FIELDS = [...ID_FIELDS, ...ALL_FIELDS];
+  const WHERE      = ALL_FIELDS.map(f => `${f} IS NOT NULL`).join(" AND ");
+
+  featureLayer = new FeatureLayer({
+    url: LAYER_URL,
+    title: "Tahoe Street Network",
+    outFields: OUT_FIELDS,
+    definitionExpression: WHERE
+  });
+
+  const map  = new Map({ basemap: "gray-vector", layers: [featureLayer] });
+  const view = new MapView({
+    container: "viewDiv", map,
+    center: [-120.03, 39.09], zoom: 10,
+    popup: { defaultPopupTemplateEnabled: false }
+  });
+
+  // The service caps a single query at 2,000 records, so page through by OBJECTID.
+  async function loadAllFeatures() {
+    const PAGE = 2000;
+    const out  = [];
+    let start  = 0;
+    while (true) {
+      const res = await featureLayer.queryFeatures({
+        where: WHERE,
+        outFields: OUT_FIELDS,
+        orderByFields: ["OBJECTID ASC"],
+        returnGeometry: false,
+        start, num: PAGE
+      });
+      out.push(...res.features);
+      document.getElementById("loading-msg").textContent =
+        `Loading street segments… ${out.length.toLocaleString()}`;
+      if (res.features.length < PAGE) break;
+      start += PAGE;
+    }
+    return out;
+  }
+
+  function summarizeRaw() {
+    ALL_FIELDS.forEach(field => {
+      const vals = allFeatures.map(f => f.attributes[field]).filter(v => v != null && !isNaN(v));
+      const zero = vals.filter(v => v === 0).length;
+      rawSummary[field] = {
+        min:  Math.min(...vals),
+        max:  Math.max(...vals),
+        mean: vals.reduce((a, b) => a + b, 0) / (vals.length || 1),
+        zeroPct: 100 * zero / (vals.length || 1)
+      };
+    });
+  }
+
+  loadAllFeatures().then(features => {
+    allFeatures = features;
+    summarizeRaw();
+    renderFieldStats();
+    syncSliders();
+    updateMap();
+    applyHazardFilter();
+    document.getElementById("exportBtn").disabled = false;
+    document.getElementById("loading").style.display = "none";
+  }).catch(err => {
+    document.getElementById("loading").innerHTML =
+      `<div class="spinner" style="border-top-color:#B03A1A"></div>
+       <div class="loading-text" style="color:#B03A1A">Error: ${err.message}</div>`;
+  });
+
+  // ── Buttons ──────────────────────────────────────────────
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    DESTS.forEach(d => {
+      weights[d.key] = 1 / DESTS.length;
+      invertFlags[d.key] = false;
+      document.getElementById(`inv-${d.key}`).className = "invert-pill off";
+    });
+    rankMode = "traffic";
+    document.querySelectorAll(".rank-btn").forEach(b => b.classList.toggle("active", b.dataset.rank === "traffic"));
+    document.getElementById("rank-note").textContent = RANKINGS.traffic.note;
+    normMode = "log";
+    document.querySelectorAll(".norm-btn").forEach(b => b.classList.toggle("active", b.dataset.norm === "log"));
+    document.getElementById("norm-note").textContent = NORM_NOTES.log;
+    renderFieldStats();
+    activeHazard = "none";
+    landslideThreshold = 22;
+    document.getElementById("haz-slider").value = 22;
+    document.querySelectorAll(".haz-btn").forEach(b => b.classList.toggle("active", b.dataset.haz === "none"));
+    syncSliders();
+    updateMap();
+    applyHazardFilter();
+  });
+
+  document.getElementById("applyBtn").addEventListener("click", updateMap);
+
+  // ═══════════════════════════════════════════════════════
+  //  CSV EXPORT (matches what the map shows)
+  // ═══════════════════════════════════════════════════════
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    if (!allFeatures.length) return;
+    const rowsIn = filteredFeatures();
+    const suffix = normMode === "minmax" ? "norm" : normMode === "log" ? "logz" : "z";
+    const hazTag = activeHazard === "none" ? "none"
+                 : activeHazard === "landslide" ? `landslide_mean>=${landslideThreshold}`
+                 : activeHazard;
+
+    const fields = activeFields();
+    const header = ["OBJECTID","segment_id","name","class", ...HAZARD_FIELDS, "hazard_filter"];
+    fields.forEach(f => header.push(`${f}_trips`));
+    fields.forEach(f => header.push(`${f}_${suffix}`));
+    DESTS.forEach(d => header.push(`${d.key}_score`));
+    header.push("od_services_index", "ranking", "normalization");
+    DESTS.forEach(d => header.push(`wt_${d.key}`));
+    DESTS.forEach(d => header.push(`inverted_${d.key}`));
+
+    const q = s => {
+      const t = s == null ? "" : String(s);
+      return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+    };
+
+    const rows = [header.join(",")];
+    rowsIn.forEach(feat => {
+      const a = feat.attributes;
+      const row = [a.OBJECTID, a.segment_id, a.name, a.class,
+                   ...HAZARD_FIELDS.map(f => a[f] != null ? a[f] : ""), hazTag].map(q);
+      fields.forEach(f => row.push(a[f] != null ? a[f] : ""));
+      fields.forEach(f => row.push(normValue(f, a[f]).toFixed(6)));
+      DESTS.forEach(d => row.push(destScore(d.key, a).toFixed(6)));
+      row.push(calcOD(a).toFixed(6), rankMode, normMode);
+      DESTS.forEach(d => row.push(weights[d.key].toFixed(4)));
+      DESTS.forEach(d => row.push(invertFlags[d.key] ? "1" : "0"));
+      rows.push(row.join(","));
+    });
+
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url;
+    a.download = `PROTECT_OD_Services_${rankMode}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+});
+</script>
+</body>
+</html>
