@@ -7,11 +7,11 @@ data/vendors.csv
 
 # Data engineering: source snapshots, intermediates, outputs, logs (never commit)
 data/raw/
-data/processed/
+# data/processed/
 outputs/
 logs/
 *.gdb/
-*.gpkg
+# *.gpkg
 
 # Climate pipeline (climate/) - downloaded data never committed
 climate/data/
