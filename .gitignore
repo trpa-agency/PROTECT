@@ -11,7 +11,7 @@ data/raw/
 outputs/
 logs/
 *.gdb/
-*.gpkg
+# *.gpkg
 
 # Climate pipeline (climate/) - downloaded data never committed
 climate/data/
