@@ -18,7 +18,8 @@ tabs for the hazard-asset pairs, the source-of-record data and model inventory, 
 MVP map tool** (`html/risk-index-tool.html`) - live TRPA layers plus a per-component Status view,
 no placeholder data; the **Criticality Index app** (`html/criticality-index.html`, live, 18,253
 segments, linked site-wide); the climate inputs page (`html/climate-data.html`); and the storm
-events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culvert layer).
+events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culvert layer and
+WRF 1-hr intensity grid).
 
 ## Project context
 
@@ -74,7 +75,7 @@ PROTECT/
 ├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
 ├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
 ├── html/climate-data.html           # v0.2 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
-├── html/tahoe-precip-events.html    # storm events + debris-flow explorer (CDN libs, embedded culverts)
+├── html/tahoe-precip-events.html    # storm events + debris-flow explorer (CDN libs, embedded culverts + WRF I1h grid)
 ├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
 ├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
 ├── scripts/                         # analysis scripts and notebooks (incl. ra2ce/)
