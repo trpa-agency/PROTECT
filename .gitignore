@@ -49,3 +49,14 @@ scripts/ra2ce/output_rerun/*.parquet
 # *_weights.csv files record the weights an analysis actually ran with.
 scripts/ra2ce/static/network/*.gpkg
 scripts/ra2ce/static/network/*.geojson
+
+# ra2ce_v2 outputs. Same reasoning as scripts/ra2ce/ above: the graph pickles and
+# GeoPackages run to hundreds of MB and pipeline.py regenerates all of them from
+# the source network. The scripts, README and logs stay tracked.
+scripts/ra2ce_v2/output/
+scripts/ra2ce_v2/static/output_graph/
+scripts/ra2ce_v2/logs/*.log
+
+# Python bytecode
+__pycache__/
+*.pyc
