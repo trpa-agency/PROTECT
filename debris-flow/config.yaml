@@ -1,0 +1,89 @@
+# config.yaml - protect-debris-flow pipeline (lives in PROTECT/debris-flow/)
+# USGS wildcat debris-flow hazard assessments for the PROTECT Task 3 Risk Index.
+# Paths are relative to this debris-flow/ folder. No secrets here.
+
+project:
+  name: protect-debris-flow
+  task: "PROTECT Task 3 - debris-flow hazard layer (USGS wildcat) for the Risk Index"
+
+paths:
+  raw: data/raw            # downloaded inputs: DEM tiles, dNBR, EVT, KF (gitignored)
+  processed: data/processed  # clipped / merged analysis-ready inputs (gitignored)
+  outputs: outputs         # summary CSVs, QA reports, exposure tables (gitignored)
+  logs: logs               # timestamped run logs (gitignored)
+  projects: projects       # wildcat project folders, one per scenario run (gitignored)
+
+study_area:
+  # Same AOI as the climate pipeline: basin + highway corridors with margin
+  bbox:
+    lon_min: -120.5
+    lon_max: -119.5
+    lat_min: 38.5
+    lat_max: 39.5
+  boundary_url: "https://maps.trpa.org/server/rest/services/Boundaries/MapServer/4"
+  buffer_km: 10
+
+crs:
+  # wildcat preprocessed grids inherit the DEM CRS; use export step to deliver 26910
+  target_epsg: 26910       # NAD83 / UTM 10N - final deliverables
+  export_epsg: 4326        # wildcat export default (WGS 84) for web map use
+
+wildcat:
+  # Verified 2026-07-29 from code.usgs.gov/ghsc/lhp/wildcat (v1.1.1).
+  # NOT the PyPI package named "wildcat" (unrelated quantum SDK) - install from
+  # the USGS GitLab package registry index below.
+  version: "1.1.1"
+  requires_python: ">=3.11,<4"
+  install_index: "https://code.usgs.gov/api/v4/groups/859/-/packages/pypi/simple"
+  docs: "https://ghsc.code-pages.usgs.gov/lhp/wildcat/"
+  repo: "https://code.usgs.gov/ghsc/lhp/wildcat"
+  # wildcat depends on pfdf>=3.0, numpy, fiona, rasterio -> dedicated env, never
+  # arcgispro-py3 (see environment.md)
+
+inputs:
+  # Standard wildcat datasets mapped to Tahoe sources. File paths get filled in
+  # per scenario as data is acquired into data/raw/.
+  dem:
+    source: "USGS 3DEP 1/3 arc-second (~10 m); pfdf.data has an acquisition helper"
+    note: "wildcat models are calibrated to ~10 m DEMs; allowed resolution 6.5-11 m"
+  dnbr:
+    validation: "MTBS or RAVG dNBR for a real fire (Caldor 2021 / Angora 2007)"
+    prefire: "constant value scenario (wildcat supports numeric constants)"
+    scaling: "raw dNBR * 1000, values approx -1000..1000"
+  severity:
+    source: "BARC4 (BAER) for real fires; else wildcat estimates from dNBR"
+    prefire: "constant class scenario (BARC4: 1 unburned, 2 low, 3 moderate, 4 high)"
+  kf:
+    source: "STATSGO soil KF-factors; pfdf.data has an acquisition helper"
+    kf_field: "KFFACT"
+  evt:
+    source: "LANDFIRE Existing Vegetation Type (latest); builds water/developed masks"
+  retainments:
+    source: null
+    note: "No known basin-wide debris retainment inventory; confirm sediment basins
+      with jurisdictions before assuming none"
+
+scenarios:
+  # One wildcat project folder per scenario under paths.projects
+  caldor_validation:
+    purpose: "Reproduce a USGS-style assessment on a real fire to validate the setup"
+    perimeter: "Caldor 2021 perimeter clipped to study area (NIFC/CAL FIRE)"
+    dnbr: "MTBS/RAVG raster"
+  prefire_basin:
+    purpose: "Planning-scale pre-fire hazard: hypothetical burn, USGS pre-fire practice"
+    perimeter: "Hypothetical burn footprint - candidate units: HUC12 watersheds
+      intersecting the road network, or the buffered TRPA boundary"
+    dnbr: 525          # placeholder constant, pending calibration decision
+    severity: 3        # placeholder constant (moderate), pending decision
+
+design_storm:
+  # Staley 2017 M1 uses peak 15-minute rainfall. Source: climate pipeline Atlas 14
+  # DDF extract (already processed). Future: climate-adjusted sub-daily intensities.
+  atlas14_ddf_csv: "../climate/data/processed/atlas14_ddf.csv"
+  duration: "15-min"
+  ari_years: [2, 10, 25]
+  # wildcat default I15 design intensities (mm/hr) - USGS standard set
+  i15_default_mm_hr: [16, 20, 24, 40]
+
+run:
+  overwrite: false
