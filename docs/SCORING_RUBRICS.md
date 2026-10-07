@@ -1,10 +1,11 @@
 # PROTECT scoring rubrics
 
-**Version 0.1, Oct. 8, 2026.** Draft for consultant review (ICF checkpoint Oct. 9).
-**Scope of this version:** the shared framework (section 1) and the three culvert pairs FL-C,
-LS-C, and DF-C (section 2). Bridge, debris flow on roads, and avalanche sections follow from the
-same lane; road, active transport, and transit center sections belong to the other lane. Nothing
-is scored until the rubric for that pair is agreed.
+**Version 0.2, Oct. 8, 2026.** Draft for consultant review (ICF checkpoint Oct. 9).
+**Scope of this version:** the shared framework (section 1) and the eight pairs in the culvert,
+bridge, debris flow, and avalanche lane: FL-C, LS-C, DF-C (section 2), FL-B, LS-B, DF-B
+(section 3), DF-R (section 4), and AV-R (section 5). The flooding, landslide, and wildfire
+sections for roads, active transport, and transit centers belong to the other lane and are not
+in this file yet. Nothing is scored until the rubric for that pair is agreed.
 
 Source of record for the equation, weights, and indicators: the consultant's draft VA
 Methodology (Aug. 20, 2026, internal draft, not committed). Where this document goes beyond the
@@ -294,3 +295,183 @@ note.
 8. Missing-data defaults as stated per row in section 2.3.
 9. Bucket breaks (section 1.2) and the max-pair aggregation rule (section 1.4).
 10. Whether unsnapped forest-road culverts stay out of the rating.
+
+---
+
+## 3. Bridges and large culverts: FL-B, LS-B, DF-B
+
+### 3.1 Asset set
+
+The `Bridges` layer holds the 40 National Bridge Inventory structures inside the TRPA boundary
+(California and Nevada), built by `scripts/build_bridges.py` from the basin clip. Five are NBI
+culvert-type structures (item 43B = 19) and score here, not in section 2. Every structure
+inherits `C_class` from `parent_segment_id`. Structures not over a waterway (scour item 113 = N,
+such as grade separations) stay in the set: their flood and debris-flow sensitivity indicators
+that depend on water score 0, and the exposure indicators still apply.
+
+NBI condition items are integers 0 (failed) to 9 (excellent) with N for not applicable. The
+FHWA bridge-condition classes are Good 7 to 9, Fair 5 to 6, Poor 4 and under; the rubrics below
+follow those breaks with the Fair band split so that 6 and 5 score differently.
+
+Two NBI items the draft uses are not yet in the layer: item 45 (number of spans in the main
+unit) and item 48 (length of the maximum span). Add `main_spans` and `max_span_m` to
+`build_bridges.py` before scoring.
+
+### 3.2 Indicator rubrics
+
+**FL-B, flooding x bridges** (E 0.3 / S 0.7)
+
+| Code | Indicator | Weight | 0 | 1 | 2 | 3 | Default | Sampling |
+|---|---|---|---|---|---|---|---|---|
+| E1 | Waterway adequacy, NBI item 71 (`waterway_eval`) | 0.20 | 8 to 9, or N | 6 to 7 | 4 to 5 | 0 to 3 | 1 when blank | Per structure |
+| E2 | Flood depth at the structure, contracted flood model, max of fluvial and pluvial. Historical horizon: the 100-yr depth, same breaks as FL-C E1. 2050 and 2080: change in 100-yr depth versus historical, 0 for no increase, 1 for under 0.5 ft, 2 for 0.5 to under 1.5 ft, 3 for 1.5 ft and over | 0.10 | | | | | 0 where the model has no cell | Max within 25 m |
+| E2 workshop fallback | FEMA zone at the structure, same classes as FL-C E1 fallback | 0.10 | | | | | 0 | Max within 25 m |
+| S1 | Channel and channel protection, NBI item 61 (`channel_cond`) | 0.10 | 7 to 9, or N | 6 | 5 | 0 to 4 | 1 when blank | Per structure |
+| S2 | Scour criticality, NBI item 113 (`scour_code`) | 0.40 | 9, 8, 7, 5, or N | 6 or U (not evaluated) | 4 (stable, action required) | 3, 2, 1, 0 (scour critical) | 1, `S_source` partial, for 6 and U | Per structure |
+| S3 | Span type, NBI item 45 as the draft cites it (number of main spans; more piers in the channel, more obstruction and scour surface) | 0.10 | 1 span | 2 | 3 to 4 | 5 and over | 1 when blank | Per structure |
+| S4 | Bridge condition, lowest of NBI items 58, 59, 60 (or 62 for culvert-type structures), `lowest_rating` | 0.10 | 7 to 9 | 6 | 5 | 0 to 4 | 1 when blank | Per structure |
+
+The draft's E1 is an inventory attribute rather than a hazard surface, which is why the pair is
+exposure-light. Item 71 encodes observed overtopping frequency, so it is in effect a recorded
+exposure history.
+
+**LS-B, landslide x bridges** (E 0.7 / S 0.3)
+
+| Code | Indicator | Weight | 0 | 1 | 2 | 3 | Default | Sampling |
+|---|---|---|---|---|---|---|---|---|
+| E1 | USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database) | 0.50 | class 1 and 2 | class 3 | class 4 | class 5, or any recorded landslide (match LS-R) | 0 | Max within 25 m, plus the parent segment's value where the abutment slopes extend past the buffer |
+| E2 | Cal-Adapt annual precipitation change versus historical | 0.20 | 0 percent or less | over 0 to 5 | over 5 to 10 | over 10 (match LS-R) | 0; historical horizon scores 0 | At the structure |
+| S1 | Span type, NBI item 45 (number of main spans) | 0.10 | 1 span | 2 | 3 to 4 | 5 and over | 1 | Per structure |
+| S2 | Bridge condition, `lowest_rating` | 0.10 | 7 to 9 | 6 | 5 | 0 to 4 | 1 | Per structure |
+| S3 | Span length, NBI item 48 (`max_span_m`). **Direction is a TRPA proposal:** a longer maximum span means more clearance and fewer in-channel piers, so it scores lower | 0.10 | 30 m and over | 15 to under 30 | 8 to under 15 | under 8 m (placeholder breaks; set from the 40-structure distribution) | 1 | Per structure |
+
+**DF-B, debris flow x bridges** (E 0.7 / S 0.3)
+
+Exposure is the same option 1 or option 2 rubric as DF-C (section 2.3) and DF-R (section 4),
+sampled over the contributing watershed of the crossing where the structure is over a waterway
+and within 25 m otherwise. The five culvert-type structures and the stream bridges get a
+watershed from the same delineation as the small culverts. Sensitivity is the LS-B set: span
+type 0.10, bridge condition 0.10, span length 0.10, with the same breaks and the same direction
+question on span length.
+
+### 3.3 Output fields
+
+`E_FLB_hist`, `S_FLB`, `V_FLB_hist`, and the LS-B and DF-B equivalents; `C_class`; `V_max`,
+`V_max_pair`, `V_class`; `E_source`, `S_source`; `DF_option`. Horizon columns are added in
+December as for culverts.
+
+### 3.4 Validation
+
+- The SR 89 culvert at Meeks Creek (structure 25 0019; culvert condition 5, scour code 4) is the
+  Caltrans Adaptation Priorities cross-check and should land High or Medium on FL-B.
+- The Placer County vulnerability assessment flags I-80 bridges for flooding; none are in the
+  basin, so this is a method check against their rubric rather than a result check.
+- With 40 structures, review every row by hand against the NBI record before delivery.
+
+### 3.5 Decisions requested from the consultant
+
+11. Whether "NBI 45 span type" in the draft means item 45 (number of main spans) or item 43
+    (structure type). The rubric assumes item 45.
+12. The direction of the span-length indicator (longer scores lower, as proposed).
+13. Scour codes 6 and U (not evaluated) as a default 1 rather than 0, so unevaluated
+    foundations are not read as safe.
+14. The historical-horizon interpretation of E2 (100-yr depth, since a change versus historical
+    is zero by definition).
+
+---
+
+## 4. Debris flow x roads: DF-R
+
+### 4.1 Asset set and sampling
+
+`Streets_Network_Tahoe` segments, scored length-weighted max along the segment on the hazard
+rasters below. The segment set, IDs, and `C_class` are the other lane's; this lane supplies the
+exposure surface and the DF-R scores so that DF-R, DF-B, and DF-C share one surface and one set
+of class breaks.
+
+### 4.2 Indicator rubrics (E 0.7 / S 0.3)
+
+Exposure is option 1 or option 2, undecided in the draft. Both are built as rasters so that
+roads (length-weighted max), bridges (25 m or watershed), and culverts (watershed) sample the
+same surfaces.
+
+| Code | Indicator | Weight | 0 | 1 | 2 | 3 | Default | Build |
+|---|---|---|---|---|---|---|---|---|
+| E1 (opt. 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell (flow-accumulation-weighted), from the 10 m DTM | 0.20 | under 10 percent | 10 to under 20 | 20 to under 35 | 35 and over | 1 | DTM |
+| E2 (opt. 1) | Drainage area. Raster: contributing area at each cell, classed; road cells take the max accumulation cell they intersect | 0.20 | under 10 ac | 10 to under 50 | 50 to under 250 | 250 and over (placeholder; set from the basin distribution) | 1 | DTM flow accumulation |
+| E3 (opt. 1) | Contracted predicted soil burn severity | 0.30 | unburned or unburnable | low | moderate | high | 0 | As delivered |
+| E1 (opt. 2) | Wildcat debris-flow likelihood, stream-segment results rasterized to the contributing area of each modeled segment | 0.30 | under 0.2 | 0.2 to under 0.4 | 0.4 to under 0.6 | 0.6 and over | 0 | `debris-flow/` pipeline |
+| E2 (opt. 2) | Wildcat combined hazard class | 0.15 | 1 | 2 | 3 | 4 and over | 0 | Same |
+| E3 (opt. 2) | Contracted predicted soil burn severity | 0.15 | unburned | low | moderate | high | 0 | As delivered |
+| S1 | Pavement condition | 0.15 | good | fair | fair-poor | poor | 1 (fair, per the draft), `S_source` partial | Jurisdiction outreach; unavailable today |
+| S2 | Paved versus unpaved | 0.15 | paved, state highway | paved, other | gravel or improved unpaved | unpaved native surface | 0 (paved, per the draft) | Street network surface attribute where present |
+
+Workshop fallback (either option not ready by Oct. 16): the proxy raster from the lane plan, WRF
+1-hr intensity against the Tahoe 15-minute threshold, times a slope and contributing-area factor
+from the DTM, times the burn severity proxy, classed 0 to 3. Same sampling, with `DF_option` =
+`proxy` and the method note stating what replaces it.
+
+### 4.3 Notes
+
+- Option 1 and the proxy both reuse the flow-accumulation and slope rasters from the culvert
+  delineation; the burn severity surface is the only new input.
+- Roads are hit by debris flows at the crossing (the culvert or bridge) and along the toe of
+  slope. Length-weighted max catches both; a segment with a High culvert and a Low roadway score
+  will read High on the segment, which is the intended behavior.
+- Pavement condition is the open sensitivity gap for every road pair. The default of fair with
+  `S_source` partial makes the gap visible on the map rather than hiding it.
+
+### 4.4 Decisions requested from the consultant
+
+15. Option 1 or option 2 for debris-flow exposure, and whether the proxy is acceptable for the
+    Nov. 9 workshop if neither is ready by Oct. 16.
+16. Drainage-area class breaks for E2 (option 1), set from the basin distribution at first run.
+
+---
+
+## 5. Avalanche x roads: AV-R
+
+### 5.1 Asset set and sampling
+
+`Streets_Network_Tahoe` segments, scored length-weighted max. Exposure only (E 1.0); the draft
+sets no sensitivity for this pair. Current terrain conditions only, no climate horizon. The
+initial corridor list (US-50, SR-89, SR-28, SR-207, SR-431) is the sanity check, not the scope:
+every segment is scored, and a High score off those corridors is a finding to review with the
+state DOTs at the workshop.
+
+### 5.2 Indicator rubric
+
+The draft specifies dominant slope angle within 1,000 ft plus a historical record within 1,000
+ft, with 35 to 45 degrees and a record scoring 3. The rubric below fills in the other classes
+(**TRPA proposal**) and defines the terms.
+
+- **Dominant slope** is the slope class covering the largest area of terrain above the road
+  (uphill side only) within 1,000 ft of the segment, from the 2022 lidar DTM at 10 m. Slopes
+  below 25 degrees rarely release and slopes above 50 degrees shed snow before it accumulates,
+  so the 30 to 45 degree band is the starting-zone range and 35 to 45 the core of it.
+- **Record** is any of: a Sierra Avalanche Center accident-map point, a National Avalanche
+  Accident Database entry, a mapped TRPA `Avalanche_Zones` polygon, or a documented closure in
+  the Task 3.1 event catalog (SR 431 Jan. 2017 and Mar. 2023; US 50 Echo Summit Apr. 2019),
+  within 1,000 ft of the segment.
+
+| Code | Indicator | Weight | 0 | 1 | 2 | 3 | Default | Sampling |
+|---|---|---|---|---|---|---|---|---|
+| E1 | Dominant uphill slope within 1,000 ft, combined with the record flag | 1.00 | dominant slope under 25 degrees and no record | 25 to under 30 degrees and no record, or a record with no slope over 25 degrees within 1,000 ft (an outlier record on flat ground) | 30 to 45 degrees and no record, or 25 to under 30 degrees with a record | 35 to 45 degrees with a record, as the draft states; 30 to under 35 degrees with a record also scores 3 | 0 | Length-weighted max per segment |
+
+The lane plan's earlier default (score by intersect with the TRPA avalanche zone class) is
+folded in as one of the record sources rather than used as the surface, so the score comes from
+terrain, and the zone layer confirms it.
+
+### 5.3 Validation
+
+- The five corridors should carry nearly all High segments; list any High segment off those
+  corridors for the DOTs.
+- The literature review notes avalanches rarely damage infrastructure, which is why the pair is
+  operational and why AV-B left the VA. The score describes closure likelihood, not damage.
+
+### 5.4 Decisions requested from the consultant
+
+17. The filled-in slope classes and the definition of dominant slope (largest-area class on the
+    uphill side within 1,000 ft).
+18. Whether the TRPA avalanche zone layer and documented closures count as records alongside
+    the two accident databases.
