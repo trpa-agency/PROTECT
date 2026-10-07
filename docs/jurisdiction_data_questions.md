@@ -56,6 +56,10 @@ culvert material). Ask:
 2. Some inspections date to 2006 (US-50 segment) - is newer inspection data available?
 3. Confirm the row-per-segment model: rows sharing a `SYSNO` were combined into one culvert
    (lengths summed, location at first inlet).
+4. The District 3 Climate Change Vulnerability Assessment and Adaptation Priorities report
+   lists the SR 89 culvert at Meeks Creek as a high priority. Does D3 hold a ranked culvert list
+   or condition ratings behind that report for the Tahoe routes? That would fill the condition
+   gap for the 695 Caltrans crossings, which currently carry inspection dates only.
 
 ## City of South Lake Tahoe
 

@@ -152,8 +152,11 @@ can follow by Oct. 9 while ICF reviews.
 
 ### 2.5 Vulnerability Rating and hotspots (first cut Oct. 16, final Oct. 30)
 
-- `scripts/compute_vulnerability.py`: `V_<pair> = (E + S) x C`, bucket High / Medium / Low with
-  breaks written to config, `V_max` and `V_max_pair` per asset under the aggregation rule.
+- `scripts/compute_vulnerability.py`: `V_<pair> = (E x wE) + (S x wS)` with the per-pair weights
+  from the Aug. 20 draft VA Methodology (see `docs/SCORING_RUBRICS.md`), bucket High / Medium /
+  Low with breaks written to config, `V_max` and `V_max_pair` per asset under the aggregation
+  rule. Criticality is not a multiplier: `C_class` is carried as its own field and the hotspot
+  lists rank by V within the High criticality class first.
 - `scripts/hotspots.py`: per hazard, top 25 assets by V and a corridor roll-up (route name x
   jurisdiction, length-weighted mean V, count High). Output `outputs/hotspots_<hazard>.csv`.
   This is the facilitator report-out sheet and the poster callout list.
@@ -416,7 +419,8 @@ finish in a sitting, in dependency order.
    one 0-3 raster. Replaced by wildcat output in December without changing step 3.
 5. `scripts/score_sensitivity.py`: `S_<pair>` 0-3 for bridges and culverts from condition,
    scour, capacity, age, and elevation, per the rubric table in `config.yaml`.
-6. `scripts/compute_vulnerability.py`: `(E + S) x C`, bucket, `V_max` and `V_max_pair`.
+6. `scripts/compute_vulnerability.py`: `(E x wE) + (S x wS)` per pair, `C_class` carried
+   separately, bucket, `V_max` and `V_max_pair`.
    Shared with the other lane; this lane writes it since bridges and culverts are the
    multi-pair case.
 7. `scripts/hotspots.py`: top 25 per hazard and corridor roll-up, CSV out.
