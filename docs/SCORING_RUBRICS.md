@@ -116,8 +116,8 @@ sensitivity indicator below. It is not itself a score.
 | `d_eq_in` | Equivalent diameter: `span_in` for circular pipes; `sqrt(4 x span x rise / pi)` for boxes, arches, ellipses | Derived |
 | `size_class` | Small (18 in. or under), medium (over 18 to 36), large (over 36 to 72), major (over 72) on `d_eq_in` | Derived |
 | `material_class` | Corrodible metal (CMP, CSP, squash, annular, corrugated metal), plastic (HDPE, PVC), concrete (RCP, concrete, box), unknown. El Dorado's undecoded `code N` values map to unknown until the county supplies the domain | `material` |
-| `contrib_area_ac` | Contributing drainage area at the crossing | Flow accumulation on the 2022 lidar DTM; pour point is the maximum-accumulation cell within 20 m of the culvert, on the upstream side of the road |
-| `basin_slope_pct` | Mean slope of the contributing watershed | DTM, zonal mean |
+| `contrib_area_ac` | Contributing drainage area at the crossing | Flow accumulation on the TRPA hydro-enforced bare-earth lidar DEM (`SDE.DEM_BareEarth_LiDAR_2010`, 2 m, EPSG 26910); pour point is the maximum-accumulation cell within 20 m of the culvert, on the upstream side of the road |
+| `basin_slope_pct` | Mean slope of the contributing watershed | Same DEM, zonal mean |
 | `basin_landcover` | Majority NLCD class in the watershed | NLCD 2021 |
 | `q_event_cfs` (hist, 2050, 2080) | Event peak flow at the crossing, 100-yr headline, 25-yr carried as a second column | Section 2.4 |
 | `q_cap_cfs` | Hydraulic capacity with headwater at the crown | Section 2.4 |
@@ -125,7 +125,7 @@ sensitivity indicator below. It is not itself a score.
 | `cond_class` | Harmonized latest-inspection condition, 0 good to 3 poor | Section 2.5 |
 | `cond_date`, `cond_stale` | Latest inspection date; stale when before 2015 | `CulvertCondition` |
 | `blockage_pct` | Latest recorded blockage | Washoe `perc_full`, NDOT `PercentBlockage`, legacy text |
-| `tailwater_flag` | Outlet within 50 m of the shoreline and below 6,230 ft (the legal maximum lake level is 6,229.1 ft) | DTM, high-water shoreline layer |
+| `tailwater_flag` | Outlet within 50 m of the shoreline and below 6,230 ft (the legal maximum lake level is 6,229.1 ft) | DEM, high-water shoreline layer |
 | `profile_completeness` | `full`, `partial`, `default`: whether size, hydrology, and condition were observed or defaulted | Derived |
 
 **Why size and condition are framed this way.** Size matters only relative to demand: an
@@ -196,12 +196,17 @@ proxy), classed 0 to 3 and sampled as watershed max, with the method note statin
 The draft's Qdesign is missing for nearly every culvert, so capacity is estimated from geometry.
 Parameters live in `config.yaml` (`hydraulics:` block, to be added with the profile script).
 
-- **Watershed.** Flow direction and accumulation on the 2022 lidar DTM resampled to 10 m, Fill
-  applied once. Pour point is the maximum-accumulation cell within 20 m of the culvert on the
-  upstream side of the road (lidar road fills act as dams, so the culvert point itself often sits
-  off the flow path). Watershed polygons are kept as a feature class; they also serve the
-  watershed sampling in section 2.3. Culverts within 10 m of each other on the same segment are
-  one crossing: one watershed, capacities summed.
+- **Watershed.** Flow direction and accumulation on the TRPA hydro-enforced bare-earth lidar
+  DEM (`SDE.DEM_BareEarth_LiDAR_2010`, 2 m, EPSG 26910, about 600 million cells basin-wide).
+  The hydro-enforcement already breaches road fills along the drainage lines, so no Fill step
+  is applied and the breach channels carry flow through the crossings; the delineation runs at
+  the native 2 m on the server machine rather than a resampled surface, because aggregating to
+  10 m would average away those narrow breaches. Pour point is the maximum-accumulation cell
+  within 20 m of the culvert on the upstream side of the road, which absorbs the offset between
+  the mapped culvert point and the enforced channel. Watershed polygons are kept as a feature
+  class; they also serve the watershed sampling in section 2.3. Culverts within 10 m of each
+  other on the same segment are one crossing: one watershed, capacities summed. The DEM is 2010
+  lidar; crossings rebuilt since then are flagged where `install_year` is 2011 or later.
 - **Event flow, Qevent.** Rational method, Q = C i A, for basins under 1 sq mi, with C by
   majority landcover (forest 0.35, shrub 0.40, developed 0.60, barren 0.50) and i the Atlas 14
   intensity at the basin's time of concentration (Kirpich), 100-yr headline and 25-yr carried.
@@ -257,7 +262,7 @@ note.
 ### 2.7 Validation and QA
 
 - Distribution checks on `contrib_area_ac` and `load_ratio` by jurisdiction before scoring;
-  spot-check 20 watersheds by eye against the DTM hillshade.
+  spot-check 20 watersheds by eye against the DEM hillshade.
 - Known-failure check: the July 14 event hindcast on the storm events page and any crossing the
   state DOTs or counties can name as a repeat overtopping or plugging site should land in the
   High class for FL-C or DF-C. A screening with no known failures in its top class is not
@@ -397,8 +402,8 @@ same surfaces.
 
 | Code | Indicator | Weight | 0 | 1 | 2 | 3 | Default | Build |
 |---|---|---|---|---|---|---|---|---|
-| E1 (opt. 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell (flow-accumulation-weighted), from the 10 m DTM | 0.20 | under 10 percent | 10 to under 20 | 20 to under 35 | 35 and over | 1 | DTM |
-| E2 (opt. 1) | Drainage area. Raster: contributing area at each cell, classed; road cells take the max accumulation cell they intersect | 0.20 | under 10 ac | 10 to under 50 | 50 to under 250 | 250 and over (placeholder; set from the basin distribution) | 1 | DTM flow accumulation |
+| E1 (opt. 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell (flow-accumulation-weighted), from the hydro-enforced DEM | 0.20 | under 10 percent | 10 to under 20 | 20 to under 35 | 35 and over | 1 | DEM |
+| E2 (opt. 1) | Drainage area. Raster: contributing area at each cell, classed; road cells take the max accumulation cell they intersect | 0.20 | under 10 ac | 10 to under 50 | 50 to under 250 | 250 and over (placeholder; set from the basin distribution) | 1 | DEM flow accumulation |
 | E3 (opt. 1) | Contracted predicted soil burn severity | 0.30 | unburned or unburnable | low | moderate | high | 0 | As delivered |
 | E1 (opt. 2) | Wildcat debris-flow likelihood, stream-segment results rasterized to the contributing area of each modeled segment | 0.30 | under 0.2 | 0.2 to under 0.4 | 0.4 to under 0.6 | 0.6 and over | 0 | `debris-flow/` pipeline |
 | E2 (opt. 2) | Wildcat combined hazard class | 0.15 | 1 | 2 | 3 | 4 and over | 0 | Same |
@@ -408,7 +413,7 @@ same surfaces.
 
 Workshop fallback (either option not ready by Oct. 16): the proxy raster from the lane plan, WRF
 1-hr intensity against the Tahoe 15-minute threshold, times a slope and contributing-area factor
-from the DTM, times the burn severity proxy, classed 0 to 3. Same sampling, with `DF_option` =
+from the DEM, times the burn severity proxy, classed 0 to 3. Same sampling, with `DF_option` =
 `proxy` and the method note stating what replaces it.
 
 ### 4.3 Notes
@@ -446,7 +451,8 @@ ft, with 35 to 45 degrees and a record scoring 3. The rubric below fills in the 
 (**TRPA proposal**) and defines the terms.
 
 - **Dominant slope** is the slope class covering the largest area of terrain above the road
-  (uphill side only) within 1,000 ft of the segment, from the 2022 lidar DTM at 10 m. Slopes
+  (uphill side only) within 1,000 ft of the segment, from the hydro-enforced lidar DEM
+  aggregated to 10 m. Slopes
   below 25 degrees rarely release and slopes above 50 degrees shed snow before it accumulates,
   so the 30 to 45 degree band is the starting-zone range and 35 to 45 the core of it.
 - **Record** is any of: a Sierra Avalanche Center accident-map point, a National Avalanche

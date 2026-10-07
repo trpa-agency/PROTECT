@@ -410,6 +410,12 @@ finish in a sitting, in dependency order.
    re-run that would drop provisional records is deferred; the 1,626 provisional records
    stay in, flagged by jurisdiction, until the notebook is re-run.
    Shared helpers live in `scripts/va_common.py`.
+2b. `scripts/culvert_profile.py`: watershed delineation and the culvert profile (section 2.2 of
+   the rubrics) on the TRPA hydro-enforced bare-earth lidar DEM
+   (`SDE.DEM_BareEarth_LiDAR_2010`, 2 m, about 600 million cells basin-wide). Flow direction
+   and accumulation at 2 m are a server job: this runs on the server machine from a clone of
+   the repo, with `config.yaml` paths resolving on that machine, not on a workstation. The
+   hydro-enforcement already breaches road fills, so there is no Fill step.
 3. `scripts/score_exposure.py`: one function per hazard surface (FEMA zone class, USGS
    landslide class, avalanche zone class, debris flow proxy raster) that takes an asset layer
    and writes `E_<pair>` 0-3 from breaks in `config.yaml`. Points sample with a 25 m buffer,

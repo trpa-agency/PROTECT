@@ -12,6 +12,9 @@ paths:
   legacy_culverts: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert
   # Working analysis geodatabase for the VA (shared with the street network and criticality work)
   analysis_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis.gdb
+  # Hydro-enforced bare-earth lidar DEM (TRPA raster SDE; 2 m, EPSG 26910, F32). Also served as
+  # an image service. Input to the culvert watershed delineation and the DF / AV slope surfaces.
+  dem: F:\GIS\DB_CONNECT\Raster.sde\SDE.DEM_BareEarth_LiDAR_2010
   processed: data/processed     # intermediate GeoPackage / parquet (gitignored)
   outputs: outputs              # final File GDB + QA reports (gitignored)
   logs: logs                    # timestamped run logs (gitignored)
