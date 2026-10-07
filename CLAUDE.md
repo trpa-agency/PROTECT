@@ -62,6 +62,15 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   Keep only open-source / public / sole-source tools in the HTML; do not enumerate commercial vendor
   names in committed files.
 
+- **RESTRICTED: NDOT SAM21 stormwater export** (`config.yaml` `ndot:` block). Shared under a
+  sensitive/restricted data sharing agreement (executed Aug. 12, 2026, term through Dec. 31,
+  2027; one named Data Steward). It lives on TRPA storage (F:) and is read in place by
+  `scripts/ndot_culverts.py` into the analysis geodatabase only. Never copy it, or anything
+  derived from it at the asset level, under the repo (`data/processed` is git-tracked and
+  served by GitHub Pages), into `outputs/`, onto any html page, or into a public REST service.
+  Segment-level aggregates are allowed but must be attributed to NDOT and reviewed by NDOT
+  before publication. The `.gitignore` blocks `*ndot*` as a backstop.
+
 The live readiness tracker is the Data and Model Inventory tab of `html/reference-hub.html`.
 
 ## Where things live

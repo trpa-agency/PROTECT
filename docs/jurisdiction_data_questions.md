@@ -68,6 +68,27 @@ culvert material). Ask:
 
 ## NDOT
 
-1. Execute the pending data sharing agreement.
-2. Request culvert locations and condition for US-50, SR-28, SR-207, and SR-431 within the
-   basin, including the inspection scale used.
+Delivered: SAM21 statewide stormwater export (July 2026) under the executed restricted data
+sharing agreement. Basin subset: 1,493 pipes, 12 reinforced concrete boxes, 1,314 pipe
+inspections, 21 box inspections. Integration notes in `docs/METHODS_culverts.md`.
+
+1. The SAM pipe subtype (Storm Drain / Culvert / Down Drain / ...) is blank on 1,460 of the
+   1,493 basin pipes. Is a culvert flag kept elsewhere, or can NDOT confirm the rule we
+   applied (a pipe crossing a road centerline is a culvert; manhole-to-manhole runs and
+   everything else are storm drain)?
+2. What do the Identification prefixes encode (DCCP, WCCP, CCCP, PDO, PWA, TMH, SHM)? County
+   plus "CP" for culvert pipe would let us replace the geometric rule.
+3. Route ID decoding to highway names (57WA / 57DO / 57CC, 7DO, 99WA, 39DO, 165DO, 1686DO).
+4. OverallPipeCond (Good/Fair/Poor) is blank on 94 percent of inspection visits while
+   PercentBlockage and the pavement / end-structure / erosion sub-ratings are filled. Is the
+   overall rating only recorded on a subset of visit types, and is blockage the operative
+   condition metric for NDOT's own prioritization?
+5. 125 basin pipes have no AssetID and 55 no Identification (we key on AssetID, then
+   Identification, then GlobalID). Will AssetID be backfilled, and is GlobalID stable across
+   quarterly exports?
+6. Hydraulic capacity, scour vulnerability, aquatic organism passage, and failure history
+   (agreement data items 6 to 9) are not in the SAM export. Are they tracked anywhere?
+7. One pipe records a 6,300 in. diameter (an elliptical pipe; id in the restricted QA); 29 basin pipes are
+   "Marked for Deletion" and several Active pipes carry "DELETE" / "does not exist" in the
+   description. Confirm these are retired.
+8. Next quarterly export date, and whether basin-only extracts are possible.

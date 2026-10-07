@@ -5,6 +5,13 @@
 # GitHub Pages serves the repo, so anything committed under data/ is reachable by URL.
 data/vendors.csv
 
+# NDOT SAM21 culvert data is RESTRICTED (data sharing agreement, config.yaml ndot:). It is
+# read in place from F: and never written under the repo; this is a backstop in case a
+# scratch export lands here by mistake.
+*ndot*
+*NDOT*
+!scripts/ndot_culverts.py
+
 # Data engineering: source snapshots, intermediates, outputs, logs (never commit)
 data/raw/
 # data/processed/
