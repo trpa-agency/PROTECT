@@ -164,6 +164,7 @@ def main() -> None:
     bridges = build(cfg, log)
 
     qa = REPO / cfg["paths"]["outputs"] / "bridges_attributes.csv"
+    qa.parent.mkdir(parents=True, exist_ok=True)  # outputs/ is gitignored; absent on a fresh clone
     bridges.drop(columns="geometry").to_csv(qa, index=False)
     log.info(f"Attributes -> {qa}")
     if args.dry_run:
