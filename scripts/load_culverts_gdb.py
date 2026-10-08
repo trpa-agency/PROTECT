@@ -167,6 +167,7 @@ def main() -> None:
     snap_cols = ["culvert_id", "jurisdiction", "parent_segment_id", "parent_dist_m", "has_condition"]
     snap_qa = culverts.drop(columns="geometry")[snap_cols]
     qa = REPO / cfg["paths"]["outputs"] / "culverts_segment_snap.csv"
+    qa.parent.mkdir(parents=True, exist_ok=True)  # outputs/ is gitignored; absent on a fresh clone
     snap_qa[~snap_qa["jurisdiction"].isin(restricted)].to_csv(qa, index=False)
     log.info(f"Snap QA (public sources) -> {qa}")
     if restricted:
