@@ -27,7 +27,7 @@ Workshop Nov. 9.
 | Done | Due | Lane | Item |
 |---|---|---|---|
 | [ ] | Oct. 7 | NC | Criticality weights final; combined 0-3 class written to the road layer; promote `Asset_Scoring.ipynb` to `scripts/score_criticality.py` with weights in `config.yaml`; road layer plus one-page method note to ICF |
-| [ ] | Oct. 8 | HS | Confirm the four lane defaults: avalanche by terrain plus records (no runout); debris flow proxy for the workshop, Wildcat for December; road-crossing rule for El Dorado and Washoe pipes; max-pair aggregation |
+| [x] | Oct. 8 | HS | Lane defaults confirmed Oct. 8: debris flow proxy for the workshop, Wildcat for December; road-crossing rule applied to both El Dorado and Washoe pipes; max-pair aggregation; avalanche by dominant slope plus record flag as in rubric section 5, zone layer as a record source, no runout |
 | [ ] | Oct. 8 | HS | Send NDOT the workshop-display sign-off request (segment-level aggregates only; NDOT reviews before anything is shown) |
 | [ ] | Oct. 8 | HS | Inventory the three baseline surfaces (FEMA zones in `Streams_and_Flood_Zone`, USGS landslide raster on F:, high-severity fire layer): paths, CRS, resolution, vintage, NV-side gaps |
 | [ ] | Oct. 9 | Shared | `docs/SCORING_RUBRICS.md` v0.2 to ICF as PDF or Word, with the max-pair recommendation; HS closes the flood, landslide, and wildfire class breaks before sending |
@@ -38,9 +38,11 @@ Workshop Nov. 9.
 | [ ] | Oct. 9 | Shared | `PROTECT_VA` v2 schema agreed: field names for E, S, C, V per pair, `V_max`, `V_max_pair`, `S_source`; stub `docs/PROTECT_VA_schema.md` |
 | [ ] | Oct. 9 | HS | Flood surface classed 0-3 (FEMA A/AE, X500, X) in the analysis geodatabase, breaks in `config.yaml`; handed to NC |
 | [ ] | Oct. 9 | HS | `scripts/score_exposure.py` started: flood function, breaks from config, 25 m buffer for points, length-weighted max for lines |
-| [ ] | Oct. 9 | HS | Culvert rerun: `profile.nlcd` path set (or run without land cover, stated); road-crossing rule for El Dorado and Washoe in the notebook; regenerate `culverts.gpkg`; reload with `load_culverts_gdb.py` (NDOT rows in memory only) |
-| [ ] | Oct. 9 | HS | `build_bridges.py --overwrite` to add NBI items 45 and 48 |
-| [ ] | Oct. 9 | HS | Server clone: 10 m smoke test of `culvert_profile.py` terrain and delineate; fix tool signatures; start the 2 m run overnight |
+| [ ] | Oct. 9 | HS | Culvert rerun: road-crossing rule for El Dorado and Washoe in the notebook; regenerate `culverts.gpkg`; reload with `load_culverts_gdb.py` (NDOT rows in memory only) |
+| [ ] | Oct. 12 | HS | NLCD 2021 clip requested from the MRLC viewer Oct. 8; when it lands, save to F:, set `profile.nlcd`, rerun `--stage delineate --overwrite` then `--stage attributes`. Until then the profile uses the default runoff coefficient; say so in the FL-C method note |
+| [x] | Oct. 8 | HS | `build_bridges.py --overwrite` to add NBI items 45 and 48 (ran on the server) |
+| [x] | Oct. 8 | HS | Server clone: 10 m smoke test of `culvert_profile.py`, all three stages. Fixes on the `server-run` branch: outputs folder, drainage-tree cycles, area cross-check, DDF table tracked |
+| [ ] | Oct. 9 | HS | 2 m run started Oct. 8 (`--stage all --overwrite`, no land cover); check the log in the morning: zero cut links expected, snap count up from 3,653, area mismatches down from 592 |
 | [ ] | Oct. 10 | NC | `criticality-index.html` adopts the config weights and shows the 0-3 class next to the index |
 
 ## Week of Oct. 12 to 16: score and ship, rolling to ICF
