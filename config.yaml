@@ -55,6 +55,10 @@ assets:
 profile:
   work_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_terrain.gdb  # terrain rasters
   nlcd: ""                 # NLCD 2021 land cover raster (optional). Blank = no landcover terms
+  fill_z_limit_m: 3        # fill sinks shallower than this before flow direction; null = no Fill.
+                           # The enforced DEM still has sinks at unbreached crossings (Oct. 8 QA:
+                           # two-cell flow loops at the pour cells, accumulation split, flow
+                           # truncated at the road fill). Deeper sinks (lakes, basins) are kept.
   cell_m: 2                # delineation cell size. 2 = native. Larger values aggregate the DEM
                            # with MINIMUM (keeps breach channels) for test runs only
   flow_length: true        # compute the longest upstream flow path (needed for Kirpich tc)
