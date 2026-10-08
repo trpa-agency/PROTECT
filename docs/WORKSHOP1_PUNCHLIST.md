@@ -27,7 +27,7 @@ Workshop Nov. 9.
 | Done | Due | Lane | Item |
 |---|---|---|---|
 | [ ] | Oct. 7 | NC | Criticality weights final; combined 0-3 class written to the road layer; promote `Asset_Scoring.ipynb` to `scripts/score_criticality.py` with weights in `config.yaml`; road layer plus one-page method note to ICF |
-| [ ] | Oct. 8 | HS | Confirm the four lane defaults: avalanche by terrain plus records (no runout); debris flow proxy for the workshop, Wildcat for December; road-crossing rule for El Dorado and Washoe pipes; max-pair aggregation |
+| [x] | Oct. 8 | HS | Lane defaults confirmed Oct. 8: debris flow proxy for the workshop, Wildcat for December; road-crossing rule applied to both El Dorado and Washoe pipes; max-pair aggregation; avalanche by dominant slope plus record flag as in rubric section 5, zone layer as a record source, no runout |
 | [ ] | Oct. 8 | HS | Send NDOT the workshop-display sign-off request (segment-level aggregates only; NDOT reviews before anything is shown) |
 | [ ] | Oct. 8 | HS | Inventory the three baseline surfaces (FEMA zones in `Streams_and_Flood_Zone`, USGS landslide raster on F:, high-severity fire layer): paths, CRS, resolution, vintage, NV-side gaps |
 | [ ] | Oct. 9 | Shared | `docs/SCORING_RUBRICS.md` v0.2 to ICF as PDF or Word, with the max-pair recommendation; HS closes the flood, landslide, and wildfire class breaks before sending |
