@@ -31,6 +31,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--n", type=int, default=12, help="number of worst crossings to sample")
     ap.add_argument("--ids", nargs="*", help="specific crossing ids to sample instead")
+    ap.add_argument("--grid", action="store_true",
+                    help="print the origin / cell size / extent of every terrain raster and a 5x5 "
+                         "neighborhood of facc, fdir, and zone around the first 3 sampled pour cells")
     args = ap.parse_args()
     log = get_logger("qa_crossings")
     cfg = load_cfg()
@@ -40,6 +43,25 @@ def main() -> None:
     gdb, work = cfg["paths"]["analysis_gdb"], cfg["profile"]["work_gdb"]
     wfc = WATERSHED_FC
     cell = float(arcpy.Describe(f"{work}\\facc").meanCellWidth)
+
+    if args.grid:
+        arcpy.env.workspace = work
+        rows = []
+        for r in arcpy.ListRasters():
+            d = arcpy.Describe(r)
+            e = d.extent
+            rows.append(dict(raster=r, cell_w=d.meanCellWidth, cell_h=d.meanCellHeight, xmin=e.XMin, ymin=e.YMin,
+                             xmax=e.XMax, ymax=e.YMax, cols=d.width, rows=d.height, epsg=d.spatialReference.factoryCode))
+        src = arcpy.Describe(cfg["paths"]["dem"])
+        e = src.extent
+        rows.append(dict(raster="SDE DEM (source)", cell_w=src.meanCellWidth, cell_h=src.meanCellHeight, xmin=e.XMin,
+                         ymin=e.YMin, xmax=e.XMax, ymax=e.YMax, cols=src.width, rows=src.height,
+                         epsg=src.spatialReference.factoryCode))
+        pd.set_option("display.width", 250)
+        pd.set_option("display.float_format", lambda v: f"{v:.3f}")
+        log.info("raster grids (any difference in xmin/ymin modulo the cell size is a misalignment):\n"
+                 + pd.DataFrame(rows).to_string(index=False))
+        pd.reset_option("display.float_format")
 
     xt = pyogrio.read_dataframe(gdb, layer=CROSSING_TABLE, read_geometry=False)
     xt["cells_diff"] = (xt["contrib_area_ac"] - xt["facc_area_ac"]) * SQM_PER_ACRE / (cell * cell)
@@ -81,6 +103,22 @@ def main() -> None:
                         facc_cells=round(r.facc_area_ac * SQM_PER_ACRE / (cell * cell)), pct=r.area_check_pct))
     pd.set_option("display.width", 250)
     log.info("pour-cell check:\n" + pd.DataFrame(out).to_string(index=False))
+
+    if args.grid:
+        def window(raster: str, x: float, y: float, n: int = 5):
+            half = n // 2
+            grid = []
+            for j in range(half, -half - 1, -1):          # north row first
+                grid.append([cellval(raster, x + i * cell, y + j * cell) for i in range(-half, half + 1)])
+            df = pd.DataFrame(grid, index=[f"y{j:+d}" for j in range(half, -half - 1, -1)],
+                              columns=[f"x{i:+d}" for i in range(-half, half + 1)])
+            return df
+        for _, r in pick.head(3).iterrows():
+            x, y = float(r.pp_x), float(r.pp_y)
+            log.info(f"{r.crossing_id} neighborhood at ({x:.1f}, {y:.1f}); center is the pour cell, north is up\n"
+                     f"facc:\n{window('facc', x, y).to_string()}\n"
+                     f"fdir:\n{window('fdir', x, y).to_string()}\n"
+                     f"zone:\n{window('wshed_inc', x, y).to_string()}")
     log.info("Read: zone_is_pp False = the Watershed pour cell is not the sampled cell. "
              "facc_pp + 1 != inc_cells with zone_is_pp True = zone/accumulation disagree at the same cell. "
              "facc_dn < facc_pp = the D8 step-down cell is not downstream (wrong link).")
