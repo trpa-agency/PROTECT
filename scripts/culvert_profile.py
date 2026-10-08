@@ -197,6 +197,79 @@ def _group_crossings(pts: gpd.GeoDataFrame, dist_m: float) -> pd.Series:
     return roots
 
 
+def aggregate_upstream(tree: pd.DataFrame, lc_cols: list, log) -> dict[int, tuple]:
+    """Sum each crossing's incremental zone with everything upstream of it.
+
+    `tree` is indexed by pp_id with `dn_zone` (the next crossing downstream, NaN at an
+    outlet), `inc_cells`, `inc_slope_mean`, `inc_elev_max`, and one column per NLCD code in
+    `lc_cols`. Returns {pp_id: (cells, slope_sum, elev_max, {code: cells})}.
+
+    Cycles are cut first. D8 flow direction can loop inside flat sinks (the aggregated test
+    DEM has them; the hydro-enforced 2 m DEM should not), and a looped downstream chain
+    would otherwise never resolve. Walking downstream from every crossing, an edge that
+    lands on a crossing already on the current walk is dropped and that crossing becomes
+    an outlet; `dn_zone` is set to NaN for it in place. Aggregation then runs leaves-first
+    (Kahn's order) with no recursion, so the depth of the drainage tree does not matter.
+    """
+    ids = [int(i) for i in tree.index]
+    down_map = {int(pid): int(dz) for pid, dz in tree["dn_zone"].items()
+                if pd.notna(dz) and int(dz) in tree.index}
+
+    state: dict[int, int] = {}  # 1 = on the current walk, 2 = finished
+    cut: list[tuple[int, int]] = []
+    for start in ids:
+        n, path = start, []
+        while state.get(n, 0) == 0:
+            state[n] = 1
+            path.append(n)
+            nxt = down_map.get(n)
+            if nxt is None:
+                break
+            if state.get(nxt) == 1:
+                cut.append((n, nxt))
+                del down_map[n]
+                break
+            n = nxt
+        for m in path:
+            state[m] = 2
+    if cut:
+        log.warning(f"{len(cut)} downstream links cut to break drainage-tree cycles (flat sinks in the "
+                    f"flow direction raster); those crossings are treated as outlets: "
+                    f"{', '.join(f'X{a:05d}->X{b:05d}' for a, b in cut[:20])}{' ...' if len(cut) > 20 else ''}")
+        tree.loc[[a for a, _ in cut], "dn_zone"] = np.nan
+
+    children: dict[int, list[int]] = {}
+    for c, par in down_map.items():
+        children.setdefault(par, []).append(c)
+
+    full: dict[int, tuple] = {}
+    pending = {pid: len(children.get(pid, [])) for pid in ids}
+    ready = [pid for pid, k in pending.items() if k == 0]
+    while ready:
+        pid = ready.pop()
+        own = tree.loc[pid]
+        cells = float(own["inc_cells"]) if pd.notna(own["inc_cells"]) else 0.0
+        slope_sum = (float(own["inc_slope_mean"]) * cells) if cells and pd.notna(own["inc_slope_mean"]) else 0.0
+        elev = float(own["inc_elev_max"]) if pd.notna(own["inc_elev_max"]) else -np.inf
+        lcs = {c: (float(own[c]) if pd.notna(own[c]) else 0.0) for c in lc_cols}
+        for ch in children.get(pid, []):
+            c_cells, c_slope_sum, c_elev, c_lcs = full[ch]
+            cells += c_cells
+            slope_sum += c_slope_sum
+            elev = max(elev, c_elev)
+            for k in lc_cols:
+                lcs[k] += c_lcs[k]
+        full[pid] = (cells, slope_sum, elev, lcs)
+        par = down_map.get(pid)
+        if par is not None:
+            pending[par] -= 1
+            if pending[par] == 0:
+                ready.append(par)
+    if len(full) != len(ids):
+        raise RuntimeError(f"drainage-tree aggregation left {len(ids) - len(full)} crossings unresolved")
+    return full
+
+
 def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
     import arcpy
     from arcpy import sa
@@ -321,35 +394,8 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
     if lc is not None:
         tree = tree.merge(lc, on="pp_id", how="left")
     tree = tree.set_index("pp_id")
-    children: dict[int, list[int]] = {}
-    for pid, dz in tree["dn_zone"].items():
-        if pd.notna(dz) and int(dz) in tree.index:
-            children.setdefault(int(dz), []).append(int(pid))
     lc_cols = [c for c in tree.columns if isinstance(c, (int, np.integer))]
-    full = {}
-
-    def agg(pid: int):
-        if pid in full:
-            return full[pid]
-        own = tree.loc[pid]
-        cells = float(own["inc_cells"]) if pd.notna(own["inc_cells"]) else 0.0
-        slope_sum = (float(own["inc_slope_mean"]) * cells) if cells and pd.notna(own["inc_slope_mean"]) else 0.0
-        elev = float(own["inc_elev_max"]) if pd.notna(own["inc_elev_max"]) else -np.inf
-        lcs = {c: (float(own[c]) if pd.notna(own[c]) else 0.0) for c in lc_cols}
-        for ch in children.get(pid, []):
-            c_cells, c_slope_sum, c_elev, c_lcs = agg(ch)
-            cells += c_cells
-            slope_sum += c_slope_sum
-            elev = max(elev, c_elev)
-            for k in lc_cols:
-                lcs[k] += c_lcs[k]
-        full[pid] = (cells, slope_sum, elev, lcs)
-        return full[pid]
-
-    import sys
-    sys.setrecursionlimit(max(10000, len(tree) + 100))
-    for pid in tree.index:
-        agg(int(pid))
+    full = aggregate_upstream(tree, lc_cols, log)
     tree["full_cells"] = [full[int(i)][0] for i in tree.index]
     tree["basin_slope_pct"] = [full[int(i)][1] / full[int(i)][0] if full[int(i)][0] else np.nan for i in tree.index]
     tree["basin_elev_max_m"] = [full[int(i)][2] if np.isfinite(full[int(i)][2]) else np.nan for i in tree.index]
