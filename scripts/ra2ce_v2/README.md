@@ -75,7 +75,8 @@ routing graph, so it lands **before** Dijkstra, not after.
 
 ```
 ra2ce_v2/
-|- pipeline.py               orchestrator (prepare / basegraph / repair / route / verify)
+|- pipeline.py               orchestrator (prepare / basegraph / repair / route / slr / verify)
+|- export_slr.py             single link redundancy -> complex segments -> PROTECT_VA update table
 |- preprocess.py             split_colliding_links
 |- repair_simple_geometry.py linemerge repair with the endpoint guard
 |- ra2ce_patches.py          find_route_ods unary_union patch
@@ -96,6 +97,8 @@ $py = "C:\Users\amcclary\AppData\Local\ESRI\conda\envs\arcgispro-py3-plotly\pyth
 & $py pipeline.py --stages prepare basegraph repair     # fast stages only (~4 min)
 & $py smoke_test_reuse.py                               # verify reuse, ~1 min
 & $py pipeline.py --stages route --analyses medicalfacilities
+& $py pipeline.py --stages slr                           # single link redundancy, ~2.5 min
+& $py export_slr.py                                      # SLR -> PROTECT_VA update table
 ```
 
 Stages are idempotent and skip completed work; pass `--force` to redo one.
@@ -258,3 +261,68 @@ single true value.
 
 Re-download the published layer with `--refresh`; it is otherwise cached in
 `output/protect_va_update/protect_va_published.gpkg`.
+
+## Single link redundancy (detour length)
+
+The detour fields on PROTECT_VA (`slr_*`) came from the July `scripts/ra2ce` run
+(`tahoe_slr`). RA2CE runs SLR on `graph_files.base_graph`, the simplified graph both
+defects corrupt, so that run was missing the collapsed parallel links and measured
+detours with understated straight-line edge lengths. It was then joined to streets
+by a one-sided 5 m buffer overlap, which left 6,117 streets NULL.
+
+`pipeline.py --stages slr` reruns it (LENGTH weighing, unchanged) on the split +
+repaired base graph, reusing it exactly as the route stage does; the stage checks
+that `base_graph.p` is byte-identical afterwards. `export_slr.py` then:
+
+1. pushes each simple-edge result down to the complex segments it covers via
+   `base_network.feather` (`rfid_c -> rfid`), so values sit on true geometry;
+2. neutralizes the 2,190 self-loops: RA2CE reports `diff_length = -length` for
+   them because the alternative from a node to itself is 0 m;
+3. clips the other negative detours to 0 (3,633 on the 2026-10-07 run: 2,139 are
+   the longer member of a parallel pair, 1,489 are winding links with a shorter
+   route between the same endpoints - removing either adds no distance);
+4. joins to the 18,285 streets with the two-sided, endpoint-trimmed rule above.
+   Per street, `slr_diff_length` is the max over contributing segments and
+   `slr_detour` the min (0 if any segment has no detour).
+
+### Results (2026-10-07, 2.3 min)
+
+```
+streets matched                  18,285 of 18,285 (was 12,168), all >=95% coverage
+no detour, published -> v2       trunk 55 -> 2, primary 146 -> 17,
+                                 secondary 31 -> 8, tertiary 108 -> 26,
+                                 residential 1,188 -> 1,823, service 1,619 -> 4,499
+```
+
+The major-road "no detour" cases were almost all collapse artifacts - the reason
+`Asset_Criticality.ipynb` had to fill them from neighbours. The rise on service and
+residential streets is the 6,117 previously unmatched streets, mostly dead ends,
+now getting a value.
+
+Output: `output/protect_va_update/protect_va_slr_update.csv` (OBJECTID key) and
+`output/tahoe_slr_v2_complex.gpkg`. `scripts/Streets_Network_Clean.ipynb` reads the
+CSV directly.
+
+## Alternative: travel-time routing with stochastic assignment
+
+`od_stochastic_assignment.ipynb` re-routes the four OD analyses without RA2CE's
+per-pair router, and writes only to `output/od_stochastic/`. The RA2CE method and its
+outputs are unchanged.
+
+RA2CE routes on shortest distance with no road hierarchy (every OD-graph edge has
+`highway = None`, `avgspeed = 50`), so in street grids all traffic stacks onto one
+arbitrary staircase of residential blocks. The notebook instead:
+
+- costs each edge by travel time from free-flow speeds by Overture road class
+  (`SPEED_MPH`; starting assumptions to calibrate);
+- averages 100 routing draws with lognormal noise (CV ~25%) on edge times, so
+  near-tied grid paths share the load (stochastic assignment).
+
+It reuses the archived OD graphs, origins, populations, equity weights and
+destination rules, and runs in ~4 minutes. Run in RA2CE's configuration (distance,
+no noise) it reproduces RA2CE's person-km exactly on all four analyses.
+
+Outputs: `<analysis>_criticality.gpkg` (RA2CE schema + `class`, `mph`, `traffic_sd`),
+`tahoe_od_criticality_combined_stochastic.gpkg`,
+`protect_va_update/protect_va_od_update_stochastic.csv` (same columns as the RA2CE
+update table), `al_tahoe_medical_facilities_comparison.png`, `run_config.json`.

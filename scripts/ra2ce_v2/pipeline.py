@@ -29,6 +29,7 @@ Stages (run all, or a subset with --stages):
                                        static/output_graph/base_network.feather
   repair     linemerge repair of base_graph.p (original kept as .orig)
   route      per-analysis OD routing + criticality, reusing the repaired graph
+  slr        single link redundancy (detour length) on the repaired graph
   verify     post-run checks
 
 Usage:
@@ -232,6 +233,71 @@ def stage_route(analyses=None, force=False):
 
 
 # ----------------------------------------------------------------------------
+SLR_NAME = "tahoe_slr_v2"
+
+
+def stage_slr(force=False):
+    """Single link redundancy on the repaired base graph.
+
+    RA2CE runs SLR on graph_files.base_graph, the simplified graph that both
+    defects corrupt, so the July run (scripts/ra2ce, tahoe_slr) inherited them:
+    collapsed parallel links were missing from the graph, and straight-line
+    geometry understated edge lengths and therefore detour lengths. This runs the
+    same analysis (LENGTH weighing) on the split + repaired graph instead.
+
+    reuse_network_output=True keeps static/output_graph/ (no rmtree), and with no
+    origins/destinations section Network.create() builds nothing new. The base
+    graph's hash is checked before and after so a silent rebuild cannot slip by.
+    """
+    import hashlib
+    import nb_helpers as nb  # noqa: F401  (sets PROJ, imports RA2CE)
+    from ra2ce.ra2ce_handler import Ra2ceHandler
+    from ra2ce.network.network_config_data.network_config_data import (
+        NetworkSection, NetworkConfigData,
+    )
+    from ra2ce.network.network_config_data.enums.source_enum import SourceEnum
+    from ra2ce.analysis.analysis_config_data.analysis_config_data import (
+        AnalysisSectionLosses, AnalysisConfigData,
+    )
+    from ra2ce.analysis.analysis_config_data.enums.analysis_losses_enum import AnalysisLossesEnum
+    from ra2ce.analysis.analysis_config_data.enums.weighing_enum import WeighingEnum
+    from pyproj import CRS
+
+    out_dir = HERE / "output"
+    marker = out_dir / "single_link_redundancy" / (SLR_NAME + ".gpkg")
+    if marker.exists() and not force:
+        log("slr: {} exists, skipping (use --force)".format(marker.name))
+        return
+    bg = OUTPUT_GRAPH / "base_graph.p"
+    assert (OUTPUT_GRAPH / "base_graph.p.orig").exists(), "run the repair stage first"
+
+    def sha(p):
+        return hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+
+    before = sha(bg)
+    cfg = NetworkConfigData(
+        root_path=HERE, static_path=HERE / "static", crs=CRS.from_epsg(4326),
+        network=NetworkSection(source=SourceEnum.SHAPEFILE, primary_file=SPLIT_NETWORK,
+                               save_gpkg=True, reuse_network_output=True),
+    )
+    analysis = AnalysisConfigData(
+        root_path=HERE, output_path=out_dir, static_path=HERE / "static",
+        analyses=[AnalysisSectionLosses(
+            name=SLR_NAME, analysis=AnalysisLossesEnum.SINGLE_LINK_REDUNDANCY,
+            weighing=WeighingEnum.LENGTH, save_csv=True, save_gpkg=True)],
+    )
+    t = time.time()
+    log("slr: running single link redundancy on the repaired base graph ...")
+    handler = Ra2ceHandler.from_config(network=cfg, analysis=analysis)
+    handler.configure()
+    handler.run_analysis()
+    after = sha(bg)
+    assert before == after, "base_graph.p changed during the SLR run ({} -> {})".format(before, after)
+    log("slr: done in {:.1f} min -> {}; base_graph.p unchanged ({})".format(
+        (time.time() - t) / 60, marker.relative_to(HERE), after))
+
+
+# ----------------------------------------------------------------------------
 def stage_verify():
     """Check the OD graph that was actually routed.
 
@@ -288,7 +354,8 @@ def stage_verify():
 
 
 STAGES = {"prepare": stage_prepare, "basegraph": stage_basegraph,
-          "repair": stage_repair, "route": stage_route, "verify": stage_verify}
+          "repair": stage_repair, "route": stage_route, "slr": stage_slr,
+          "verify": stage_verify}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
