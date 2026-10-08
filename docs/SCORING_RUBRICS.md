@@ -198,10 +198,13 @@ Parameters live in `config.yaml` (`hydraulics:` block, to be added with the prof
 
 - **Watershed.** Flow direction and accumulation on the TRPA hydro-enforced bare-earth lidar
   DEM (`SDE.DEM_BareEarth_LiDAR_2010`, 2 m, EPSG 26910, about 600 million cells basin-wide).
-  The hydro-enforcement already breaches road fills along the drainage lines, so no Fill step
-  is applied and the breach channels carry flow through the crossings; the delineation runs at
-  the native 2 m on the server machine rather than a resampled surface, because aggregating to
-  10 m would average away those narrow breaches. Pour point is the maximum-accumulation cell
+  The hydro-enforcement breaches road fills along the mapped drainage lines, but not at every
+  crossing: the Oct. 8 QA found sinks behind unbreached fills that turn into two-cell flow
+  loops, splitting accumulation and ending the flow path at the road. Sinks shallower than
+  3 m (`profile.fill_z_limit_m`) are therefore filled before flow direction; deeper sinks
+  (lakes, real basins) are kept. The delineation runs at the native 2 m on the server
+  machine rather than a resampled surface, because aggregating to 10 m would average away
+  the narrow breach channels. Pour point is the maximum-accumulation cell
   within 20 m of the culvert on the upstream side of the road, which absorbs the offset between
   the mapped culvert point and the enforced channel. Watershed polygons are kept as a feature
   class; they also serve the watershed sampling in section 2.3. Culverts within 10 m of each

@@ -136,7 +136,9 @@ def main() -> None:
             if fd.shape != (n, n):
                 log.warning(f"{r.crossing_id}: box clipped to {fd.shape}; skipping")
                 continue
-            c = d8_checks(fd, fa, ws, half, half, int(r.crossing_pp))
+            # array row 0 is the north edge: the pour cell is `half` cells above the lower-left
+            # corner, so its row index from the top is n - 1 - half
+            c = d8_checks(fd, fa, ws, n - 1 - half, half, int(r.crossing_pp))
             log.info(f"{r.crossing_id}: D8 conservation in a {n}x{n} box: {c['violations']} of {c['n_inside']} cells "
                      f"({100 * c['violations'] / max(c['n_inside'], 1):.2f} pct) drain to a cell with LESS accumulation "
                      f"than themselves + 1. Should be 0 for a D8 accumulation of this fdir."

@@ -6,7 +6,10 @@ resumable and skips work that already exists unless --overwrite is given.
 
     terrain     Flow direction, flow accumulation, slope, and longest upstream flow length
                 from the hydro-enforced bare-earth lidar DEM (paths.dem), written to
-                profile.work_gdb. No Fill: the DEM is already hydro-enforced. SERVER JOB.
+                profile.work_gdb. Sinks shallower than profile.fill_z_limit_m are filled
+                first (the enforcement did not breach every crossing; unfilled sinks make
+                two-cell flow-direction loops that split accumulation and stop flow at the
+                road fill). Set it null to skip Fill. SERVER JOB.
     delineate   Snap every culvert to its pour point (max accumulation within
                 profile.pour_snap_m), group multi-barrel crossings, delineate incremental
                 watersheds, record each crossing's downstream crossing, zonal statistics
@@ -158,7 +161,21 @@ def stage_terrain(cfg: dict, log, overwrite: bool) -> None:
         fn().save(path)
         log.info(f"{name} -> {path}")
 
-    build("fdir", lambda: sa.FlowDirection(dem, "NORMAL", None, "D8"))
+    # Depth-limited Fill. The enforced DEM still holds sinks (ditch ponds behind unbreached
+    # road fills, pits); FlowDirection without Fill turns each into a two-cell loop that
+    # splits accumulation between the loop cells and ends the flow path at the fill. Sinks
+    # deeper than the limit (lakes, real basins) are left alone. Slope and zonal elevation
+    # keep using the unfilled surface.
+    z_limit = p.get("fill_z_limit_m")
+    flow_dem = dem
+    if z_limit:
+        build("dem_fill", lambda: sa.Fill(dem, float(z_limit)))
+        flow_dem = sa.Raster(f"{work}\\dem_fill")
+        log.info(f"Flow direction from the filled DEM (sinks under {z_limit} m filled)")
+    else:
+        log.warning("No Fill (profile.fill_z_limit_m unset): unbreached sinks will loop and truncate flow")
+
+    build("fdir", lambda: sa.FlowDirection(flow_dem, "NORMAL", None, "D8"))
     fdir = sa.Raster(f"{work}\\fdir")
     build("facc", lambda: sa.FlowAccumulation(fdir, None, "FLOAT", "D8"))
     build("slope_pct", lambda: sa.Slope(dem, "PERCENT_RISE"))
@@ -369,6 +386,17 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
     down = pd.DataFrame([r for r in arcpy.da.SearchCursor(dpts, ["xid", "dn_zone"])], columns=["pp_id", "dn_zone"])
     down["dn_zone"] = pd.to_numeric(down["dn_zone"], errors="coerce")
     down.loc[down["dn_zone"] == down["pp_id"], "dn_zone"] = np.nan  # a cell cannot drain to itself
+    # A downstream crossing must carry at least the upstream one's accumulation. A link that
+    # fails this comes from a flow-direction loop (two sink cells pointing at each other) or a
+    # pour cell on a neighboring channel; drop it rather than let the tree sum the wrong way.
+    facc_by_pp = reps.set_index("pp_id")["facc"]
+    up_f = down["pp_id"].map(facc_by_pp)
+    dn_f = down["dn_zone"].map(facc_by_pp)
+    bad_link = down["dn_zone"].notna() & dn_f.notna() & (dn_f < up_f)
+    if bad_link.any():
+        log.warning(f"{int(bad_link.sum())} downstream links dropped: the downstream crossing has less flow "
+                    f"accumulation than the upstream one (flow-direction loops at unfilled sinks)")
+        down.loc[bad_link, "dn_zone"] = np.nan
 
     # 6. zonal statistics on the incremental zones
     log.info("Zonal statistics (count, mean slope, max elevation) ...")
