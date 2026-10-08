@@ -34,6 +34,10 @@ def main() -> None:
     ap.add_argument("--grid", action="store_true",
                     help="print the origin / cell size / extent of every terrain raster and a 5x5 "
                          "neighborhood of facc, fdir, and zone around the first 3 sampled pour cells")
+    ap.add_argument("--conserve", action="store_true",
+                    help="numpy test on a box around the first 3 sampled pour cells: D8 conservation of facc, "
+                         "the true upstream count of the pour cell walked on fdir, and facc along the downstream path")
+    ap.add_argument("--box-m", type=float, default=1000.0, help="box size for --conserve (m)")
     args = ap.parse_args()
     log = get_logger("qa_crossings")
     cfg = load_cfg()
@@ -119,6 +123,85 @@ def main() -> None:
                      f"facc:\n{window('facc', x, y).to_string()}\n"
                      f"fdir:\n{window('fdir', x, y).to_string()}\n"
                      f"zone:\n{window('wshed_inc', x, y).to_string()}")
+
+    if args.conserve:
+        n = int(round(args.box_m / cell))
+        half = n // 2
+        for _, r in pick.head(3).iterrows():
+            x, y = float(r.pp_x), float(r.pp_y)
+            ll = arcpy.Point(x - half * cell - cell / 2, y - half * cell - cell / 2)
+            fd = arcpy.RasterToNumPyArray(f"{work}\\fdir", ll, n, n, nodata_to_value=0).astype(np.int64)
+            fa = arcpy.RasterToNumPyArray(f"{work}\\facc", ll, n, n, nodata_to_value=-1).astype(np.float64)
+            ws = arcpy.RasterToNumPyArray(f"{work}\\wshed_inc", ll, n, n, nodata_to_value=0).astype(np.int64)
+            if fd.shape != (n, n):
+                log.warning(f"{r.crossing_id}: box clipped to {fd.shape}; skipping")
+                continue
+            c = d8_checks(fd, fa, ws, half, half, int(r.crossing_pp))
+            log.info(f"{r.crossing_id}: D8 conservation in a {n}x{n} box: {c['violations']} of {c['n_inside']} cells "
+                     f"({100 * c['violations'] / max(c['n_inside'], 1):.2f} pct) drain to a cell with LESS accumulation "
+                     f"than themselves + 1. Should be 0 for a D8 accumulation of this fdir."
+                     + (f" Violations on cells with facc >= 100: {c['violations_big']}; largest facc lost: {c['lost_max']:.0f}"
+                        if c["violations"] else ""))
+            log.info(f"{r.crossing_id}: walked upstream on fdir from the pour cell: {c['upstream_walk']} cells incl. the "
+                     f"pour cell{' (reached the box edge, so a lower bound)' if c['touched_edge'] else ''}; "
+                     f"facc at pour cell + 1 = {c['facc_plus1']:.0f}; Watershed zone cells in box = {c['zone_cells']}; "
+                     f"table inc_cells = {r.inc_cells:.0f}")
+            log.info(f"{r.crossing_id}: facc downstream of the pour cell ({c['facc_plus1'] - 1:.0f}), step by step: "
+                     + " > ".join(f"{v:.0f}" for v in c["path"]) + "   (must never decrease under D8)")
+
+
+# numpy D8 offsets as (drow, dcol); row 0 is the north edge of the array
+D8_RC = {1: (0, 1), 2: (1, 1), 4: (1, 0), 8: (1, -1), 16: (0, -1), 32: (-1, -1), 64: (-1, 0), 128: (-1, 1)}
+
+
+def d8_checks(fd: np.ndarray, fa: np.ndarray, ws: np.ndarray, pr: int, pc: int, zone_id: int) -> dict:
+    """Pure-numpy checks on a window: fd (D8 codes, 0 = nodata), fa (accumulation, < 0 = nodata),
+    ws (zone ids), pour cell at (pr, pc). Returns conservation violations, the upstream cell count
+    walked on fd from the pour cell, the zone size, and facc along the downstream path."""
+    n_r, n_c = fd.shape
+    rows_i, cols_i = np.indices(fd.shape)
+    drow, dcol = np.zeros_like(fd), np.zeros_like(fd)
+    valid = np.zeros(fd.shape, bool)
+    for code, (dr, dc) in D8_RC.items():
+        m = fd == code
+        drow[m], dcol[m] = dr, dc
+        valid |= m
+    tr, tc = rows_i + drow, cols_i + dcol
+    inside = valid & (tr >= 0) & (tr < n_r) & (tc >= 0) & (tc < n_c) & (fa >= 0)
+    trc, tcc = tr.clip(0, n_r - 1), tc.clip(0, n_c - 1)
+    viol = inside & (fa[trc, tcc] < fa + 1)
+
+    # upstream walk: children lists via a sort on the downstream index
+    target = np.where(inside, trc * n_c + tcc, -1).ravel()
+    order = np.argsort(target, kind="stable")
+    tsorted = target[order]
+    cells = np.arange(n_r * n_c)
+    starts = np.searchsorted(tsorted, cells, side="left")
+    ends = np.searchsorted(tsorted, cells, side="right")
+    seen = np.zeros(n_r * n_c, bool)
+    start = pr * n_c + pc
+    seen[start] = True
+    stack, touched_edge = [start], False
+    while stack:
+        cur = stack.pop()
+        cr, cc = divmod(cur, n_c)
+        if cr in (0, n_r - 1) or cc in (0, n_c - 1):
+            touched_edge = True
+        for k in order[starts[cur]:ends[cur]]:
+            if not seen[k]:
+                seen[k] = True
+                stack.append(int(k))
+
+    path, cr, cc = [], pr, pc
+    for _ in range(25):
+        if not inside[cr, cc]:
+            break
+        cr, cc = int(trc[cr, cc]), int(tcc[cr, cc])
+        path.append(float(fa[cr, cc]))
+    return dict(n_inside=int(inside.sum()), violations=int(viol.sum()),
+                violations_big=int((viol & (fa >= 100)).sum()), lost_max=float(fa[viol].max()) if viol.any() else 0.0,
+                upstream_walk=int(seen.sum()), touched_edge=touched_edge, facc_plus1=float(fa[pr, pc] + 1),
+                zone_cells=int((ws == zone_id).sum()), path=path)
     log.info("Read: zone_is_pp False = the Watershed pour cell is not the sampled cell. "
              "facc_pp + 1 != inc_cells with zone_is_pp True = zone/accumulation disagree at the same cell. "
              "facc_dn < facc_pp = the D8 step-down cell is not downstream (wrong link).")
