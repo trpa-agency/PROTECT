@@ -29,6 +29,7 @@ Stages (run all, or a subset with --stages):
                                        static/output_graph/base_network.feather
   repair     linemerge repair of base_graph.p (original kept as .orig)
   route      per-analysis OD routing + criticality, reusing the repaired graph
+  odgraph    OD graph only (no routing) for GRAPH_ONLY_DESTINATIONS
   slr        single link redundancy (detour length) on the repaired graph
   verify     post-run checks
 
@@ -233,6 +234,91 @@ def stage_route(analyses=None, force=False):
 
 
 # ----------------------------------------------------------------------------
+_DATA_GDB = r"F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_data.gdb"
+
+# Destination sets that get an OD graph but no RA2CE routing. They are routed by
+# od_stochastic_assignment.ipynb (travel time + stochastic assignment) only.
+GRAPH_ONLY_DESTINATIONS = {
+    "schools":            (_DATA_GDB, "Schools"),             # feature dataset Destinations
+    "freshfoodlocations": (_DATA_GDB, "FreshFoodLocations"),
+}
+
+
+def stage_odgraph(analyses=None, force=False):
+    """Build and archive the OD graph for GRAPH_ONLY_DESTINATIONS, without routing.
+
+    Same inputs and snapping as the route stage: Origins.shp and the destination
+    layer are prepared exactly as nb_helpers.run_od_analysis does (EPSG:4326,
+    points only, written to static/network/tahoe_od_<name>_*.shp), and RA2CE's
+    NetworkConfigWrapper.configure() snaps them into the repaired base graph.
+    configure() stops before any Dijkstra. The archive gains two files the
+    route stage does not write: the OD graph pickle and od_nodes.csv, the
+    node -> od_id table (od_id may list several origins, "O_1,O_2").
+    """
+    import hashlib
+    import geopandas as gpd
+    import pandas as pd
+    import nb_helpers as nb  # noqa: F401  (sets PROJ, applies the closest_node patch)
+    from pyproj import CRS
+    from ra2ce.network.network_config_data.network_config_data import (
+        NetworkSection, NetworkConfigData, OriginsDestinationsSection,
+    )
+    from ra2ce.network.network_config_data.enums.source_enum import SourceEnum
+    from ra2ce.network.network_config_wrapper import NetworkConfigWrapper
+
+    def sha(p):
+        return hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+
+    bg = OUTPUT_GRAPH / "base_graph.p"
+    for name in analyses or list(GRAPH_ONLY_DESTINATIONS):
+        analysis_name = "tahoe_od_" + name
+        gdir = HERE / "output" / "optimal_route_origin_destination" / (analysis_name + "_graph")
+        if (gdir / "od_nodes.csv").exists() and not force:
+            log("odgraph[{}]: archive exists, skipping (use --force)".format(name))
+            continue
+        gdb, layer = GRAPH_ONLY_DESTINATIONS[name]
+        t = time.time()
+        origins = gpd.read_file(HERE / "static" / "network" / "Origins.shp").to_crs(4326)
+        dests = gpd.read_file(gdb, layer=layer).to_crs(4326)
+        dests = dests[dests.geometry.geom_type == "Point"].reset_index(drop=True)
+        o_shp = HERE / "static" / "network" / (analysis_name + "_origins.shp")
+        d_shp = HERE / "static" / "network" / (analysis_name + "_destinations.shp")
+        origins.to_file(o_shp)
+        dests.to_file(d_shp)
+        log("odgraph[{}]: {:,} origins, {:,} destinations from {}".format(
+            name, len(origins), len(dests), layer))
+
+        before = sha(bg)
+        _clear_od_graph()
+        cfg = NetworkConfigData(
+            root_path=HERE, static_path=HERE / "static", crs=CRS.from_epsg(4326),
+            network=NetworkSection(source=SourceEnum.SHAPEFILE, primary_file=SPLIT_NETWORK,
+                                   save_gpkg=True, reuse_network_output=True),
+            origins_destinations=OriginsDestinationsSection(
+                origins=o_shp, destinations=d_shp, origin_count="POPULATION"),
+        )
+        NetworkConfigWrapper.from_data(HERE / "network.ini", cfg).configure()
+        assert sha(bg) == before, "base_graph.p changed while building the OD graph"
+
+        odp = OUTPUT_GRAPH / "origins_destinations_graph.p"
+        assert odp.exists(), "RA2CE did not build the OD graph"
+        g = pickle.load(open(odp, "rb"))
+        nodes = pd.DataFrame([(n, str(d["od_id"])) for n, d in g.nodes(data=True)
+                              if str(d.get("od_id")) not in ("None", "nan", "")],
+                             columns=["node", "od_id"])
+        n_d = nodes.od_id.str.split(",").explode().str.startswith("D_").sum()
+        assert n_d == len(dests), "{} destinations snapped, expected {}".format(n_d, len(dests))
+
+        gdir.mkdir(parents=True, exist_ok=True)
+        for f in ("origins_destinations_graph_edges.gpkg", "base_network.feather",
+                  "origin_destination_table.feather", "origins_destinations_graph.p"):
+            shutil.copy2(OUTPUT_GRAPH / f, gdir / f)
+        nodes.to_csv(gdir / "od_nodes.csv", index=False)
+        log("odgraph[{}]: {:,} OD nodes ({} destinations) archived to {} in {:.1f} min".format(
+            name, len(nodes), n_d, gdir.name, (time.time() - t) / 60))
+
+
+# ----------------------------------------------------------------------------
 SLR_NAME = "tahoe_slr_v2"
 
 
@@ -354,20 +440,22 @@ def stage_verify():
 
 
 STAGES = {"prepare": stage_prepare, "basegraph": stage_basegraph,
-          "repair": stage_repair, "route": stage_route, "slr": stage_slr,
-          "verify": stage_verify}
+          "repair": stage_repair, "route": stage_route, "odgraph": stage_odgraph,
+          "slr": stage_slr, "verify": stage_verify}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--stages", nargs="+", default=list(STAGES), choices=list(STAGES))
-    ap.add_argument("--analyses", nargs="+", default=None, choices=list(DESTINATIONS))
+    ap.add_argument("--analyses", nargs="+", default=None,
+                    choices=list(DESTINATIONS) + list(GRAPH_ONLY_DESTINATIONS))
     ap.add_argument("--force", action="store_true")
     a = ap.parse_args()
     log("=== pipeline start: stages={} analyses={} force={}".format(
         a.stages, a.analyses or "all", a.force))
     for s in a.stages:
-        if s == "route":
-            STAGES[s](analyses=a.analyses, force=a.force)
+        if s in ("route", "odgraph"):
+            pool = DESTINATIONS if s == "route" else GRAPH_ONLY_DESTINATIONS
+            STAGES[s](analyses=[x for x in (a.analyses or pool) if x in pool], force=a.force)
         elif s == "verify":
             STAGES[s]()
         else:

@@ -326,3 +326,13 @@ Outputs: `<analysis>_criticality.gpkg` (RA2CE schema + `class`, `mph`, `traffic_
 `tahoe_od_criticality_combined_stochastic.gpkg`,
 `protect_va_update/protect_va_od_update_stochastic.csv` (same columns as the RA2CE
 update table), `al_tahoe_medical_facilities_comparison.png`, `run_config.json`.
+
+### Graph-only destination sets (schools, fresh food)
+
+`pipeline.py --stages odgraph` builds OD graphs for `GRAPH_ONLY_DESTINATIONS` (schools and fresh
+food locations from `PROTECT_data.gdb\Destinations`) without routing them. It prepares the inputs
+exactly as the route stage does, snaps them in with RA2CE's `NetworkConfigWrapper.configure()`, checks
+that `base_graph.p` is unchanged and that every destination snapped, and archives the graph to
+`output/optimal_route_origin_destination/<analysis>_graph/` together with the OD graph pickle and
+`od_nodes.csv` (node -> `od_id`; one node can carry several origins, `"O_1,O_2"`). About 4 minutes per
+set. `od_stochastic_assignment.ipynb` routes them; they have no RA2CE shortest-distance result.
