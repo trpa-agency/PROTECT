@@ -88,14 +88,13 @@ scripts/ra2ce/output_rerun/*.parquet
 scripts/ra2ce/static/network/*.gpkg
 scripts/ra2ce/static/network/*.geojson
 
-# Raw internal source docs (per CLAUDE.md rule: never commit xlsx/docx/pptx
-# working files - GitHub Pages serves the repo publicly)
-data/*.xlsx
-docs/*.xlsx
-*.docx
-*.pptx
+# ra2ce_v2 outputs. Same reasoning as scripts/ra2ce/ above: the graph pickles and
+# GeoPackages run to hundreds of MB and pipeline.py regenerates all of them from
+# the source network. The scripts, README and logs stay tracked.
+scripts/ra2ce_v2/output/
+scripts/ra2ce_v2/static/output_graph/
+scripts/ra2ce_v2/logs/*.log
 
-# Internal coordination notes - working content for the team, not for the
-# public Pages site (repo review 2026-08-01, item 1.5)
-docs/index-copy.txt
-docs/coordination_notes.md
+# Python bytecode
+__pycache__/
+*.pyc
