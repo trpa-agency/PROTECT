@@ -48,6 +48,65 @@ assets:
   nbi_basin_fc: National_Bridge_Inventory_Basin
   bridges_fc: Bridges
 
+# scripts/culvert_profile.py - watershed delineation and the culvert profile
+# (docs/SCORING_RUBRICS.md sections 2.2, 2.4, 2.5). The terrain and delineate stages are a
+# server job (flow direction / accumulation at 2 m over ~600 million cells); F: resolves the
+# same on the server, so this file works unchanged from a clone there.
+profile:
+  work_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_terrain.gdb  # terrain rasters
+  nlcd: ""                 # NLCD 2021 land cover raster (optional). Blank = no landcover terms
+  cell_m: 2                # delineation cell size. 2 = native. Larger values aggregate the DEM
+                           # with MINIMUM (keeps breach channels) for test runs only
+  flow_length: true        # compute the longest upstream flow path (needed for Kirpich tc)
+  parallel: "75%"          # arcpy parallelProcessingFactor for the raster tools
+  pour_snap_m: 20          # max-accumulation cell within this distance of the culvert point
+  crossing_group_m: 10     # culverts this close on one segment are one crossing (multi-barrel)
+  large_culvert_m: 25      # a culvert this close to an NBI culvert-type structure scores with bridges
+  tailwater_ft: 6230       # outlet below this elevation is flagged (legal maximum lake level 6229.1)
+  dem_vintage_year: 2011   # install_year at or after this postdates the 2010 lidar DEM
+  size_breaks_in: [18, 36, 72]   # small / medium / large / major on equivalent diameter
+  max_span_in: 144         # larger circular spans are treated as data errors
+  cond_stale_year: 2015    # latest inspection before this year is flagged stale
+  # Hydrology (SCORING_RUBRICS 2.4). Atlas 14 DDF from the climate pipeline; nearest PFDS point.
+  ddf_csv: climate/data/processed/atlas14_ddf.csv
+  return_periods: [25, 100]
+  headline_rp: 100
+  rational_max_sqmi: 1.0   # larger basins are flagged for the USGS regional regression instead
+  tc_min_minutes: 5
+  tc_max_minutes: 1440
+  runoff_c:                # rational-method C by landcover group (default when no NLCD)
+    default: 0.35
+    forest: 0.35
+    shrub: 0.40
+    grass: 0.40
+    developed: 0.60
+    barren: 0.50
+    water: 1.00
+    wetland: 0.30
+  nlcd_groups:             # NLCD class codes -> landcover group
+    forest: [41, 42, 43]
+    shrub: [52]
+    grass: [71, 81, 82]
+    developed: [21, 22, 23, 24]
+    barren: [31]
+    water: [11, 12]
+    wetland: [90, 95]
+  # Hydraulics. FHWA HDS-5 inlet control, submerged form: HW/D = c (Q/(A D^0.5))^2 + Y - 0.5 S,
+  # solved for Q at the headwater criterion hw_d. Culvert slope is assumed (not surveyed).
+  hw_d: 1.0
+  culvert_slope: 0.02
+  inlet_control:
+    circular_concrete:        {c: 0.0398, Y: 0.67}   # square edge with headwall
+    circular_metal_headwall:  {c: 0.0379, Y: 0.69}
+    circular_metal_projecting: {c: 0.0553, Y: 0.54}
+    box_concrete:             {c: 0.0400, Y: 0.80}   # 90 and 15 degree wingwalls
+    arch_metal:               {c: 0.0496, Y: 0.57}
+  manning_n:                 # full-flow capacity cross-check (q_full_cfs)
+    concrete: 0.012
+    plastic: 0.012
+    corrodible_metal: 0.024
+    unknown: 0.024
+
 # scripts/ndot_culverts.py - NDOT SAM21 stormwater asset export.
 # SENSITIVE / RESTRICTED under the NDOT data sharing agreement (executed Aug. 12, 2026, term
 # through Dec. 31, 2027; access limited to the named Data Steward). The source and every

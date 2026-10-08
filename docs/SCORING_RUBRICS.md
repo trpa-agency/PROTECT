@@ -213,10 +213,15 @@ Parameters live in `config.yaml` (`hydraulics:` block, to be added with the prof
   Basins of 1 sq mi and over (expected: a few dozen) use the USGS regional regression equations
   for the Sierra Nevada and northern Nevada. 2050 and 2080 flows apply the climate pipeline's
   DDF change factors to i.
-- **Capacity, Qcap.** FHWA HDS-5 inlet-control equations with headwater at the crown
-  (HW/D = 1.0), coefficients by shape, material, and inlet type (`inlet_type` where delivered;
-  projecting end default). A culvert that overtops its headwater at the design flow has
-  `load_ratio` over 1.0.
+- **Capacity, Qcap.** FHWA HDS-5 inlet-control submerged-inlet equation solved for Q at a
+  headwater criterion of HW/D = 1.0 (`profile.hw_d`), coefficients by shape, material, and
+  inlet type (`inlet_type` where delivered; projecting end default), culvert slope assumed
+  (`profile.culvert_slope`). At HW/D = 1.0 the submerged form sits just below its strict
+  validity range and underestimates capacity by roughly 10 to 20 percent against the HDS-5
+  nomographs, which is conservative for a screen; `q_full_cfs` (Manning full flow) is carried
+  as the cross-check. Barrels at one crossing are summed (`q_cap_crossing_cfs`) before the
+  ratio. A culvert that overtops its headwater at the design flow has `load_ratio` over 1.0.
+  Implemented in `scripts/culvert_profile.py` (stage `attributes`).
 - **Known limits.** Rational method is a screening estimate, slopes and roughness are assumed,
   and culvert inverts are not surveyed. The ratio is for ranking, not design. State this on the
   method slide. The future-horizon factor scales rainfall intensity only; the literature review
@@ -318,9 +323,9 @@ NBI condition items are integers 0 (failed) to 9 (excellent) with N for not appl
 FHWA bridge-condition classes are Good 7 to 9, Fair 5 to 6, Poor 4 and under; the rubrics below
 follow those breaks with the Fair band split so that 6 and 5 score differently.
 
-Two NBI items the draft uses are not yet in the layer: item 45 (number of spans in the main
-unit) and item 48 (length of the maximum span). Add `main_spans` and `max_span_m` to
-`build_bridges.py` before scoring.
+Two NBI items the draft uses, item 45 (number of spans in the main unit) and item 48 (length
+of the maximum span), are carried as `main_spans` and `max_span_m`; `build_bridges.py` must be
+re-run with `--overwrite` to add them to the layer.
 
 ### 3.2 Indicator rubrics
 

@@ -61,6 +61,8 @@ BRIDGE_FIELDS = [
     ("structure_type_code", "TEXT", 2),
     ("is_culvert_type", "SHORT", None),  # 1 if NBI type 19 (culvert > 20 ft)
     ("length_m", "DOUBLE", None),
+    ("main_spans", "SHORT", None),       # 045: number of spans in the main unit (rubric "span type")
+    ("max_span_m", "DOUBLE", None),      # 048: length of the maximum span
     ("deck_width_m", "DOUBLE", None),
     ("adt", "LONG", None),
     ("adt_year", "SHORT", None),
@@ -116,6 +118,8 @@ def build(cfg: dict, log) -> gpd.GeoDataFrame:
     b["structure_type_code"] = _code(nbi["STRUCTURE_TYPE_043B"])
     b["is_culvert_type"] = (b["structure_type_code"] == CULVERT_TYPE_CODE).astype(int)
     b["length_m"] = _num(nbi["STRUCTURE_LEN_MT_049"])
+    b["main_spans"] = _num(nbi["MAIN_UNIT_SPANS_045"])
+    b["max_span_m"] = _num(nbi["MAX_SPAN_LEN_MT_048"])
     b["deck_width_m"] = _num(nbi["DECK_WIDTH_MT_052"])
     b["adt"] = _num(nbi["ADT_029"])
     b["adt_year"] = _num(nbi["YEAR_ADT_030"])
