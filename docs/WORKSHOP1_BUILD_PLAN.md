@@ -28,13 +28,16 @@ detailed plan for the first lane.
 
 | Lane | Owns | VA pairs |
 |---|---|---|
-| Culverts, bridges, debris flow, avalanche (this plan's author) | Bridge and culvert inventories and sensitivity; exposure of bridges and culverts to every hazard; the debris flow surface and its three pairs; the avalanche method and pair; print maps for debris flow and avalanche; bridge and culvert layers, popups, and hotspots in the tool; the storm events page | FL-B, FL-C, LS-B, LS-C, DF-B, DF-C, DF-R, AV-R (8 of 15) |
-| Street network, criticality, OD, wildfire, flood, landslide surfaces | Road, transit center, and active transport inventories; the four criticality components and the combined score; the wildfire, flood, and landslide exposure surfaces; road pairs for those hazards; RA2CE scenarios; the criticality and OD apps | FL-R, FL-AT, FL-TC, LS-R, WF-R, WF-AT, WF-TC (7 of 15) |
+| Hazard surfaces, culverts, bridges, debris flow, avalanche (this plan's author) | All hazard exposure surfaces classed 0-3 (wildfire, flood, landslide, debris flow, avalanche); bridge and culvert inventories and sensitivity; exposure of bridges and culverts to every hazard; the debris flow surface and its three pairs; the avalanche method and pair; print maps for debris flow and avalanche; bridge and culvert layers, popups, and hotspots in the tool; the storm events page | FL-B, FL-C, LS-B, LS-C, DF-B, DF-C, DF-R, AV-R (8 of 15) |
+| Street network, criticality, OD | Road, transit center, and active transport inventories; the four criticality components and the combined score; road, transit, and active-transport pairs for wildfire, flood, and landslide (sampling the classed surfaces); RA2CE scenarios; the criticality and OD apps | FL-R, FL-AT, FL-TC, LS-R, WF-R, WF-AT, WF-TC (7 of 15) |
 
 Shared: the scoring rubric document, the `PROTECT_VA` v2 schema, the rating script, the
-tool's framework, the hub, and the VA slides. The debris flow pairs depend on the wildfire
-lane's burn severity proxy; the bridge and culvert flood and landslide pairs depend on that
-lane's exposure surfaces. Those two handoffs are the only cross-lane blockers.
+tool's framework, the hub, and the VA slides. The road, transit, and active-transport pairs
+depend on this lane's classed exposure surfaces; this lane depends on the street network lane
+for segment IDs and the criticality class. Those two handoffs are the only cross-lane blockers.
+Baseline surfaces in hand (Oct. 8): FEMA zones from `Streams_and_Flood_Zone`, the USGS
+landslide susceptibility raster, and the high-severity fire probability layer, already
+extracted per segment in `scripts/Hazard_Vulnerability.ipynb`.
 
 ---
 
@@ -310,13 +313,15 @@ posters that show them. Dated to the ICF checkpoints in the header.
 | Need | By | Used for |
 |---|---|---|
 | Road segment layer with stable IDs and the combined criticality 0-3 | Oct. 9 | Parent-segment join so bridges and culverts inherit C; AV-R and DF-R scoring |
-| Flood exposure surface as FEMA zone classes | Oct. 9 | FL-B, FL-C exposure |
-| Landslide exposure surface (USGS susceptibility, classed) | Oct. 12 | LS-B, LS-C exposure |
-| Burn severity proxy or older burn probability raster | Oct. 12 | DF-R, DF-B, DF-C exposure conditioning |
 | `PROTECT_VA` v2 schema agreed (field names for E, S, C, V per pair) | Oct. 9 | Everything downstream |
 
-If the Oct. 9 items slip, score against the current `PROTECT_VA` streets layer and the live
-`Streams_and_Flood_Zone` service and re-run when the final layers land. Do not wait.
+Owed to the other lane, in return: the wildfire, flood, and landslide exposure surfaces classed
+0-3 with the class breaks written into `config.yaml` and the rubrics, flood by Oct. 9, wildfire
+and landslide by Oct. 12, so the road pairs sample the same classes the bridge and culvert
+pairs use.
+
+If the Oct. 9 segment layer slips, score against the current `PROTECT_VA` streets layer and
+re-run when the final layer lands. Do not wait.
 
 ### 7.2 Oct. 6 to 9: inventories, rubrics, method calls
 
