@@ -9,9 +9,12 @@ Efficient, and Cost-saving Transportation* grant. Task 3 = Resilience Improvemen
 Risk-Based Vulnerability Assessment; **3.3 = Interactive Risk Index Mapping Tool** (this repo's
 deliverable).
 
-The risk index uses the **FHWA VAST framework**: sub-indices Exposure, Sensitivity, Asset Value, and
-Adaptive Capacity (reverse-scored) combine into a Master PROTECT Index, weighted alongside Criticality
-(Sensitivity ~10-20%, Criticality ~30%). Current artifacts: a landing page (`html/index.html`, v0.6,
+The assessment follows a **three-step approach built on FHWA VAST guidance**: (1) criticality, (2) a
+system-wide indicator screening of 15 hazard-asset pairs scored as
+**Vulnerability = (Exposure x wE) + (Sensitivity x wS)** on 0-3 indicator scores with weights set
+per pair (ICF draft VA Methodology, Aug. 20, 2026; rubrics in `docs/SCORING_RUBRICS.md`), with
+criticality carried separately rather than as a multiplier, and (3) RA2CE disruption scenarios.
+Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.6,
 links every page with status and phasing); a reference hub (`html/reference-hub.html`, v0.5) with
 tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
 (incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Phase 1
@@ -61,6 +64,15 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   candidates live in `data/vendors.csv` (gitignored) and the project memory (`reference_data_vendors`).
   Keep only open-source / public / sole-source tools in the HTML; do not enumerate commercial vendor
   names in committed files.
+
+- **RESTRICTED: NDOT SAM21 stormwater export** (`config.yaml` `ndot:` block). Shared under a
+  sensitive/restricted data sharing agreement (executed Aug. 12, 2026, term through Dec. 31,
+  2027; one named Data Steward). It lives on TRPA storage (F:) and is read in place by
+  `scripts/ndot_culverts.py` into the analysis geodatabase only. Never copy it, or anything
+  derived from it at the asset level, under the repo (`data/processed` is git-tracked and
+  served by GitHub Pages), into `outputs/`, onto any html page, or into a public REST service.
+  Segment-level aggregates are allowed but must be attributed to NDOT and reviewed by NDOT
+  before publication. The `.gitignore` blocks `*ndot*` as a backstop.
 
 The live readiness tracker is the Data and Model Inventory tab of `html/reference-hub.html`.
 

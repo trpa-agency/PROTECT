@@ -5,7 +5,45 @@ in this repo. Deeper detail lives in the canonical docs listed per section - rea
 before extending a pipeline. No secrets, no staff names, no commercial vendor names
 (repo is served by GitHub Pages).
 
-Last updated: 2026-08-01
+Last updated: 2026-10-07
+
+## VA asset layers in the analysis geodatabase (2026-10-07)
+
+- Workshop 1 is Nov. 9, 2026. Dated build plan with ICF checkpoints and the lane split:
+  docs/WORKSHOP1_BUILD_PLAN.md (section 7 = culverts, bridges, debris flow, avalanche).
+- The working geodatabase for the VA is config.yaml paths.analysis_gdb
+  (F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis.gdb). The road
+  layer of record is Streets_Network_Tahoe (18,285 segments, key segment_id; carries the
+  criticality components and the OD fields). Streets_Network_Drive (95,285) is the wider
+  unclipped network. Everything on F: is slow: a layer listing with counts takes minutes,
+  arcpy inserts run about 10 rows per second.
+- scripts/load_culverts_gdb.py loads data/processed/culverts.gpkg + culvert_condition.parquet
+  into the analysis gdb as Culverts (7,858) + CulvertCondition (2,253) + relationship class,
+  adding parent_segment_id / parent_dist_m (nearest segment within assets.segment_snap_m =
+  50 m) and has_condition. 7,314 snapped; of the 544 unsnapped, 501 are "TRPA Legacy
+  (provisional)" on USFS forest roads that are not in the drive network (expected).
+  2,125 culverts have at least one condition record.
+- Tahoe_Culvert_merge in the same gdb (2,287 points, 250-column union schema, sparse
+  condition) is a legacy compilation, not the VA culvert layer. Decision 2026-10-07: the
+  engineered geopackage is the source of record.
+- scripts/build_bridges.py builds Bridges from National_Bridge_Inventory_Basin (40 NBI
+  structures inside the TRPA boundary: 36 CA, 4 NV; 20 state, 10 county, 8 USFS, 2 city;
+  23 Good, 16 Fair, 1 Poor; 31 water crossings with scour/channel/waterway codes). Raw NBI
+  codes are kept as text next to decoded labels; scoring happens later.
+- Shared helpers (config, logger, segment snap, arcpy writers, basin fetch, id dedupe,
+  line-to-point): scripts/va_common.py. Scripts refuse to overwrite existing layers without
+  --overwrite; --dry-run skips arcpy.
+- NDOT (RESTRICTED, 2026-10-07): the SAM21 export is read in place from F: by
+  scripts/ndot_culverts.py and appended by load_culverts_gdb.py (config ndot: block;
+  --no-ndot to skip). Never under the repo, outputs/, or a page. Basin subset: 1,475 assets
+  (547 culverts, 928 stormwater pipes; the SAM subtype is blank on 98 percent of pipes, so
+  the split is road-crossing geometry), 1,307 inspections on 877 assets. 141 provisional
+  legacy points superseded. Loaded totals: 9,192 Culverts, 3,541 CulvertCondition, 2,983
+  with condition. QA CSVs in the restricted work dir on F:. Rules + NDOT questions:
+  docs/METHODS_culverts.md, docs/jurisdiction_data_questions.md.
+- geopandas / pyogrio / yaml live in the user site-packages
+  (AppData\Roaming\Python\Python311), so `python -I` cannot see them; run repo scripts
+  without -I.
 
 ## Web pages (restructured 2026-08-01)
 
@@ -27,8 +65,10 @@ Last updated: 2026-08-01
 ## Culvert layer (canonical: docs/METHODS_culverts.md, docs/jurisdiction_data_questions.md)
 
 - Basin-wide culvert layer + 1:many condition table built from 6 jurisdiction deliveries
-  (raw data in C:\GIS\Culvert, not committed). Output: outputs/culverts.gdb (Culverts FC,
-  CulvertCondition table, relationship class on culvert_id = "<jurisdiction>|<source_id>").
+  (raw data in C:\GIS\Culvert, not committed). Output: data/processed/culverts.gpkg +
+  culvert_condition.parquet; as of 2026-10-07 loaded into the analysis gdb by
+  scripts/load_culverts_gdb.py (Culverts FC, CulvertCondition table, relationship class on
+  culvert_id = "<jurisdiction>|<source_id>"). The standalone outputs/culverts.gdb is retired.
 - 7,858 assets after clipping to the TRPA boundary + legacy gap fill; 2,253 condition
   records; QA clean. 1,626 assets are jurisdiction "TRPA Legacy (provisional)" from the
   prior compilation (F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb,

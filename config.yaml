@@ -10,6 +10,11 @@ paths:
   raw_root: C:\GIS\Culvert      # jurisdiction deliveries (outside the repo; not committed)
   # Prior TRPA basin-wide culvert compilation (READ-ONLY - includes USFS forest roads)
   legacy_culverts: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert
+  # Working analysis geodatabase for the VA (shared with the street network and criticality work)
+  analysis_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis.gdb
+  # Hydro-enforced bare-earth lidar DEM (TRPA raster SDE; 2 m, EPSG 26910, F32). Also served as
+  # an image service. Input to the culvert watershed delineation and the DF / AV slope surfaces.
+  dem: F:\GIS\DB_CONNECT\Raster.sde\SDE.DEM_BareEarth_LiDAR_2010
   processed: data/processed     # intermediate GeoPackage / parquet (gitignored)
   outputs: outputs              # final File GDB + QA reports (gitignored)
   logs: logs                    # timestamped run logs (gitignored)
@@ -30,3 +35,41 @@ run:
   build_gdb: true       # set false to skip the arcpy File GDB write
   line_to_point: midpoint   # how pipe centerlines collapse to a point: midpoint | start | end
   legacy_match_m: 25    # legacy points within this many metres of a new asset count as matched
+
+# scripts/load_culverts_gdb.py - load the engineered culvert layer into the analysis geodatabase
+assets:
+  streets_fc: Streets_Network_Tahoe   # road segments in analysis_gdb; key = segment_id
+  streets_key: segment_id
+  segment_snap_m: 50                  # max distance from a culvert to its parent road segment
+  culverts_fc: Culverts
+  condition_table: CulvertCondition
+  relationship_class: Culvert_has_Condition
+  # scripts/build_bridges.py - NBI points already clipped to the basin, in analysis_gdb
+  nbi_basin_fc: National_Bridge_Inventory_Basin
+  bridges_fc: Bridges
+
+# scripts/ndot_culverts.py - NDOT SAM21 stormwater asset export.
+# SENSITIVE / RESTRICTED under the NDOT data sharing agreement (executed Aug. 12, 2026, term
+# through Dec. 31, 2027; access limited to the named Data Steward). The source and every
+# derived file stay on TRPA-managed storage (F:). Nothing NDOT is written under the repo:
+# not data/processed (git-tracked, served by GitHub Pages), not outputs/, not any html page.
+# The reader loads straight from F: into the analysis geodatabase via load_culverts_gdb.py.
+ndot:
+  enabled: true
+  jurisdiction: NDOT
+  gdb: F:\GIS\PROJECTS\Transportation\Protect\Data\Culvert\NDOT\SAM21_Export_260707-1551\NDOT_Culverts.gdb
+  work_dir: F:\GIS\PROJECTS\Transportation\Protect\Data\Culvert\NDOT\qa   # QA CSVs; restricted, stays on F:
+  layers:
+    pipes: Pipe
+    boxes: Reinforced_Concrete_Box
+    pipe_inspection: Pipe_Inspection
+    box_inspection: RCB_Inspection
+  # Statuses dropped before use (hydStatus domain). 29 basin pipes are "Marked for Deletion".
+  drop_status: [Abandoned, Relinquished, Removed, Replaced, Marked for Deletion]
+  # feature_type rule. The SAM subtype (Storm Drain / Culvert / Down Drain ...) is blank on
+  # 98 percent of basin pipes, so: subtype when present; otherwise a pipe that crosses a
+  # Streets_Network_Tahoe centerline is a culvert and any other pipe is a stormwater pipe.
+  culvert_subtypes: [2, 5]        # Culvert, Driveway/Approach
+  pipe_subtypes: [1, 3, 4]        # Storm Drain, Down Drain, Subsurface Drain
+  max_diameter_in: 144            # larger values are treated as data errors (one 6300 in. record)
+  min_inspection_year: 1990       # earlier dates (an 1899 placeholder) become null

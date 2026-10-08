@@ -5,9 +5,11 @@ Operations for Transformative, Efficient, and Cost-saving Transportation* grant)
 on **Task 3 (Resilience Improvement Plan)**, specifically the **Task 3.3 Interactive Risk Index
 Mapping Tool** and the vulnerability assessment scoping behind it.
 
-The risk index follows the **FHWA VAST framework**: four sub-indices (Exposure, Sensitivity, Asset
-Value, and Adaptive Capacity, reverse-scored) combine into a Master PROTECT Index, weighted alongside
-Criticality.
+The assessment follows a three-step approach built on FHWA VAST guidance: a criticality
+assessment, a system-wide indicator screening of 15 hazard-asset pairs scored as
+Vulnerability = (Exposure x wE) + (Sensitivity x wS) with weights set per pair and criticality
+carried separately, and scenario-based disruption analyses in RA2CE. Scoring rubrics are in
+`docs/SCORING_RUBRICS.md`; the pair list is in `Hazard_Asset_Pairs.md`.
 
 ## What's in this repo
 
