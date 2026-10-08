@@ -400,7 +400,9 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
     tree["basin_slope_pct"] = [full[int(i)][1] / full[int(i)][0] if full[int(i)][0] else np.nan for i in tree.index]
     tree["basin_elev_max_m"] = [full[int(i)][2] if np.isfinite(full[int(i)][2]) else np.nan for i in tree.index]
     tree["contrib_area_ac"] = tree["full_cells"] * cell * cell / SQM_PER_ACRE
-    tree["facc_area_ac"] = reps.set_index("pp_id")["facc"].reindex(tree.index) * cell * cell / SQM_PER_ACRE
+    # FlowAccumulation counts upstream cells only; add the pour cell so this is comparable to
+    # full_cells, which comes from watershed zones that include it.
+    tree["facc_area_ac"] = (reps.set_index("pp_id")["facc"].reindex(tree.index) + 1) * cell * cell / SQM_PER_ACRE
     if lc_cols:
         groups = {int(code): grp for grp, codes in p["nlcd_groups"].items() for code in codes}
         gsum = pd.DataFrame({g: 0.0 for g in p["nlcd_groups"]}, index=tree.index)
@@ -440,9 +442,14 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
              "flow_len_ft", "inc_cells", "full_cells", "contrib_area_ac", "facc_area_ac", "area_check_pct",
              "basin_slope_pct", "basin_landcover", "runoff_c", "delineated"]]
     log.info("Contributing area (ac) quantiles:\n" + xt["contrib_area_ac"].quantile([.1, .5, .9, .99]).round(1).to_string())
-    bad = xt[xt["area_check_pct"].abs() > 5]
+    # Flag only when the disagreement is both relative (> 5 pct) and more than two cells, so
+    # tiny basins do not trip on rounding.
+    cell_diff = (xt["contrib_area_ac"] - xt["facc_area_ac"]).abs() * SQM_PER_ACRE / (cell * cell)
+    bad = xt[(xt["area_check_pct"].abs() > 5) & (cell_diff > 2)]
     if len(bad):
-        log.warning(f"{len(bad)} crossings where the tree-aggregated area differs from flow accumulation by > 5 pct")
+        log.warning(f"{len(bad)} crossings where the tree-aggregated area differs from flow accumulation by > 5 pct "
+                    f"and > 2 cells (largest: {bad['area_check_pct'].abs().max():.0f} pct). Shared pour cells, "
+                    f"cut cycles, and unsnapped upstream culverts are the usual causes.")
 
     # 9. write outputs
     xfields = [("crossing_id", "TEXT", 12), ("crossing_pp", "LONG", None), ("downstream_crossing_id", "TEXT", 12),

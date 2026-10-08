@@ -21,6 +21,9 @@ logs/
 # *.gpkg
 
 # Climate pipeline (climate/) - downloaded data never committed
+# Exception, force-tracked (git add -f): climate/data/processed/atlas14_ddf.csv, the 79 KB
+# NOAA Atlas 14 design-storm table that scripts/culvert_profile.py reads (public data, so a
+# fresh clone on the server can run the profile without the climate pipeline).
 climate/data/
 climate/outputs/
 climate/logs/
