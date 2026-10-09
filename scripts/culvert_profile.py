@@ -142,11 +142,15 @@ def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
     cul = read_culverts(cfg, log)
     cand = cul[(cul["feature_type"] == "culvert") & cul["parent_segment_id"].notna()].copy()
     key = cfg["assets"]["streets_key"]
-    streets = read_streets(cfg, log).set_index(key)["geometry"]
+    st = read_streets(cfg, log)
+    dup = int(st[key].duplicated().sum())
+    if dup:
+        log.warning(f"{dup} duplicate {key} values in the street layer; first geometry kept per id")
+    streets = st.drop_duplicates(key).set_index(key)["geometry"]
     rows = []
     for _, r in cand.iterrows():
         seg = streets.get(r.parent_segment_id)
-        if seg is None or seg.is_empty:
+        if seg is None or getattr(seg, "is_empty", True):
             continue
         d = seg.project(r.geometry)
         a, c = seg.interpolate(max(d - 0.5, 0)), seg.interpolate(min(d + 0.5, seg.length))
