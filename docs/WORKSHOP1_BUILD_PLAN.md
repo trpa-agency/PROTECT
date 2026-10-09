@@ -444,3 +444,67 @@ finish in a sitting, in dependency order.
 8. Publish helper: push the bridge and culvert layers to `PROTECT_VA` v2 with the agreed
    schema.
 9. Tool: Bridges and Culverts toggles, popups, hotspots rows, table rows, Status tab text.
+
+---
+
+## Appendix: scripts, data paths, and references
+
+Moved here from the punch list on Oct. 8, 2026, when the punch list became a web page
+(`html/workshop-punchlist.html`). Statuses as of that date.
+
+### Scripts and notebooks: what does what
+
+| File | What it does | Status |
+|---|---|---|
+| `scripts/va_common.py` | Shared helpers for the VA asset scripts: config load, timestamped logs, analysis geodatabase, parent-segment snap (50 m) so points inherit criticality | Live |
+| `scripts/build_bridges.py` | NBI basin clip (40 structures) to the `Bridges` feature class: condition, scour, channel, waterway, span count, span length, age, type with decoded labels; snapped to the parent segment | Live; rerun with `--overwrite` Oct. 8 for items 45 and 48 |
+| `scripts/load_culverts_gdb.py` | Loads `data/processed/culverts.gpkg` and `culvert_condition.parquet` into the analysis geodatabase as `Culverts` and `CulvertCondition` with the relationship class; appends the NDOT rows in memory | Live |
+| `scripts/ndot_culverts.py` | Reads the NDOT SAM21 export in place on F: into the culvert schema (road-crossing rule splits culverts from pipes). RESTRICTED: never written under the repo | Live |
+| `scripts/culvert_profile.py` | Rubrics 2.2, 2.4, 2.5: `terrain` and `delineate` stages (breach lines through the culvert inventory, depth-limited Fill, flow direction, accumulation, watershed per culvert on the 2 m DEM; server job) and `attributes` (contributing area, capacity, loading ratio, condition harmonization) | All three stages run on the server Oct. 8; rerun with the breached DEM due Oct. 9. Condition still written 0 to 3; the rubrics now use 1 to 3 (good, fair, poor) |
+| `scripts/qa_crossings.py` | QA on the profiled culverts: raster alignment, pour-cell neighborhoods, D8 conservation, creek-capture check | Live |
+| `notebooks/culvert_layer_engineering.ipynb` | Builds the culvert layer from six jurisdiction deliveries plus the legacy TRPA compilation; writes the geopackage and condition parquet. Methods in `docs/METHODS_culverts.md` | Live; needs the El Dorado and Washoe road-crossing rule rerun |
+| `scripts/Asset_Criticality.ipynb` | The four criticality components on `Streets_Network_Tahoe` (detour length, traffic volume, equity, OD service access) | Working; cell 9 buffer defect |
+| `scripts/Asset_Scoring.ipynb` | Combines the components into the criticality index; the hazard flags ride along | Working; promote to `scripts/score_criticality.py` |
+| `scripts/Hazard_Vulnerability.ipynb` | Per-segment hazard extracts (`in_flood_zone`, `in_flood_zone_100`, `landslide_mean`, `landslide_max`, `high_sev_fire`). Still points at the recovered geodatabase and `Streets_Network_Drive` | Working; migrate to the one geodatabase |
+| `scripts/ra2ce/ra2ce_tahoe.ipynb` | RA2CE network setup on the Overture streets, single-link redundancy, OD access. Part 4 (hazard overlay) has never run: no `hazard.tif` yet | Working through Part 3 |
+| `scripts/Wildcat/Wildcat.ipynb` and `debris-flow/notebooks/01_wildcat_scoping.ipynb` | USGS Wildcat debris-flow scoping; environment not yet created (`debris-flow/environment.md`) | Scoped |
+| `notebooks/wepp_debris_flow_hindcast.ipynb` | WEPP sediment runs and the July 14 debris-flow hindcast feeding the storm events page | Built |
+| `climate/notebooks/` 01 to 07 | LOCA2, Cal-Adapt, gridMET, Atlas 14 extraction; transform; QA; WRF 1-hr intensity grid (notebook 07) used by the debris-flow proxy. Methods in `climate/docs/METHODS.md` | Validated run |
+| `scripts/score_exposure.py` | `E_<pair>` per hazard surface, breaks from config, 25 m buffer for points, length-weighted maximum for lines, watershed maximum for culverts | To write (Oct. 9) |
+| `scripts/debris_flow_proxy.py` | WRF intensity, slope and contributing area, and the burn severity proxy to one 0 to 3 raster | To write (Oct. 16) |
+| `scripts/score_sensitivity.py` | `S_<pair>` for bridges (channel, scour, span type, span length, condition) and culverts (debris potential, loading ratio, condition and blockage, size) with `S_source` | To write (Oct. 15) |
+| `scripts/compute_vulnerability.py` | Weighted exposure and sensitivity per pair, classes from config, `V_max`, `V_max_pair`, `C_class` carried | To write (Oct. 16) |
+| `scripts/hotspots.py` | Top 25 per hazard and corridor roll-up to `outputs/hotspots_<hazard>.csv` | To write (Oct. 16 first cut) |
+| `scripts/score_criticality.py` | Promoted from `Asset_Scoring.ipynb`, weights in `config.yaml` | To write (due Oct. 7) |
+| `scripts/ra2ce/run_scenario.py` | Promoted from the RA2CE notebook, scenario YAML in | To write (Oct. 23) |
+
+### Data paths
+
+All paths resolve through `config.yaml`; change them there, not in scripts.
+
+| What | Path | Notes |
+|---|---|---|
+| Analysis geodatabase (the one geodatabase) | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis.gdb` | `paths.analysis_gdb`. Holds `Streets_Network_Tahoe`, `Bridges`, `Culverts`, `CulvertCondition`, and the scored layers to come. `Tahoe_Culvert_merge` in here is the legacy compilation, not the VA layer |
+| Terrain work geodatabase (server job) | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_terrain.gdb` | `profile.work_gdb`; breached DEM, flow direction, accumulation, watersheds from `culvert_profile.py` |
+| Recovered geodatabase (retire) | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis_recovered.gdb` | Still referenced by `Hazard_Vulnerability.ipynb`; migrate and stop using |
+| Legacy TRPA culverts (read only) | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert` | `paths.legacy_culverts`; gap fill only |
+| Landslide surface | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\usgs_landslide_risk.tif` | USGS susceptibility; to be classed 0 to 3 |
+| Flood surface | `https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer` | FEMA zones and TRPA streams on the four-value scale; confirm the layer index. No flood depth model is being acquired |
+| Wildfire surface | `https://maps.trpa.org/server/rest/services/Fire/MapServer` (high-severity probability, layer 3) plus the TRPA burn probability raster | Record where the burn probability raster lives on F: |
+| Avalanche inputs | DEM dominant uphill slope within 1,000 ft; records from the Sierra Avalanche Center map, the National Avalanche Accident Database, `https://maps.trpa.org/server/rest/services/Avalanche_Zones/MapServer`, and documented closures | Rubric section 5 |
+| DEM of record (hydro-enforced) | `F:\GIS\DB_CONNECT\Raster.sde\SDE.DEM_BareEarth_LiDAR_2010` | `paths.dem`; 2 m, EPSG 26910. The profile breaches it through the culvert inventory and applies a depth-limited Fill (`profile.fill_z_limit_m`); the raw DEM is not usable for blue-spot work |
+| Engineered culvert layer (public) | `data/processed/culverts.gpkg` and `data/processed/culvert_condition.parquet` | Git-tracked, served by Pages; never put NDOT rows here |
+| NDOT SAM21 export (RESTRICTED) | `F:\GIS\PROJECTS\Transportation\Protect\Data\Culvert\NDOT\SAM21_Export_260707-1551\NDOT_Culverts.gdb` | `ndot.gdb`; read in place only; NDOT reviews derivatives before publication |
+| Raw jurisdiction culvert deliveries | `C:\GIS\Culvert\<jurisdiction>` | Outside the repo, one folder per jurisdiction |
+| Published VA service (v1, roads only) | `https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0` | v2 adds bridges, culverts, active transport, transit centers |
+| Climate outputs | `climate/outputs/` (projections, `wrf_i1h_grid.geojson`) | WRF 1-hr grid feeds the debris-flow proxy |
+
+### Reference documents
+
+- `html/workshop-punchlist.html`: the dated task list, decisions open, and print-map spec.
+- `SCORING_RUBRICS.md` and `html/scoring-rubrics.html`: the rubrics per pair on the consultant's scale, 23 decisions.
+- `METHODS_culverts.md` and `jurisdiction_data_questions.md`: culvert layer methods and the open questions per jurisdiction.
+- `../Hazard_Asset_Pairs.md`: source of record for the 15 pairs.
+- `SESSION_NOTES.md`: shared working notes and hard-won process rules.
+- `risk_index_tool_scoping.md`: the tool vision and phasing.
+- Live pages: index, reference hub, scoring rubrics, workshop punch list, risk index tool, criticality index, OD services index, historic hazards, climate data, storm events, all under `html/`.
