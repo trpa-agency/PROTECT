@@ -116,7 +116,7 @@ def apply_by_key(target: str, df: pd.DataFrame, key: str, fields, log, date_cols
     """Write df columns onto target rows matched on key (UpdateCursor)."""
     import arcpy
     cols = [f[0] for f in fields]
-    tl = text_lengths(fields)
+    tl, ft = text_lengths(fields), {n: t for n, t, ln in fields}
     lookup = df.set_index(key)[cols].to_dict("index")
     n = 0
     with arcpy.da.UpdateCursor(target, [key] + cols) as cur:
@@ -124,7 +124,7 @@ def apply_by_key(target: str, df: pd.DataFrame, key: str, fields, log, date_cols
             rec = lookup.get(row[0])
             if rec is None:
                 continue
-            cur.updateRow([row[0]] + [to_dt(rec[c]) if c in date_cols else clean(rec[c], c, tl) for c in cols])
+            cur.updateRow([row[0]] + [to_dt(rec[c]) if c in date_cols else clean(rec[c], c, tl, ft.get(c)) for c in cols])
             n += 1
     log.info(f"Updated {n} rows in {Path(target).name}")
 
