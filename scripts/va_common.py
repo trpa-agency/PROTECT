@@ -53,6 +53,28 @@ def fetch_basin(cfg: dict, log: logging.Logger) -> gpd.GeoDataFrame:
     return basin
 
 
+def fetch_rest_features(url: str, crs, log: logging.Logger, where: str = "1=1", page: int = 1000) -> gpd.GeoDataFrame:
+    """All features of an ArcGIS REST layer as a GeoDataFrame in `crs`, paged with resultOffset."""
+    import requests
+    frames, offset = [], 0
+    while True:
+        r = requests.get(f"{url}/query", params={"where": where, "outFields": "OBJECTID", "returnGeometry": "true",
+                                                 "f": "geojson", "resultOffset": offset, "resultRecordCount": page},
+                         timeout=300)
+        r.raise_for_status()
+        feats = r.json().get("features", [])
+        if not feats:
+            break
+        frames.append(gpd.GeoDataFrame.from_features(feats, crs="EPSG:4326"))
+        offset += len(feats)
+        if len(feats) < page:
+            break
+    out = pd.concat(frames, ignore_index=True) if frames else gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
+    out = gpd.GeoDataFrame(out, geometry="geometry", crs="EPSG:4326").to_crs(crs)
+    log.info(f"{len(out)} features from {url}")
+    return out
+
+
 def dedupe_ids(s: pd.Series) -> pd.Series:
     """Make IDs unique by suffixing -2, -3... on repeats (same rule as the culvert notebook)."""
     s = s.astype(str)

@@ -147,7 +147,10 @@ def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
     cand = cul[(cul["feature_type"] == "culvert") & cul["parent_segment_id"].notna()].copy()
     cand["asset"] = "culvert"
     cand["len_m"], cand["from_m"] = base_len, base_from
+    cand = cand[["culvert_id", "parent_segment_id", "asset", "len_m", "from_m", "geometry"]]
     try:
+        if not b.get("bridges", False):
+            raise ValueError("profile.breach.bridges is false (bridges sit on enforced channels)")
         br = read_layer(cfg["paths"]["analysis_gdb"], a_cfg["bridges_fc"]).to_crs(cand.crs)
         br = br[(br["water_crossing"] == 1) & br["parent_segment_id"].notna()].copy()
         span = pd.to_numeric(br["max_span_m"], errors="coerce").fillna(0)
@@ -157,11 +160,9 @@ def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
         br = br.rename(columns={"bridge_id": "culvert_id"})[["culvert_id", "parent_segment_id", "asset", "len_m",
                                                              "from_m", "geometry"]]
         log.info(f"{len(br)} water-crossing bridges and large culverts added to the breach set")
-        cand = pd.concat([cand[["culvert_id", "parent_segment_id", "asset", "len_m", "from_m", "geometry"]], br],
-                         ignore_index=True)
-        cand = gpd.GeoDataFrame(cand, geometry="geometry", crs=cul.crs)
+        cand = gpd.GeoDataFrame(pd.concat([cand, br], ignore_index=True), geometry="geometry", crs=cul.crs)
     except Exception as e:
-        log.warning(f"Bridges not added to the breach set ({e})")
+        log.info(f"Bridges not in the breach set: {e}")
     key = a_cfg["streets_key"]
     st = read_streets(cfg, log)
     dup = int(st[key].duplicated().sum())
@@ -187,6 +188,21 @@ def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
     out = gpd.GeoDataFrame(rows, geometry="geometry", crs=cand.crs)
     log.info(f"{len(out)} breach lines ({len(cand) - len(out)} assets without a usable segment); "
              f"{int((out['asset'] == 'bridge').sum())} are bridges")
+
+    # Keep the breach off the enforced channels. The DEM already carries every mapped stream
+    # through its crossing; a breach line that reaches a stream sets its floor from the stream
+    # bed and pulls the creek out of its channel into a ditch pipe (Oct. 8: the Upper Truckee
+    # through an 18 in pipe, a 1,200 ac creek handed down a chain of Washoe pipes).
+    ex = float(b.get("stream_exclude_m", 0) or 0)
+    if ex and b.get("streams_layer"):
+        from va_common import fetch_rest_features
+        streams = fetch_rest_features(b["streams_layer"], out.crs, log)
+        if len(streams):
+            zone = gpd.GeoDataFrame(geometry=streams.buffer(ex), crs=out.crs)
+            hit = gpd.sjoin(out[["geometry"]], zone, how="inner", predicate="intersects").index.unique()
+            log.info(f"{len(hit)} breach lines dropped within {ex:.0f} m of a mapped stream or lake "
+                     f"(those crossings are enforced in the DEM); {len(out) - len(hit)} remain")
+            out = out.drop(index=hit)
     return out
 
 

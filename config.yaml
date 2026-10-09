@@ -73,6 +73,10 @@ profile:
     length_m: 40           #  along ditches and 292 pipes of 24 in or less inherited 100+ ac basins)
     drop_m: 0.3            # breach floor = lowest ground sampled at either end, minus this
     sample_from_m: 8       # ground sampled from this distance out to the line end, both sides
+    bridges: false         # NBI bridges sit on channels the enforcement already carries through
+    streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
+    stream_exclude_m: 10   # no breach within this distance of the lidar-derived streams and lakes:
+                           # a breach floor set from a creek bed pulls the creek into a ditch pipe
   pour_snap_m: 4           # max-accumulation cell within this distance of the culvert point (the
                            # breach runs through the culvert's own cell; 20 m captured creeks)
   prism_ppt: F:\GIS\PROJECTS\Transportation\Protect\Data\PRISM\prism_ppt_us_30s_2020_avg_30y.tif
