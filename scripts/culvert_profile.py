@@ -880,6 +880,7 @@ def profile_fields(cfg: dict):
     f += [("cond_class", "SHORT", None), ("cond_source", "TEXT", 20), ("cond_date", "DATE", None),
           ("cond_stale", "SHORT", None), ("blockage_pct", "DOUBLE", None), ("pp_elev_ft", "DOUBLE", None),
           ("tailwater_flag", "SHORT", None), ("dem_vintage_flag", "SHORT", None), ("snap_dist_m", "DOUBLE", None),
+          ("on_stream", "SHORT", None), ("size_suspect", "SHORT", None),
           ("profile_completeness", "TEXT", 10), ("profile_date", "DATE", None)]
     return f
 
@@ -958,6 +959,22 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
     cul["runoff_c"] = cul["runoff_c"].fillna(p["runoff_c"]["default"])
     cul["tailwater_flag"] = (cul["pp_elev_ft"] < p["tailwater_ft"]).astype(int)
 
+    # Culverts on a mapped stream. A small recorded pipe on an enforced creek channel with a
+    # large basin is an inventory record to review (wrong size field, or a ditch pipe beside
+    # the real structure), not a crossing that is 200 times overloaded.
+    cul["on_stream"] = 0
+    b = p.get("breach") or {}
+    if b.get("streams_layer"):
+        try:
+            from va_common import fetch_rest_features
+            streams = fetch_rest_features(b["streams_layer"], cul.crs, log)
+            zone = gpd.GeoDataFrame(geometry=streams.buffer(float(b.get("stream_exclude_m", 10))), crs=cul.crs)
+            hit = gpd.sjoin(cul[["geometry"]], zone, how="inner", predicate="intersects").index.unique()
+            cul.loc[hit, "on_stream"] = 1
+            log.info(f"{len(hit)} culverts within {b.get('stream_exclude_m', 10)} m of a mapped stream or lake")
+        except Exception as e:
+            log.warning(f"Stream proximity not computed ({e}); on_stream left 0")
+
     # capacity per barrel, summed per crossing
     caps = cul.apply(lambda r: capacity(r, p), axis=1, result_type="expand")
     cul["q_cap_cfs"], cul["q_full_cfs"] = caps[0], caps[1]
@@ -996,6 +1013,16 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
         q = q_rat.where(cul["q_method"] == "rational", q_reg.where(can_reg))
         cul[f"q_event_{rp}_cfs"] = q.round(1)
         cul[f"load_ratio_{rp}"] = (cul[f"q_event_{rp}_cfs"] / cul["q_cap_crossing_cfs"]).round(2)
+    ss = p.get("size_suspect") or {}
+    cul["size_suspect"] = ((cul["on_stream"] == 1) & (cul["d_eq_in"] <= float(ss.get("max_d_eq_in", 24)))
+                           & (cul["contrib_area_ac"] >= float(ss.get("min_area_ac", 100)))).astype(int)
+    n_ss = int(cul["size_suspect"].sum())
+    if n_ss:
+        for rp in rps:
+            cul.loc[cul["size_suspect"] == 1, f"load_ratio_{rp}"] = np.nan
+        log.warning(f"{n_ss} culverts flagged size_suspect (on a mapped stream, recorded size <= "
+                    f"{ss.get('max_d_eq_in', 24)} in, basin >= {ss.get('min_area_ac', 100)} ac): loading ratio withheld, "
+                    f"S1 takes its default; these are inventory records for the owner to confirm")
     n_reg = int(can_reg.sum())
     log.info(f"Event flow: rational on {int((cul['q_method'] == 'rational').sum())} culverts; regression on {n_reg} "
              f"(CA {int((state[can_reg] == 'CA').sum())}, NV {int((state[can_reg] == 'NV').sum())}); "

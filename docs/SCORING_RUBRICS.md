@@ -147,6 +147,7 @@ sensitivity indicator below. It is not itself a score.
 | `cond_date`, `cond_stale` | Latest inspection date; stale when before 2015 | `CulvertCondition` |
 | `blockage_pct` | Latest recorded blockage | Washoe `perc_full`, NDOT `PercentBlockage`, legacy text |
 | `tailwater_flag` | Outlet within 50 m of the shoreline and below 6,230 ft (the legal maximum lake level is 6,229.1 ft) | DEM, high-water shoreline layer |
+| `on_stream`, `size_suspect` | On a mapped stream (within 10 m of the lidar-derived streams and lakes); and, when also recorded at 24 in. or under with a basin of 100 acres or more, flagged for review: the record is a wrong size field or a ditch pipe beside the real structure, so `load_ratio` is withheld and S1 takes its default | Derived (`profile.size_suspect`) |
 | `profile_completeness` | `full`, `partial`, `default`: whether size, hydrology, and condition were observed or defaulted | Derived |
 
 **Why size and condition are framed this way.** Size matters only relative to demand: an

@@ -183,6 +183,11 @@ def capture_check(cfg: dict, gdb: str, log, pyogrio) -> None:
              + pd.DataFrame({">=100 ac": s.loc[big, "snap_dist_m"].quantile([.1, .5, .9]),
                              "<100 ac": s.loc[~big, "snap_dist_m"].quantile([.1, .5, .9])}).round(1).to_string())
 
+    if "size_suspect" in s.columns:
+        ssm = s["size_suspect"] == 1
+        log.info(f"size_suspect (on a mapped stream, small recorded size, big basin; ratio withheld): {int(ssm.sum())}\n"
+                 + s.loc[ssm, "jurisdiction"].value_counts().to_string())
+        big = big & ~ssm
     lr = "load_ratio_100"
     log.info(f"{lr} quantiles by size class:\n"
              + s.groupby("size_class", observed=True)[lr].quantile([.5, .9]).unstack().round(2).to_string())

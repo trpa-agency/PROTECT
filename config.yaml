@@ -77,6 +77,9 @@ profile:
     streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
     stream_exclude_m: 10   # no breach within this distance of the lidar-derived streams and lakes:
                            # a breach floor set from a creek bed pulls the creek into a ditch pipe
+  size_suspect:            # on a mapped stream, recorded size this small, basin this large: the record
+    max_d_eq_in: 24        # is reviewed, not scored (loading ratio withheld, S1 default). Oct. 9 QA:
+    min_area_ac: 100       # 18 in Caltrans pipes carrying 3,000+ ac creeks at the enforced channel
   pour_snap_m: 4           # max-accumulation cell within this distance of the culvert point (the
                            # breach runs through the culvert's own cell; 20 m captured creeks)
   prism_ppt: F:\GIS\PROJECTS\Transportation\Protect\Data\PRISM\prism_ppt_us_30s_2020_avg_30y.tif
