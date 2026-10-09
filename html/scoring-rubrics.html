@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT Scoring Rubrics | TRPA</title>
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Calcite Design System v5.0 -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+
+  <!-- AG Grid Community (pinned to 31.3.2: v33+ Theming API drops the legacy quartz CSS this page uses) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <!-- Open Sans (TRPA web font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:#0072CE; --trpa-navy:#003B71; --trpa-earth:#B47E00; --trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27; --trpa-olive:#B5A64C; --trpa-orange:#E87722; --trpa-purple:#7B6A8A;
+      --trpa-ice:#B4CBE8; --gray-text:#5a6577; --gray-border:#DDDDDD; --page-bg:#f4f6f9; --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:54px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.35rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .header-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+    header.app-header .header-meta a{color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;}
+    header.app-header .header-meta a.cta{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.35rem .75rem;border-radius:6px;}
+    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
+
+    main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    .intro{margin-bottom:1.1rem;}
+    .intro .lede{font-size:.98rem;max-width:95ch;}
+    .intro .lede a{color:var(--trpa-blue);font-weight:600;}
+
+    .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.1rem;}
+    .kpi-card{background:#fff;border-radius:8px;padding:.85rem 1.1rem;flex:1;min-width:150px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
+    .kpi-card .kpi-value{font-size:1.7rem;font-weight:700;color:var(--trpa-navy);line-height:1;}
+    .kpi-card .kpi-label{font-size:.76rem;color:var(--gray-text);margin-top:.35rem;}
+
+    calcite-tabs{--calcite-color-brand:var(--trpa-blue);}
+    .tab-body{padding:1.1rem 0 .5rem;}
+    .tab-body h2.sec{font-size:1.05rem;font-weight:700;margin:1.3rem 0 .6rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .tab-body h2.sec:first-child{margin-top:0;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    .lead a{color:var(--trpa-blue);font-weight:600;}
+
+    /* Segmented button groups (plain buttons so they behave the same in every tab) */
+    .ctl{display:flex;flex-direction:column;gap:.3rem;min-width:0;}
+    .ctl .lbl{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-text);}
+    .seg{display:inline-flex;flex-wrap:wrap;gap:0;border:1px solid var(--gray-border);border-radius:6px;overflow:hidden;background:#fff;}
+    .seg button{background:#fff;border:none;border-right:1px solid var(--gray-border);padding:.45rem .8rem;font-family:inherit;font-size:.8rem;font-weight:600;color:var(--trpa-navy);cursor:pointer;white-space:nowrap;}
+    .seg button:last-child{border-right:none;}
+    .seg button:hover{background:#eaf3fb;}
+    .seg button.on{background:var(--trpa-navy);color:#fff;}
+    .seg button:disabled{color:#aab2bd;cursor:not-allowed;background:#f6f7f9;}
+    .seg button:disabled.on{background:#aab2bd;color:#fff;}
+    .ctl-row{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-start;margin-bottom:1rem;}
+    .opt-row{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-start;margin:.2rem 0 1rem;}
+    .opt-row .ctl .hint{font-size:.74rem;color:var(--gray-text);max-width:48ch;}
+
+    /* Scoring layout */
+    .score-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:1.1rem;align-items:start;}
+    @media (max-width:980px){.score-wrap{grid-template-columns:1fr;}}
+    .pair-title{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin-bottom:.3rem;}
+    .pair-title h3{font-size:1.1rem;font-weight:700;}
+    .pair-title .w{font-size:.8rem;color:var(--gray-text);}
+    .pair-title .sec-ref{font-size:.74rem;color:var(--gray-text);}
+    .comp-head{display:flex;align-items:center;gap:.6rem;margin:1rem 0 .5rem;font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+    .comp-head .dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
+    .comp-head .wsum{font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-text);}
+    .ind{background:#fff;border:1px solid var(--gray-border);border-left:4px solid var(--c,var(--trpa-blue));border-radius:8px;padding:.75rem .9rem .7rem;margin-bottom:.6rem;}
+    .ind.defaulted{border-style:dashed;border-left-style:solid;background:#fbfbf7;}
+    .ind .ind-head{display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap;}
+    .ind .code{font-weight:700;font-size:.82rem;background:#eef1f5;border-radius:4px;padding:.05rem .4rem;flex-shrink:0;}
+    .ind .name{flex:1;min-width:200px;font-size:.86rem;font-weight:600;}
+    .ind .wpill{font-size:.72rem;font-weight:700;color:var(--trpa-navy);background:#eaf3fb;border-radius:999px;padding:.1rem .55rem;white-space:nowrap;}
+    .ind .tag{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:999px;padding:.1rem .5rem;white-space:nowrap;}
+    .tag.proposal{background:#E8772218;color:var(--trpa-orange);}
+    .tag.interp{background:#7B6A8A18;color:var(--trpa-purple);}
+    .tag.pending{background:#B47E0018;color:var(--trpa-earth);}
+    .tag.locked{background:#5a657718;color:var(--gray-text);}
+    .tag.default{background:#B5A64C33;color:#6e6320;}
+    .tag.decision{background:#0072CE14;color:var(--trpa-blue);}
+    .tag.resolved{background:#4A611818;color:var(--trpa-forest);}
+    .scores{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.4rem;margin:.55rem 0 .35rem;}
+    .sc{background:#fff;border:1px solid var(--gray-border);border-radius:6px;padding:.4rem .5rem;text-align:left;font-family:inherit;cursor:pointer;color:var(--trpa-navy);display:flex;flex-direction:column;gap:.15rem;min-height:3.2rem;}
+    .sc:hover{border-color:var(--trpa-blue);background:#f4f9fe;}
+    .sc .n{font-size:.95rem;font-weight:700;line-height:1;}
+    .sc .c{font-size:.7rem;color:var(--gray-text);line-height:1.3;}
+    .sc.on{background:var(--trpa-navy);border-color:var(--trpa-navy);color:#fff;}
+    .sc.on .c{color:#dbe6f3;}
+    .sc:disabled{cursor:not-allowed;opacity:.55;}
+    /* Slope x landcover matrix */
+    .mx{display:flex;gap:1.2rem;flex-wrap:wrap;margin:.55rem 0 .35rem;}
+    .mx .ctl .lbl{font-size:.66rem;}
+    .mx-grid{border-collapse:collapse;font-size:.72rem;margin:.4rem 0 .2rem;}
+    .mx-grid th,.mx-grid td{border:1px solid #e6e9ee;padding:.25rem .45rem;text-align:center;}
+    .mx-grid thead th{background:var(--trpa-navy);color:#fff;font-weight:600;}
+    .mx-grid th.rh{text-align:left;background:#f7f9fc;font-weight:600;}
+    .mx-grid td.hit{background:var(--trpa-navy);color:#fff;font-weight:700;}
+    .ind .foot{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center;font-size:.74rem;color:var(--gray-text);}
+    .ind .foot .samp{flex:1;min-width:180px;}
+    .ind .foot button.usedef{background:#fff;border:1px solid var(--gray-border);border-radius:5px;padding:.2rem .55rem;font-family:inherit;font-size:.72rem;font-weight:600;color:var(--trpa-navy);cursor:pointer;white-space:nowrap;}
+    .ind .foot button.usedef:hover{border-color:var(--trpa-blue);color:var(--trpa-blue);}
+    .ind .mod{display:flex;align-items:flex-start;gap:.45rem;font-size:.76rem;margin-top:.45rem;padding-top:.45rem;border-top:1px dashed #e6e9ee;}
+    .ind .mod input{margin-top:.2rem;}
+
+    /* Result panel */
+    .result{position:sticky;top:.8rem;background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:1rem 1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+    .result h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-text);margin-bottom:.5rem;}
+    .vbig{display:flex;align-items:baseline;gap:.7rem;}
+    .vbig .v{font-size:2.6rem;font-weight:700;line-height:1;}
+    .vbig .bucket{font-size:.8rem;font-weight:700;color:#fff;border-radius:999px;padding:.2rem .7rem;}
+    .vbig .incomplete{font-size:.8rem;color:var(--gray-text);}
+    .comp-row{display:flex;gap:.8rem;margin:.8rem 0 .4rem;}
+    .comp{flex:1;background:#f7f9fc;border-radius:6px;padding:.5rem .65rem;}
+    .comp .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-text);}
+    .comp .n{font-size:1.25rem;font-weight:700;}
+    .comp .s{font-size:.7rem;color:var(--gray-text);}
+    .bar{display:flex;height:16px;border-radius:4px;overflow:hidden;background:#eef1f5;margin:.5rem 0 .2rem;}
+    .bar span{display:block;height:100%;border-right:1px solid #fff;}
+    .bar-scale{display:flex;justify-content:space-between;font-size:.66rem;color:var(--gray-text);}
+    .bar-legend{display:flex;gap:.8rem;font-size:.7rem;color:var(--gray-text);margin-top:.3rem;}
+    .bar-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;}
+    .src-row{font-size:.76rem;color:var(--gray-text);margin:.6rem 0 .2rem;}
+    .src-row b{color:var(--trpa-navy);}
+    .matrix{border-collapse:collapse;width:100%;font-size:.72rem;margin:.45rem 0 .2rem;}
+    .matrix th,.matrix td{border:1px solid #e6e9ee;text-align:center;padding:.3rem .25rem;}
+    .matrix thead th{background:var(--trpa-navy);color:#fff;font-weight:600;}
+    .matrix th.rh{text-align:left;background:#f7f9fc;font-weight:600;}
+    .matrix td.hit{background:var(--trpa-blue);color:#fff;font-weight:700;}
+    .result .actions{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.8rem;}
+    .result .actions button{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.45rem .75rem;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer;}
+    .result .actions button.alt{background:#fff;color:var(--trpa-navy);border:1px solid var(--gray-border);}
+    .result .actions button:hover{background:var(--trpa-blue);color:#fff;}
+    .result .note{font-size:.72rem;color:var(--gray-text);margin-top:.6rem;}
+
+    /* Tables */
+    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.5rem 0 .7rem;justify-content:flex-end;}
+    .toolbar input.qf{flex:1;min-width:240px;padding:.5rem .75rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.9rem;color:var(--trpa-navy);}
+    .toolbar input.qf:focus{outline:none;border-color:var(--trpa-blue);box-shadow:0 0 0 2px rgba(0,114,206,.18);}
+    .toolbar button{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.5rem .9rem;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;}
+    .toolbar button:hover{background:var(--trpa-blue);}
+    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-navy);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:12.5px;}
+    .grid-wrap{width:100%;}
+    table.ref{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:.84rem;margin-bottom:1rem;}
+    table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.55rem .8rem;font-weight:600;vertical-align:top;}
+    table.ref td{padding:.5rem .8rem;border-top:1px solid #eef0f3;vertical-align:top;}
+    table.ref tr:nth-child(even) td{background:#fafbfc;}
+    table.ref td.num{text-align:center;white-space:nowrap;}
+    .formula{background:#f0f4f9;border:1px solid #dbe5f0;border-radius:6px;padding:.6rem .8rem;font-size:.88rem;margin:.4rem 0 .8rem;}
+    .note{background:#fdf6ee;border-left:4px solid var(--trpa-orange);padding:.6rem .9rem;font-size:.85rem;border-radius:0 6px 6px 0;margin:.7rem 0;max-width:95ch;}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.9rem;margin-bottom:.6rem;}
+    .card{background:#fff;border-radius:8px;padding:.9rem 1.1rem 1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--c,var(--trpa-blue));}
+    .card h3{font-size:.95rem;font-weight:700;margin-bottom:.4rem;}
+    .card p,.card li{font-size:.84rem;}
+    .card ul{margin-left:1.05rem;}
+    .card .tag{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:999px;padding:.1rem .5rem;margin-left:.3rem;vertical-align:1px;}
+
+    footer.app-footer{max-width:1240px;margin:0 auto;padding:1.25rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.82rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+
+    /* Hover/focus info affordance */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>PROTECT Scoring Rubrics</h1>
+        <div class="header-sub">Task 3.2 &middot; Exposure and sensitivity rubrics per hazard-asset pair</div>
+      </div>
+      <div class="header-meta">
+        <a href="index.html">Home</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="criticality-index.html">Criticality Index</a>
+        <a class="cta" href="risk-index-tool.html">Open Risk Index Tool (MVP) &rarr;</a>
+        <span class="version">v0.3</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="lede">
+        Interactive version of the v0.3 scoring rubrics (Oct. 8, 2026) for the system-wide,
+        indicator-based vulnerability assessment. Every indicator value and score follows the rubric
+        tables in the consultant's draft methodology (Aug. 20, 2026); TRPA additions are tagged as
+        proposals.<i class="i" tabindex="0" data-tip="Source of record is docs/SCORING_RUBRICS.md in the repo. Version 0.3 adopts the draft's half-point score scale, its class breaks, and its direction for span type, span length, and drainage area. TRPA is not acquiring a flood depth model, so flood exposure is scored from FEMA flood zones and stream crossings (decision 19). No pair is scored until its rubric is agreed.">i</i>
+        All 15 pairs are covered on one scale, so every pair samples the same classed hazard
+        surfaces: culverts and bridges under flooding, landslide, and debris flow; roads under all five
+        hazards; active transport and transit centers under flooding and wildfire.
+      </p>
+    </section>
+
+    <section class="kpi-row">
+      <div class="kpi-card"><div class="kpi-value">15</div><div class="kpi-label">Hazard-asset pairs with a rubric in v0.3: five hazards, five asset types</div></div>
+      <div class="kpi-card"><div class="kpi-value">0 to 3</div><div class="kpi-label">Score scale in half-point steps; indicator weights sum to 1.0 within each pair</div></div>
+      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Vulnerability classes: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over<i class="i" tabindex="0" data-tip="TRPA proposal (decision 9). Class breaks are held in config.yaml so that one change carries to every page and map layout.">i</i></div></div>
+      <div class="kpi-card"><div class="kpi-value">23</div><div class="kpi-label">Numbered items for the consultant: 20 open, 3 resolved by the draft's tables</div></div>
+    </section>
+
+    <calcite-tabs scale="m">
+      <calcite-tab-nav slot="title-group">
+        <calcite-tab-title selected>Score an asset</calcite-tab-title>
+        <calcite-tab-title>Rubric tables</calcite-tab-title>
+        <calcite-tab-title>Framework</calcite-tab-title>
+        <calcite-tab-title>Decisions</calcite-tab-title>
+      </calcite-tab-nav>
+
+      <!-- TAB 1: Score an asset -->
+      <calcite-tab selected>
+        <div class="tab-body">
+          <p class="lead">Select an asset type and hazard, then the indicator value that applies to the asset. The
+            vulnerability score, its exposure and sensitivity components, and the vulnerability class update with
+            each selection. Where an attribute is not available for an asset, the indicator takes its default and
+            the record carries the partial or default source flag that the tool will display.<i class="i" tabindex="0" data-tip="The arithmetic is the same as the scoring scripts: vulnerability is the sum over indicators of weight times score. The exposure and sensitivity components are shown weight-normalized, each on the 0 to 3 scale, so they can be read on their own. Criticality is not multiplied in; the criticality class selector shows where the asset falls on the two-axis read.">i</i></p>
+
+          <div class="ctl-row">
+            <div class="ctl"><div class="lbl">Asset type</div><div class="seg" id="asset-seg"></div></div>
+            <div class="ctl"><div class="lbl">Hazard</div><div class="seg" id="hazard-seg"></div></div>
+            <div class="ctl" id="horizon-ctl"><div class="lbl">Horizon<i class="i" tabindex="0" data-tip="The Nov. 9 workshop uses the historical horizon only. 2050 and 2080 columns are added in December. Sensitivity does not vary by horizon, and the FEMA flood term has no horizon; the precipitation change indicator scores 0 under the historical horizon by definition.">i</i></div><div class="seg" id="horizon-seg"></div></div>
+          </div>
+          <div class="opt-row" id="opt-row"></div>
+
+          <div class="score-wrap">
+            <div id="ind-mount"></div>
+            <aside class="result" id="result"></aside>
+          </div>
+
+          <h2 class="sec" style="margin-top:1.4rem;">Scoring record</h2>
+          <p class="lead">The current scoring as a table: one row per indicator, then the exposure component, the sensitivity component, and the vulnerability score.</p>
+          <div class="toolbar"><button id="rec-export">Export CSV</button></div>
+          <table class="ref" id="rec-table">
+            <thead><tr><th>Pair</th><th>Code</th><th>Component</th><th>Indicator</th><th>Indicator value</th><th>Weight</th><th>Score</th><th>Source</th><th>Contribution</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 2: Rubric tables -->
+      <calcite-tab>
+        <div class="tab-body">
+          <h2 class="sec">Indicator rubrics</h2>
+          <p class="lead">All indicators in v0.3 with the weight, each indicator value and its score, the missing-data
+            default, and the sampling rule. The Option column identifies rows that apply only under one exposure or
+            sensitivity option. The draft's flood depth rows are listed as not applicable because no flood depth
+            model is being acquired.</p>
+          <div class="ctl-row">
+            <div class="ctl"><div class="lbl">Pair</div><div class="seg" id="rub-seg"></div></div>
+          </div>
+          <div class="toolbar">
+            <input id="rub-qf" class="qf" type="text" placeholder="Search indicators" aria-label="Search indicators" />
+            <button id="rub-export">Export CSV</button>
+          </div>
+          <div id="rub-grid" class="ag-theme-quartz grid-wrap"></div>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 3: Framework -->
+      <calcite-tab>
+        <div class="tab-body">
+          <h2 class="sec">Equation and scale</h2>
+          <div class="formula">
+            <strong>V<sub>pair</sub> = &Sigma; (weight &times; score)</strong> over the pair's indicators. The draft's tables score most
+            indicators in half-point steps (0, 0.5, 1, 1.5, 2, 2.5, 3); a few score whole points only. Indicator weights sum to 1.0
+            within a pair, so the pair score is on the same 0 to 3 scale. The exposure weight w<sub>E</sub> is the sum of the exposure
+            indicator weights and w<sub>S</sub> the sum of the sensitivity weights, which is the draft's
+            <strong>Vulnerability = (Exposure Score &times; w<sub>E</sub>) + (Sensitivity Score &times; w<sub>S</sub>)</strong> written per
+            component. E<sub>pair</sub> and S<sub>pair</sub> are the weight-normalized component scores (each 0 to 3) so the tool can show
+            them separately.
+          </div>
+          <div class="note">Several of the draft's sensitivity rubrics have a floor of 1 rather than 0 (bridge condition, pavement
+            condition, culvert condition, paved surface, scour codes 5 to 9), so a sensitivity component is rarely 0. This is the
+            draft's design and is kept.</div>
+
+          <h2 class="sec">Per-pair weights (from the draft)</h2>
+          <div class="toolbar"><button data-tablecsv="w-table" data-filename="PROTECT_Rubric_Weights.csv">Export CSV</button></div>
+          <table class="ref" id="w-table">
+            <thead><tr><th>Hazard</th><th>Roads</th><th>Bridges and large culverts</th><th>Small culverts</th><th>Active transport</th><th>Transit centers</th></tr></thead>
+            <tbody>
+              <tr><td>Flooding</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.3 / S 0.7</td><td class="num">E 0.3 / S 0.7</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 1.0</td></tr>
+              <tr><td>Landslide</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td></tr>
+              <tr><td>Wildfire</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td><td class="num">E 1.0</td><td class="num">E 1.0</td></tr>
+              <tr><td>Debris flow</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td></tr>
+              <tr><td>Avalanche</td><td class="num">E 1.0</td><td class="num">not scored</td><td class="num">not scored</td><td class="num">not scored</td><td class="num">not scored</td></tr>
+            </tbody>
+          </table>
+
+          <div class="card-grid">
+            <div class="card" style="--c:#0072CE"><h3>Flood exposure source <span class="tag proposal">TRPA proposal</span></h3><p>TRPA is not acquiring a flood depth model. Flood exposure is scored from FEMA flood zones and stream crossings on a four-value scale (1 percent zone 3; 0.2 percent zone or mapped TRPA stream 2; NHD flowline outside a zone 1; none 0). The draft's depth-based rows for culverts and bridges are listed for the record and do not apply. The culvert loading ratio carries the hydraulic signal. Decision 19.</p></div>
+            <div class="card" style="--c:#0072CE"><h3>Vulnerability classes <span class="tag proposal">TRPA proposal</span></h3><p>V is kept to two decimals and classed for the map and posters: <strong>Low</strong> under 1.0, <strong>Medium</strong> 1.0 to under 2.0, <strong>High</strong> 2.0 and over. Breaks live in <code>config.yaml</code> (<code>scoring.v_breaks</code>). Decision 9.</p></div>
+            <div class="card" style="--c:#003B71"><h3>Criticality</h3><p>Component 1 of the assessment, scored separately, not a multiplier. Road segments carry a 0 to 3 class (<code>C_class</code>); bridges and culverts inherit it through <code>parent_segment_id</code>. Priority is read on two axes, vulnerability class by criticality class, and the hotspot lists rank assets by V within the High criticality class first.</p></div>
+            <div class="card" style="--c:#E87722"><h3>Aggregation across pairs <span class="tag proposal">TRPA proposal</span></h3><p>One asset appears in several pairs (a culvert carries FL-C, LS-C, DF-C). The asset-level rating is the maximum pair score, <code>V_max</code>, with <code>V_max_pair</code> recording which hazard set it. Summing would double-count one physical failure at one location. Lane default confirmed Oct. 8; decision 9 with the consultant.</p></div>
+            <div class="card" style="--c:#4A6118"><h3>Horizons</h3><p>Historical, mid-century (2050), and late-century (2080). The Nov. 9 workshop uses the historical horizon only. Field names carry a horizon suffix from the start so December adds columns, not a schema change. Sensitivity does not vary by horizon. The FEMA flood term has no horizon; the flood pairs carry the future through the culvert loading ratio, whose design flows take 2050 and 2080 factors from the climate pipeline.</p></div>
+            <div class="card" style="--c:#B47E00"><h3>Missing data</h3><p>The draft leaves most defaults TBD. Where it states one (pavement fair, surface paved, bridge condition none scores 1, scour other scores 1) that value is used; the rest are TRPA proposals (decision 8). An asset scored on any default carries <code>S_source</code> (or <code>E_source</code>) = partial; one with every sensitivity indicator defaulted carries default.</p></div>
+            <div class="card" style="--c:#9C3E27"><h3>Sampling rule</h3><p>Line assets take the length-weighted maximum of the hazard surface along the segment. Point assets (bridges, transit centers) take the maximum within a 25 m buffer. <strong>Small culverts are the exception:</strong> surfaces that describe what arrives at the crossing (flood, debris flow, landslide) are sampled over the culvert's contributing watershed, with the 25 m buffer as the fallback where no watershed could be delineated (decision 3).</p></div>
+          </div>
+
+          <h2 class="sec">Asset sets</h2>
+          <div class="card-grid">
+            <div class="card" style="--c:#9C3E27"><h3>Small culverts (FL-C, LS-C, DF-C)</h3><ul><li>Everything in the <code>Culverts</code> layer typed culvert; stormwater pipes, inlets, and basins are inventory only.</li><li>Road-crossing rule applied to El Dorado and Washoe pipes: a pipe that crosses a street centerline is a culvert unless both ends are manholes.</li><li>Within 25 m of an NBI culvert-type structure: excluded, scores with the bridge.</li><li>No parent segment within 50 m: inventory only, no rating (decision 10).</li><li>NDOT assets score in the analysis geodatabase only; nothing asset-level is published without NDOT review.</li><li>Expected scored set: about 5,000 including NDOT.</li></ul></div>
+            <div class="card" style="--c:#7B6A8A"><h3>Bridges and large culverts (FL-B, LS-B, DF-B)</h3><ul><li>The 40 National Bridge Inventory structures inside the TRPA boundary, built by <code>scripts/build_bridges.py</code>.</li><li>Five are NBI culvert-type structures (item 43B = 19, spans over 20 ft) and score here, not with small culverts.</li><li>NBI condition items run 0 (failed) to 9 (excellent); the draft's bands are 0 to 2, 3 to 4, 5, 6, and 7 to 9 or N.</li><li>Structures not over a waterway stay in the set: water-dependent sensitivity indicators score at the draft's lowest band.</li></ul></div>
+            <div class="card" style="--c:#0072CE"><h3>Road segments (DF-R, AV-R)</h3><ul><li><code>Streets_Network_Tahoe</code> segments, scored length-weighted maximum along the segment.</li><li>Segment IDs and <code>C_class</code> come from the network lane; this lane supplies the debris-flow surface and the DF-R scores so DF-R, DF-B, and DF-C share one surface and one set of class breaks.</li><li>Avalanche: exposure only, current terrain, every segment scored. The corridor list (US-50, SR-89, SR-28, SR-207, SR-431) is the sanity check, not the scope.</li></ul></div>
+          </div>
+
+          <h2 class="sec">Culvert loading ratio: how Qevent and Qcap are estimated</h2>
+          <p class="lead">The draft's Qdesign is missing for nearly every culvert, so capacity is estimated from geometry. Parameters live in <code>config.yaml</code> and the method runs in <code>scripts/culvert_profile.py</code>.</p>
+          <div class="card-grid">
+            <div class="card" style="--c:#0072CE"><h3>Watershed</h3><p>Flow direction and accumulation on the TRPA hydro-enforced bare-earth lidar DEM (2 m, EPSG 26910) at native resolution on the server machine. Sinks shallower than 3 m are filled before flow direction; deeper sinks (lakes, real basins) are kept. Pour point is the maximum-accumulation cell within 20 m of the culvert on the upstream side of the road. Culverts within 10 m of each other on the same segment are one crossing.</p></div>
+            <div class="card" style="--c:#E87722"><h3>Event flow, Qevent</h3><p>Rational method, Q = C i A, for basins under 1 sq mi, with C by majority landcover and i the Atlas 14 intensity at the basin's time of concentration (Kirpich); 100-yr headline, 25-yr carried (decision 5). Basins of 1 sq mi and over use the USGS regional regression equations. 2050 and 2080 flows apply the climate pipeline's DDF change factors to i. The local computation replaces the draft's StreamStats API call so NDOT crossings are not sent to a third-party service.</p></div>
+            <div class="card" style="--c:#4A6118"><h3>Capacity, Qcap</h3><p>FHWA HDS-5 inlet-control equation solved for Q at HW/D = 1.0, coefficients by shape, material, and inlet type (decision 6). Underestimates capacity by roughly 10 to 20 percent against the nomographs, which is conservative for a screen; Manning full flow is carried as the cross-check. Barrels at one crossing are summed before the ratio.</p></div>
+          </div>
+          <div class="note">Known limits: the rational method is a screening estimate, slopes and roughness are assumed, and culvert inverts are not surveyed. The ratio is for ranking, not design. The future-horizon factor scales rainfall intensity only, so rain-on-snow winter peaks are not captured; 2050 and 2080 ratios are a lower bound for mid-elevation basins.</div>
+
+          <h2 class="sec">Validation checks before delivery</h2>
+          <div class="card-grid">
+            <div class="card" style="--c:#9C3E27"><h3>Culverts</h3><ul><li>Known-failure check: the Aug. 2025 Incline Village blocked culvert (FL-C S3), the June 2026 Washoe County flash flood crossings (loading ratio at the 1-hr intensity), and the SR 89 Meeks Creek culvert (scores under the bridge rubric, the cross-check between the two paths) should land High.</li><li>Distribution checks on contributing area and loading ratio by jurisdiction; 20 watersheds checked by eye against the hillshade.</li><li>Report how many culverts change class between the 25-yr and 100-yr ratio.</li></ul></div>
+            <div class="card" style="--c:#7B6A8A"><h3>Bridges</h3><ul><li>Meeks Creek (structure 25 0019; culvert condition 5, scour code 4) should land High or Medium on FL-B.</li><li>With 40 structures, review every row by hand against the NBI record before delivery.</li></ul></div>
+            <div class="card" style="--c:#0072CE"><h3>Avalanche</h3><ul><li>The five corridors should carry nearly all High segments; list any High segment off those corridors for the DOTs.</li><li>The score describes closure likelihood, not damage.</li></ul></div>
+          </div>
+        </div>
+      </calcite-tab>
+
+      <!-- TAB 4: Decisions -->
+      <calcite-tab>
+        <div class="tab-body">
+          <h2 class="sec">Decisions requested from the consultant</h2>
+          <p class="lead">Twenty-three numbered items from the rubrics, grouped by section. The TRPA default is the value
+            the team builds against until a decision is received; three items are resolved by the draft's own tables
+            and need no decision.<i class="i" tabindex="0" data-tip="TRPA defaults confirmed Oct. 8, 2026: the debris flow proxy for the workshop and Wildcat for December; the road-crossing rule applied to El Dorado and Washoe pipes; maximum-pair aggregation; avalanche scored by dominant uphill slope with a record flag, the TRPA zone layer counting as a record source, and no runout modeling; no flood depth model, FEMA zones and stream crossings for flood exposure.">i</i></p>
+          <div class="toolbar"><button data-tablecsv="dec-table" data-filename="PROTECT_Rubric_Decisions.csv">Export CSV</button></div>
+          <table class="ref" id="dec-table">
+            <thead><tr><th style="width:3rem;">No.</th><th style="width:9rem;">Section</th><th>Decision</th><th style="width:16rem;">TRPA default</th><th style="width:6.5rem;">Status</th></tr></thead>
+            <tbody id="dec-body"></tbody>
+          </table>
+
+          <h2 class="sec">Where v0.3 departs from the draft</h2>
+          <p class="lead">Every departure from the draft's tables is a TRPA proposal or interpretation. The weights,
+            indicator sets, score scale, class breaks, and directions are otherwise the draft's.</p>
+          <div class="toolbar"><button data-tablecsv="dep-table" data-filename="PROTECT_Rubric_Departures.csv">Export CSV</button></div>
+          <table class="ref" id="dep-table">
+            <thead><tr><th style="width:14rem;">Item</th><th>Draft</th><th>v0.3</th><th style="width:7rem;">Decision</th></tr></thead>
+            <tbody>
+              <tr><td>Flood exposure (FL-C E1, FL-B E2)</td><td>100-yr flood depth over the road; change in 100-yr depth at the structure; both from a flood depth model</td><td>FEMA flood zone and stream crossing, four values, under every horizon; no depth model is being acquired</td><td class="num">19</td></tr>
+              <tr><td>FL-C sensitivity weights</td><td>Debris potential 0.35, loading ratio 0.35</td><td>Adds condition and blockage at 0.15; debris potential 0.25, loading ratio 0.30</td><td class="num">1</td></tr>
+              <tr><td>Debris potential source</td><td>StreamStats API (option 1) or the CULVERT tool (option 2)</td><td>The option 1 matrix computed locally from the TRPA watershed delineation; NDOT data is not sent to third-party tools</td><td class="num">2</td></tr>
+              <tr><td>Culvert sampling</td><td>Point value at the asset</td><td>Maximum over the contributing watershed, 25 m buffer where none</td><td class="num">3</td></tr>
+              <tr><td>Tailwater</td><td>Not in the draft</td><td>Add 1 (maximum 3) to FL-C E1 where the outlet is within 50 m of the shoreline and below 6,230 ft</td><td class="num">4</td></tr>
+              <tr><td>Qdesign</td><td>From asset data or the CULVERT tool</td><td>HDS-5 inlet-control capacity at HW/D = 1.0 where records have none</td><td class="num">6</td></tr>
+              <tr><td>DF-C sensitivity under option 1</td><td>Debris potential 0.30</td><td>Opening size 0.15 and condition and blockage 0.15, because basin slope already sits in exposure</td><td class="num">7</td></tr>
+              <tr><td>Missing-data defaults</td><td>TBD for most indicators</td><td>A default per row, flagged partial or default in the record</td><td class="num">8</td></tr>
+              <tr><td>Classes and aggregation</td><td>Not in the draft</td><td>Low under 1.0, Medium to under 2.0, High 2.0 and over; maximum pair score per asset</td><td class="num">9</td></tr>
+              <tr><td>Span length direction</td><td>Longer spans score higher</td><td>The draft's direction is used; TRPA proposes the reverse</td><td class="num">12</td></tr>
+              <tr><td>Debris-flow exposure for the workshop</td><td>Option 1 or option 2</td><td>A proxy raster (WRF 1-hr intensity, slope and contributing area, burn severity proxy) classed 0 to 3 at 0.70 until option 2 runs in December</td><td class="num">15</td></tr>
+              <tr><td>Dominant slope and records</td><td>Dominant slope undefined; two accident databases as records</td><td>Largest-area slope class on the uphill side within 1,000 ft; the TRPA zone layer and documented closures also count as records</td><td class="num">17, 18</td></tr>
+              <tr><td>Two gaps in the draft's tables</td><td>No row for culvert openings over 8 ft or for an avalanche record with no slope over 25 degrees</td><td>Both score 1</td><td class="num">20</td></tr>
+              <tr><td>Flood exposure for roads, active transport, and transit centers</td><td>Floodplain extent (10-yr 3 down to 1,000-yr 0.5) at 0.35 and 100-yr depth at 0.35</td><td>One indicator, the FEMA zone and stream-crossing scale, at the full exposure weight; FEMA maps only the 100-yr and 500-yr floodplains</td><td class="num">21</td></tr>
+              <tr><td>Wildfire exposure inputs</td><td>Contracted burn probability and flame length</td><td>TRPA burn probability raster on the draft's breaks and TRPA high-severity fire probability in place of flame length; the contracted package replaces them for December if delivered in time</td><td class="num">22</td></tr>
+              <tr><td>Truck AADT and trail slope defaults</td><td>TBD</td><td>1 each, flagged partial</td><td class="num">23</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </calcite-tab>
+    </calcite-tabs>
+  </main>
+
+  <footer class="app-footer">
+    <p>Scoring rubrics v0.3 (Oct. 8, 2026). This page mirrors <code>docs/SCORING_RUBRICS.md</code>, the source of record; the
+    consultant's Aug. 20, 2026 draft Vulnerability Assessment Methodology is the source for the equation, weights, indicator
+    values, and scores, and is not committed. Pair definitions mirror <code>Hazard_Asset_Pairs.md</code> (v0.8) and the
+    <a href="reference-hub.html">Reference Hub</a>. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    // ---------- RUBRIC DATA (mirror of docs/SCORING_RUBRICS.md v0.3) ----------
+    // Each indicator lists its values as [score, indicator value], highest first, as the draft's
+    // tables do. A matrix indicator (slope x landcover) carries rows, cols, and the score grid.
+    // An indicator is active when its `when` test passes against the chosen options.
+    // weight: a number, or an object keyed by one option id giving the weight per choice.
+    // lock: {horizon: score} forces the score under that horizon.
+    // mods: checkbox modifiers applied to the score (clamped 0 to 3).
+    const FEMA_VALUES = [[3,"1 percent zone (A, AE)"],[2,"0.2 percent zone (X500) or on a mapped TRPA stream"],[1,"on an NHD flowline outside a zone"],[0,"no zone, no flowline"]];
+    const LSI_VALUES = [[3,"class 5 (very high), or any recorded landslide"],[2,"class 4 (high)"],[1,"class 3 (moderate)"],[0,"class 1 or 2 (very low or low)"]];
+    const PPT_VALUES = [[3,"over 40 percent"],[2,"over 20 to 40 percent"],[1,"over 0 to 20 percent"],[0,"no change or decrease"]];
+    const SIZE_VALUES = [[3,"under 2 ft opening"],[2.5,"2 to under 3 ft"],[2,"3 to under 5 ft"],[1.5,"5 to under 7 ft"],[1,"7 ft and over (over 8 ft is a TRPA interpretation, decision 20)"]];
+    const COND_VALUES = [[3,"poor"],[2,"fair"],[1,"good"]];
+    const CONDBLK_VALUES = [[3,"poor, or blockage 50 percent and over"],[2,"fair, or blockage 25 to under 50 percent"],[1,"good, blockage under 25 percent"]];
+    const RATIO_VALUES = [[3,"4 and over"],[2.5,"3 to under 4"],[2,"2.5 to under 3"],[1.5,"2 to under 2.5"],[1,"1.5 to under 2"],[0.5,"1 to under 1.5"],[0,"under 1"]];
+    const SPAN_VALUES = [[3,"single span (item 45 = 1)"],[1,"continuous span (item 45 over 1)"]];
+    const NBICOND_VALUES = [[3,"0 to 2 (poor)"],[2.5,"3 to 4 (poor)"],[2,"5 (fair)"],[1.5,"6 (fair)"],[1,"7 to 9 (good), N, or none"]];
+    const SPANLEN_VALUES = [[3,"over 500 ft (major bridge)"],[2.5,"over 350 to 500 ft"],[2,"over 200 to 350 ft"],[1.5,"over 100 to 200 ft"],[1,"over 50 to 100 ft"],[0.5,"over 20 to 50 ft"],[0,"0 to 20 ft (short-span bridge)"]];
+    const BURN_VALUES = [[3,"high"],[2,"moderate"],[1,"low"],[0,"unburned or very low"]];
+    const PAVE_VALUES = [[3,"poor"],[2,"fair"],[1,"good or none"]];
+    const PAVED_VALUES = [[3,"unpaved"],[1,"paved"]];
+    const BP_VALUES = [[3,"over 1 percent"],[2,"over 0.5 to 1 percent"],[1,"over 0 to 0.5 percent"],[0,"0 percent"]];
+    const FLAME_VALUES = [[3,"over 8 ft"],[2,"over 4 to 8 ft"],[1,"over 0 to 4 ft"],[0,"0 ft"]];
+    const HSP_VALUES = [[3,"high-severity probability class 3 (highest)"],[2,"class 2"],[1,"class 1"],[0,"class 0"]];
+    const WF_OPTION = {id:"wfsrc", label:"Wildfire exposure source (decision 22)",
+      choices:[["trpa","TRPA data in hand: burn probability raster and high-severity fire probability"],["model","Contracted fire-behavior modeling, when delivered"]], def:"trpa",
+      hint:"TRPA holds data for both indicators today. The contracted package, if delivered and reviewed in time, replaces them for December on the same breaks, so scores change in value but not in form."};
+    // Wildfire exposure rows shared by WF-R, WF-AT, WF-TC.
+    function wfExposure(samp){
+      return [
+        {k:"wf_e1t", code:"E1", comp:"E", name:"Annual burn probability, TRPA burn probability raster on the draft's breaks", weight:0.70, values:BP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"TRPA data in hand"},
+        {k:"wf_e2t", code:"E2", comp:"E", name:"TRPA high-severity fire probability classed 0 to 3, in place of flame length", weight:0.30, values:HSP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"TRPA data in hand", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 22)"}},
+        {k:"wf_e1m", code:"E1", comp:"E", name:"Annual burn probability, contracted fire-behavior modeling", weight:0.70, values:BP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="model", opt:"Contracted package, when delivered", tags:["pending"], tagText:{pending:"contracted data pending delivery"}},
+        {k:"wf_e2m", code:"E2", comp:"E", name:"Flame length, contracted fire-behavior modeling", weight:0.30, values:FLAME_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="model", opt:"Contracted package, when delivered", tags:["pending"], tagText:{pending:"contracted data pending delivery"}}
+      ];
+    }
+    const DEBRIS_MATRIX = {rows:["0 to 8 percent","over 8 to 16 percent","over 16 percent"], cols:["water and snow","urban","shrubs","trees"], m:[[0,0.5,1,1],[0,1,2.5,2.5],[0,2.5,2.5,3]]};
+    const TAIL_MOD = {id:"tail", delta:1, label:"Tailwater flag set (outlet within 50 m of the shoreline and below 6,230 ft): add 1, maximum 3. TRPA proposal, decision 4"};
+
+    const DF_OPTION = {id:"dfopt", label:"Debris-flow exposure (decision 15)",
+      choices:[["proxy","Workshop proxy raster"],["opt1","Option 1: slope, area, burn severity"],["opt2","Option 2: Wildcat likelihood and hazard class"]], def:"proxy",
+      hint:"Lane default: the proxy for the Nov. 9 workshop, Wildcat (option 2) for December. Option 1 is computed locally for every asset from the TRPA watershed delineation."};
+
+    // Debris-flow exposure rows shared by DF-C, DF-B, DF-R; the sampling text differs per asset.
+    function dfExposure(samp){
+      return [
+        {k:"dfp_e1", code:"E1", comp:"E", name:"Proxy debris-flow class: WRF 1-hr intensity against the Tahoe threshold, slope and contributing area from the DEM, and the burn severity proxy, classed 0 to 3", weight:0.70, values:[[3,"class 3"],[2,"class 2"],[1,"class 1"],[0,"class 0"]], def:0, sampling:samp.proxy, when:o=>o.dfopt==="proxy", opt:"Workshop proxy", tags:["proposal"], tagText:{proposal:"TRPA proposal: workshop fallback, DF_option = proxy (decision 15)"}},
+        {k:"df1_e1", code:"E1", comp:"E", name:"Mean basin slope (basin_slope_pct)", weight:0.20, values:[[3,"over 30 percent"],[2.5,"over 25 to 30 percent"],[2,"over 20 to 25 percent"],[1.5,"over 15 to 20 percent"],[1,"over 10 to 15 percent"],[0.5,"over 5 to 10 percent"],[0,"0 to 5 percent"]], def:1, sampling:samp.ws, when:o=>o.dfopt==="opt1", opt:"Option 1"},
+        {k:"df1_e2", code:"E2", comp:"E", name:"Drainage area (contrib_area_ac); smaller areas lead to higher debris-flow intensities", weight:0.20, values:[[3,"under 0.25 sq mi"],[2.5,"0.25 to 0.5 sq mi"],[2,"over 0.5 to 1 sq mi"],[1.5,"over 1 to 2 sq mi"],[1,"over 2 to 3 sq mi"],[0.5,"over 3 to 5 sq mi"],[0,"over 5 sq mi"]], def:1, sampling:samp.ws, when:o=>o.dfopt==="opt1", opt:"Option 1"},
+        {k:"df1_e3", code:"E3", comp:"E", name:"Contracted predicted soil burn severity", weight:0.30, values:BURN_VALUES, def:0, sampling:samp.wsmax, when:o=>o.dfopt==="opt1", opt:"Option 1", tags:["pending"], tagText:{pending:"contracted data pending delivery"}},
+        {k:"df2_e1", code:"E1", comp:"E", name:"Wildcat debris-flow likelihood", weight:0.30, values:[[3,"over 75 percent"],[2.5,"over 60 to 75 percent"],[2,"over 50 to 60 percent"],[1.5,"over 40 to 50 percent"],[1,"over 25 to 40 percent"],[0.5,"over 0 to 25 percent"],[0,"0"]], def:0, sampling:samp.pour, when:o=>o.dfopt==="opt2", opt:"Option 2"},
+        {k:"df2_e2", code:"E2", comp:"E", name:"Wildcat combined hazard classification", weight:0.15, values:[[3,"high (3)"],[2,"moderate (2)"],[1,"low (1)"],[0,"none or no assessment"]], def:0, sampling:samp.pour, when:o=>o.dfopt==="opt2", opt:"Option 2"},
+        {k:"df2_e3", code:"E3", comp:"E", name:"Contracted predicted soil burn severity", weight:0.15, values:BURN_VALUES, def:0, sampling:samp.wsmax, when:o=>o.dfopt==="opt2", opt:"Option 2", tags:["pending"], tagText:{pending:"contracted data pending delivery"}}
+      ];
+    }
+    const BRIDGE_S = [
+      {k:"b_s1", code:"S1", comp:"S", name:"Span type, NBI item 45 (number of main spans)", weight:0.10, values:SPAN_VALUES, def:1, defNote:"1 when blank (TRPA proposal)", sampling:"Per structure", tags:["decision 11"]},
+      {k:"b_s2", code:"S2", comp:"S", name:"Bridge condition, lowest of NBI items 58, 59, 60 (lowest_rating)", weight:0.10, values:NBICOND_VALUES, def:1, defNote:"1 (the draft scores N or none as 1)", sampling:"Per structure"},
+      {k:"b_s3", code:"S3", comp:"S", name:"Span length, NBI item 48 (max_span_m, converted to feet). The draft scores longer spans higher; TRPA proposes the reverse", weight:0.10, values:SPANLEN_VALUES, def:1, defNote:"1 when blank (TRPA proposal)", sampling:"Per structure", tags:["decision 12"]}
+    ];
+
+    const PAIRS = [
+      {id:"FL-C", hazard:"Flooding", asset:"culvert", assetLabel:"Small culverts", wE:0.3, wS:0.7, section:"Rubrics section 2.3",
+        options:[{id:"s3", label:"Condition term (decision 1)", choices:[["on","TRPA proposal: S1 0.25, S2 0.30, S3 0.15"],["off","Draft: S1 0.35, S2 0.35, no condition term"]], def:"on",
+           hint:"The one culvert failure in the literature review's event catalog (Incline Village, Aug. 2025) was a blockage, which neither draft term captures."}],
+        indicators:[
+          {k:"flc_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's flood depth indicator (no flood depth model is being acquired)", weight:0.30, values:FEMA_VALUES, def:0, sampling:"Maximum within 25 m of the crossing on the road", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 19)"}, mods:[TAIL_MOD]},
+          {k:"flc_s1", code:"S1", comp:"S", kind:"matrix", name:"Debris potential of the basin: mean basin slope by majority landcover (draft option 1 matrix)", weight:{s3:{on:0.25, off:0.35}}, matrix:DEBRIS_MATRIX, def:1, defNote:"1 when no watershed, S_source partial", sampling:"Watershed"},
+          {k:"flc_s2", code:"S2", comp:"S", name:"100-yr capacity loading ratio, load_ratio = Qevent / Qdesign", weight:{s3:{on:0.30, off:0.35}}, values:RATIO_VALUES, def:1, defNote:"1 when span_in is null, S_source partial", sampling:"Per crossing; multi-barrel crossings grouped"},
+          {k:"flc_s3", code:"S3", comp:"S", name:"Condition and blockage: maximum of cond_class (good 1, fair 2, poor 3) and the blockage class", weight:0.15, values:CONDBLK_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection", when:o=>o.s3==="on", opt:"Condition term on", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 1)"}}
+        ]},
+      {id:"LS-C", hazard:"Landslide", asset:"culvert", assetLabel:"Small culverts", wE:0.7, wS:0.3, section:"Rubrics section 2.3", options:[],
+        indicators:[
+          {k:"lsc_e1", code:"E1", comp:"E", name:"USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database)", weight:0.50, values:LSI_VALUES, def:0, sampling:"Maximum over the watershed; 25 m buffer where none (TRPA proposal, decision 3)"},
+          {k:"lsc_e2", code:"E2", comp:"E", name:"Cal-Adapt annual precipitation change versus historical", weight:0.20, values:PPT_VALUES, def:0, sampling:"Watershed mean", lock:{hist:0}},
+          {k:"lsc_s1", code:"S1", comp:"S", name:"Culvert size, opening width (d_eq_in)", weight:0.15, values:SIZE_VALUES, def:2, defNote:"2, S_source partial (TRPA proposal)", sampling:"Per asset"},
+          {k:"lsc_s2", code:"S2", comp:"S", name:"Culvert condition where available (cond_class)", weight:0.15, values:COND_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection"}
+        ]},
+      {id:"DF-C", hazard:"Debris flow", asset:"culvert", assetLabel:"Small culverts", wE:0.7, wS:0.3, section:"Rubrics sections 2.3 and 4.2",
+        options:[DF_OPTION,
+          {id:"sopt", label:"Sensitivity under option 1 (decision 7)", choices:[["prop","TRPA proposal: opening size 0.15 + condition and blockage 0.15"],["draft","Draft: debris potential 0.30"]], def:"prop",
+           hint:"Under option 1 basin slope already sits in exposure, so debris potential in sensitivity counts it twice.", when:o=>o.dfopt==="opt1"}],
+        indicators:dfExposure({proxy:"Watershed maximum", ws:"Watershed", wsmax:"Watershed maximum", pour:"Pour point"}).concat([
+          {k:"dfc_s1d", code:"S1", comp:"S", kind:"matrix", name:"Debris potential of the basin (the FL-C S1 matrix)", weight:0.30, matrix:DEBRIS_MATRIX, def:1, defNote:"1 when no watershed, S_source partial", sampling:"Watershed", when:o=>!(o.dfopt==="opt1" && o.sopt==="prop"), opt:"Workshop proxy, option 2, or option 1 with the draft sensitivity"},
+          {k:"dfc_s1p", code:"S1", comp:"S", name:"Opening size (d_eq_in, the LS-C S1 scale; small pipes plug regardless of the loading ratio)", weight:0.15, values:SIZE_VALUES, def:2, defNote:"2, S_source partial", sampling:"Per asset", when:o=>o.dfopt==="opt1" && o.sopt==="prop", opt:"Option 1 with the TRPA sensitivity proposal", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 7)"}},
+          {k:"dfc_s2p", code:"S2", comp:"S", name:"Condition and blockage (the FL-C S3 scale)", weight:0.15, values:CONDBLK_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection", when:o=>o.dfopt==="opt1" && o.sopt==="prop", opt:"Option 1 with the TRPA sensitivity proposal", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 7)"}}
+        ])},
+      {id:"FL-B", hazard:"Flooding", asset:"bridge", assetLabel:"Bridges and large culverts", wE:0.3, wS:0.7, section:"Rubrics section 3.2", options:[],
+        indicators:[
+          {k:"flb_e1", code:"E1", comp:"E", name:"Waterway adequacy, NBI item 71 (waterway_eval); encodes observed overtopping frequency", weight:0.20, values:[[3,"0 to 1: severe overtopping or closure from waterway capacity"],[2.5,"2 to 3: frequent overtopping"],[2,"4 to 5: occasional overtopping with significant delays"],[1.5,"6: occasional overtopping with insignificant delays"],[1,"7 to 8: slight chance of overtopping"],[0.5,"9: remote chance of overtopping"],[0,"N: not over a waterway"]], def:1, defNote:"1 when blank (TRPA proposal; the draft says TBD)", sampling:"Per structure"},
+          {k:"flb_e2", code:"E2", comp:"E", name:"FEMA flood zone at the structure, in place of the draft's change-in-depth indicator (no flood depth model is being acquired)", weight:0.10, values:FEMA_VALUES, def:0, sampling:"Maximum within 25 m", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 19)"}},
+          {k:"flb_s1", code:"S1", comp:"S", name:"Channel and channel protection, NBI item 61 (channel_cond)", weight:0.10, values:[[3,"0 to 2: near or full channel failure"],[2.5,"3: bank protection failure"],[2,"4: bank protection severely undermined"],[1.5,"5: bank protection eroded"],[1,"6 to 7: minor damage"],[0.5,"8 to 9: no noteworthy deficiencies, or N"]], def:1, defNote:"1 when blank (TRPA proposal)", sampling:"Per structure"},
+          {k:"flb_s2", code:"S2", comp:"S", name:"Scour criticality, NBI item 113 (scour_code)", weight:0.40, values:[[3,"1: imminent failure"],[2.5,"2: critical condition"],[2,"3: serious condition"],[1.5,"4: poor condition"],[1,"5 to 9, U, N, or other"]], def:1, defNote:"1 (the draft's other band covers blanks and U)", sampling:"Per structure", tags:["decision 13"]},
+          {k:"flb_s3", code:"S3", comp:"S", name:"Span type, NBI item 45 (number of main spans)", weight:0.10, values:SPAN_VALUES, def:1, defNote:"1 when blank (TRPA proposal)", sampling:"Per structure", tags:["decision 11"]},
+          {k:"flb_s4", code:"S4", comp:"S", name:"Bridge condition, lowest of NBI items 58, 59, 60 (62 for culvert-type structures)", weight:0.10, values:NBICOND_VALUES, def:1, defNote:"1 (the draft scores N or none as 1)", sampling:"Per structure"}
+        ]},
+      {id:"LS-B", hazard:"Landslide", asset:"bridge", assetLabel:"Bridges and large culverts", wE:0.7, wS:0.3, section:"Rubrics section 3.2", options:[],
+        indicators:[
+          {k:"lsb_e1", code:"E1", comp:"E", name:"USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database)", weight:0.50, values:LSI_VALUES, def:0, sampling:"Maximum within 25 m, plus the parent segment's value where the abutment slopes extend past the buffer"},
+          {k:"lsb_e2", code:"E2", comp:"E", name:"Cal-Adapt annual precipitation change versus historical", weight:0.20, values:PPT_VALUES, def:0, sampling:"At the structure", lock:{hist:0}}
+        ].concat(BRIDGE_S)},
+      {id:"DF-B", hazard:"Debris flow", asset:"bridge", assetLabel:"Bridges and large culverts", wE:0.7, wS:0.3, section:"Rubrics sections 3.2 and 4.2", options:[DF_OPTION],
+        indicators:dfExposure({proxy:"Contributing watershed where over a waterway, 25 m otherwise", ws:"Contributing watershed where over a waterway, 25 m otherwise", wsmax:"Watershed maximum", pour:"Pour point"}).concat(BRIDGE_S)},
+      {id:"DF-R", hazard:"Debris flow", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 4.2", options:[DF_OPTION],
+        indicators:dfExposure({proxy:"Length-weighted maximum along the segment", ws:"Length-weighted maximum along the segment (raster of the upslope contributing area at each cell)", wsmax:"Length-weighted maximum", pour:"Stream-segment results rasterized to the contributing area, length-weighted maximum"}).concat([
+          {k:"dfr_s1", code:"S1", comp:"S", name:"Pavement condition", weight:0.15, values:[[3,"poor"],[2,"fair"],[1,"good or none"]], def:2, defNote:"2 (fair, per the draft), S_source partial", sampling:"Jurisdiction outreach; unavailable today", tags:["pending"], tagText:{pending:"source TBD; the open sensitivity gap for every road pair"}},
+          {k:"dfr_s2", code:"S2", comp:"S", name:"Paved versus unpaved", weight:0.15, values:[[3,"unpaved"],[1,"paved"]], def:1, defNote:"1 (paved, per the draft)", sampling:"Street network surface attribute where present"}
+        ])},
+      {id:"AV-R", hazard:"Avalanche", asset:"road", assetLabel:"Road segments", wE:1.0, wS:0, section:"Rubrics section 5.2", options:[], noHorizon:true,
+        indicators:[
+          {k:"avr_e1", code:"E1", comp:"E", name:"Historical avalanche record within 1,000 ft combined with the dominant slope angle within 1,000 ft (records: Sierra Avalanche Center accident map, National Avalanche Accident Database, and, as a TRPA proposal, the TRPA Avalanche_Zones layer and documented closures)", weight:1.00,
+           values:[[3,"record, and 35 to 45 degrees"],[2.5,"record, and 30 to under 35 or over 45 to 50 degrees"],[2,"record, and 25 to under 30 or over 50 degrees"],[2,"no record, and 35 to 45 degrees"],[1.5,"no record, and 30 to under 35 or over 45 to 50 degrees"],[1,"no record, and 25 to under 30 or over 50 degrees"],[1,"record, and under 25 degrees (TRPA interpretation, decision 20)"],[0,"no record, and under 25 degrees"]],
+           def:0, sampling:"Length-weighted maximum per segment; current terrain conditions only, no climate horizon", tags:["decision 17","decision 18"]}
+        ]},
+      // Roads, active transport, and transit centers (rubrics section 6): the draft's tables, with flood on the FEMA scale.
+      {id:"FL-R", hazard:"Flooding", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 6.2", options:[],
+        indicators:[
+          {k:"flr_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's floodplain extent (0.35) and 100-yr flood depth (0.35) indicators; FEMA maps only the 100-yr and 500-yr floodplains and no depth model is being acquired", weight:0.70, values:FEMA_VALUES, def:0, sampling:"Length-weighted maximum along the segment", tags:["proposal"], tagText:{proposal:"TRPA proposal (decisions 19 and 21)"}},
+          {k:"flr_s1", code:"S1", comp:"S", name:"Pavement condition", weight:0.10, values:PAVE_VALUES, def:2, defNote:"2 (fair, per the draft), S_source partial", sampling:"Jurisdiction outreach; unavailable today", tags:["pending"], tagText:{pending:"source TBD; the open sensitivity gap for every road pair"}},
+          {k:"flr_s2", code:"S2", comp:"S", name:"Paved versus unpaved", weight:0.10, values:PAVED_VALUES, def:1, defNote:"1 (paved, per the draft)", sampling:"Street network surface attribute where present"},
+          {k:"flr_s3", code:"S3", comp:"S", name:"Truck AADT", weight:0.10, values:[[3,"over 1,000"],[2.5,"over 500 to 1,000"],[2,"over 250 to 500"],[1.5,"over 100 to 250"],[1,"under 100"]], def:1, defNote:"1 when unknown (TRPA proposal; the draft says TBD)", sampling:"Street network traffic attribute where present", tags:["decision 23"]}
+        ]},
+      {id:"FL-AT", hazard:"Flooding", asset:"at", assetLabel:"Active transport", wE:0.7, wS:0.3, section:"Rubrics section 6.2", options:[],
+        indicators:[
+          {k:"flat_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's floodplain extent and 100-yr flood depth indicators", weight:0.70, values:FEMA_VALUES, def:0, sampling:"Length-weighted maximum along the trail", tags:["proposal"], tagText:{proposal:"TRPA proposal (decisions 19 and 21)"}},
+          {k:"flat_s1", code:"S1", comp:"S", name:"Paved versus unpaved trail", weight:0.15, values:PAVED_VALUES, def:3, defNote:"3 (unpaved, per the draft)", sampling:"Trail inventory"},
+          {k:"flat_s2", code:"S2", comp:"S", name:"Trail slope", weight:0.15, values:[[3,"15 percent and over"],[2,"10 to under 15 percent"],[1,"5 to under 10 percent"],[0,"under 5 percent"]], def:1, defNote:"1 when unknown (TRPA proposal; the draft says TBD)", sampling:"Mean slope from the DTM", tags:["decision 23"]}
+        ]},
+      {id:"FL-TC", hazard:"Flooding", asset:"tc", assetLabel:"Transit centers", wE:1.0, wS:0, section:"Rubrics section 6.2", options:[],
+        indicators:[
+          {k:"fltc_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's floodplain extent and 100-yr flood depth indicators (the draft's lower depth thresholds for transit centers have no dataset)", weight:1.00, values:FEMA_VALUES, def:0, sampling:"Maximum within 25 m", tags:["proposal"], tagText:{proposal:"TRPA proposal (decisions 19 and 21)"}}
+        ]},
+      {id:"LS-R", hazard:"Landslide", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 6.3", options:[],
+        indicators:[
+          {k:"lsr_e1", code:"E1", comp:"E", name:"USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database)", weight:0.50, values:LSI_VALUES, def:0, sampling:"Length-weighted maximum along the segment"},
+          {k:"lsr_e2", code:"E2", comp:"E", name:"Cal-Adapt annual precipitation change versus historical", weight:0.20, values:PPT_VALUES, def:0, sampling:"Segment mean", lock:{hist:0}},
+          {k:"lsr_s1", code:"S1", comp:"S", name:"Pavement condition (the draft prefers embankment condition or stabilization measures where available)", weight:0.30, values:PAVE_VALUES, def:2, defNote:"2 (fair, per the draft), S_source partial", sampling:"Jurisdiction outreach; unavailable today", tags:["pending"], tagText:{pending:"source TBD; the open sensitivity gap for every road pair"}}
+        ]},
+      {id:"WF-R", hazard:"Wildfire", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 6.4", options:[WF_OPTION], noHorizon:true,
+        indicators:wfExposure("Maximum within a 300 ft buffer, length-weighted along the segment; current conditions").concat([
+          {k:"wfr_s1", code:"S1", comp:"S", name:"Wooden guardrails present", weight:0.30, values:[[3,"present"],[1,"not present"]], def:1, defNote:"1 (the draft's default)", sampling:"Street network or jurisdiction attribute where present"}
+        ])},
+      {id:"WF-AT", hazard:"Wildfire", asset:"at", assetLabel:"Active transport", wE:1.0, wS:0, section:"Rubrics section 6.4", options:[WF_OPTION], noHorizon:true,
+        indicators:wfExposure("Maximum within a 300 ft buffer, length-weighted along the trail; current conditions")},
+      {id:"WF-TC", hazard:"Wildfire", asset:"tc", assetLabel:"Transit centers", wE:1.0, wS:0, section:"Rubrics section 6.4", options:[WF_OPTION], noHorizon:true,
+        indicators:wfExposure("Maximum within 300 ft; current conditions")}
+    ];
+
+    // Asset types and the hazards each can be scored against (the draft's pair matrix).
+    const ASSETS = [
+      {id:"culvert", label:"Small culvert", hazards:["Flooding","Landslide","Debris flow"]},
+      {id:"bridge", label:"Bridge or large culvert", hazards:["Flooding","Landslide","Debris flow"]},
+      {id:"road", label:"Road segment", hazards:["Flooding","Landslide","Wildfire","Debris flow","Avalanche"]},
+      {id:"at", label:"Active transport", hazards:["Flooding","Wildfire"]},
+      {id:"tc", label:"Transit center", hazards:["Flooding","Wildfire"]}
+    ];
+    const HORIZONS = [["hist","Historical"],["2050","2050"],["2080","2080"]];
+    const BUCKETS = [{name:"Low",max:1.0,c:"#4A6118"},{name:"Medium",max:2.0,c:"#B47E00"},{name:"High",max:Infinity,c:"#9C3E27"}];
+    const COMP = {E:{label:"Exposure", c:"#E87722", shades:["#E87722","#F09A52","#F5B984","#F9D3B0"]}, S:{label:"Sensitivity", c:"#B47E00", shades:["#B47E00","#C99A33","#D9B566","#E8CF99"]}};
+    const TAG_CLASS = {proposal:"proposal", pending:"pending"};
+
+    // [no, section, decision, lane default, status]
+    const DECISIONS = [
+      [1,"2.8 Culverts","Condition and blockage as a third FL-C sensitivity term (S3) with weights S1 0.25, S2 0.30, S3 0.15, versus the draft's 0.35 / 0.35 with no condition term. The one culvert failure in the literature review's event catalog (Incline Village, Aug. 2025) was a blockage, which neither draft term captures.","S3 on (page default); cond_class stays a popup field if declined","Open"],
+      [2,"2.8 Culverts","Debris potential computed locally with the option 1 matrix for every culvert, rather than the CULVERT tool score (option 2). NDOT data cannot be uploaded to a third-party tool, so option 2 would score Nevada highways differently from everything else.","Local computation","Open"],
+      [3,"2.8 Culverts","Watershed sampling for culvert exposure (section 1.7) instead of a point buffer.","Watershed, 25 m fallback","Open"],
+      [4,"2.8 Culverts","Tailwater modifier on FL-C E1 for shoreline outlets.","Modifier on","Open"],
+      [5,"2.8 Culverts","100-yr as the loading-ratio event, with 25-yr carried for comparison (the draft names the 100-yr as likely appropriate).","100-yr headline","Open"],
+      [6,"2.8 Culverts","Capacity from HDS-5 inlet control as the default Qdesign where asset records have none.","HDS-5 at HW/D = 1.0","Open"],
+      [7,"2.8 Culverts","Under debris-flow option 1, replace the sensitivity debris-potential term with opening size and condition to avoid counting basin slope twice.","Replace (page default under option 1)","Open"],
+      [8,"2.8 Culverts","Missing-data defaults as stated per row in section 2.3.","As stated per row","Open"],
+      [9,"2.8 Culverts","Bucket breaks (section 1.2) and the max-pair aggregation rule (section 1.4).","Low under 1, Medium to under 2, High 2 and over; max pair (confirmed Oct. 8)","Open"],
+      [10,"2.8 Culverts","Whether unsnapped forest-road culverts stay out of the rating.","Out (inventory only)","Open"],
+      [19,"2.8 Culverts","Flood exposure without a depth model. TRPA is not acquiring a commercial flood depth model, so the draft's depth-based indicators have no dataset. TRPA scores flood exposure from FEMA flood zones and stream crossings, with the culvert loading ratio carrying the hydraulic signal. To confirm: the flood pairs have no exposure horizon beyond historical unless a precipitation change modifier is applied in December, and StreamStats peak flows or HEC-RAS at selected crossings stay available if a depth indicator is still wanted.","FEMA zones and stream crossings, every horizon (decided Oct. 8)","Open"],
+      [20,"2.8 Culverts","Two gaps in the draft's tables, scored by TRPA interpretation until confirmed: culvert openings over 8 ft score 1 (the draft's lowest band), and an avalanche record with no slope over 25 degrees within 1,000 ft scores 1.","Both score 1","Open"],
+      [11,"3.5 Bridges","Whether NBI 45 span type in the draft means item 45 (number of main spans) or item 43 (structure type). The rubric assumes item 45.","Item 45","Open"],
+      [12,"3.5 Bridges","The direction of the span-length indicator. The draft scores longer spans higher; TRPA proposes the reverse because a longer maximum span means more clearance and fewer in-channel piers.","The draft's direction until decided","Open"],
+      [13,"3.5 Bridges","Scour codes 5 to 9, U, and blanks score 1 in the draft's table, so an unevaluated foundation is not read as safe.","","Resolved"],
+      [14,"3.5 Bridges","With no depth model, FL-B E2 is the FEMA zone at the structure under every horizon (decision 19).","","Resolved"],
+      [15,"4.4 Debris flow","Option 1 or option 2 for debris-flow exposure, and whether the proxy is acceptable for the Nov. 9 workshop if neither is ready by Oct. 16.","Proxy for the workshop, Wildcat for December (confirmed Oct. 8)","Open"],
+      [16,"4.4 Debris flow","The draft's drainage-area breaks and direction (smaller area scores higher) are adopted.","","Resolved"],
+      [17,"5.4 Avalanche","The definition of dominant slope: the largest-area slope class on the uphill side within 1,000 ft. The classes and scores are the draft's.","As in section 5.2 (confirmed Oct. 8)","Open"],
+      [18,"5.4 Avalanche","Whether the TRPA avalanche zone layer and documented closures count as records alongside the two accident databases.","Both count as records (confirmed Oct. 8)","Open"],
+      [21,"6.5 Roads, trails, transit","FEMA flood zones as the flood exposure indicator for roads, active transport, and transit centers, with the 1 percent zone scoring 3 and the extent and depth indicators collapsed into one at the full exposure weight. The draft's extent scale would score the 100-year floodplain 2 and the 500-year 1, with 3 and 2.5 reserved for the 10- and 50-year floodplains that FEMA does not map.","FEMA four-value scale at 0.70 (1.0 for transit centers)","Open"],
+      [22,"6.5 Roads, trails, transit","Wildfire exposure from the TRPA data in hand: the burn probability raster on the draft's breaks, and TRPA high-severity fire probability classed 0 to 3 in place of flame length. The contracted fire-behavior package replaces them for December if delivered and reviewed in time, on the same breaks.","TRPA data for the workshop","Open"],
+      [23,"6.5 Roads, trails, transit","Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1 (5 to under 10 percent), both flagged S_source partial.","As stated","Open"]
+    ];
+
+    // ---------- STATE ----------
+    const state = {asset:"culvert", hazard:"Flooding", horizon:"hist", opts:{}, scores:{}, cclass:2};
+    const $ = id => document.getElementById(id);
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+    function fmt(n, d){ return n==null || isNaN(n) ? "-" : n.toFixed(d==null?2:d); }
+    function fmtScore(s){ return s==null ? "-" : (Number.isInteger(s) ? String(s) : s.toFixed(1)); }
+
+    function currentPair(){ return PAIRS.find(p => p.asset===state.asset && p.hazard===state.hazard) || null; }
+    function pairOptions(pair){ return (pair.options||[]).filter(o => !o.when || o.when(state.opts)); }
+    function ensureOpts(pair){ (pair.options||[]).forEach(o => { if(state.opts[o.id]==null) state.opts[o.id] = o.def; }); }
+    function activeInds(pair){ return pair.indicators.filter(i => !i.when || i.when(state.opts)); }
+    function weightOf(ind){
+      if(typeof ind.weight === "number") return ind.weight;
+      const key = Object.keys(ind.weight)[0];
+      return ind.weight[key][state.opts[key]];
+    }
+    function isLocked(ind){ return !!(ind.lock && ind.lock[state.horizon]!=null); }
+    function isDefaulted(ind){ const r = state.scores[ind.k]; return !!(r && r.def) && !isLocked(ind); }
+    // Raw selected score before modifiers; null when nothing is selected.
+    function rawScore(ind){
+      const rec = state.scores[ind.k];
+      if(!rec) return null;
+      if(rec.def) return ind.def;
+      if(ind.kind==="matrix") return (rec.r==null || rec.c==null) ? null : ind.matrix.m[rec.r][rec.c];
+      return rec.idx==null ? null : ind.values[rec.idx][0];
+    }
+    function valueLabel(ind){
+      const rec = state.scores[ind.k];
+      if(isLocked(ind)) return "locked by horizon";
+      if(!rec) return "";
+      if(rec.def) return "default";
+      if(ind.kind==="matrix") return (rec.r==null || rec.c==null) ? "" : ind.matrix.rows[rec.r]+", "+ind.matrix.cols[rec.c];
+      return rec.idx==null ? "" : ind.values[rec.idx][1];
+    }
+    function effScore(ind){
+      if(isLocked(ind)) return ind.lock[state.horizon];
+      let s = rawScore(ind);
+      if(s==null) return null;
+      const rec = state.scores[ind.k];
+      (ind.mods||[]).forEach(m => { if(rec.mods && rec.mods[m.id]) s = Math.min(3, Math.max(0, s + m.delta)); });
+      return s;
+    }
+    function bucketOf(v){ return BUCKETS.find(b => v < b.max); }
+
+    function compute(pair){
+      const inds = activeInds(pair);
+      const out = {E:{sum:0,w:0,n:0,def:0}, S:{sum:0,w:0,n:0,def:0}, missing:[], rows:[]};
+      inds.forEach(ind => {
+        const w = weightOf(ind), s = effScore(ind), c = out[ind.comp];
+        c.w += w; c.n += 1;
+        if(s==null){ out.missing.push(ind); }
+        else { c.sum += w*s; if(isDefaulted(ind)) c.def += 1; }
+        out.rows.push({ind, w, s, contrib: s==null ? null : w*s});
+      });
+      out.complete = out.missing.length === 0;
+      out.V = out.complete ? out.E.sum + out.S.sum : null;
+      out.Ecomp = out.E.w ? out.E.sum / out.E.w : null;
+      out.Scomp = out.S.w ? out.S.sum / out.S.w : null;
+      out.Esrc = out.E.n===0 ? "n/a" : (out.E.def===0 ? "full" : (out.E.def===out.E.n ? "default" : "partial"));
+      out.Ssrc = out.S.n===0 ? "n/a" : (out.S.def===0 ? "full" : (out.S.def===out.S.n ? "default" : "partial"));
+      return out;
+    }
+
+    // ---------- RENDER: controls ----------
+    function seg(el, items, onId, onClick){
+      el.innerHTML = items.map(it => '<button type="button" data-v="'+esc(it.id)+'" class="'+(it.id===onId?"on":"")+'"'+(it.disabled?' disabled title="'+esc(it.title||"")+'"':'')+'>'+esc(it.label)+'</button>').join("");
+      el.onclick = e => { const b = e.target.closest("button"); if(!b || b.disabled) return; onClick(b.dataset.v); };
+    }
+    function renderControls(){
+      seg($("asset-seg"), ASSETS.map(a => ({id:a.id, label:a.label})), state.asset, v => {
+        state.asset = v; const a = ASSETS.find(x => x.id===v);
+        if(!PAIRS.some(p => p.asset===v && p.hazard===state.hazard)) state.hazard = a.hazards.find(h => PAIRS.some(p => p.asset===v && p.hazard===h));
+        renderAll();
+      });
+      const a = ASSETS.find(x => x.id===state.asset);
+      seg($("hazard-seg"), a.hazards.map(h => { const has = PAIRS.some(p => p.asset===state.asset && p.hazard===h); return {id:h, label:h, disabled:!has, title:"Not a scored pair"}; }), state.hazard, v => { state.hazard = v; renderAll(); });
+      const pair = currentPair();
+      $("horizon-ctl").style.display = (pair && pair.noHorizon) ? "none" : "";
+      seg($("horizon-seg"), HORIZONS.map(h => ({id:h[0], label:h[1]})), state.horizon, v => { state.horizon = v; renderAll(); });
+      const row = $("opt-row"); row.innerHTML = "";
+      if(!pair) return;
+      ensureOpts(pair);
+      pairOptions(pair).forEach(o => {
+        const wrap = document.createElement("div"); wrap.className = "ctl";
+        wrap.innerHTML = '<div class="lbl">'+esc(o.label)+'</div><div class="seg"></div>'+(o.hint ? '<div class="hint">'+esc(o.hint)+'</div>' : '');
+        seg(wrap.querySelector(".seg"), o.choices.map(c => ({id:c[0], label:c[1]})), state.opts[o.id], v => { state.opts[o.id] = v; renderAll(); });
+        row.appendChild(wrap);
+      });
+    }
+
+    // ---------- RENDER: indicators ----------
+    function tagHtml(ind){
+      return (ind.tags||[]).map(t => {
+        const cls = TAG_CLASS[t] || "decision";
+        const txt = (ind.tagText && ind.tagText[t]) || t;
+        return '<span class="tag '+cls+'" title="'+esc(txt)+'">'+esc(t==="proposal" ? "TRPA proposal" : t)+'</span>';
+      }).join("");
+    }
+    function renderIndicators(pair){
+      const mount = $("ind-mount");
+      if(!pair){ mount.innerHTML = '<div class="note">No rubric for this pair in v0.3.</div>'; return; }
+      const inds = activeInds(pair);
+      const eq = pair.wS > 0
+        ? 'Vulnerability = (Exposure Score &times; '+pair.wE.toFixed(1)+') + (Sensitivity Score &times; '+pair.wS.toFixed(1)+')'
+        : 'Vulnerability = (Exposure Score &times; 1.0)';
+      let html = '<div class="pair-title"><h3>'+esc(pair.id)+' &middot; '+esc(pair.hazard)+' &times; '+esc(pair.assetLabel.toLowerCase())+'</h3>'
+        + '<span class="w">'+eq+'</span><span class="sec-ref">'+esc(pair.section)+'</span></div>';
+      ["E","S"].forEach(comp => {
+        const list = inds.filter(i => i.comp===comp);
+        if(!list.length) return;
+        const wsum = list.reduce((a,i)=>a+weightOf(i),0);
+        html += '<div class="comp-head"><span class="dot" style="background:'+COMP[comp].c+'"></span>'+COMP[comp].label+'<span class="wsum">weights sum to '+wsum.toFixed(2)+'</span></div>';
+        list.forEach(ind => {
+          const rec = state.scores[ind.k] || {};
+          const locked = isLocked(ind), eff = effScore(ind), defaulted = isDefaulted(ind);
+          html += '<div class="ind'+(defaulted?' defaulted':'')+'" style="--c:'+COMP[comp].c+'">'
+            + '<div class="ind-head"><span class="code">'+esc(ind.code)+'</span><span class="name">'+esc(ind.name)+'</span>'
+            + '<span class="wpill">w '+weightOf(ind).toFixed(2)+'</span>'+tagHtml(ind)
+            + (locked ? '<span class="tag locked">scores '+ind.lock[state.horizon]+' under this horizon</span>' : '')
+            + (defaulted ? '<span class="tag default">default '+fmtScore(ind.def)+'</span>' : '')
+            + '</div>';
+          if(ind.kind==="matrix"){
+            const mx = ind.matrix;
+            html += '<div class="mx"><div class="ctl"><div class="lbl">Mean basin slope</div><div class="seg mx-seg" data-k="'+esc(ind.k)+'" data-axis="r">'
+              + mx.rows.map((r,i)=>'<button type="button" data-v="'+i+'" class="'+(!rec.def && rec.r===i?'on':'')+'"'+(locked?' disabled':'')+'>'+esc(r)+'</button>').join("")+'</div></div>'
+              + '<div class="ctl"><div class="lbl">Majority landcover</div><div class="seg mx-seg" data-k="'+esc(ind.k)+'" data-axis="c">'
+              + mx.cols.map((c,i)=>'<button type="button" data-v="'+i+'" class="'+(!rec.def && rec.c===i?'on':'')+'"'+(locked?' disabled':'')+'>'+esc(c)+'</button>').join("")+'</div></div></div>';
+            html += '<table class="mx-grid"><thead><tr><th></th>'+mx.cols.map(c=>'<th>'+esc(c)+'</th>').join("")+'</tr></thead><tbody>'
+              + mx.rows.map((r,i)=>'<tr><th class="rh">'+esc(r)+'</th>'+mx.m[i].map((v,j)=>'<td class="'+(!rec.def && rec.r===i && rec.c===j?'hit':'')+'">'+fmtScore(v)+'</td>').join("")+'</tr>').join("")
+              + '</tbody></table>';
+          } else {
+            html += '<div class="scores">';
+            ind.values.forEach((v,i) => {
+              const on = locked ? (v[0]===ind.lock[state.horizon] && i===ind.values.findIndex(x=>x[0]===ind.lock[state.horizon])) : (!rec.def && rec.idx===i);
+              html += '<button type="button" class="sc'+(on?' on':'')+'" data-k="'+esc(ind.k)+'" data-i="'+i+'"'+(locked?' disabled':'')+'><span class="n">'+fmtScore(v[0])+'</span><span class="c">'+esc(v[1])+'</span></button>';
+            });
+            html += '</div>';
+          }
+          html += '<div class="foot"><span class="samp">Sampling: '+esc(ind.sampling)+'</span>'
+            + (locked ? '' : '<button type="button" class="usedef" data-k="'+esc(ind.k)+'" title="'+esc(ind.defNote||("Default "+fmtScore(ind.def)))+'">Default ('+fmtScore(ind.def)+')</button>')
+            + '</div>';
+          (ind.mods||[]).forEach(m => {
+            const checked = !!(rec.mods && rec.mods[m.id]);
+            html += '<label class="mod"><input type="checkbox" data-k="'+esc(ind.k)+'" data-m="'+esc(m.id)+'"'+(checked?' checked':'')+(locked?' disabled':'')+' /><span>'+esc(m.label)+(eff!=null && checked ? ' (effective score '+fmtScore(eff)+')' : '')+'</span></label>';
+          });
+          html += '</div>';
+        });
+      });
+      mount.innerHTML = html;
+    }
+    $("ind-mount").addEventListener("click", e => {
+      const sc = e.target.closest("button.sc");
+      if(sc){ const k = sc.dataset.k; state.scores[k] = Object.assign({}, state.scores[k], {idx:+sc.dataset.i, def:false}); renderAll(); return; }
+      const mxb = e.target.closest(".mx-seg button");
+      if(mxb){ const segEl = mxb.parentElement, k = segEl.dataset.k, axis = segEl.dataset.axis; state.scores[k] = Object.assign({}, state.scores[k], {[axis]:+mxb.dataset.v, def:false}); renderAll(); return; }
+      const ud = e.target.closest("button.usedef");
+      if(ud){ const k = ud.dataset.k; state.scores[k] = Object.assign({}, state.scores[k], {def:true}); renderAll(); }
+    });
+    $("ind-mount").addEventListener("change", e => {
+      const cb = e.target.closest("input[type=checkbox][data-m]");
+      if(!cb) return;
+      const k = cb.dataset.k, rec = state.scores[k] || {};
+      rec.mods = Object.assign({}, rec.mods, {[cb.dataset.m]: cb.checked});
+      state.scores[k] = rec; renderAll();
+    });
+
+    // ---------- RENDER: result panel ----------
+    function renderResult(pair){
+      const el = $("result");
+      if(!pair){ el.innerHTML = ""; return; }
+      const r = compute(pair);
+      const b = r.V==null ? null : bucketOf(r.V);
+      let html = '<h3>Vulnerability score</h3><div class="vbig">'
+        + '<span class="v" style="color:'+(b?b.c:"#aab2bd")+'">'+(r.V==null ? "-" : fmt(r.V))+'</span>'
+        + (b ? '<span class="bucket" style="background:'+b.c+'">'+b.name+'</span>' : '<span class="incomplete">'+r.missing.length+' indicator'+(r.missing.length===1?'':'s')+' not yet scored</span>')
+        + '</div>';
+      html += '<div class="comp-row">'
+        + '<div class="comp"><div class="k">Exposure</div><div class="n">'+(r.Ecomp==null?'-':fmt(r.Ecomp))+'</div><div class="s">w<sub>E</sub> '+r.E.w.toFixed(2)+' &middot; '+r.Esrc+'</div></div>'
+        + '<div class="comp"><div class="k">Sensitivity</div><div class="n">'+(r.S.n===0?'n/a':(r.Scomp==null?'-':fmt(r.Scomp)))+'</div><div class="s">w<sub>S</sub> '+r.S.w.toFixed(2)+(r.S.n?' &middot; '+r.Ssrc:'')+'</div></div>'
+        + '</div>';
+      let bar = '<div class="bar">';
+      ["E","S"].forEach(comp => {
+        r.rows.filter(x => x.ind.comp===comp).forEach((x, i) => {
+          if(x.contrib==null || x.contrib<=0) return;
+          bar += '<span style="width:'+(x.contrib/3*100).toFixed(2)+'%;background:'+COMP[comp].shades[i % 4]+'" title="'+esc(x.ind.code+' '+x.ind.comp+': '+x.w.toFixed(2)+' x '+fmtScore(x.s)+' = '+x.contrib.toFixed(2))+'"></span>';
+        });
+      });
+      bar += '</div><div class="bar-scale"><span>0</span><span>1</span><span>2</span><span>3</span></div>'
+        + '<div class="bar-legend"><span><i style="background:'+COMP.E.c+'"></i>Exposure</span><span><i style="background:'+COMP.S.c+'"></i>Sensitivity</span></div>';
+      html += bar;
+      html += '<div class="src-row">Record: <b>E_source '+r.Esrc+'</b>, <b>S_source '+r.Ssrc+'</b>. Horizon: <b>'+(pair.noHorizon ? "current conditions" : HORIZONS.find(h=>h[0]===state.horizon)[1])+'</b>.</div>';
+      html += '<h3 style="margin-top:.9rem;">Criticality (component 1)<i class="i" tabindex="0" data-tip="Criticality is assessed separately as component 1 and is not a multiplier in the vulnerability score. C_class is 0 to 3 on the road segment; bridges and culverts inherit the road segment\'s class. The hotspot lists rank assets by vulnerability within the High criticality class first.">i</i></h3>';
+      html += '<div class="ctl"><div class="lbl">Criticality class of the road segment</div><div class="seg" id="crit-seg"></div></div>';
+      html += '<table class="matrix"><thead><tr><th></th><th>C 0</th><th>C 1</th><th>C 2</th><th>C 3</th></tr></thead><tbody>';
+      ["High","Medium","Low"].forEach(vb => {
+        html += '<tr><th class="rh">V '+vb+'</th>';
+        for(let c=0;c<4;c++){ const hit = b && b.name===vb && state.cclass===c; html += '<td class="'+(hit?'hit':'')+'">'+(hit?'&#9679;':'')+'</td>'; }
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      html += '<div class="actions"><button type="button" id="btn-defaults">Apply defaults to unscored indicators</button><button type="button" class="alt" id="btn-clear">Clear scores</button></div>';
+      html += '<div class="note">Vulnerability is reported to two decimals and classed Low under 1.0, Medium 1.0 to under 2.0, and High 2.0 and over (TRPA proposal, decision 9).</div>';
+      el.innerHTML = html;
+      seg($("crit-seg"), [0,1,2,3].map(c => ({id:String(c), label:String(c)})), String(state.cclass), v => { state.cclass = +v; renderAll(); });
+      $("btn-defaults").onclick = () => { activeInds(pair).forEach(ind => { if(effScore(ind)==null) state.scores[ind.k] = {def:true, mods:(state.scores[ind.k]||{}).mods}; }); renderAll(); };
+      $("btn-clear").onclick = () => { activeInds(pair).forEach(ind => { delete state.scores[ind.k]; }); renderAll(); };
+      renderRecord(pair, r);
+    }
+
+    function renderRecord(pair, r){
+      const tb = $("rec-table").querySelector("tbody");
+      let html = r.rows.map(x => '<tr><td>'+esc(pair.id)+'</td><td>'+esc(x.ind.code)+'</td><td>'+x.ind.comp+'</td><td>'+esc(x.ind.name)+'</td><td>'+esc(valueLabel(x.ind))+'</td><td class="num">'+x.w.toFixed(2)+'</td><td class="num">'+fmtScore(x.s)+'</td><td>'+(isLocked(x.ind)?'locked by horizon':(isDefaulted(x.ind)?'default':(x.s==null?'unscored':'observed')))+'</td><td class="num">'+(x.contrib==null?'-':x.contrib.toFixed(2))+'</td></tr>').join("");
+      html += '<tr><td>'+esc(pair.id)+'</td><td>E</td><td>E</td><td>Exposure component (weight-normalized)</td><td></td><td class="num">'+r.E.w.toFixed(2)+'</td><td class="num">'+(r.Ecomp==null?'-':fmt(r.Ecomp))+'</td><td>'+r.Esrc+'</td><td class="num">'+fmt(r.E.sum)+'</td></tr>';
+      html += '<tr><td>'+esc(pair.id)+'</td><td>S</td><td>S</td><td>Sensitivity component (weight-normalized)</td><td></td><td class="num">'+r.S.w.toFixed(2)+'</td><td class="num">'+(r.S.n===0?'n/a':(r.Scomp==null?'-':fmt(r.Scomp)))+'</td><td>'+r.Ssrc+'</td><td class="num">'+fmt(r.S.sum)+'</td></tr>';
+      const b = r.V==null ? null : bucketOf(r.V);
+      html += '<tr><td>'+esc(pair.id)+'</td><td>V</td><td>V</td><td>Vulnerability score, horizon '+esc(pair.noHorizon?'current conditions':state.horizon)+', criticality class '+state.cclass+'</td><td></td><td class="num">1.00</td><td class="num">'+(r.V==null?'-':fmt(r.V))+'</td><td>'+(b?b.name:'incomplete')+'</td><td class="num">'+(r.V==null?'-':fmt(r.V))+'</td></tr>';
+      tb.innerHTML = html;
+    }
+
+    function renderAll(){
+      const pair = currentPair();
+      if(pair) ensureOpts(pair);
+      renderControls();
+      renderIndicators(pair);
+      renderResult(pair);
+      placeTips();
+    }
+
+    // ---------- RUBRIC TABLES (AG Grid) ----------
+    function weightText(ind){
+      if(typeof ind.weight==="number") return ind.weight.toFixed(2);
+      const key = Object.keys(ind.weight)[0];
+      return Object.keys(ind.weight[key]).map(v => ind.weight[key][v].toFixed(2)+" ("+key+" "+v+")").join(" / ");
+    }
+    function scoringText(ind){
+      if(ind.kind==="matrix"){
+        const mx = ind.matrix;
+        return mx.rows.map((r,i) => r+": "+mx.cols.map((c,j) => c+" "+fmtScore(mx.m[i][j])).join(", ")).join("; ");
+      }
+      return ind.values.map(v => fmtScore(v[0])+": "+v[1]).join("; ");
+    }
+    const rubRows = [];
+    PAIRS.forEach(pair => pair.indicators.forEach(ind => {
+      rubRows.push({pair:pair.id, hazard:pair.hazard, asset:pair.assetLabel, code:ind.code, comp:ind.comp==="E"?"Exposure":"Sensitivity", name:ind.name,
+        option: ind.opt || "", weight: weightText(ind), scoring: scoringText(ind),
+        def: (ind.defNote || fmtScore(ind.def)) + (ind.lock ? "; scores "+ind.lock.hist+" under the historical horizon" : ""),
+        mods: (ind.mods||[]).map(m => m.label).join("; "), sampling: ind.sampling,
+        status: (ind.tags||[]).map(t => (ind.tagText && ind.tagText[t]) || t).join("; ") || "draft"});
+    }));
+    // The draft's depth-based flood rows, listed as not applicable (no flood depth model).
+    rubRows.push({pair:"FL-C", hazard:"Flooding", asset:"Small culverts", code:"E1 (draft)", comp:"Exposure", name:"100-yr flood depth over the road from a flood depth model, maximum of fluvial and pluvial", option:"Not applicable", weight:"0.30", scoring:"3: over 20 ft; 2.5: over 12 to 20 ft; 2: over 6 to 12 ft; 1.5: over 3 to 6 ft; 1: over 2 to 3 ft; 0.5: over 0 to 2 ft; 0: none", def:"", mods:"", sampling:"Maximum within 25 m of the crossing on the road", status:"not applicable: no flood depth model is being acquired (decision 19)"});
+    rubRows.push({pair:"FL-B", hazard:"Flooding", asset:"Bridges and large culverts", code:"E2 (draft)", comp:"Exposure", name:"Change in 100-yr flood depth at the structure relative to historical from a flood depth model", option:"Not applicable", weight:"0.10", scoring:"3: over 5 ft; 2.5: over 4 to 5 ft; 2: over 3 to 4 ft; 1.5: over 2 to 3 ft; 1: over 1 to 2 ft; 0.5: over 0 to 1 ft; 0: 0 or less", def:"", mods:"", sampling:"Maximum within 25 m", status:"not applicable: no flood depth model is being acquired (decision 19)"});
+    rubRows.push({pair:"FL-R", hazard:"Flooding", asset:"Roads, active transport, transit centers", code:"E1 (draft)", comp:"Exposure", name:"Floodplain extent, lowest intersecting floodplain", option:"Superseded", weight:"0.35", scoring:"3: 10-yr floodplain; 2.5: 50-yr; 2: 100-yr; 1.5: 200-yr; 1: 500-yr; 0.5: 1,000-yr; 0: none", def:"", mods:"", sampling:"Lowest intersecting floodplain", status:"superseded by the FEMA four-value scale at the full exposure weight (decision 21); FEMA maps only the 100-yr and 500-yr floodplains"});
+    rubRows.push({pair:"FL-R", hazard:"Flooding", asset:"Roads, active transport, transit centers", code:"E2 (draft)", comp:"Exposure", name:"100-yr flood depth from a flood depth model (transit centers on lower thresholds: 3 at over 8 ft)", option:"Not applicable", weight:"0.35", scoring:"3: over 20 ft; 2.5: over 12 to 20 ft; 2: over 6 to 12 ft; 1.5: over 3 to 6 ft; 1: over 2 to 3 ft; 0.5: over 0 to 2 ft; 0: none", def:"", mods:"", sampling:"Maximum along the asset", status:"not applicable: no flood depth model is being acquired (decision 19)"});
+    const compColor = {Exposure:"#E87722", Sensitivity:"#B47E00"};
+    const hazardColor = {Flooding:"#0072CE", Landslide:"#9C3E27", "Debris flow":"#8B5A3C", Avalanche:"#5BA4DD"};
+    function colorCell(map){ return p => { const c = map[p.value]; return c ? {color:c, background:c+"14", fontWeight:"600"} : null; }; }
+    const rubCols = [
+      {field:"pair", headerName:"Pair", width:80, pinned:"left", cellStyle:{fontWeight:"700"}},
+      {field:"hazard", headerName:"Hazard", width:110, cellStyle:colorCell(hazardColor)},
+      {field:"asset", headerName:"Asset", width:150},
+      {field:"code", headerName:"Code", width:90},
+      {field:"comp", headerName:"Component", width:110, cellStyle:colorCell(compColor)},
+      {field:"name", headerName:"Indicator", minWidth:240, flex:1.3, wrapText:true, autoHeight:true},
+      {field:"option", headerName:"Option", minWidth:150, flex:.7, wrapText:true, autoHeight:true, valueFormatter:p=>p.value||"-"},
+      {field:"weight", headerName:"Weight", width:130, wrapText:true, autoHeight:true},
+      {field:"scoring", headerName:"Indicator values and scores", minWidth:300, flex:1.6, wrapText:true, autoHeight:true},
+      {field:"def", headerName:"Default", minWidth:130, flex:.6, wrapText:true, autoHeight:true, valueFormatter:p=>p.value||"-"},
+      {field:"mods", headerName:"Modifiers", minWidth:150, flex:.7, wrapText:true, autoHeight:true, valueFormatter:p=>p.value||"-"},
+      {field:"sampling", headerName:"Sampling", minWidth:150, flex:.7, wrapText:true, autoHeight:true},
+      {field:"status", headerName:"Status", minWidth:140, flex:.7, wrapText:true, autoHeight:true}
+    ];
+    let rubApi = null, rubFilter = "All";
+    function initGrid(){
+      if(!window.agGrid){ setTimeout(initGrid, 60); return; }
+      agGrid.createGrid($("rub-grid"), {
+        columnDefs: rubCols, rowData: rubRows,
+        defaultColDef:{sortable:true, resizable:true, filter:true},
+        domLayout:"autoHeight",
+        isExternalFilterPresent: () => rubFilter!=="All",
+        doesExternalFilterPass: node => node.data.pair===rubFilter,
+        onGridReady: e => { rubApi = e.api; }
+      });
+      $("rub-qf").addEventListener("input", ev => { if(rubApi) rubApi.setGridOption("quickFilterText", ev.target.value); });
+      $("rub-export").addEventListener("click", () => { if(rubApi) rubApi.exportDataAsCsv({fileName:"PROTECT_Scoring_Rubrics_v0.3.csv"}); });
+    }
+    function renderRubSeg(){
+      seg($("rub-seg"), [{id:"All",label:"All pairs"}].concat(PAIRS.map(p => ({id:p.id, label:p.id}))), rubFilter, v => {
+        rubFilter = v; renderRubSeg();
+        if(rubApi) rubApi.onFilterChanged();
+      });
+    }
+    renderRubSeg();
+
+    // ---------- DECISIONS ----------
+    $("dec-body").innerHTML = DECISIONS.slice().sort((a,b)=>a[0]-b[0]).map(d => '<tr><td class="num">'+d[0]+'</td><td>'+esc(d[1])+'</td><td>'+esc(d[2])+'</td><td>'+esc(d[3])+'</td><td><span class="tag '+(d[4]==="Resolved"?"resolved":"pending")+'" style="font-size:.66rem;font-weight:700;text-transform:uppercase;border-radius:999px;padding:.1rem .5rem;">'+esc(d[4])+'</span></td></tr>').join("");
+
+    // ---------- CSV (static tables) ----------
+    function cellText(c){
+      const clone = c.cloneNode(true);
+      const tips = [...clone.querySelectorAll(".i")].map(el => el.dataset.tip).filter(Boolean);
+      clone.querySelectorAll(".i").forEach(el => el.remove());
+      const base = clone.textContent.trim().replace(/\s+/g, " ");
+      return tips.length ? base + " (" + tips.join("; ") + ")" : base;
+    }
+    function tableToCsv(tableId){
+      const rows = [...document.getElementById(tableId).querySelectorAll("tr")];
+      return rows.map(tr => [...tr.querySelectorAll("th,td")].map(c => '"' + cellText(c).replaceAll('"', '""') + '"').join(",")).join("\n");
+    }
+    function download(csv, name){
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"})); a.download = name; a.click();
+    }
+    document.querySelectorAll("button[data-tablecsv]").forEach(btn => btn.addEventListener("click", () => download(tableToCsv(btn.dataset.tablecsv), btn.dataset.filename)));
+    $("rec-export").addEventListener("click", () => { const p = currentPair(); download(tableToCsv("rec-table"), "PROTECT_Scoring_"+(p?p.id:"pair")+"_"+state.horizon+".csv"); });
+
+    // ---------- TOOLTIPS, TABS ----------
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 150;
+      document.querySelectorAll(".i").forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle("tip-right", x > w - pad);
+        el.classList.toggle("tip-left", x < pad);
+      });
+    }
+    window.addEventListener("resize", placeTips);
+    const tabs = document.querySelector("calcite-tabs");
+    if(tabs) tabs.addEventListener("calciteTabChange", () => setTimeout(() => {
+      const g = $("rub-grid"); if(rubApi && g.getBoundingClientRect().width > 0) rubApi.sizeColumnsToFit();
+      placeTips();
+    }, 60));
+
+    renderAll();
+    initGrid();
+  })();
+  </script>
+</body>
+</html>

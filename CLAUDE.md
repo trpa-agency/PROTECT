@@ -14,15 +14,23 @@ system-wide indicator screening of 15 hazard-asset pairs scored as
 **Vulnerability = (Exposure x wE) + (Sensitivity x wS)** on 0-3 indicator scores with weights set
 per pair (ICF draft VA Methodology, Aug. 20, 2026; rubrics in `docs/SCORING_RUBRICS.md`), with
 criticality carried separately rather than as a multiplier, and (3) RA2CE disruption scenarios.
-Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.6,
-links every page with status and phasing); a reference hub (`html/reference-hub.html`, v0.5) with
+Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.7,
+links every page with status, a Workshop 1 banner, and phasing); a reference hub (`html/reference-hub.html`, v0.6) with
 tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
-(incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Phase 1
+(incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Scoring
+Rubrics page** (`html/scoring-rubrics.html`, v0.3: interactive per-pair scoring for all 15 pairs
+on the consultant's half-point scale, rubric tables, framework, 23 decisions, and the list of
+TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
+model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
+every page; never describe a flood model as purchased or pending. The **Phase 1
 MVP map tool** (`html/risk-index-tool.html`) - live TRPA layers plus a per-component Status view,
 no placeholder data; the **Criticality Index app** (`html/criticality-index.html`, live, 18,253
-segments, linked site-wide); the climate inputs page (`html/climate-data.html`); and the storm
+segments, linked site-wide) and the **OD Services Index** (`html/od-services-index.html`, the
+access-to-critical-locations criticality factor); the historic hazards map
+(`html/historic-hazards.html`); the climate inputs page (`html/climate-data.html`); and the storm
 events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culvert layer and
-WRF 1-hr intensity grid).
+WRF 1-hr intensity grid). Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
+Jekyll skips underscore directories, so nothing in it is served by Pages.
 
 ## Project context
 
@@ -82,12 +90,16 @@ The live readiness tracker is the Data and Model Inventory tab of `html/referenc
 PROTECT/
 ├── data/                            # input data, intermediate files
 ├── docs/                            # methodology, build notes, scoping archive
-├── html/index.html                  # v0.6 landing page (page cards, phasing, workstream status; no CDN libs)
-├── html/reference-hub.html          # v0.5 reference hub incl. data + model inventory (Calcite + AG Grid)
+├── html/index.html                  # v0.7 landing page (page cards, Workshop 1 banner, phasing, workstream status; no CDN libs)
+├── html/reference-hub.html          # v0.6 reference hub incl. data + model inventory (Calcite + AG Grid)
+├── html/scoring-rubrics.html        # v0.2 interactive rubrics (score an asset, rubric tables, framework, decisions, reconciliation)
 ├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
 ├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
+├── html/od-services-index.html      # OD access-to-services index (RA2CE routed trips; criticality factor 4)
+├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)
 ├── html/climate-data.html           # v0.2 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
 ├── html/tahoe-precip-events.html    # storm events + debris-flow explorer (CDN libs, embedded culverts + WRF I1h grid)
+├── html/_archive/                   # retired pages, not served by Pages (ARCHIVED.md lists why)
 ├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
 ├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
 ├── scripts/                         # analysis scripts and notebooks (incl. ra2ce/)
@@ -128,6 +140,21 @@ PROTECT/
   the grid's `pairs` array in the HTML and the markdown table. The 32-element data inventory lives in
   the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.
 - **Punctuation**: no em-dashes (use a hyphen or colon), following the Reporting house style.
+- **Copy register (all pages, Oct. 8, 2026)**: house style (lead with the fact, short declarative
+  sentences, Oxford commas, "percent" and "to" not symbols, one to nine spelled out, abbreviated
+  months with dates) in the consultant methodology's register: third person, impersonal, no
+  second person or conversational imperatives. Framework vocabulary follows the draft VA
+  Methodology: "component 1, 2, 3" (criticality assessment, system-wide indicator-based
+  vulnerability assessment, scenario-based disruption analyses), "vulnerability score" and
+  "vulnerability class (High, Medium, Low)", "Vulnerability = (Exposure Score x wE) +
+  (Sensitivity Score x wS)", "Tahoe Resilience Improvement Plan (TRIP)".
+- **`html/scoring-rubrics.html` mirrors `docs/SCORING_RUBRICS.md`.** When a rubric changes, update
+  the `PAIRS` and `DECISIONS` arrays in the HTML and the markdown together. Indicator values and
+  scores are the consultant's Aug. 20 draft tables (half-point scale, the draft's breaks and
+  directions); anything TRPA adds or changes is tagged TRPA proposal and numbered in the
+  decisions. The page's departures table lists every such item.
+- **Archiving a page**: `git mv` it into `html/_archive/`, add a row to `ARCHIVED.md` there, and
+  remove its links and landing-page card. Do not delete history.
 - **No staff names** in committed files. Neutral attribution ("the analyst", "the agency"); naming
   the orgs ("TRPA", "ICF") is fine.
 

@@ -63,12 +63,31 @@ profile:
                            # with MINIMUM (keeps breach channels) for test runs only
   flow_length: true        # compute the longest upstream flow path (needed for Kirpich tc)
   parallel: "75%"          # arcpy parallelProcessingFactor for the raster tools
-  pour_snap_m: 20          # max-accumulation cell within this distance of the culvert point
+  breach:                  # cut the road fill through every inventoried culvert before Fill
+    enabled: true          # (Oct. 8 QA: the enforcement missed crossings; unbreached creeks spilled
+    length_m: 40           #  along ditches and 292 pipes of 24 in or less inherited 100+ ac basins)
+    drop_m: 0.3            # breach floor = lowest ground sampled at either end, minus this
+    sample_from_m: 8       # ground sampled from this distance out to the line end, both sides
+  pour_snap_m: 4           # max-accumulation cell within this distance of the culvert point (the
+                           # breach runs through the culvert's own cell; 20 m captured creeks)
+  prism_ppt: F:\GIS\PROJECTS\Transportation\Protect\Data\PRISM\prism_ppt_us_30s_2020_avg_30y.tif
+  prism_url: https://data.prism.oregonstate.edu/normals/us/800m/ppt/monthly/prism_ppt_us_30s_2020_avg_30y.zip
+                           # PRISM 1991-2020 annual precipitation normal, 800 m, mm (scripts/fetch_prism.py)
+  regression:              # USGS regional regression for basins over rational_max_sqmi
+    nv_jurisdictions: [NDOT, Washoe County, Douglas County]
+    ca_jurisdictions: [Caltrans, Placer County, El Dorado County, City of South Lake Tahoe]
+    nv_uses: NV            # NV = Thomas 1997 region 1 for Nevada-side culverts (the state's own
+                           # equation); CA = Gotvald 2012 Lahontan basin-wide. On the same basin
+                           # region 1 gives about one third of Lahontan; the log prints the ratio.
+    applicability:         # published ranges (CA Lahontan table 9; NV region 1 table 3)
+      area_sqmi: [0.45, 1060]
+      precip_in: [11, 85]
   crossing_group_m: 10     # culverts this close on one segment are one crossing (multi-barrel)
   large_culvert_m: 25      # a culvert this close to an NBI culvert-type structure scores with bridges
   tailwater_ft: 6230       # outlet below this elevation is flagged (legal maximum lake level 6229.1)
   dem_vintage_year: 2011   # install_year at or after this postdates the 2010 lidar DEM
   size_breaks_in: [18, 36, 72]   # small / medium / large / major on equivalent diameter
+  load_ratio_breaks: [0.5, 1.0, 2.0]  # FL-C S1 classes 0/1/2/3 on load_ratio (SCORING_RUBRICS 2.3); used by the Pro maps
   max_span_in: 144         # larger circular spans are treated as data errors
   cond_stale_year: 2015    # latest inspection before this year is flagged stale
   # Hydrology (SCORING_RUBRICS 2.4). Atlas 14 DDF from the climate pipeline; nearest PFDS point.

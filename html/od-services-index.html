@@ -554,7 +554,7 @@
     </a>
     <div class="hdr-titles">
       <div class="hdr-title">Origin Destination Index for Services</div>
-      <div class="hdr-sub">PROTECT &middot; RA2CE Routed Trips to Critical Services</div>
+      <div class="hdr-sub">PROTECT &middot; Access to Critical Locations &middot; RA2CE Routed Trips</div>
     </div>
   </div>
   <div class="hdr-r">
@@ -575,7 +575,7 @@
         <button class="rank-btn" data-rank="prioritarian">Prioritarian</button>
       </div>
       <div class="norm-note" id="rank-note">
-        Unweighted RA2CE routed trip volumes.
+        Unweighted RA2CE routed trip volumes: every resident counts once.
       </div>
     </div>
 
@@ -587,7 +587,7 @@
         <button class="norm-btn" data-norm="minmax">Min-Max</button>
       </div>
       <div class="norm-note" id="norm-note">
-        Trip volumes are heavily right-skewed, so log Z (ln(trips + 1), then z-scored) is the default.
+        Trip volumes are heavily right-skewed, so log Z (the natural log of trips plus one, then z-scored) is the default.
       </div>
     </div>
 
@@ -799,9 +799,9 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
   // ═══════════════════════════════════════════════════════
   const RANKINGS = {
     traffic:      { label: "Traffic",
-                    note: "Unweighted RA2CE routed trip volumes." },
+                    note: "Unweighted RA2CE routed trip volumes: every resident counts once." },
     prioritarian: { label: "Prioritarian",
-                    note: "Equity-weighted RA2CE trips: volumes are scaled up where the routed population scores higher on the equity index, so disadvantaged-community access counts for more." }
+                    note: "Equity-weighted RA2CE routed trips. Origin populations are scaled up where the equity index is higher, so access for disadvantaged communities counts for more." }
   };
 
   const OD_RAMP = { lo: "#2c7bb6", mid: "#ffffbf", hi: "#d7191c" };
@@ -846,9 +846,9 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
   let   landslideThreshold = 22;
 
   const NORM_NOTES = {
-    log:    "Trip volumes are heavily right-skewed, so log Z (ln(trips + 1), then z-scored) is the default.",
-    zscore: "Raw z-score. A handful of very high-volume segments dominate, so most of the network reads flat.",
-    minmax: "Rescales each field to 0-1 by its own min and max. Extreme maxima compress everything else near 0."
+    log:    "Trip volumes are heavily right-skewed, so log Z (the natural log of trips plus one, then z-scored) is the default.",
+    zscore: "Z-score of the raw volumes. A few very high-volume segments dominate, so most of the network reads flat.",
+    minmax: "Each field is rescaled to 0 to 1 by its own minimum and maximum. Extreme maxima compress the rest of the network near zero."
   };
 
   // ═══════════════════════════════════════════════════════
@@ -987,7 +987,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
         `Trips: <strong>${Math.round(s.min).toLocaleString()}</strong> to `
         + `<strong>${Math.round(s.max).toLocaleString()}</strong> &middot; `
         + `mean <strong>${Math.round(s.mean).toLocaleString()}</strong> &middot; `
-        + `${s.zeroPct.toFixed(0)}% carry no trips`;
+        + `${s.zeroPct.toFixed(0)} percent carry no trips`;
     });
   }
 
@@ -1033,14 +1033,15 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
 
   const INFO = {
     od: {
-      title: "What the OD numbers mean",
-      body: `<p>Origin-destination analysis routes the population of every origin across the
-             drivable street network to facilities of a given type, then counts how much of that
-             population travels over each segment.</p>
+      title: "Origin-destination trip volumes",
+      body: `<p>Access to critical locations is measured by origin-destination analysis. The
+             population of every origin is routed across the drive-routable street network to
+             facilities of a given type, and the population traveling over each segment is
+             counted.</p>
              <p>Origins are census hex-grid centroids carrying a <code>POPULATION</code> count.
-             A segment's value is therefore <strong>the number of residents whose route to that
-             service runs over it</strong>: person-trips, not vehicles. High values mark roads that
-             a lot of service access depends on.</p>
+             A segment's value is <strong>the number of residents whose route to that service
+             runs over it</strong>: person-trips, not vehicles. High values mark roads on which a
+             large share of service access depends.</p>
              <p>The index combines the four destination types, each normalized on its own, into a
              single weighted score.</p>${SRC}`
     },
@@ -1048,51 +1049,51 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
       title: "Destination weights",
       body: `<p>Each destination's normalized score is multiplied by its weight, and the four are
              summed into the OD Services Index.</p>
-             <p>Moving one slider rescales the other three so the weights always total 1.00. The
-             <code>INV</code> pill flips a destination's sign, so high trip volume pushes the index
-             down instead of up.</p>`
+             <p>Weights are adjustable. Changing one rescales the other three so the total stays
+             at 1.00. The <code>INV</code> pill inverts a destination's sign, so high trip volume
+             lowers the index instead of raising it.</p>`
     },
     shelters: {
       title: "Emergency Shelters",
       body: `<p>Trips routed from each origin to designated emergency shelters.</p>
-             <p>Uses <strong>gravity routing</strong>: an origin's population is split across
-             shelters by distance decay rather than being handed entirely to the closest one.
-             Several shelters sit close together (three inside Incline Village), so a
-             nearest-only rule would give one of them the whole catchment.</p>${SRC}`
+             <p>Assignment uses <strong>gravity routing</strong>: an origin's population is split
+             across shelters by distance decay rather than assigned entirely to the closest one.
+             Several shelters sit close together (three inside Incline Village), so a nearest-only
+             rule would give one of them the whole catchment.</p>${SRC}`
     },
     medical: {
       title: "Medical Facilities",
       body: `<p>Trips routed from each origin to hospitals, urgent care, and clinics.</p>
-             <p>Also uses <strong>gravity routing</strong>. Barton Memorial and Tahoe Urgent Care
-             are about 600 m apart, and 47% of origins have a second-nearest facility within 10% of
-             the distance to their nearest, so nearest-only assignment would be close to a coin
-             flip.</p>${SRC}`
+             <p>Assignment also uses <strong>gravity routing</strong>. Barton Memorial and Tahoe
+             Urgent Care are about 600 m apart, and 47 percent of origins have a second-nearest
+             facility within 10 percent of the distance to their nearest, so nearest-only
+             assignment would be close to a coin flip.</p>${SRC}`
     },
     law: {
       title: "Law Enforcement",
       body: `<p>Trips routed from each origin to sheriff and police facilities.</p>
-             <p>Uses <strong>nearest-destination routing</strong>: each origin sends its full
-             population to the closest facility. The covering jurisdiction is effectively a forced
-             choice and there are few near-ties.</p>${SRC}`
+             <p>Assignment uses <strong>nearest-destination routing</strong>: each origin sends its
+             full population to the closest facility. The covering jurisdiction is effectively a
+             forced choice, and there are few near-ties.</p>${SRC}`
     },
     evac: {
       title: "Evacuation",
       body: `<p>Trips routed from each origin to the seven major highway exit points from the Tahoe
-             Basin, so what is being measured is leaving the basin.</p>
-             <p>Uses <strong>nearest-destination routing</strong>: every origin sends its full
-             population to its closest exit. The value is how many residents would move over the
-             segment on their way out.</p>${SRC}`
+             Basin. The quantity measured is movement out of the basin.</p>
+             <p>Assignment uses <strong>nearest-destination routing</strong>: every origin sends its
+             full population to its closest exit. The value is the number of residents who would
+             move over the segment on the way out.</p>${SRC}`
     },
     ranking: {
-      title: "Traffic vs Prioritarian",
+      title: "Traffic and Prioritarian rankings",
       body: `<p><strong>Traffic</strong> is the raw person-trip volume: every resident counts
              once.</p>
              <p><strong>Prioritarian</strong> reruns the same routing with each origin's population
              scaled by an equity weight taken from its census block group,
-             <code>1.0 + normalized poverty rate</code>. Weights land on [1, 2], so nobody counts
-             less than once and the highest-poverty areas count roughly twice. Origins outside a
-             weighted region fall back to 1.0.</p>
-             <p>Flipping between the two shows where equity weighting changes which roads
+             <code>1.0 + normalized poverty rate</code>. Weights fall between 1 and 2, so no
+             resident counts less than once and the highest-poverty areas count roughly twice.
+             Origins outside a weighted region default to 1.0.</p>
+             <p>Comparing the two rankings shows where equity weighting changes which roads
              matter.</p>${SRC}`
     },
     norm: {
@@ -1100,19 +1101,20 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
       body: `<p>Each field is rescaled before weighting so the four destinations are comparable.</p>
              <p><strong>Log Z</strong> takes <code>ln(trips + 1)</code> and then z-scores it. It is
              the default because trip volumes are heavily right-skewed: the median segment carries
-             none, while the busiest carries tens of thousands.</p>
+             no trips, while the busiest carries tens of thousands.</p>
              <p><strong>Z-Score</strong> uses the raw volumes, so a few arterials dominate and most
-             of the network reads flat. <strong>Min-Max</strong> rescales to 0-1 on each field's own
-             range, which the extreme maxima compress.</p>
+             of the network reads flat. <strong>Min-Max</strong> rescales to 0 to 1 on each field's
+             own range, which the extreme maxima compress.</p>
              <p>Color breaks are always the 5th, 50th, and 95th percentile of the resulting
              score.</p>`
     },
     hazard: {
       title: "Hazard exposure filter",
-      body: `<p>Limits the map to segments exposed to one hazard at a time.</p>
-             <p><strong>Flood zone</strong> and <strong>high-severity fire</strong> are 0/1 flags on
-             the segment. <strong>Landslide</strong> is a continuous mean susceptibility from 0 to
-             81, so it filters on a threshold you set (default 22, the 75th percentile).</p>
+      body: `<p>The filter limits the map to segments exposed to one hazard at a time.</p>
+             <p><strong>Flood zone</strong> and <strong>high-severity fire</strong> are binary
+             (0 or 1) flags on the segment. <strong>Landslide</strong> is a continuous mean
+             susceptibility from 0 to 81 and is filtered on an adjustable threshold (default 22,
+             the 75th percentile).</p>
              <p>Scores and color breaks always come from the full network, so a segment keeps the
              same color whether or not a filter is on.</p>`
     }
@@ -1302,10 +1304,10 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
       const n    = filteredFeatures().length;
       const pct  = (100 * n / allFeatures.length).toFixed(1);
       const what = activeHazard === "landslide"
-        ? `with landslide mean &ge; ${landslideThreshold}`
+        ? `with a landslide mean of ${landslideThreshold} or higher`
         : hz.label;
       countEl.innerHTML  = `Showing <strong>${n.toLocaleString()}</strong> of `
-                         + `${allFeatures.length.toLocaleString()} segments ${what} (${pct}%)`;
+                         + `${allFeatures.length.toLocaleString()} segments ${what} (${pct} percent)`;
       headEl.textContent = `${n.toLocaleString()} of ${allFeatures.length.toLocaleString()} segments`;
     }
   }
