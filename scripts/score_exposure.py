@@ -171,14 +171,14 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
     streams = fetch_rest_features(fl["streams_layer"], crs, log)
     cap = float(fl.get("exclude_water_over_km2", 1.0)) * 1e6
     streams = streams[streams.area <= cap]
-    sb = gpd.GeoDataFrame({"hz_class": 2}, geometry=streams.buffer(float(fl["stream_buffer_m"])), crs=crs)
+    sb = gpd.GeoDataFrame({"hz_class": [2] * len(streams)}, geometry=streams.buffer(float(fl["stream_buffer_m"])).values, crs=crs)
     log.info(f"{len(streams)} stream polygons (water bodies over {fl.get('exclude_water_over_km2', 1.0)} km2 excluded) "
              f"buffered {fl['stream_buffer_m']} m as class 2")
 
     parts = [zones[["hz_class", "geometry"]], sb]
     if fl.get("nhd_flowlines"):
         nhd = fetch_rest_features(fl["nhd_flowlines"], crs, log)
-        parts.append(gpd.GeoDataFrame({"hz_class": 1}, geometry=nhd.buffer(float(fl["stream_buffer_m"])), crs=crs))
+        parts.append(gpd.GeoDataFrame({"hz_class": [1] * len(nhd)}, geometry=nhd.buffer(float(fl["stream_buffer_m"])).values, crs=crs))
     allp = gpd.GeoDataFrame(pd.concat(parts, ignore_index=True), geometry="geometry", crs=crs)
     allp = allp[allp["hz_class"] > 0]
     dissolved = allp.dissolve(by="hz_class", as_index=False)[["hz_class", "geometry"]]
