@@ -7,7 +7,9 @@ project:
   task: "3.3 Interactive Risk Index Mapping Tool - Assets (culverts)"
 
 paths:
-  raw_root: C:\GIS\Culvert      # jurisdiction deliveries (outside the repo; not committed)
+  raw_root: F:\GIS\PROJECTS\Transportation\Protect\Data\Culvert\raw   # jurisdiction deliveries (TRPA storage;
+                                                                       # copied from C:\GIS\Culvert Oct. 8 so the
+                                                                       # notebook runs on the server)
   # Prior TRPA basin-wide culvert compilation (READ-ONLY - includes USFS forest roads)
   legacy_culverts: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert
   # Working analysis geodatabase for the VA (shared with the street network and criticality work)
