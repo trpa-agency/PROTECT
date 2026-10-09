@@ -38,6 +38,9 @@ def main() -> None:
                     help="numpy test on a box around the first 3 sampled pour cells: D8 conservation of facc, "
                          "the true upstream count of the pour cell walked on fdir, and facc along the downstream path")
     ap.add_argument("--box-m", type=float, default=1000.0, help="box size for --conserve (m)")
+    ap.add_argument("--capture", action="store_true",
+                    help="creek-capture check on the profiled Culverts layer: contributing area by pipe size, "
+                         "snap distance for big basins, q_method counts, and the top loading ratios")
     args = ap.parse_args()
     log = get_logger("qa_crossings")
     cfg = load_cfg()
@@ -45,6 +48,10 @@ def main() -> None:
     import pyogrio
 
     gdb, work = cfg["paths"]["analysis_gdb"], cfg["profile"]["work_gdb"]
+
+    if args.capture:
+        capture_check(cfg, gdb, log, pyogrio)
+        return
     wfc = WATERSHED_FC
     cell = float(arcpy.Describe(f"{work}\\facc").meanCellWidth)
 
@@ -150,6 +157,44 @@ def main() -> None:
                      f"table inc_cells = {r.inc_cells:.0f}")
             log.info(f"{r.crossing_id}: facc downstream of the pour cell ({c['facc_plus1'] - 1:.0f}), step by step: "
                      + " > ".join(f"{v:.0f}" for v in c["path"]) + "   (must never decrease under D8)")
+
+
+def capture_check(cfg: dict, gdb: str, log, pyogrio) -> None:
+    """Does the 20 m pour-point snap pull roadside pipes onto creeks? Aggregates only; ids for
+    public jurisdictions only."""
+    a = cfg["assets"]
+    cul = pyogrio.read_dataframe(gdb, layer=a["culverts_fc"], read_geometry=False)
+    s = cul[cul["scored"] == 1].copy()
+    from culvert_profile import restricted_jurisdictions
+    s["public"] = ~s["jurisdiction"].isin(restricted_jurisdictions(cfg) | {"NDOT"})
+    log.info(f"scored culverts: {len(s)}; with a contributing area: {int(s['contrib_area_ac'].notna().sum())}")
+    log.info("q_method counts:\n" + s["q_method"].value_counts(dropna=False).to_string())
+
+    pd.set_option("display.width", 250)
+    q = s.groupby("size_class", observed=True)["contrib_area_ac"].quantile([.5, .9, .99]).unstack().round(1)
+    q["n"] = s.groupby("size_class", observed=True).size()
+    log.info("contributing area (ac) by pipe size class, median / 90th / 99th:\n" + q.to_string())
+
+    big = s["contrib_area_ac"] >= 100
+    small_pipe = s["d_eq_in"] <= 24
+    log.info(f"culverts with >= 100 ac: {int(big.sum())}; of those with a pipe <= 24 in: {int((big & small_pipe).sum())} "
+             f"(a 100 ac drainage through a 24 in pipe is the creek-capture signature)")
+    log.info("snap_dist_m quantiles, basins >= 100 ac vs < 100 ac:\n"
+             + pd.DataFrame({">=100 ac": s.loc[big, "snap_dist_m"].quantile([.1, .5, .9]),
+                             "<100 ac": s.loc[~big, "snap_dist_m"].quantile([.1, .5, .9])}).round(1).to_string())
+
+    lr = "load_ratio_100"
+    log.info(f"{lr} quantiles by size class:\n"
+             + s.groupby("size_class", observed=True)[lr].quantile([.5, .9]).unstack().round(2).to_string())
+    log.info(f"{lr} >= 1 (overloaded at the 100-yr): {int((s[lr] >= 1).sum())} of {int(s[lr].notna().sum())} with a ratio")
+
+    # multi-barrel or large-pipe crossings carrying big basins are plausible; small single pipes are not
+    cols = ["culvert_id", "jurisdiction", "crossing_id", "barrels", "d_eq_in", "size_class", "contrib_area_ac",
+            "snap_dist_m", "q_event_100_cfs", "q_cap_crossing_cfs", lr, "profile_completeness"]
+    top = s[s["public"] & s[lr].notna()].sort_values(lr, ascending=False).head(25)
+    log.info("top 25 loading ratios (public jurisdictions):\n" + top[cols].to_string(index=False))
+    sus = s[s["public"] & big & small_pipe].sort_values("contrib_area_ac", ascending=False).head(15)
+    log.info("largest basins on pipes <= 24 in (public):\n" + sus[cols].to_string(index=False))
 
 
 # numpy D8 offsets as (drow, dcol); row 0 is the north edge of the array
