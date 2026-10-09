@@ -1,11 +1,15 @@
 # PROTECT scoring rubrics
 
-**Version 0.3, Oct. 8, 2026.** Draft for consultant review (ICF checkpoint Oct. 9).
+**Version 0.3, Oct. 9, 2026.** Draft for consultant review (ICF checkpoint Oct. 9).
 **Scope of this version:** the shared framework (section 1) and all 15 pairs: FL-C, LS-C, DF-C
 (section 2), FL-B, LS-B, DF-B (section 3), DF-R (section 4), AV-R (section 5), and FL-R, FL-AT,
 FL-TC, LS-R, WF-R, WF-AT, and WF-TC (section 6). Sections 2 to 5 were drafted first; section 6
 was added Oct. 8 so that every pair samples the same classed hazard surfaces on one scale.
-Nothing is scored until the rubric for that pair is agreed.
+Nothing is scored until the rubric for that pair is agreed. Section 2.4 was updated Oct. 9
+from the first full runs of the culvert profile: the DEM is breached through the culvert
+inventory away from mapped streams, basins over 1 sq mi use the USGS regional regression on
+PRISM precipitation, suspect size records are withheld from the loading ratio (section 2.2),
+and the headwater criterion's conservatism is stated.
 
 **What changed in v0.3.** Every indicator value and score now matches the rubric tables in the
 consultant's draft Vulnerability Assessment Methodology (Aug. 20, 2026): the half-point score
