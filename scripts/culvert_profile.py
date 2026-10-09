@@ -880,7 +880,7 @@ def profile_fields(cfg: dict):
     f += [("cond_class", "SHORT", None), ("cond_source", "TEXT", 20), ("cond_date", "DATE", None),
           ("cond_stale", "SHORT", None), ("blockage_pct", "DOUBLE", None), ("pp_elev_ft", "DOUBLE", None),
           ("tailwater_flag", "SHORT", None), ("dem_vintage_flag", "SHORT", None), ("snap_dist_m", "DOUBLE", None),
-          ("on_stream", "SHORT", None), ("size_suspect", "SHORT", None),
+          ("on_stream", "SHORT", None), ("size_suspect", "SHORT", None), ("ratio_review", "SHORT", None),
           ("profile_completeness", "TEXT", 10), ("profile_date", "DATE", None)]
     return f
 
@@ -1033,6 +1033,13 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
                     f"size under {ss.get('min_d_eq_in', 8)} in: {int(leg_tiny.sum())}; all on pipes <= "
                     f"{ss.get('max_d_eq_in', 24)} in): loading ratio withheld, S1 takes its default; "
                     f"inventory records for the owner to confirm")
+    # Ratios far above the top class break keep their score (a tiny pipe on a real drainage is
+    # High if true) but are flagged so the record travels to the owner with the suspects.
+    hl = p["headline_rp"]
+    rr = float(ss.get("ratio_review_above", 20))
+    cul["ratio_review"] = (cul[f"load_ratio_{hl}"] > rr).astype(int)
+    log.info(f"{int(cul['ratio_review'].sum())} culverts flagged ratio_review (Q{hl} loading ratio above {rr:g}); "
+             f"scored as is, listed for owner confirmation")
     n_reg = int(can_reg.sum())
     log.info(f"Event flow: rational on {int((cul['q_method'] == 'rational').sum())} culverts; regression on {n_reg} "
              f"(CA {int((state[can_reg] == 'CA').sum())}, NV {int((state[can_reg] == 'NV').sum())}); "

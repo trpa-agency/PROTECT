@@ -84,6 +84,8 @@ profile:
                            # a chain of 12 in Washoe pipes at 1,200 ac, on drainages the stream layer
                            # does not show but the enforcement carries), or
     min_d_eq_in: 8         # any size below a cross-drain (6 in underdrains, data-entry defaults)
+    ratio_review_above: 20 # flag only (score kept): a pipe this far under its 100-yr flow is overtopped
+                           # by small storms; the owner confirms the record (12 in Washoe pipes at 100-400 ac)
   pour_snap_m: 4           # max-accumulation cell within this distance of the culvert point (the
                            # breach runs through the culvert's own cell; 20 m captured creeks)
   prism_ppt: F:\GIS\PROJECTS\Transportation\Protect\Data\PRISM\prism_ppt_us_30s_2020_avg_30y.tif

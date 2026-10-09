@@ -20,7 +20,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from va_common import get_logger, load_cfg
+from va_common import REPO, get_logger, load_cfg
 
 SQM_PER_ACRE = 4046.8564
 D8 = {1: (1, 0), 2: (1, -1), 4: (0, -1), 8: (-1, -1), 16: (-1, 0), 32: (-1, 1), 64: (0, 1), 128: (1, 1)}
@@ -185,9 +185,19 @@ def capture_check(cfg: dict, gdb: str, log, pyogrio) -> None:
 
     if "size_suspect" in s.columns:
         ssm = s["size_suspect"] == 1
-        log.info(f"size_suspect (on a mapped stream, small recorded size, big basin; ratio withheld): {int(ssm.sum())}\n"
+        log.info(f"size_suspect (recorded size cannot be the crossing for the basin; ratio withheld): {int(ssm.sum())}\n"
                  + s.loc[ssm, "jurisdiction"].value_counts().to_string())
         big = big & ~ssm
+    if "ratio_review" in s.columns:
+        rrm = s["ratio_review"] == 1
+        log.info(f"ratio_review (scored, flagged for the owner): {int(rrm.sum())}\n"
+                 + s.loc[rrm, "jurisdiction"].value_counts().to_string())
+        rev = s[(ssm | rrm) & s["public"]].sort_values(["jurisdiction", "contrib_area_ac"], ascending=[True, False])
+        out = REPO / cfg["paths"]["outputs"] / "culvert_review_list.csv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        rev[["culvert_id", "jurisdiction", "crossing_id", "d_eq_in", "contrib_area_ac", "on_stream", "size_suspect",
+             "ratio_review", "load_ratio_100", "q_event_100_cfs", "q_cap_crossing_cfs"]].to_csv(out, index=False)
+        log.info(f"review list (public jurisdictions, {len(rev)} rows) -> {out}; NDOT rows stay in the restricted QA folder")
     lr = "load_ratio_100"
     log.info(f"{lr} quantiles by size class:\n"
              + s.groupby("size_class", observed=True)[lr].quantile([.5, .9]).unstack().round(2).to_string())
