@@ -116,7 +116,7 @@ def apply_by_key(target: str, df: pd.DataFrame, key: str, fields, log, date_cols
     """Write df columns onto target rows matched on key (UpdateCursor)."""
     import arcpy
     cols = [f[0] for f in fields]
-    tl = text_lengths(fields)
+    tl, ft = text_lengths(fields), {n: t for n, t, ln in fields}
     lookup = df.set_index(key)[cols].to_dict("index")
     n = 0
     with arcpy.da.UpdateCursor(target, [key] + cols) as cur:
@@ -124,7 +124,7 @@ def apply_by_key(target: str, df: pd.DataFrame, key: str, fields, log, date_cols
             rec = lookup.get(row[0])
             if rec is None:
                 continue
-            cur.updateRow([row[0]] + [to_dt(rec[c]) if c in date_cols else clean(rec[c], c, tl) for c in cols])
+            cur.updateRow([row[0]] + [to_dt(rec[c]) if c in date_cols else clean(rec[c], c, tl, ft.get(c)) for c in cols])
             n += 1
     log.info(f"Updated {n} rows in {Path(target).name}")
 
@@ -133,15 +133,37 @@ def apply_by_key(target: str, df: pd.DataFrame, key: str, fields, log, date_cols
 # stage 1: terrain (server)
 
 def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
-    """One breach line per typed culvert on a road segment: through the culvert point,
-    perpendicular to the parent segment at its nearest point, profile.breach.length_m long."""
+    """One breach line per typed culvert on a road segment, and per NBI water-crossing bridge
+    or large culvert: through the point, perpendicular to the parent segment at its nearest
+    point. Culvert lines are profile.breach.length_m long; bridge lines are stretched to the
+    maximum span plus 20 m and sampled beyond the deck, because a lidar surface that kept the
+    deck otherwise walls the creek off and sends it to the nearest breached ditch pipe."""
     from shapely.geometry import LineString
     from va_common import read_streets
+    a_cfg = cfg["assets"]
     b = cfg["profile"]["breach"]
-    half = float(b["length_m"]) / 2
+    base_len, base_from = float(b["length_m"]), float(b["sample_from_m"])
     cul = read_culverts(cfg, log)
     cand = cul[(cul["feature_type"] == "culvert") & cul["parent_segment_id"].notna()].copy()
-    key = cfg["assets"]["streets_key"]
+    cand["asset"] = "culvert"
+    cand["len_m"], cand["from_m"] = base_len, base_from
+    cand = cand[["culvert_id", "parent_segment_id", "asset", "len_m", "from_m", "geometry"]]
+    try:
+        if not b.get("bridges", False):
+            raise ValueError("profile.breach.bridges is false (bridges sit on enforced channels)")
+        br = read_layer(cfg["paths"]["analysis_gdb"], a_cfg["bridges_fc"]).to_crs(cand.crs)
+        br = br[(br["water_crossing"] == 1) & br["parent_segment_id"].notna()].copy()
+        span = pd.to_numeric(br["max_span_m"], errors="coerce").fillna(0)
+        br["asset"] = "bridge"
+        br["len_m"] = np.maximum(base_len, span + 20)
+        br["from_m"] = np.maximum(base_from, span / 2 + 2)
+        br = br.rename(columns={"bridge_id": "culvert_id"})[["culvert_id", "parent_segment_id", "asset", "len_m",
+                                                             "from_m", "geometry"]]
+        log.info(f"{len(br)} water-crossing bridges and large culverts added to the breach set")
+        cand = gpd.GeoDataFrame(pd.concat([cand, br], ignore_index=True), geometry="geometry", crs=cul.crs)
+    except Exception as e:
+        log.info(f"Bridges not in the breach set: {e}")
+    key = a_cfg["streets_key"]
     st = read_streets(cfg, log)
     dup = int(st[key].duplicated().sum())
     if dup:
@@ -160,10 +182,27 @@ def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
             continue
         px, py = -ty / n, tx / n  # unit normal to the road
         x, y = r.geometry.x, r.geometry.y
-        rows.append(dict(culvert_id=r.culvert_id, geometry=LineString([(x - px * half, y - py * half),
-                                                                       (x + px * half, y + py * half)])))
+        half = float(r.len_m) / 2
+        rows.append(dict(culvert_id=r.culvert_id, asset=r.asset, len_m=float(r.len_m), from_m=float(r.from_m),
+                         geometry=LineString([(x - px * half, y - py * half), (x + px * half, y + py * half)])))
     out = gpd.GeoDataFrame(rows, geometry="geometry", crs=cand.crs)
-    log.info(f"{len(out)} breach lines ({len(cand) - len(out)} culverts without a usable segment)")
+    log.info(f"{len(out)} breach lines ({len(cand) - len(out)} assets without a usable segment); "
+             f"{int((out['asset'] == 'bridge').sum())} are bridges")
+
+    # Keep the breach off the enforced channels. The DEM already carries every mapped stream
+    # through its crossing; a breach line that reaches a stream sets its floor from the stream
+    # bed and pulls the creek out of its channel into a ditch pipe (Oct. 8: the Upper Truckee
+    # through an 18 in pipe, a 1,200 ac creek handed down a chain of Washoe pipes).
+    ex = float(b.get("stream_exclude_m", 0) or 0)
+    if ex and b.get("streams_layer"):
+        from va_common import fetch_rest_features
+        streams = fetch_rest_features(b["streams_layer"], out.crs, log)
+        if len(streams):
+            zone = gpd.GeoDataFrame(geometry=streams.buffer(ex), crs=out.crs)
+            hit = gpd.sjoin(out[["geometry"]], zone, how="inner", predicate="intersects").index.unique()
+            log.info(f"{len(hit)} breach lines dropped within {ex:.0f} m of a mapped stream or lake "
+                     f"(those crossings are enforced in the DEM); {len(out) - len(hit)} remain")
+            out = out.drop(index=hit)
     return out
 
 
@@ -176,19 +215,19 @@ def breach_dem(dem, cfg: dict, log):
     epsg = cfg["output"]["target_epsg"]
     cell = float(dem.meanCellWidth)
     lines = breach_lines(cfg, log)
-    half, frm = float(b["length_m"]) / 2, float(b["sample_from_m"])
-    # ground elevation sampled along the outer part of each line, both sides
+    # ground elevation sampled along the outer part of each line, both sides, beyond the fill
+    # (or the deck, for bridges)
     spts = "in_memory\\breach_samples"
     arcpy.management.CreateFeatureclass("in_memory", "breach_samples", "POINT",
                                         spatial_reference=arcpy.SpatialReference(epsg))
     arcpy.management.AddField(spts, "lid", "LONG")
-    offsets = [float(s * t) for s in (-1, 1) for t in np.linspace(frm, half, 4)]
     with arcpy.da.InsertCursor(spts, ["SHAPE@XY", "lid"]) as cur:
-        for i, geom in enumerate(lines.geometry):
+        for i, (geom, len_m, from_m) in enumerate(zip(lines.geometry, lines["len_m"], lines["from_m"])):
+            half = float(len_m) / 2
             (x0, y0), (x1, y1) = geom.coords[0], geom.coords[-1]
             cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
             ux, uy = (x1 - x0) / (2 * half), (y1 - y0) / (2 * half)
-            for t in offsets:
+            for t in [float(s * v) for s in (-1, 1) for v in np.linspace(float(from_m), half, 4)]:
                 cur.insertRow([(float(cx + ux * t), float(cy + uy * t)), int(i)])
     sa.ExtractMultiValuesToPoints(spts, [[dem, "z"]], "NONE")
     z = pd.DataFrame([r for r in arcpy.da.SearchCursor(spts, ["lid", "z"])], columns=["lid", "z"])
@@ -841,6 +880,7 @@ def profile_fields(cfg: dict):
     f += [("cond_class", "SHORT", None), ("cond_source", "TEXT", 20), ("cond_date", "DATE", None),
           ("cond_stale", "SHORT", None), ("blockage_pct", "DOUBLE", None), ("pp_elev_ft", "DOUBLE", None),
           ("tailwater_flag", "SHORT", None), ("dem_vintage_flag", "SHORT", None), ("snap_dist_m", "DOUBLE", None),
+          ("on_stream", "SHORT", None), ("size_suspect", "SHORT", None), ("ratio_review", "SHORT", None),
           ("profile_completeness", "TEXT", 10), ("profile_date", "DATE", None)]
     return f
 
@@ -919,6 +959,22 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
     cul["runoff_c"] = cul["runoff_c"].fillna(p["runoff_c"]["default"])
     cul["tailwater_flag"] = (cul["pp_elev_ft"] < p["tailwater_ft"]).astype(int)
 
+    # Culverts on a mapped stream. A small recorded pipe on an enforced creek channel with a
+    # large basin is an inventory record to review (wrong size field, or a ditch pipe beside
+    # the real structure), not a crossing that is 200 times overloaded.
+    cul["on_stream"] = 0
+    b = p.get("breach") or {}
+    if b.get("streams_layer"):
+        try:
+            from va_common import fetch_rest_features
+            streams = fetch_rest_features(b["streams_layer"], cul.crs, log)
+            zone = gpd.GeoDataFrame(geometry=streams.buffer(float(b.get("stream_exclude_m", 10))), crs=cul.crs)
+            hit = gpd.sjoin(cul[["geometry"]], zone, how="inner", predicate="intersects").index.unique()
+            cul.loc[hit, "on_stream"] = 1
+            log.info(f"{len(hit)} culverts within {b.get('stream_exclude_m', 10)} m of a mapped stream or lake")
+        except Exception as e:
+            log.warning(f"Stream proximity not computed ({e}); on_stream left 0")
+
     # capacity per barrel, summed per crossing
     caps = cul.apply(lambda r: capacity(r, p), axis=1, result_type="expand")
     cul["q_cap_cfs"], cul["q_full_cfs"] = caps[0], caps[1]
@@ -957,6 +1013,33 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
         q = q_rat.where(cul["q_method"] == "rational", q_reg.where(can_reg))
         cul[f"q_event_{rp}_cfs"] = q.round(1)
         cul[f"load_ratio_{rp}"] = (cul[f"q_event_{rp}_cfs"] / cul["q_cap_crossing_cfs"]).round(2)
+    # Suspect records: the recorded size cannot be the crossing for the basin that arrives at it.
+    # Three legs: a small pipe on a mapped stream with a big basin; a small pipe with a very big
+    # basin anywhere (the enforcement carries drainages the stream layer does not show); a size
+    # below any cross-drain (underdrains, data-entry defaults). The ratio is withheld and S1
+    # takes its default; the records go to the owner to confirm.
+    ss = p.get("size_suspect") or {}
+    small = cul["d_eq_in"] <= float(ss.get("max_d_eq_in", 24))
+    leg_stream = (cul["on_stream"] == 1) & small & (cul["contrib_area_ac"] >= float(ss.get("min_area_ac", 100)))
+    leg_any = small & (cul["contrib_area_ac"] >= float(ss.get("min_area_ac_any", 500)))
+    leg_tiny = cul["d_eq_in"] < float(ss.get("min_d_eq_in", 8))
+    cul["size_suspect"] = (leg_stream | leg_any | leg_tiny).astype(int)
+    n_ss = int(cul["size_suspect"].sum())
+    if n_ss:
+        for rp in rps:
+            cul.loc[cul["size_suspect"] == 1, f"load_ratio_{rp}"] = np.nan
+        log.warning(f"{n_ss} culverts flagged size_suspect (on a mapped stream with >= {ss.get('min_area_ac', 100)} ac: "
+                    f"{int(leg_stream.sum())}; >= {ss.get('min_area_ac_any', 500)} ac anywhere: {int(leg_any.sum())}; "
+                    f"size under {ss.get('min_d_eq_in', 8)} in: {int(leg_tiny.sum())}; all on pipes <= "
+                    f"{ss.get('max_d_eq_in', 24)} in): loading ratio withheld, S1 takes its default; "
+                    f"inventory records for the owner to confirm")
+    # Ratios far above the top class break keep their score (a tiny pipe on a real drainage is
+    # High if true) but are flagged so the record travels to the owner with the suspects.
+    hl = p["headline_rp"]
+    rr = float(ss.get("ratio_review_above", 20))
+    cul["ratio_review"] = (cul[f"load_ratio_{hl}"] > rr).astype(int)
+    log.info(f"{int(cul['ratio_review'].sum())} culverts flagged ratio_review (Q{hl} loading ratio above {rr:g}); "
+             f"scored as is, listed for owner confirmation")
     n_reg = int(can_reg.sum())
     log.info(f"Event flow: rational on {int((cul['q_method'] == 'rational').sum())} culverts; regression on {n_reg} "
              f"(CA {int((state[can_reg] == 'CA').sum())}, NV {int((state[can_reg] == 'NV').sum())}); "

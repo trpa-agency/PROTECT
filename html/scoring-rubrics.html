@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT Scoring Rubrics | TRPA</title>
+  <meta name="description" content="Interactive scoring rubrics for the PROTECT vulnerability assessment: score an asset on the consultant's scale, read the rubric tables for all 15 hazard-asset pairs, and track the decisions open." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -185,10 +186,16 @@
     .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
       background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
       font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
-      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
-    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
     .i.tip-right::after{left:auto;right:0;transform:none;}
     .i.tip-left::after{left:0;right:auto;transform:none;}
+    /* Phone widths: tables and the tab strip scroll inside themselves instead of widening the page */
+    @media (max-width:700px){
+      table.ref,table.matrix,table.mx-grid{display:block;overflow-x:auto;white-space:nowrap;}
+      calcite-tab-nav{overflow-x:auto;}
+      .toolbar input.qf{min-width:0;flex-basis:100%;}
+    }
   </style>
 </head>
 <body>
@@ -205,7 +212,8 @@
         <a href="index.html">Home</a>
         <a href="reference-hub.html">Reference Hub</a>
         <a href="criticality-index.html">Criticality Index</a>
-        <a class="cta" href="risk-index-tool.html">Open Risk Index Tool (MVP) &rarr;</a>
+        <a href="workshop-punchlist.html">Punch List</a>
+        <a href="risk-index-tool.html">Risk Index Tool</a>
         <span class="version">v0.3</span>
       </div>
     </div>
@@ -338,11 +346,11 @@
           <h2 class="sec">Culvert loading ratio: how Qevent and Qcap are estimated</h2>
           <p class="lead">The draft's Qdesign is missing for nearly every culvert, so capacity is estimated from geometry. Parameters live in <code>config.yaml</code> and the method runs in <code>scripts/culvert_profile.py</code>.</p>
           <div class="card-grid">
-            <div class="card" style="--c:#0072CE"><h3>Watershed</h3><p>Flow direction and accumulation on the TRPA hydro-enforced bare-earth lidar DEM (2 m, EPSG 26910) at native resolution on the server machine. Sinks shallower than 3 m are filled before flow direction; deeper sinks (lakes, real basins) are kept. Pour point is the maximum-accumulation cell within 20 m of the culvert on the upstream side of the road. Culverts within 10 m of each other on the same segment are one crossing.</p></div>
-            <div class="card" style="--c:#E87722"><h3>Event flow, Qevent</h3><p>Rational method, Q = C i A, for basins under 1 sq mi, with C by majority landcover and i the Atlas 14 intensity at the basin's time of concentration (Kirpich); 100-yr headline, 25-yr carried (decision 5). Basins of 1 sq mi and over use the USGS regional regression equations. 2050 and 2080 flows apply the climate pipeline's DDF change factors to i. The local computation replaces the draft's StreamStats API call so NDOT crossings are not sent to a third-party service.</p></div>
+            <div class="card" style="--c:#0072CE"><h3>Watershed</h3><p>Flow direction and accumulation on the TRPA hydro-enforced bare-earth lidar DEM (2 m, EPSG 26910) at native resolution on the server machine. The enforcement carries the mapped streams through their crossings but not every culvert, so the DEM is conditioned with the VA culvert inventory first: a 40 m breach line through every typed culvert, perpendicular to its road segment, lowered to the lower of its two ends minus 0.3 m, except within 10 m of the mapped streams and lakes; then sinks shallower than 3 m are filled and deeper sinks (lakes, real basins) are kept. Pour point is the maximum-accumulation cell within 4 m of the culvert, on the breach. Culverts within 10 m of each other on the same segment are one crossing.</p></div>
+            <div class="card" style="--c:#E87722"><h3>Event flow, Qevent</h3><p>Rational method, Q = C i A, for basins under 1 sq mi, with C by majority landcover and i the Atlas 14 intensity at the basin's time of concentration (Kirpich); 100-yr headline, 25-yr carried (decision 5). Basins of 1 sq mi and over (about 130 crossings) use the USGS regional regression for their state on PRISM 1991 to 2020 mean annual precipitation: California, the Lahontan region of Gotvald and others (2012), Q100 = 0.713 A<sup>0.731</sup> P<sup>1.56</sup>; Nevada, region 1 of Thomas and others (1997), Q100 = 6.78 A<sup>0.750</sup> P<sup>0.668</sup>. On the same basin region 1 gives roughly one third of the Lahontan value; which applied is recorded per culvert. 2050 and 2080 flows apply the climate pipeline's DDF change factors to i. The local computation replaces the draft's StreamStats API call so NDOT crossings are not sent to a third-party service.</p></div>
             <div class="card" style="--c:#4A6118"><h3>Capacity, Qcap</h3><p>FHWA HDS-5 inlet-control equation solved for Q at HW/D = 1.0, coefficients by shape, material, and inlet type (decision 6). Underestimates capacity by roughly 10 to 20 percent against the nomographs, which is conservative for a screen; Manning full flow is carried as the cross-check. Barrels at one crossing are summed before the ratio.</p></div>
           </div>
-          <div class="note">Known limits: the rational method is a screening estimate, slopes and roughness are assumed, and culvert inverts are not surveyed. The ratio is for ranking, not design. The future-horizon factor scales rainfall intensity only, so rain-on-snow winter peaks are not captured; 2050 and 2080 ratios are a lower bound for mid-elevation basins.</div>
+          <div class="note">Known limits: the rational method is a screening estimate, slopes and roughness are assumed, and culvert inverts are not surveyed. Capacity is taken at headwater equal to the crown, while culverts are commonly designed to run at 1.5 times the diameter or more, so the ratio is conservative by roughly that factor where ponding is tolerable. The ratio is for ranking, not design. A record whose size cannot be the crossing for the basin that arrives (24 in. or under on a mapped stream with 100 acres or more, 24 in. or under with 500 acres or more anywhere, or any size under 8 in.) is flagged for the owner to confirm (a wrong size field, a ditch pipe beside the real structure, or an underdrain) and its ratio is withheld, so S1 takes its default. The future-horizon factor scales rainfall intensity only, so rain-on-snow winter peaks are not captured; 2050 and 2080 ratios are a lower bound for mid-elevation basins.</div>
 
           <h2 class="sec">Validation checks before delivery</h2>
           <div class="card-grid">

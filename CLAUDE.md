@@ -14,8 +14,11 @@ system-wide indicator screening of 15 hazard-asset pairs scored as
 **Vulnerability = (Exposure x wE) + (Sensitivity x wS)** on 0-3 indicator scores with weights set
 per pair (ICF draft VA Methodology, Aug. 20, 2026; rubrics in `docs/SCORING_RUBRICS.md`), with
 criticality carried separately rather than as a multiplier, and (3) RA2CE disruption scenarios.
-Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.7,
-links every page with status, a Workshop 1 banner, and phasing); a reference hub (`html/reference-hub.html`, v0.6) with
+Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.8,
+links every page with status, a Workshop 1 banner, and phasing); the **Workshop 1 punch list**
+(`html/workshop-punchlist.html`: one dated task table with status in the page data, decisions
+open, the print-map spec; it replaced `docs/WORKSHOP1_PUNCHLIST.md` on Oct. 8, 2026, and the
+scripts, data paths, and references moved to the appendix of `docs/WORKSHOP1_BUILD_PLAN.md`); a reference hub (`html/reference-hub.html`, v0.6) with
 tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
 (incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Scoring
 Rubrics page** (`html/scoring-rubrics.html`, v0.3: interactive per-pair scoring for all 15 pairs
@@ -92,7 +95,8 @@ PROTECT/
 ├── docs/                            # methodology, build notes, scoping archive
 ├── html/index.html                  # v0.7 landing page (page cards, Workshop 1 banner, phasing, workstream status; no CDN libs)
 ├── html/reference-hub.html          # v0.6 reference hub incl. data + model inventory (Calcite + AG Grid)
-├── html/scoring-rubrics.html        # v0.2 interactive rubrics (score an asset, rubric tables, framework, decisions, reconciliation)
+├── html/scoring-rubrics.html        # v0.3 interactive rubrics (score an asset, rubric tables, framework, decisions, departures)
+├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
 ├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
 ├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
 ├── html/od-services-index.html      # OD access-to-services index (RA2CE routed trips; criticality factor 4)
@@ -114,7 +118,7 @@ PROTECT/
 - **Headers = navy / Dark Blue (`#003B71`), white text.** Standardize the page header bar and all
   table headers on navy: AG Grid (`--ag-header-background-color: var(--trpa-navy)`) and static tables
   (`table.ref`, `table.matrix`). TRPA Blue (`#0072CE`) is the accent against navy (the version chip,
-  the "Open Risk Index Tool" button) and for KPI card top-borders / links.
+  no header call-to-action buttons: Mason dropped the "Open Risk Index Tool" button Oct. 8) and for KPI card top-borders / links.
 - **Page header treatment matches the `regional-plan-tracking` dashboard suite** (in the
   `data-visualization` repo): a single clean navy band, no accent stripe. Inside, a centered
   `.header-content` (max-width = the page's `main`) holds, left to right: the TRPA color logo

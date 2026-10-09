@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Precipitation Event Explorer | TRPA PROTECT Task 3</title>
+  <meta name="description" content="Debris-flow trigger storm reconstruction, frequency analysis, WEPP sediment runs, and culvert screening for the Lake Tahoe Region, for the PROTECT vulnerability assessment." />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
   <!-- Calcite Design System -->
   <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
@@ -78,6 +80,15 @@
     .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
     .i.tip-right::after{left:auto;right:0;transform:none;}
     .i.tip-left::after{left:0;right:auto;transform:none;}
+    .csv-row{display:flex;justify-content:flex-end;margin:.2rem 0 .4rem;}
+    .csv-btn{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.4rem .8rem;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer;}
+    .csv-btn:hover{background:var(--trpa-blue);}
+    /* Phone widths: nav wraps, the tab strip and reference tables scroll inside themselves */
+    @media (max-width:700px){
+      .dashboard-header nav{flex-wrap:wrap;}
+      calcite-tab-nav{overflow-x:auto;}
+      table.wcref{display:block;overflow-x:auto;white-space:nowrap;}
+    }
   </style>
 </head>
 <body>
@@ -255,7 +266,8 @@
         <div class="context-bar"><b>The hazard-layer build.</b> Debris flow is the one selected PROTECT hazard with no existing basin-wide layer. <b>USGS WildCat</b> (the operational post-fire debris-flow tool, v1.1.1 verified) fills it from the <code>debris-flow/</code> pipeline: for each road segment, culvert, and bridge, the modeled probability, volume, and hazard class of a post-fire debris flow reaching it. This tab holds the working plan; the trigger storms are on the other tabs of this page.</div>
         <div class="chart-container">
           <h3>What WildCat estimates</h3>
-          <table class="wcref">
+          <div class="csv-row"><button type="button" class="csv-btn" data-tablecsv="wc-results" data-filename="PROTECT_Wildcat_Results.csv">Export CSV</button></div>
+          <table class="wcref" id="wc-results">
             <thead><tr><th>Result</th><th>Units</th><th>Model</th><th>Use in PROTECT</th></tr></thead>
             <tbody>
               <tr><td>Debris-flow likelihood</td><td>0 to 1</td><td>M1 logistic (Staley 2017)</td><td>Core exposure metric per stream segment at a chosen design storm</td></tr>
@@ -269,7 +281,8 @@
         <div class="chart-container">
           <h3>The plan, six stages</h3>
           <p class="chart-sub">1. A dedicated <code>wildcat</code> conda environment is stood up (rasterio and fiona cannot share arcpy's GDAL). 2. The static inputs are acquired once: the USGS 3DEP 10 m DEM (the models are calibrated at 10 m, so finer lidar is deliberately not used), STATSGO KF-factors, and LANDFIRE EVT. 3. The model is validated on the 2021 Caldor Fire with the real perimeter and dNBR against the published USGS assessment. 4. The pre-fire planning scenario runs a hypothetical moderate burn over the HUC12 watersheds intersecting the highway corridors. 5. Tahoe design storms from Atlas 14 are applied (31.6, 49.6, and 63.8 mm/hr I15 for the 2-, 10-, and 25-yr basin medians), then repeated with climate-scaled intensities. 6. Exported segments and basins are intersected with roads, culverts, and bridges to produce the debris-flow exposure inputs for the index. The target is a reviewed layer for Workshop 1 in November 2026.</p>
-          <table class="wcref">
+          <div class="csv-row"><button type="button" class="csv-btn" data-tablecsv="wc-scenarios" data-filename="PROTECT_Wildcat_Scenarios.csv">Export CSV</button></div>
+          <table class="wcref" id="wc-scenarios">
             <thead><tr><th>Scenario</th><th>Purpose</th><th>Perimeter</th><th>Burn inputs</th><th>Design storm</th></tr></thead>
             <tbody>
               <tr><td><b>S1 Validation</b></td><td>Reproduces USGS results on a real fire</td><td>Caldor 2021 (Angora 2007 backup)</td><td>Real dNBR (MTBS or RAVG)</td><td>USGS defaults of 16, 20, 24, and 40 mm/hr for comparability</td></tr>
@@ -285,7 +298,8 @@
         </div>
         <div class="chart-container">
           <h3>Inputs and open decisions</h3>
-          <table class="wcref">
+          <div class="csv-row"><button type="button" class="csv-btn" data-tablecsv="wc-inputs" data-filename="PROTECT_Wildcat_Inputs.csv">Export CSV</button></div>
+          <table class="wcref" id="wc-inputs">
             <thead><tr><th>Input</th><th>Tier</th><th>Tahoe source</th><th>Status</th></tr></thead>
             <tbody>
               <tr><td>perimeter</td><td>Required</td><td>Real fire (NIFC or CAL FIRE) or hypothetical burn unit (HUC12s)</td><td>Decision open</td></tr>
@@ -848,5 +862,19 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
   </script>
+<script>
+  // Static-table CSV export (site convention: every table gets a button).
+  (function(){
+    function tableToCsv(id){
+      return [...document.getElementById(id).querySelectorAll("tr")].map(tr =>
+        [...tr.querySelectorAll("th,td")].map(c => '"' + c.textContent.trim().replace(/\s+/g," ").replace(/"/g,'""') + '"').join(",")).join("\n");
+    }
+    document.querySelectorAll("button[data-tablecsv]").forEach(btn => btn.addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([tableToCsv(btn.dataset.tablecsv)], {type:"text/csv"}));
+      a.download = btn.dataset.filename; a.click();
+    }));
+  })();
+</script>
 </body>
 </html>

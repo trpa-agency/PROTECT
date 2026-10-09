@@ -7,7 +7,9 @@ project:
   task: "3.3 Interactive Risk Index Mapping Tool - Assets (culverts)"
 
 paths:
-  raw_root: C:\GIS\Culvert      # jurisdiction deliveries (outside the repo; not committed)
+  raw_root: F:\GIS\PROJECTS\Transportation\Protect\Data\Culvert   # jurisdiction deliveries on TRPA storage
+                                                                   # (one folder per jurisdiction; the notebook
+                                                                   # runs on the server from here)
   # Prior TRPA basin-wide culvert compilation (READ-ONLY - includes USFS forest roads)
   legacy_culverts: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert
   # Working analysis geodatabase for the VA (shared with the street network and criticality work)
@@ -32,6 +34,9 @@ output:
   target_epsg: 26910
 
 run:
+  crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when
+    jurisdictions: [El Dorado County, Washoe County]   # their line crosses a street centerline
+    max_length_m: 60    # longer crossings are storm-drain trunk runs (stands in for NDOT's manhole-run rule)
   build_gdb: true       # set false to skip the arcpy File GDB write
   line_to_point: midpoint   # how pipe centerlines collapse to a point: midpoint | start | end
   legacy_match_m: 25    # legacy points within this many metres of a new asset count as matched
@@ -54,7 +59,7 @@ assets:
 # same on the server, so this file works unchanged from a clone there.
 profile:
   work_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_terrain.gdb  # terrain rasters
-  nlcd: ""                 # NLCD 2021 land cover raster (optional). Blank = no landcover terms
+  nlcd: F:\GIS\PROJECTS\Transportation\Protect\Data\NLCD\NLCD_Tahoe.tif   # NLCD 2021 land cover clip (MRLC viewer, Oct. 9); blank = no landcover terms
   fill_z_limit_m: 3        # fill sinks shallower than this before flow direction; null = no Fill.
                            # The enforced DEM still has sinks at unbreached crossings (Oct. 8 QA:
                            # two-cell flow loops at the pour cells, accumulation split, flow
@@ -68,6 +73,19 @@ profile:
     length_m: 40           #  along ditches and 292 pipes of 24 in or less inherited 100+ ac basins)
     drop_m: 0.3            # breach floor = lowest ground sampled at either end, minus this
     sample_from_m: 8       # ground sampled from this distance out to the line end, both sides
+    bridges: false         # NBI bridges sit on channels the enforcement already carries through
+    streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
+    stream_exclude_m: 10   # no breach within this distance of the lidar-derived streams and lakes:
+                           # a breach floor set from a creek bed pulls the creek into a ditch pipe
+  size_suspect:            # recorded size cannot be the crossing for the basin that arrives: reviewed,
+    max_d_eq_in: 24        # not scored (loading ratio withheld, S1 default). Pipes this small ...
+    min_area_ac: 100       # ... on a mapped stream with a basin this large (Oct. 9: 73 records), or
+    min_area_ac_any: 500   # ... with a basin this large anywhere (an 18 in Caltrans pipe at 3,952 ac,
+                           # a chain of 12 in Washoe pipes at 1,200 ac, on drainages the stream layer
+                           # does not show but the enforcement carries), or
+    min_d_eq_in: 8         # any size below a cross-drain (6 in underdrains, data-entry defaults)
+    ratio_review_above: 20 # flag only (score kept): a pipe this far under its 100-yr flow is overtopped
+                           # by small storms; the owner confirms the record (12 in Washoe pipes at 100-400 ac)
   pour_snap_m: 4           # max-accumulation cell within this distance of the culvert point (the
                            # breach runs through the culvert's own cell; 20 m captured creeks)
   prism_ppt: F:\GIS\PROJECTS\Transportation\Protect\Data\PRISM\prism_ppt_us_30s_2020_avg_30y.tif

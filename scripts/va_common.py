@@ -53,6 +53,28 @@ def fetch_basin(cfg: dict, log: logging.Logger) -> gpd.GeoDataFrame:
     return basin
 
 
+def fetch_rest_features(url: str, crs, log: logging.Logger, where: str = "1=1", page: int = 1000) -> gpd.GeoDataFrame:
+    """All features of an ArcGIS REST layer as a GeoDataFrame in `crs`, paged with resultOffset."""
+    import requests
+    frames, offset = [], 0
+    while True:
+        r = requests.get(f"{url}/query", params={"where": where, "outFields": "OBJECTID", "returnGeometry": "true",
+                                                 "f": "geojson", "resultOffset": offset, "resultRecordCount": page},
+                         timeout=300)
+        r.raise_for_status()
+        feats = r.json().get("features", [])
+        if not feats:
+            break
+        frames.append(gpd.GeoDataFrame.from_features(feats, crs="EPSG:4326"))
+        offset += len(feats)
+        if len(feats) < page:
+            break
+    out = pd.concat(frames, ignore_index=True) if frames else gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
+    out = gpd.GeoDataFrame(out, geometry="geometry", crs="EPSG:4326").to_crs(crs)
+    log.info(f"{len(out)} features from {url}")
+    return out
+
+
 def dedupe_ids(s: pd.Series) -> pd.Series:
     """Make IDs unique by suffixing -2, -3... on repeats (same rule as the culvert notebook)."""
     s = s.astype(str)
@@ -126,11 +148,37 @@ def to_dt(v):
     return None if v is None or pd.isna(v) else pd.Timestamp(v).to_pydatetime()
 
 
-def clean(v, col=None, text_len: dict | None = None):
-    if v is None or v is pd.NA or (isinstance(v, float) and pd.isna(v)):
-        return None
-    if hasattr(v, "item") and not isinstance(v, str):  # numpy scalar -> python
+def field_types(fields) -> dict[str, str]:
+    return {n: t for n, t, ln in fields}
+
+
+def clean(v, col=None, text_len: dict | None = None, ftype: str | None = None):
+    """Python value for an arcpy cursor: None for any null, numpy scalars unboxed, integers for
+    SHORT / LONG (a float 2005.0 from a geopackage or pandas 3 is rejected by arcpy otherwise),
+    floats for DOUBLE / FLOAT, strings for TEXT truncated to the field length."""
+    try:
+        if v is None or v is pd.NA or pd.isna(v):
+            return None
+    except (TypeError, ValueError):  # arrays and other non-scalars: leave as is
+        pass
+    if hasattr(v, "item") and not isinstance(v, str):  # numpy / pandas scalar -> python
         v = v.item()
+    if ftype in ("SHORT", "LONG"):
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return None
+        try:
+            return int(round(float(v)))
+        except (TypeError, ValueError):
+            return None
+    if ftype in ("DOUBLE", "FLOAT"):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+    if ftype == "TEXT" and not isinstance(v, str):
+        v = str(v)
     if isinstance(v, str) and text_len and col in text_len and len(v) > text_len[col]:
         return v[: text_len[col]]
     return v
@@ -152,15 +200,15 @@ def write_point_fc(gdf: gpd.GeoDataFrame, fields, gdb: str, name: str, epsg: int
     """Write a point GeoDataFrame to <gdb>/<name> with the given field spec. Returns the path."""
     import arcpy
     cols = [f[0] for f in fields]
-    tl = text_lengths(fields)
+    tl, ft = text_lengths(fields), field_types(fields)
     fc = arcpy.management.CreateFeatureclass(
         gdb, name, "POINT", spatial_reference=arcpy.SpatialReference(epsg)).getOutput(0)
     arcpy.management.AddFields(fc, fields_spec(fields))
     gdf = gdf.to_crs(f"EPSG:{epsg}")
     with arcpy.da.InsertCursor(fc, ["SHAPE@XY"] + cols) as cur:
         for _, r in gdf.iterrows():
-            xy = (r.geometry.x, r.geometry.y) if r.geometry is not None else None
-            cur.insertRow([xy] + [to_dt(r[c]) if c in date_cols else clean(r[c], c, tl) for c in cols])
+            xy = (float(r.geometry.x), float(r.geometry.y)) if r.geometry is not None else None
+            cur.insertRow([xy] + [to_dt(r[c]) if c in date_cols else clean(r[c], c, tl, ft.get(c)) for c in cols])
     log.info(f"Wrote {int(arcpy.management.GetCount(fc)[0])} rows -> {name}")
     return fc
 
@@ -169,11 +217,11 @@ def write_table(df: pd.DataFrame, fields, gdb: str, name: str, log: logging.Logg
                 date_cols: set[str] = frozenset()) -> str:
     import arcpy
     cols = [f[0] for f in fields]
-    tl = text_lengths(fields)
+    tl, ft = text_lengths(fields), field_types(fields)
     tbl = arcpy.management.CreateTable(gdb, name).getOutput(0)
     arcpy.management.AddFields(tbl, fields_spec(fields))
     with arcpy.da.InsertCursor(tbl, cols) as cur:
         for _, r in df.iterrows():
-            cur.insertRow([to_dt(r[c]) if c in date_cols else clean(r[c], c, tl) for c in cols])
+            cur.insertRow([to_dt(r[c]) if c in date_cols else clean(r[c], c, tl, ft.get(c)) for c in cols])
     log.info(f"Wrote {int(arcpy.management.GetCount(tbl)[0])} rows -> {name}")
     return tbl
