@@ -133,15 +133,36 @@ def apply_by_key(target: str, df: pd.DataFrame, key: str, fields, log, date_cols
 # stage 1: terrain (server)
 
 def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
-    """One breach line per typed culvert on a road segment: through the culvert point,
-    perpendicular to the parent segment at its nearest point, profile.breach.length_m long."""
+    """One breach line per typed culvert on a road segment, and per NBI water-crossing bridge
+    or large culvert: through the point, perpendicular to the parent segment at its nearest
+    point. Culvert lines are profile.breach.length_m long; bridge lines are stretched to the
+    maximum span plus 20 m and sampled beyond the deck, because a lidar surface that kept the
+    deck otherwise walls the creek off and sends it to the nearest breached ditch pipe."""
     from shapely.geometry import LineString
     from va_common import read_streets
+    a_cfg = cfg["assets"]
     b = cfg["profile"]["breach"]
-    half = float(b["length_m"]) / 2
+    base_len, base_from = float(b["length_m"]), float(b["sample_from_m"])
     cul = read_culverts(cfg, log)
     cand = cul[(cul["feature_type"] == "culvert") & cul["parent_segment_id"].notna()].copy()
-    key = cfg["assets"]["streets_key"]
+    cand["asset"] = "culvert"
+    cand["len_m"], cand["from_m"] = base_len, base_from
+    try:
+        br = read_layer(cfg["paths"]["analysis_gdb"], a_cfg["bridges_fc"]).to_crs(cand.crs)
+        br = br[(br["water_crossing"] == 1) & br["parent_segment_id"].notna()].copy()
+        span = pd.to_numeric(br["max_span_m"], errors="coerce").fillna(0)
+        br["asset"] = "bridge"
+        br["len_m"] = np.maximum(base_len, span + 20)
+        br["from_m"] = np.maximum(base_from, span / 2 + 2)
+        br = br.rename(columns={"bridge_id": "culvert_id"})[["culvert_id", "parent_segment_id", "asset", "len_m",
+                                                             "from_m", "geometry"]]
+        log.info(f"{len(br)} water-crossing bridges and large culverts added to the breach set")
+        cand = pd.concat([cand[["culvert_id", "parent_segment_id", "asset", "len_m", "from_m", "geometry"]], br],
+                         ignore_index=True)
+        cand = gpd.GeoDataFrame(cand, geometry="geometry", crs=cul.crs)
+    except Exception as e:
+        log.warning(f"Bridges not added to the breach set ({e})")
+    key = a_cfg["streets_key"]
     st = read_streets(cfg, log)
     dup = int(st[key].duplicated().sum())
     if dup:
@@ -160,10 +181,12 @@ def breach_lines(cfg: dict, log) -> gpd.GeoDataFrame:
             continue
         px, py = -ty / n, tx / n  # unit normal to the road
         x, y = r.geometry.x, r.geometry.y
-        rows.append(dict(culvert_id=r.culvert_id, geometry=LineString([(x - px * half, y - py * half),
-                                                                       (x + px * half, y + py * half)])))
+        half = float(r.len_m) / 2
+        rows.append(dict(culvert_id=r.culvert_id, asset=r.asset, len_m=float(r.len_m), from_m=float(r.from_m),
+                         geometry=LineString([(x - px * half, y - py * half), (x + px * half, y + py * half)])))
     out = gpd.GeoDataFrame(rows, geometry="geometry", crs=cand.crs)
-    log.info(f"{len(out)} breach lines ({len(cand) - len(out)} culverts without a usable segment)")
+    log.info(f"{len(out)} breach lines ({len(cand) - len(out)} assets without a usable segment); "
+             f"{int((out['asset'] == 'bridge').sum())} are bridges")
     return out
 
 
@@ -176,19 +199,19 @@ def breach_dem(dem, cfg: dict, log):
     epsg = cfg["output"]["target_epsg"]
     cell = float(dem.meanCellWidth)
     lines = breach_lines(cfg, log)
-    half, frm = float(b["length_m"]) / 2, float(b["sample_from_m"])
-    # ground elevation sampled along the outer part of each line, both sides
+    # ground elevation sampled along the outer part of each line, both sides, beyond the fill
+    # (or the deck, for bridges)
     spts = "in_memory\\breach_samples"
     arcpy.management.CreateFeatureclass("in_memory", "breach_samples", "POINT",
                                         spatial_reference=arcpy.SpatialReference(epsg))
     arcpy.management.AddField(spts, "lid", "LONG")
-    offsets = [float(s * t) for s in (-1, 1) for t in np.linspace(frm, half, 4)]
     with arcpy.da.InsertCursor(spts, ["SHAPE@XY", "lid"]) as cur:
-        for i, geom in enumerate(lines.geometry):
+        for i, (geom, len_m, from_m) in enumerate(zip(lines.geometry, lines["len_m"], lines["from_m"])):
+            half = float(len_m) / 2
             (x0, y0), (x1, y1) = geom.coords[0], geom.coords[-1]
             cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
             ux, uy = (x1 - x0) / (2 * half), (y1 - y0) / (2 * half)
-            for t in offsets:
+            for t in [float(s * v) for s in (-1, 1) for v in np.linspace(float(from_m), half, 4)]:
                 cur.insertRow([(float(cx + ux * t), float(cy + uy * t)), int(i)])
     sa.ExtractMultiValuesToPoints(spts, [[dem, "z"]], "NONE")
     z = pd.DataFrame([r for r in arcpy.da.SearchCursor(spts, ["lid", "z"])], columns=["lid", "z"])

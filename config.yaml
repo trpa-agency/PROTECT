@@ -32,6 +32,9 @@ output:
   target_epsg: 26910
 
 run:
+  crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when
+    jurisdictions: [El Dorado County, Washoe County]   # their line crosses a street centerline
+    max_length_m: 60    # longer crossings are storm-drain trunk runs (stands in for NDOT's manhole-run rule)
   build_gdb: true       # set false to skip the arcpy File GDB write
   line_to_point: midpoint   # how pipe centerlines collapse to a point: midpoint | start | end
   legacy_match_m: 25    # legacy points within this many metres of a new asset count as matched
