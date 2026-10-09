@@ -147,7 +147,7 @@ sensitivity indicator below. It is not itself a score.
 | `cond_date`, `cond_stale` | Latest inspection date; stale when before 2015 | `CulvertCondition` |
 | `blockage_pct` | Latest recorded blockage | Washoe `perc_full`, NDOT `PercentBlockage`, legacy text |
 | `tailwater_flag` | Outlet within 50 m of the shoreline and below 6,230 ft (the legal maximum lake level is 6,229.1 ft) | DEM, high-water shoreline layer |
-| `on_stream`, `size_suspect` | On a mapped stream (within 10 m of the lidar-derived streams and lakes); and, when also recorded at 24 in. or under with a basin of 100 acres or more, flagged for review: the record is a wrong size field or a ditch pipe beside the real structure, so `load_ratio` is withheld and S1 takes its default | Derived (`profile.size_suspect`) |
+| `on_stream`, `size_suspect` | On a mapped stream (within 10 m of the lidar-derived streams and lakes). Flagged for review when the recorded size cannot be the crossing for the basin that arrives: 24 in. or under on a mapped stream with 100 acres or more, 24 in. or under with 500 acres or more anywhere, or any size under 8 in. The record is a wrong size field, a ditch pipe beside the real structure, or an underdrain; `load_ratio` is withheld and S1 takes its default | Derived (`profile.size_suspect`) |
 | `profile_completeness` | `full`, `partial`, `default`: whether size, hydrology, and condition were observed or defaulted | Derived |
 
 **Why size and condition are framed this way.** Size matters only relative to demand: an
@@ -295,8 +295,10 @@ Parameters live in `config.yaml` (`hydraulics:` block, to be added with the prof
   ratio. A culvert that overtops its headwater at the design flow has `load_ratio` over 1.0.
   Implemented in `scripts/culvert_profile.py` (stage `attributes`).
 - **Known limits.** Rational method is a screening estimate, slopes and roughness are assumed,
-  and culvert inverts are not surveyed. The ratio is for ranking, not design. State this on the
-  method slide. The future-horizon factor scales rainfall intensity only; the literature review
+  and culvert inverts are not surveyed. Capacity is taken at HW/D = 1.0, while culverts are
+  commonly designed to run at HW/D of 1.5 or more, so the ratio is conservative by roughly
+  that factor where ponding is tolerable. The ratio is for ranking, not design. State this on
+  the method slide. The future-horizon factor scales rainfall intensity only; the literature review
   cites a shift of the runoff peak toward January under warming, which means rain-on-snow
   winter peaks that a rainfall change factor does not capture. Treat 2050 and 2080 ratios as a
   lower bound for mid-elevation basins and say so.

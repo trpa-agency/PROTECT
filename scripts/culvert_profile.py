@@ -1013,16 +1013,26 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
         q = q_rat.where(cul["q_method"] == "rational", q_reg.where(can_reg))
         cul[f"q_event_{rp}_cfs"] = q.round(1)
         cul[f"load_ratio_{rp}"] = (cul[f"q_event_{rp}_cfs"] / cul["q_cap_crossing_cfs"]).round(2)
+    # Suspect records: the recorded size cannot be the crossing for the basin that arrives at it.
+    # Three legs: a small pipe on a mapped stream with a big basin; a small pipe with a very big
+    # basin anywhere (the enforcement carries drainages the stream layer does not show); a size
+    # below any cross-drain (underdrains, data-entry defaults). The ratio is withheld and S1
+    # takes its default; the records go to the owner to confirm.
     ss = p.get("size_suspect") or {}
-    cul["size_suspect"] = ((cul["on_stream"] == 1) & (cul["d_eq_in"] <= float(ss.get("max_d_eq_in", 24)))
-                           & (cul["contrib_area_ac"] >= float(ss.get("min_area_ac", 100)))).astype(int)
+    small = cul["d_eq_in"] <= float(ss.get("max_d_eq_in", 24))
+    leg_stream = (cul["on_stream"] == 1) & small & (cul["contrib_area_ac"] >= float(ss.get("min_area_ac", 100)))
+    leg_any = small & (cul["contrib_area_ac"] >= float(ss.get("min_area_ac_any", 500)))
+    leg_tiny = cul["d_eq_in"] < float(ss.get("min_d_eq_in", 8))
+    cul["size_suspect"] = (leg_stream | leg_any | leg_tiny).astype(int)
     n_ss = int(cul["size_suspect"].sum())
     if n_ss:
         for rp in rps:
             cul.loc[cul["size_suspect"] == 1, f"load_ratio_{rp}"] = np.nan
-        log.warning(f"{n_ss} culverts flagged size_suspect (on a mapped stream, recorded size <= "
-                    f"{ss.get('max_d_eq_in', 24)} in, basin >= {ss.get('min_area_ac', 100)} ac): loading ratio withheld, "
-                    f"S1 takes its default; these are inventory records for the owner to confirm")
+        log.warning(f"{n_ss} culverts flagged size_suspect (on a mapped stream with >= {ss.get('min_area_ac', 100)} ac: "
+                    f"{int(leg_stream.sum())}; >= {ss.get('min_area_ac_any', 500)} ac anywhere: {int(leg_any.sum())}; "
+                    f"size under {ss.get('min_d_eq_in', 8)} in: {int(leg_tiny.sum())}; all on pipes <= "
+                    f"{ss.get('max_d_eq_in', 24)} in): loading ratio withheld, S1 takes its default; "
+                    f"inventory records for the owner to confirm")
     n_reg = int(can_reg.sum())
     log.info(f"Event flow: rational on {int((cul['q_method'] == 'rational').sum())} culverts; regression on {n_reg} "
              f"(CA {int((state[can_reg] == 'CA').sum())}, NV {int((state[can_reg] == 'NV').sum())}); "
