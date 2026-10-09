@@ -256,7 +256,10 @@ Parameters live in `config.yaml` (`hydraulics:` block, to be added with the prof
   inherited basins over 100 acres. The DEM is therefore conditioned with the VA culvert
   inventory itself: a 40 m breach line through every typed culvert, perpendicular to its
   parent road segment, lowered to the lower of its two ends minus 0.3 m
-  (`profile.breach`), then sinks shallower than 3 m (`profile.fill_z_limit_m`) are filled;
+  (`profile.breach`), except within 10 m of the lidar-derived streams and lakes, whose
+  crossings the enforcement already carries (a breach floor set from a creek bed would pull
+  the creek into the ditch pipe); then sinks shallower than 3 m (`profile.fill_z_limit_m`)
+  are filled;
   deeper sinks (lakes, real basins) are kept. The delineation runs at the native 2 m on the
   server machine rather than a resampled surface, because aggregating to 10 m would average
   away the breach channels. Pour point is the maximum-accumulation cell within 4 m of the
