@@ -514,7 +514,7 @@
     </a>
     <div class="hdr-titles">
       <div class="hdr-title">Criticality Index</div>
-      <div class="hdr-sub">PROTECT &middot; Tahoe Street Network Vulnerability Assessment</div>
+      <div class="hdr-sub">PROTECT &middot; Criticality Assessment &middot; Tahoe Street Network</div>
     </div>
   </div>
   <div class="hdr-r">
@@ -522,6 +522,7 @@
       <a href="index.html">Home</a>
       <a href="risk-index-tool.html">Risk Index Tool</a>
       <a href="reference-hub.html">Reference Hub</a>
+      <a href="scoring-rubrics.html">Scoring Rubrics</a>
     </nav>
     <span id="feat-count">Loading&hellip;</span>
     <div class="live-badge"><div class="live-dot"></div>Live</div>
@@ -537,7 +538,7 @@
       <span class="norm-lbl">Normalization</span>
       <div class="norm-btns">
         <button class="norm-btn active" data-norm="zscore">Z-Score</button>
-        <button class="norm-btn" data-norm="minmax">Min-Max 0&ndash;1</button>
+        <button class="norm-btn" data-norm="minmax">Min-Max 0 to 1</button>
       </div>
     </div>
 
@@ -586,7 +587,7 @@
             <span class="si-wt-val" id="siwv-equity">0.33</span>
           </div>
           <div class="vars-toggle closed" onclick="toggleVars('equity')">
-            <span class="vars-lbl">Variable Weights &amp; Invert</span>
+            <span class="vars-lbl">Variable Weights and Invert</span>
             <span class="vars-chevron">&#9660;</span>
           </div>
           <div class="vars-section collapsed" id="vars-equity">
@@ -657,21 +658,21 @@
             <span class="si-wt-val" id="siwv-traffic">0.33</span>
           </div>
           <div class="vars-toggle closed" onclick="toggleVars('traffic')">
-            <span class="vars-lbl">Variable Weights &amp; Invert</span>
+            <span class="vars-lbl">Variable Weights and Invert</span>
             <span class="vars-chevron">&#9660;</span>
           </div>
           <div class="vars-section collapsed" id="vars-traffic">
             <div class="var-row">
               <div class="var-top">
                 <div class="var-name-wrap">
-                  <span class="var-lbl">AADT Jenks Score (1&ndash;10)</span>
+                  <span class="var-lbl">AADT Jenks Score (1 to 10)</span>
                   <button class="invert-pill off" id="inv-AADT_Jenks_Score">INV</button>
                 </div>
                 <span class="var-wt-val" id="vwv-AADT_Jenks_Score">1.00</span>
               </div>
               <input type="range" id="vw-AADT_Jenks_Score" min="0" max="1" step="0.01" value="1">
             </div>
-            <div class="single-note">Single-variable subindex: 2024 estimated AADT classified into 10 Jenks natural-break categories, then normalized on its own.</div>
+            <div class="single-note">Single-variable sub-index. Traffic (2024 estimated annual average daily traffic, AADT) is classified into 10 Jenks natural-break categories and normalized on its own.</div>
             <div class="vsum-row">
               <span class="vsum-label">Variable &Sigma;</span>
               <span class="vsum-val" id="vsum-traffic">1.00</span>
@@ -695,21 +696,21 @@
             <span class="si-wt-val" id="siwv-detour">0.34</span>
           </div>
           <div class="vars-toggle closed" onclick="toggleVars('detour')">
-            <span class="vars-lbl">Variable Weights &amp; Invert</span>
+            <span class="vars-lbl">Variable Weights and Invert</span>
             <span class="vars-chevron">&#9660;</span>
           </div>
           <div class="vars-section collapsed" id="vars-detour">
             <div class="var-row">
               <div class="var-top">
                 <div class="var-name-wrap">
-                  <span class="var-lbl">SLR Detour Length Jenks (1&ndash;10)</span>
+                  <span class="var-lbl">SLR Detour Length Jenks (1 to 10)</span>
                   <button class="invert-pill off" id="inv-SLR_Diff_Length_Jenks_Score">INV</button>
                 </div>
                 <span class="var-wt-val" id="vwv-SLR_Diff_Length_Jenks_Score">1.00</span>
               </div>
               <input type="range" id="vw-SLR_Diff_Length_Jenks_Score" min="0" max="1" step="0.01" value="1">
             </div>
-            <div class="single-note">Single-variable subindex: added travel distance when the segment is removed from the network, classified into 10 Jenks natural-break categories, then normalized on its own.</div>
+            <div class="single-note">Single-variable sub-index. Detour length (SLR: added travel distance when the segment is removed from the network) is classified into 10 Jenks natural-break categories and normalized on its own.</div>
             <div class="vsum-row">
               <span class="vsum-label">Variable &Sigma;</span>
               <span class="vsum-val" id="vsum-detour">1.00</span>
@@ -790,13 +791,13 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
     {
       key: "traffic", label: "Traffic", color: "#E87722",
       vars: [
-        { field: "AADT_Jenks_Score", label: "AADT Jenks Score (1-10)", invert: false }
+        { field: "AADT_Jenks_Score", label: "AADT Jenks Score (1 to 10)", invert: false }
       ]
     },
     {
       key: "detour", label: "Detour Length", color: "#007681",
       vars: [
-        { field: "SLR_Diff_Length_Jenks_Score", label: "SLR Detour Length Jenks (1-10)", invert: false }
+        { field: "SLR_Diff_Length_Jenks_Score", label: "SLR Detour Length Jenks (1 to 10)", invert: false }
       ]
     }
   ];
@@ -1175,10 +1176,10 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
       const n   = filteredFeatures().length;
       const pct = (100 * n / allFeatures.length).toFixed(1);
       const what = activeHazard === "landslide"
-        ? `with landslide mean &ge; ${landslideThreshold}`
+        ? `with a landslide mean of ${landslideThreshold} or higher`
         : hz.label;
       countEl.innerHTML  = `Showing <strong>${n.toLocaleString()}</strong> of `
-                         + `${allFeatures.length.toLocaleString()} segments ${what} (${pct}%)`;
+                         + `${allFeatures.length.toLocaleString()} segments ${what} (${pct} percent)`;
       headEl.textContent = `${n.toLocaleString()} of ${allFeatures.length.toLocaleString()} segments`;
     }
   }

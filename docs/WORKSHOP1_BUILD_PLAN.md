@@ -87,8 +87,10 @@ schema before the numbers are final.
   - Criticality to 0-3: Jenks on the current equal-weight index, or fixed percentile breaks.
   - Asset-level aggregation across pairs: recommend **max pair rating** (a culvert carries
     FL-C, DF-C, LS-C; summing double-counts one physical failure).
-  - Horizon: baseline only for the workshop. Contracted flood or fire data that is not in hand
+  - Horizon: baseline only for the workshop. Contracted fire data that is not in hand
     by Oct. 12 goes to the December release; the public fallback is the workshop dataset.
+    Flood is FEMA zones and stream crossings for every horizon: no flood depth model is being
+    acquired (decided Oct. 8).
 - Publish fallback decisions per hazard, so purchased-data delivery dates cannot block the
   workshop:
 
@@ -269,7 +271,7 @@ the Mentimeter asset-of-concern answers the week after the workshop. This become
 | Nov. 2 to 6 | Print layouts Nov. 2 to 4; **posters to print Nov. 5**; slides | Hub and landing updates; QA checklist; **tool freeze Nov. 4**; feedback layer | Tool and materials final |
 | Nov. 9 | Workshop | | |
 
-Purchased flood and fire data not in hand by Oct. 12 goes into the December release, not the
+Purchased fire data not in hand by Oct. 12 goes into the December release, not the
 workshop. Say so on the Status tab rather than waiting. There is no slack week: a hazard that
 slips past Oct. 16 ships to ICF as a proxy method with the gap stated, not late.
 
@@ -288,7 +290,8 @@ slips past Oct. 16 ships to ICF as a proxy method with the gap stated, not late.
    list (US-50, SR-89, SR-28, SR-207, SR-431) as the check against local knowledge.
 9. Whether debris flow ships as a proxy (WRF intensity x slope x fire severity) or waits for
    wildcat. Default: proxy for the workshop, wildcat for December.
-6. Contracted flood and fire delivery dates, or confirm the public fallback for the workshop.
+6. Contracted fire delivery dates, or confirm the public fallback for the workshop. (Flood: no
+   depth model is being acquired; FEMA zones and stream crossings for every horizon.)
 7. Whether workshop attendees get a URL to the tool. The repo is an internal review draft; the
    Pages URL is public once shared.
 

@@ -66,9 +66,15 @@
     .flow .stack{display:flex;flex-direction:column;align-items:stretch;gap:.3rem;}
     .panel{background:var(--white);border:1px solid var(--gray-border);border-radius:8px;padding:1.1rem 1.3rem;margin:.9rem 0;}
     .panel p{font-size:.9rem;margin:.4rem 0;max-width:72rem;}
+    /* Next-milestone banner */
+    .banner{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;background:var(--white);border:1px solid var(--gray-border);border-left:5px solid var(--trpa-orange);border-radius:8px;padding:.8rem 1.2rem;margin:.2rem 0 1rem;}
+    .banner .when{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--trpa-orange);}
+    .banner .what{font-size:1rem;font-weight:700;}
+    .banner .checks{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.78rem;color:var(--gray-text);margin-left:auto;}
+    .banner .checks span b{color:var(--trpa-navy);}
     /* Timeline */
     .timeline{display:flex;gap:0;margin:.9rem 0 .4rem;flex-wrap:wrap;}
-    .milestone{flex:1;min-width:170px;position:relative;padding:0 .9rem .2rem 0;}
+    .milestone{flex:1;min-width:150px;position:relative;padding:0 .9rem .2rem 0;}
     .milestone::before{content:"";display:block;height:4px;border-radius:2px;background:var(--trpa-ice);margin-bottom:.55rem;}
     .milestone.done::before{background:var(--trpa-forest);}
     .milestone.next::before{background:var(--trpa-orange);}
@@ -85,7 +91,7 @@
     table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.55rem .8rem;font-weight:600;}
     table.ref td{border:1px solid #e6e9ee;padding:.5rem .8rem;vertical-align:top;}
     table.ref tr:nth-child(even) td{background:#f8fafc;}
-    .tag{display:inline-block;font-size:.72rem;font-weight:700;padding:.1rem .55rem;border-radius:999px;}
+    .tag{display:inline-block;font-size:.72rem;font-weight:700;padding:.1rem .55rem;border-radius:999px;white-space:nowrap;}
     .tag.live{background:#4A611814;color:var(--trpa-forest);}
     .tag.progress{background:#0072CE14;color:var(--trpa-blue);}
     .tag.scoped{background:#E8772214;color:var(--trpa-orange);}
@@ -115,11 +121,11 @@
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
         <h1>PROTECT Risk Index and Resilience Tool</h1>
-        <div class="header-sub">Task 3 &middot; Resilience Improvement Plan</div>
+        <div class="header-sub">Task 3 &middot; Tahoe Resilience Improvement Plan</div>
       </div>
       <div class="header-meta">
         <a class="cta" href="risk-index-tool.html">Open Risk Index Tool (MVP) &rarr;</a>
-        <span class="version">v0.6</span>
+        <span class="version">v0.7</span>
       </div>
     </div>
   </header>
@@ -128,32 +134,55 @@
     <section class="intro">
       <p class="lede">
         Risk-based vulnerability assessment and interactive risk index mapping tool for Lake Tahoe
-        Basin transportation assets.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Resilience Improvement Plan; 3.2 is the vulnerability assessment and 3.3 is this mapping tool.">i</i>
-        Scores roads, bridges, and culverts against wildfire, flooding, landslide, debris flow, and
-        avalanche hazards. Results feed the 2027 Resilience Improvement Plan.
+        Basin transportation assets.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; Task 3.2 is the vulnerability assessment and Task 3.3 is this mapping tool.">i</i>
+        Roads, bridges, and culverts are scored against flooding, landslide, wildfire, debris flow,
+        and avalanche hazards; active transport and transit centers against flooding and wildfire.
+        Results inform the priority assets and locations for resilience investment in the 2027 Tahoe
+        Resilience Improvement Plan (TRIP).
       </p>
       <div class="flow">
-        <span class="step">Source layers + pipelines<i class="i" tabindex="0" data-tip="The street network built from Overture data, which is the base network for both criticality and RA2CE, plus climate projections, trigger-storm climatology, the compiled culvert layer, and modeled debris-flow hazard.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="step">Source layers and pipelines<i class="i" tabindex="0" data-tip="The street network built from Overture data (the base network for criticality and RA2CE), climate projections and trigger-storm climatology, the compiled bridge and culvert layers, and the hazard exposure surfaces classed 0 to 3.">i</i></span><span class="arrow">&rarr;</span>
         <span class="stack">
-          <span class="step">1a. Criticality<i class="i" tabindex="0" data-tip="Segment-level criticality scoring on the Overture street network: 18,253 segments scored on three sub-indices, Equity, Detour Length, and Traffic, with adjustable sub-index and variable weights. Runs in parallel with exposure.">i</i></span>
-          <span class="step">1b. Exposure<i class="i" tabindex="0" data-tip="Per-hazard exposure scoring from the hazard layers and climate projections: wildfire, flooding, landslide, debris flow, and avalanche. Runs in parallel with criticality.">i</i></span>
+          <span class="step">1. Criticality assessment<i class="i" tabindex="0" data-tip="Component 1. Road segment criticality is defined by equity, traffic, detour length, and access to critical locations; 18,253 segments on the Overture street network with adjustable weights. Bridges and culverts inherit the road segment's score.">i</i></span>
+          <span class="step">2a. Exposure surfaces<i class="i" tabindex="0" data-tip="Each hazard surface is classed 0 to 3 with breaks held in configuration: flooding, landslide, wildfire, debris flow, and avalanche. Assets sample the classed surfaces so every pair uses the same classes.">i</i></span>
         </span><span class="arrow">&rarr;</span>
-        <span class="step">2. Screening: (E &times; w<sub>E</sub>) + (S &times; w<sub>S</sub>)<i class="i" tabindex="0" data-tip="Weighted sum of Exposure and Sensitivity, weights set per hazard-asset pair (Aug. 20 draft VA Methodology). Asset-level 0-3 scores bucketed High / Medium / Low. Criticality is scored separately in step 1 and read alongside vulnerability.">i</i></span><span class="arrow">&rarr;</span>
-        <span class="step">3. Disruption scenarios<i class="i" tabindex="0" data-tip="RA2CE on the Overture street network: detours, travel-time change, blocked assets, populations impacted. The Steering Committee will guide scenario planning.">i</i></span><span class="arrow">&rarr;</span>
-        <span class="step">2027 Resilience Improvement Plan</span>
+        <span class="step">2. Indicator screening: V = (E &times; w<sub>E</sub>) + (S &times; w<sub>S</sub>)<i class="i" tabindex="0" data-tip="Component 2, the system-wide, indicator-based vulnerability assessment. Vulnerability = (Exposure Score x wE) + (Sensitivity Score x wS), weights set per hazard-asset pair (consultant draft methodology, Aug. 20, 2026). Asset-level scores on a 0 to 3 scale, classed High, Medium, and Low. Criticality is assessed separately and read alongside vulnerability.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="step">3. Disruption scenarios<i class="i" tabindex="0" data-tip="Component 3, scenario-based disruption analyses in RA2CE on the Overture street network: detours, travel-time change, blocked assets, and populations affected. Two scenarios are selected from the high-criticality and high-vulnerability results in October 2026.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="step">2027 TRIP</span>
       </div>
     </section>
 
+    <div class="banner">
+      <div>
+        <div class="when">Next milestone</div>
+        <div class="what">Workshop 1 &middot; Nov. 9, 2026<i class="i" tabindex="0" data-tip="Partners review the draft historical-horizon results for all 15 hazard-asset pairs, the two disruption scenarios, and the interactive mapping tool. Print maps and the tool freeze on Nov. 4.">i</i></div>
+      </div>
+      <div class="checks">
+        <span><b>Oct. 9</b> rubrics to the consultant</span>
+        <span><b>Oct. 16</b> methods and first results</span>
+        <span><b>Oct. 30</b> all results final</span>
+        <span><b>Nov. 6</b> tool and materials final</span>
+      </div>
+    </div>
 
     <h2 class="section">Project pages</h2>
     <section class="card-grid">
 
-      <a class="page-card" href="reference-hub.html">
+      <a class="page-card featured" href="risk-index-tool.html">
         <div class="card-head">
-          <h3>Reference Hub</h3>
-          <span class="chip">v0.5</span>
+          <h3>Risk Index Tool</h3>
+          <span class="chip blue">MVP</span>
         </div>
-        <p>Hazard-asset pairs, the data and model inventory, and the assessment methodology.<i class="i" tabindex="0" data-tip="The decided pair matrix, the three-step approach and its indicators, the asset and vulnerability matrix, and 35 data elements mapped to REST endpoints and availability status.">i</i></p>
+        <p>Map of live TRPA hazard and asset layers, with the status of each assessment component.<i class="i" tabindex="0" data-tip="Flood zones, avalanche zones, fire severity probability, the equity tessellation, community priority zones, transit, and emergency services. Scored screening layers are added as the vulnerability scoring runs.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+
+      <a class="page-card featured" href="scoring-rubrics.html">
+        <div class="card-head">
+          <h3>Scoring Rubrics</h3>
+          <span class="chip">v0.3</span>
+        </div>
+        <p>Interactive exposure and sensitivity rubrics per hazard-asset pair: score an asset, read the rubric tables, and track the decisions requested from the consultant.<i class="i" tabindex="0" data-tip="All 15 pairs on the consultant's half-point scale with weights, indicator values, defaults, and sampling rules; 23 numbered decisions; and the list of TRPA departures from the Aug. 20, 2026 draft. Flood exposure is FEMA zones and stream crossings (no depth model). Mirrors docs/SCORING_RUBRICS.md.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
 
@@ -162,39 +191,39 @@
           <h3>Criticality Index</h3>
           <span class="chip blue">Live</span>
         </div>
-        <p>Criticality scoring for 18,253 street segments, with adjustable weights.<i class="i" tabindex="0" data-tip="Step 1a of the assessment. Sub-index and variable weights are adjustable, with hazard exposure filters for flood, fire, and landslide, and CSV export of the scored network. Runs on the Overture-derived street network.">i</i></p>
+        <p>Criticality scores for 18,253 street segments, with adjustable weights and hazard filters.<i class="i" tabindex="0" data-tip="Component 1 of the assessment. Sub-index and variable weights are adjustable, segments can be filtered by flood, fire, and landslide exposure, and the scored network exports to CSV. Runs on the Overture-derived street network.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
 
-      <a class="page-card" href="criticality-index-hazards.html">
+      <a class="page-card" href="reference-hub.html">
         <div class="card-head">
-          <h3>Criticality by Hazard</h3>
-          <span class="chip blue">Public</span>
+          <h3>Reference Hub</h3>
+          <span class="chip">v0.6</span>
         </div>
-        <p>The public version of the criticality index, with the weights set and hazard exposure filters.<i class="i" tabindex="0" data-tip="Equal-weight scoring across the three sub-indices, Equity, Traffic, and Detour Length, held fixed rather than adjustable. Segments can be filtered to flood zone, high-severity fire, and landslide exposure, with CSV export. Runs on the same Overture-derived network as the internal Criticality Index.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-
-      <a class="page-card featured" href="risk-index-tool.html">
-        <div class="card-head">
-          <h3>Risk Index Tool</h3>
-          <span class="chip blue">MVP</span>
-        </div>
-        <p>Map of live TRPA hazard and asset layers, plus the status of each assessment step.<i class="i" tabindex="0" data-tip="Flood zones, avalanche zones, fire severity probability, the equity tessellation, community priority zones, transit, and emergency services. Scored screening layers are added as they are computed.">i</i></p>
+        <p>Hazard-asset pairs, the data and model inventory, and the assessment methodology.<i class="i" tabindex="0" data-tip="The decided pair matrix, the three-component approach and its indicators, the asset and vulnerability matrix, and 32 data elements mapped to REST endpoints and availability status.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
 
     </section>
 
-    <h2 class="section">Other pages</h2>
+    <h2 class="section">Supporting pages</h2>
     <section class="card-grid compact">
+
+      <a class="page-card compact" href="od-services-index.html">
+        <div class="card-head">
+          <h3>OD Services Index</h3>
+          <span class="chip blue">Live</span>
+        </div>
+        <p>Access to critical locations by routed origin-destination trips, the fourth criticality factor.<i class="i" tabindex="0" data-tip="RA2CE-routed trips from population hexes to hospitals, shelters, and other critical services on the Overture street network. Segment scores by trip volume, with the normalization selectable.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
 
       <a class="page-card compact" href="historic-hazards.html">
         <div class="card-head">
           <h3>Historic Hazards</h3>
-          <span class="chip">New</span>
+          <span class="chip">v0.1</span>
         </div>
-        <p>The observed fire record for the Region, mapped against the TRPA boundary.<i class="i" tabindex="0" data-tip="CAL FIRE historic perimeters clipped live to the TRPA boundary, with a year filter, jurisdictions overlay, and CSV export. Historical hazards are the ground truth the predictive exposure models are checked against.">i</i></p>
+        <p>The observed hazard record: fire perimeters, mapped landslides, and earthquake epicenters against the TRPA boundary.<i class="i" tabindex="0" data-tip="CAL FIRE perimeters (California only) with a year filter, USGS landslide inventory, and USGS earthquake epicenters of magnitude 2.5 and over, with jurisdictions and CSV export. The historical record is the ground truth the predictive exposure surfaces are checked against.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
 
@@ -203,26 +232,17 @@
           <h3>Climate Data</h3>
           <span class="chip">v0.2</span>
         </div>
-        <p>Downscaled projections and Atlas 14 design storms for the exposure scoring.<i class="i" tabindex="0" data-tip="LOCA2, WRF, gridMET, and NOAA Atlas 14 sources and the metrics computed from them. Two emissions scenarios across three 30-year horizons, plus design-storm depths at eight basin points.">i</i></p>
+        <p>Downscaled projections and Atlas 14 design storms for the exposure scoring.<i class="i" tabindex="0" data-tip="LOCA2, WRF, gridMET, and NOAA Atlas 14 sources and the metrics computed from them: two emissions scenarios across three 30-year horizons, and design-storm depths at eight basin points.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
 
       <a class="page-card compact" href="tahoe-precip-events.html">
         <div class="card-head">
           <h3>Storm Events</h3>
-          <span class="chip">New</span>
+          <span class="chip">Explorer</span>
         </div>
-        <p>Trigger storm reconstruction, frequency analysis, and post-fire debris flow.<i class="i" tabindex="0" data-tip="MRMS radar reconstruction and hindcast of the July 14 debris flow, the burst catalog scored against Atlas 14, WRF future scaling, WEPP sediment runs, and culvert screening with CULVERT and USGS WildCat.">i</i></p>
+        <p>Trigger-storm reconstruction, frequency analysis, and the post-fire debris-flow chain.<i class="i" tabindex="0" data-tip="MRMS radar reconstruction and hindcast of the July 14 debris flow, the burst catalog scored against Atlas 14, WRF future scaling, WEPP sediment runs, and culvert screening with the CULVERT tool and USGS Wildcat.">i</i></p>
         <span class="open">Open &rarr;</span>
-      </a>
-
-      <a class="page-card compact" href="https://github.com/trpa-agency/PROTECT/blob/main/docs/SCORING_RUBRICS.md" target="_blank" rel="noopener">
-        <div class="card-head">
-          <h3>Scoring Rubrics</h3>
-          <span class="chip">v0.2</span>
-        </div>
-        <p>The 0-3 exposure and sensitivity rubrics per hazard-asset pair, with weights, breaks, and defaults.<i class="i" tabindex="0" data-tip="docs/SCORING_RUBRICS.md: shared framework (equation, buckets, criticality, max-pair aggregation, horizons, sampling), then the culvert, bridge, debris-flow road, and avalanche pairs, with the numbered decisions requested from the consultant. Opens on GitHub.">i</i></p>
-        <span class="open">Open on GitHub &rarr;</span>
       </a>
 
       <a class="page-card compact" href="https://github.com/trpa-agency/PROTECT/blob/main/docs/WORKSHOP1_PUNCHLIST.md" target="_blank" rel="noopener">
@@ -230,7 +250,7 @@
           <h3>Workshop 1 Punch List</h3>
           <span class="chip">Internal</span>
         </div>
-        <p>Dated data-team task list for both lanes through the Nov. 9 workshop.<i class="i" tabindex="0" data-tip="Markdown checklist in the repo (docs/WORKSHOP1_PUNCHLIST.md): hazards and structures lane, network and criticality lane, shared items, ICF checkpoints, and open decisions. Opens on GitHub.">i</i></p>
+        <p>Dated data-team task list through the Nov. 9 workshop.<i class="i" tabindex="0" data-tip="Markdown checklist in the repo (docs/WORKSHOP1_PUNCHLIST.md): hazards and structures, network and criticality, shared items, consultant checkpoints, and open decisions. Opens on GitHub.">i</i></p>
         <span class="open">Open on GitHub &rarr;</span>
       </a>
 
@@ -241,27 +261,27 @@
       <div class="timeline">
         <div class="milestone done">
           <div class="when">Jun 2026 &middot; done</div>
-          <div class="what">Phase 1 MVP<i class="i" tabindex="0" data-tip="Map tool MVP live; ICF/TRPA consultant sync held June 3.">i</i></div>
+          <div class="what">Phase 1 MVP<i class="i" tabindex="0" data-tip="Map tool MVP live; consultant and TRPA sync held June 3.">i</i></div>
         </div>
         <div class="milestone done">
           <div class="when">Jul 2026 &middot; done</div>
-          <div class="what">Pipelines stood up<i class="i" tabindex="0" data-tip="Climate extraction running; WildCat debris-flow modeling scoped and verified.">i</i></div>
+          <div class="what">Pipelines stood up<i class="i" tabindex="0" data-tip="Climate extraction running; Wildcat debris-flow modeling scoped and verified.">i</i></div>
         </div>
         <div class="milestone done">
           <div class="when">Aug 2026 &middot; done</div>
-          <div class="what">Criticality index live<i class="i" tabindex="0" data-tip="Interactive segment scoring published; RA2CE selected as the disruption engine.">i</i></div>
+          <div class="what">Criticality live; Steering Committee<i class="i" tabindex="0" data-tip="Interactive segment scoring published; RA2CE selected as the disruption engine; first Steering Committee meeting held.">i</i></div>
         </div>
         <div class="milestone next">
-          <div class="when">Aug 2026 &middot; next</div>
-          <div class="what">Steering Committee<i class="i" tabindex="0" data-tip="First Steering Committee meeting. Vet preliminary screening results.">i</i></div>
+          <div class="when">Oct 2026 &middot; now</div>
+          <div class="what">Rubrics and scoring<i class="i" tabindex="0" data-tip="Rubrics v0.2 to the consultant Oct. 9; exposure surfaces classed 0 to 3; bridge and culvert sensitivity; methods and first results Oct. 16; all results final Oct. 30.">i</i></div>
         </div>
         <div class="milestone">
-          <div class="when">Nov 2026</div>
-          <div class="what">Workshop 1<i class="i" tabindex="0" data-tip="Vet draft results and the interactive mapping tool.">i</i></div>
+          <div class="when">Nov. 9, 2026</div>
+          <div class="what">Workshop 1<i class="i" tabindex="0" data-tip="Partners vet the draft results and the interactive mapping tool.">i</i></div>
         </div>
         <div class="milestone">
           <div class="when">Dec 2026</div>
-          <div class="what">VA + tool final<i class="i" tabindex="0" data-tip="Finalize vulnerability assessment results and the interactive mapping tool.">i</i></div>
+          <div class="what">VA and tool final<i class="i" tabindex="0" data-tip="Vulnerability assessment results and the interactive mapping tool finalized; 2050 and 2080 horizons added.">i</i></div>
         </div>
         <div class="milestone">
           <div class="when">May 2027</div>
@@ -269,7 +289,7 @@
         </div>
         <div class="milestone">
           <div class="when">2027</div>
-          <div class="what">Final plan<i class="i" tabindex="0" data-tip="The Resilience Improvement Plan, with the risk index as its analytical core.">i</i></div>
+          <div class="what">Final plan<i class="i" tabindex="0" data-tip="The Tahoe Resilience Improvement Plan, with the risk index as its analytical core.">i</i></div>
         </div>
       </div>
     </div>
@@ -282,15 +302,17 @@
       <table class="ref" id="status-table">
         <thead><tr><th>Workstream</th><th>Status</th><th>Next step</th></tr></thead>
         <tbody>
-          <tr><td>Risk Index Tool<i class="i" tabindex="0" data-tip="risk-index-tool.html">i</i></td><td><span class="tag live">MVP live</span></td><td>Wire scored layers as screening results land</td></tr>
-          <tr><td>Criticality index<i class="i" tabindex="0" data-tip="criticality-index.html">i</i></td><td><span class="tag live">Live</span></td><td>Review weights with partners</td></tr>
-          <tr><td>Framework + data readiness<i class="i" tabindex="0" data-tip="reference-hub.html">i</i></td><td><span class="tag live">Working set</span></td><td>Close scoring-rubric decisions with the consultant</td></tr>
-          <tr><td>Climate pipeline<i class="i" tabindex="0" data-tip="climate-data.html and the climate/ pipeline folder">i</i></td><td><span class="tag live">Validated run</span></td><td>Consultant review, then publish projections</td></tr>
-          <tr><td>Storm events + WEPP chain<i class="i" tabindex="0" data-tip="tahoe-precip-events.html">i</i></td><td><span class="tag live">Built</span></td><td>Review WRF change factors; pilot CULVERT on the West Shore</td></tr>
-          <tr><td>Culvert layer<i class="i" tabindex="0" data-tip="Six jurisdictions, 7,858 assets. docs/METHODS_culverts.md and outputs/culverts.gdb">i</i></td><td><span class="tag live">Compiled</span></td><td>Rerun the legacy line-geometry match</td></tr>
-          <tr><td>Debris-flow modeling<i class="i" tabindex="0" data-tip="USGS WildCat. tahoe-precip-events.html and the debris-flow/ pipeline folder">i</i></td><td><span class="tag scoped">Scoped</span></td><td>Create the environment; run Caldor validation</td></tr>
-          <tr><td>Disruption-risk tool<i class="i" tabindex="0" data-tip="RA2CE on the Overture network. scripts/ra2ce">i</i></td><td><span class="tag live">RA2CE selected</span></td><td>Disruption and detour analysis</td></tr>
-          <tr><td>Pavement condition<i class="i" tabindex="0" data-tip="The remaining Step 2 sensitivity gap. Bridge condition comes from the National Bridge Inventory; culverts are compiled.">i</i></td><td><span class="tag open">Source TBD</span></td><td>Jurisdiction outreach</td></tr>
+          <tr><td>Risk Index Tool<i class="i" tabindex="0" data-tip="risk-index-tool.html">i</i></td><td><span class="tag live">MVP live</span></td><td>Tool skeleton against the v2 schema (Oct. 16); live scores, hotspots panel, and asset controls (Oct. 23)</td></tr>
+          <tr><td>Criticality assessment<i class="i" tabindex="0" data-tip="criticality-index.html and od-services-index.html">i</i></td><td><span class="tag live">Live</span></td><td>Final weights and the 0 to 3 class written to the road layer; segment layer with stable IDs for the bridge and culvert scoring</td></tr>
+          <tr><td>Scoring rubrics<i class="i" tabindex="0" data-tip="scoring-rubrics.html and docs/SCORING_RUBRICS.md">i</i></td><td><span class="tag progress">v0.3 drafted</span></td><td>All 15 pairs on the draft's scale; deliver Oct. 9; 20 decisions open, flood on FEMA zones with no depth model</td></tr>
+          <tr><td>Exposure surfaces<i class="i" tabindex="0" data-tip="Flooding, landslide, wildfire, debris flow, and avalanche, each classed 0 to 3 with breaks held in configuration">i</i></td><td><span class="tag progress">In progress</span></td><td>Flood by Oct. 9; wildfire and landslide by Oct. 12; avalanche Oct. 14; debris-flow proxy Oct. 16</td></tr>
+          <tr><td>Bridges layer<i class="i" tabindex="0" data-tip="40 National Bridge Inventory structures inside the TRPA boundary, five of them culvert-type; scripts/build_bridges.py">i</i></td><td><span class="tag live">Built</span></td><td>Flooding and landslide exposure to the consultant Oct. 12 to 13; sensitivity scores Oct. 15</td></tr>
+          <tr><td>Culvert layer<i class="i" tabindex="0" data-tip="Six jurisdictions, 7,858 assets with a condition table; docs/METHODS_culverts.md and scripts/culvert_profile.py">i</i></td><td><span class="tag live">Compiled</span></td><td>Road-crossing rule for El Dorado and Washoe pipes; 2 m profile run for watersheds, capacity, and the loading ratio</td></tr>
+          <tr><td>Climate pipeline<i class="i" tabindex="0" data-tip="climate-data.html and the climate/ pipeline folder">i</i></td><td><span class="tag live">Validated run</span></td><td>Consultant review, then publish the projections</td></tr>
+          <tr><td>Storm events and WEPP chain<i class="i" tabindex="0" data-tip="tahoe-precip-events.html">i</i></td><td><span class="tag live">Built</span></td><td>Link the culvert screening to the FL-C results; match the page header to the site (Nov. 4)</td></tr>
+          <tr><td>Debris-flow modeling<i class="i" tabindex="0" data-tip="USGS Wildcat; the debris-flow/ pipeline folder">i</i></td><td><span class="tag scoped">Proxy for workshop</span></td><td>Wildcat environment approval pending; Wildcat is the December path</td></tr>
+          <tr><td>Disruption scenarios<i class="i" tabindex="0" data-tip="RA2CE on the Overture network; scripts/ra2ce">i</i></td><td><span class="tag live">RA2CE selected</span></td><td>Two scenarios selected from the hotspot output Oct. 21; runs and fact sheets by Oct. 30</td></tr>
+          <tr><td>Pavement condition<i class="i" tabindex="0" data-tip="The open sensitivity gap for every road pair. Bridge condition comes from the National Bridge Inventory; culvert condition is compiled.">i</i></td><td><span class="tag open">Source TBD</span></td><td>Jurisdiction outreach; roads default to fair with the source flagged as partial until then</td></tr>
         </tbody>
       </table>
     </div>
@@ -298,7 +320,7 @@
 
   <footer>
     Internal review draft. Hosted at <a href="https://trpa-agency.github.io/PROTECT/">trpa-agency.github.io/PROTECT</a>;
-    final home planned at data.trpa.gov/PROTECT. Content pages carry their own version chips; this landing page is v0.6 of the site entry.
+    final home planned at data.trpa.gov/PROTECT. Content pages carry their own version chips; this landing page is v0.7 of the site entry.
   </footer>
 
   <script>

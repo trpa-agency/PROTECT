@@ -30,6 +30,8 @@ Workshop Nov. 9.
 | [x] | Oct. 8 | HS | Lane defaults confirmed Oct. 8: debris flow proxy for the workshop, Wildcat for December; road-crossing rule applied to both El Dorado and Washoe pipes; max-pair aggregation; avalanche by dominant slope plus record flag as in rubric section 5, zone layer as a record source, no runout |
 | [ ] | Oct. 8 | HS | Send NDOT the workshop-display sign-off request (segment-level aggregates only; NDOT reviews before anything is shown) |
 | [ ] | Oct. 8 | HS | Inventory the three baseline surfaces (FEMA zones in `Streams_and_Flood_Zone`, USGS landslide raster on F:, high-severity fire layer): paths, CRS, resolution, vintage, NV-side gaps |
+| [x] | Oct. 8 | Shared | `docs/SCORING_RUBRICS.md` v0.3 realigned to the Aug. 20 draft's rubric tables (half-point scale, the draft's breaks and directions) and extended to all 15 pairs (section 6 records the network lane's seven); TRPA departures tagged as proposals and listed on `html/scoring-rubrics.html`. Flood exposure is FEMA zones and stream crossings for every flood pair (no depth model, decisions 19 and 21) |
+| [ ] | Oct. 9 | Both | Confirm the section 6 inputs for FL-R, FL-AT, FL-TC, LS-R, WF-R, WF-AT, WF-TC: wildfire from the TRPA burn probability raster and high-severity fire probability layer (decision 22), truck AADT, trail slope, wooden guardrails, and pavement condition defaults (decisions 21 and 23) |
 | [ ] | Oct. 9 | Shared | `docs/SCORING_RUBRICS.md` v0.2 to ICF as PDF or Word, with the max-pair recommendation; HS closes the flood, landslide, and wildfire class breaks before sending |
 | [ ] | Oct. 9 | NC | One geodatabase, one road layer: `Streets_Network_Tahoe` in `PROTECT_analysis.gdb`; migrate the hazard flags; retire `PROTECT_analysis_recovered.gdb` and `Streets_Network_Drive` |
 | [ ] | Oct. 9 | NC | Segment layer with stable IDs and `C_class` handed to HS; bridges and culverts inherit C through `parent_segment_id` |
@@ -42,7 +44,9 @@ Workshop Nov. 9.
 | [ ] | Oct. 12 | HS | NLCD 2021 clip requested from the MRLC viewer Oct. 8; when it lands, save to F:, set `profile.nlcd`, rerun `--stage delineate --overwrite` then `--stage attributes`. Until then the profile uses the default runoff coefficient; say so in the FL-C method note |
 | [x] | Oct. 8 | HS | `build_bridges.py --overwrite` to add NBI items 45 and 48 (ran on the server) |
 | [x] | Oct. 8 | HS | Server clone: 10 m smoke test of `culvert_profile.py`, all three stages. Fixes on the `server-run` branch: outputs folder, drainage-tree cycles, area cross-check, DDF table tracked |
-| [ ] | Oct. 9 | HS | 2 m run started Oct. 8 (`--stage all --overwrite`, no land cover); check the log in the morning: zero cut links expected, snap count up from 3,653, area mismatches down from 592 |
+| [x] | Oct. 8 | HS | 2 m run done twice on the server. First run exposed sinks at unbreached crossings (two-cell flow loops, 581 area mismatches); depth-limited Fill fixed that (1 mismatch) but spilled creeks along ditches: 292 pipes of 24 in or less inherited basins over 100 ac and the loading-ratio median went from 0.38 to 2.33 |
+| [ ] | Oct. 9 | HS | Rerun the profile with the DEM breached through the culvert inventory and the 4 m pour snap (`--stage all --overwrite`, about one hour); first `python scripts/fetch_prism.py` for the regression precipitation. Then `qa_crossings.py --capture` again: big basins on small pipes should collapse, median ratio should land well under 1 |
+| [ ] | Oct. 9 | HS | Decide `regression.nv_uses`: Nevada's own region 1 equation or the CA Lahontan equation basin-wide (region 1 is about one third of Lahontan on the same basin). Record in rubric 2.4 and the FL-C method note |
 | [ ] | Oct. 10 | NC | `criticality-index.html` adopts the config weights and shows the 0-3 class next to the index |
 
 ## Week of Oct. 12 to 16: score and ship, rolling to ICF
@@ -52,7 +56,7 @@ Workshop Nov. 9.
 | [ ] | Oct. 12 | HS | Wildfire surface classed 0-3 (older burn probability; TRPA Fire/3 high-severity probability as the second indicator); handed to NC |
 | [ ] | Oct. 12 | HS | FL-B and FL-C exposure to ICF: FEMA class at the structure, culvert capacity screen as the second indicator, high lake stage tailwater flag on shoreline culverts; feature class, method note, CSV |
 | [ ] | Oct. 12 | NC | FL-R, FL-AT, FL-TC exposure to ICF from the classed flood surface |
-| [ ] | Oct. 12 | Shared | Contracted flood and fire data cutoff: anything not in hand goes to December; say so on the tool Status tab |
+| [ ] | Oct. 12 | Shared | Contracted fire data cutoff: anything not in hand goes to December; say so on the tool Status tab. No flood depth model is being acquired (decided Oct. 8); flood exposure is the FEMA zone and stream-crossing class for every horizon |
 | [ ] | Oct. 13 | HS | Landslide surface classed 0-3 (USGS susceptibility, mean or max in the 25 m buffer decided and recorded); LS-B and LS-C exposure to ICF |
 | [ ] | Oct. 13 | NC | WF-R, WF-AT, WF-TC exposure to ICF |
 | [ ] | Oct. 14 | HS | Avalanche surface (TRPA `Avalanche_Zones` class, length-weighted max per segment); AV-R exposure to ICF; corridor list (US-50, SR-89, SR-28, SR-207, SR-431) as the sanity check |
@@ -94,7 +98,8 @@ Workshop Nov. 9.
 | [ ] | Nov. 4 | Mason | Screen versions of the same 12 layouts exported as PDF for the on-screen reveal (exposure first, assets revealed) |
 | [ ] | Nov. 4 | Shared | Tool freeze: popups with E, S, C, V and `S_source`; bridges and culverts in hotspots and table; Status tab current for every component; `trpa-dashboard-qa` checklist on every page |
 | [ ] | Nov. 4 | HS | Storm events page: culvert screening linked to the tool's FL-C results; header matched to the site |
-| [ ] | Nov. 4 | Shared | Hub: Rubrics tab from `SCORING_RUBRICS.md`; inventory rows to Live or Proxy; Steering Committee decision on the four proposed pairs recorded. Landing page: Workshop 1 banner, phasing with the December milestone |
+| [x] | Oct. 8 | Shared | Rubrics page built as `html/scoring-rubrics.html` (interactive scoring, rubric tables, decisions) instead of a hub tab; landing page Workshop 1 banner and October milestone added; duplicate OD demo and criticality-hazards pages archived to `html/_archive/` |
+| [ ] | Nov. 4 | Shared | Hub: inventory rows to Live or Proxy; Steering Committee decision on the four proposed pairs recorded. Landing page: phasing with the December milestone |
 | [ ] | Nov. 5 | Both | Posters to print |
 | [ ] | Nov. 5 | Both | Slides to the presenter: criticality (NC); bridge and culvert sensitivity sources, debris flow and avalanche methods (HS); one scenario overview slide (NC) |
 | [ ] | Nov. 6 | NC | `Workshop1_Feedback` hosted layer (hazard, asset class, location, comment, source) and the Feedback toggle in the tool |
@@ -109,7 +114,7 @@ Workshop Nov. 9.
 |---|---|---|
 | Oct. 9 | Who presents the VA block, TRPA or ICF (decides who builds the slides) | TRPA project lead with ICF |
 | Oct. 9 | Max-pair aggregation across pairs | HS recommends, ICF confirms |
-| Oct. 12 | Contracted flood and fire delivery dates, or confirm the public fallback for the workshop | ICF |
+| Oct. 12 | Contracted fire delivery dates, or confirm the public fallback for the workshop (flood is FEMA for every horizon; no depth model) | ICF |
 | Oct. 12 | Wildcat environment approval (if yes, run in parallel with the proxy; do not swap mid-stream) | TRPA IT |
 | Oct. 16 | Steering Committee outcome on the four proposed pairs (seiche, high lake level) | Steering Committee via ICF |
 | Oct. 21 | Scenario 2 location and hazard | Shared |
@@ -119,7 +124,8 @@ Workshop Nov. 9.
 
 Earthquake, wind, winter storm, seiche, and high lake level scoring; 2050 and 2100 horizons;
 Expected Annual Loss; pavement condition outreach; the two-repo split; the standalone scenario
-explorer page; retiring the duplicate OD and criticality-hazards pages. December or later.
+explorer page. December or later. (The duplicate OD demo and criticality-hazards pages were
+archived Oct. 8.)
 
 ---
 
