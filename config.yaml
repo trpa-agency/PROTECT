@@ -69,6 +69,7 @@ profile:
   tailwater_ft: 6230       # outlet below this elevation is flagged (legal maximum lake level 6229.1)
   dem_vintage_year: 2011   # install_year at or after this postdates the 2010 lidar DEM
   size_breaks_in: [18, 36, 72]   # small / medium / large / major on equivalent diameter
+  load_ratio_breaks: [0.5, 1.0, 2.0]  # FL-C S1 classes 0/1/2/3 on load_ratio (SCORING_RUBRICS 2.3); used by the Pro maps
   max_span_in: 144         # larger circular spans are treated as data errors
   cond_stale_year: 2015    # latest inspection before this year is flagged stale
   # Hydrology (SCORING_RUBRICS 2.4). Atlas 14 DDF from the climate pipeline; nearest PFDS point.
