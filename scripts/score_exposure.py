@@ -161,6 +161,16 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
             break
     zones = gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), geometry="geometry", crs="EPSG:4326").to_crs(crs)
     zones["hz_class"] = [flood_class(z, y) for z, y in zip(zones[fl["zone_field"]], zones[fl["year_field"]])]
+    # Lake Tahoe's own 1 percent stillwater zone (AE over the lake) is lake-stage flooding, the
+    # high-lake-level pair the Steering Committee has not adopted; keep it out of the flood pairs
+    # unless exposure.flood.include_lake_zone is true.
+    if not fl.get("include_lake_zone", False):
+        lake_cap = float(fl.get("exclude_water_over_km2", 1.0)) * 1e6
+        big = zones.area > lake_cap
+        if big.any():
+            log.info(f"{int(big.sum())} FEMA polygon(s) over {lake_cap / 1e6:g} km2 dropped as lake-stage zones "
+                     f"({zones.loc[big].area.sum() / 1e6:.0f} km2); set exposure.flood.include_lake_zone to keep them")
+            zones = zones[~big]
     log.info(f"{len(zones)} FEMA polygons; class counts:\n" + zones["hz_class"].value_counts().to_string())
     unclassed = zones[zones["hz_class"] == 0]
     if len(unclassed):
