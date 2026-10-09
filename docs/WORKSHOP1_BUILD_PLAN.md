@@ -419,9 +419,11 @@ finish in a sitting, in dependency order.
    the rubrics) on the TRPA hydro-enforced bare-earth lidar DEM
    (`SDE.DEM_BareEarth_LiDAR_2010`, 2 m, about 600 million cells basin-wide). Flow direction
    and accumulation at 2 m are a server job: this runs on the server machine from a clone of
-   the repo, with `config.yaml` paths resolving on that machine, not on a workstation. Sinks
-   shallower than `profile.fill_z_limit_m` (3 m) are filled first; the enforcement did not
-   breach every crossing (Oct. 8 QA).
+   the repo, with `config.yaml` paths resolving on that machine, not on a workstation. The DEM
+   is breached through every inventoried culvert (`profile.breach`) and sinks shallower than
+   `profile.fill_z_limit_m` (3 m) are filled first; the enforcement did not breach every
+   crossing (Oct. 8 QA). Basins over 1 sq mi use the USGS regional regression with PRISM
+   precipitation (`scripts/fetch_prism.py`).
 3. `scripts/score_exposure.py`: one function per hazard surface (FEMA zone class, USGS
    landslide class, avalanche zone class, debris flow proxy raster) that takes an asset layer
    and writes `E_<pair>` 0-3 from breaks in `config.yaml`. Points sample with a 25 m buffer,
