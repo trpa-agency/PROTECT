@@ -679,6 +679,13 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
     gdb = cfg["paths"]["analysis_gdb"]
     rps = p["return_periods"]
     cul = read_culverts(cfg, log)
+    # On a rerun the layer already carries the profile fields from the last apply. Drop them so
+    # the stage recomputes from the raw inventory and the merges below do not collide
+    # (pandas would suffix cond_class, crossing_id, ... with _x / _y).
+    stale = [f[0] for f in profile_fields(cfg) if f[0] in cul.columns]
+    if stale:
+        cul = cul.drop(columns=stale)
+        log.info(f"Dropped {len(stale)} profile field(s) already on the layer; recomputing")
     cond = read_layer(gdb, a["condition_table"], geometry=False)
     log.info(f"Read {len(cond)} condition records")
 
