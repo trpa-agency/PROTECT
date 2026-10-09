@@ -164,23 +164,31 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
     # Lake Tahoe's own 1 percent stillwater zone (AE over the lake) is lake-stage flooding, the
     # high-lake-level pair the Steering Committee has not adopted; keep it out of the flood pairs
     # unless exposure.flood.include_lake_zone is true.
-    if not fl.get("include_lake_zone", False):
-        lake_cap = float(fl.get("exclude_water_over_km2", 1.0)) * 1e6
-        big = zones.area > lake_cap
-        if big.any():
-            log.info(f"{int(big.sum())} FEMA polygon(s) over {lake_cap / 1e6:g} km2 dropped as lake-stage zones "
-                     f"({zones.loc[big].area.sum() / 1e6:.0f} km2); set exposure.flood.include_lake_zone to keep them")
-            zones = zones[~big]
     log.info(f"{len(zones)} FEMA polygons; class counts:\n" + zones["hz_class"].value_counts().to_string())
     unclassed = zones[zones["hz_class"] == 0]
     if len(unclassed):
         log.warning(f"{len(unclassed)} FEMA polygons scored 0; zone / year values: "
                     f"{unclassed[[fl['zone_field'], fl['year_field']]].drop_duplicates().head(10).to_dict('records')}")
 
-    # mapped streams (lidar-derived polygons; the lake and large water bodies excluded) -> class 2
-    streams = fetch_rest_features(fl["streams_layer"], crs, log)
+    # mapped streams (lidar-derived polygons); water bodies over the cap are the lake and the
+    # large lakes, used below to recognize lake-stage FEMA zones and excluded from "a stream"
+    water = fetch_rest_features(fl["streams_layer"], crs, log)
     cap = float(fl.get("exclude_water_over_km2", 1.0)) * 1e6
-    streams = streams[streams.area <= cap]
+    lakes = water[water.area > cap]
+    streams = water[water.area <= cap]
+    if not fl.get("include_lake_zone", False) and len(lakes):
+        lake_geom = lakes.geometry.union_all() if hasattr(lakes.geometry, "union_all") else lakes.geometry.unary_union
+        frac = zones.geometry.intersection(lake_geom).area / zones.area.replace(0, np.nan)
+        on_lake = frac.fillna(0) > 0.5
+        if on_lake.any():
+            log.info(f"{int(on_lake.sum())} FEMA polygon(s) dropped as lake-stage zones (more than half on a water body "
+                     f"over {cap / 1e6:g} km2; {zones.loc[on_lake].area.sum() / 1e6:.0f} km2); "
+                     f"set exposure.flood.include_lake_zone to keep them")
+            zones = zones[~on_lake]
+        kept_big = zones[zones.area > cap]
+        if len(kept_big):
+            log.info(f"{len(kept_big)} FEMA floodplain polygon(s) over {cap / 1e6:g} km2 kept (not on the lake): "
+                     f"{[round(a / 1e6, 1) for a in kept_big.area]} km2")
     sb = gpd.GeoDataFrame({"hz_class": [2] * len(streams)}, geometry=streams.buffer(float(fl["stream_buffer_m"])).values, crs=crs)
     log.info(f"{len(streams)} stream polygons (water bodies over {fl.get('exclude_water_over_km2', 1.0)} km2 excluded) "
              f"buffered {fl['stream_buffer_m']} m as class 2")
