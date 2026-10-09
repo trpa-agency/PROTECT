@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT Risk Index Tool (MVP) | TRPA</title>
+  <meta name="description" content="Phase 1 of the PROTECT Risk Index Tool: live TRPA hazard and asset layers for the Lake Tahoe Region transportation network, with the status of each assessment component." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -84,10 +85,17 @@
     .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
       background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
       font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
-      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
-    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
     .i.tip-right::after{left:auto;right:0;transform:none;}
     .i.tip-left::after{left:0;right:auto;transform:none;}
+    /* Phone and tablet widths: nav wraps under the title, the layer panel stacks above the map */
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;flex-wrap:wrap;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;border-right:none;border-bottom:1px solid var(--gray-border);}
+      #map-view{height:420px;}
+    }
   </style>
 </head>
 <body>

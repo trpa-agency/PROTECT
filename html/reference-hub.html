@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT Reference Hub | TRPA</title>
+  <meta name="description" content="Hazard-asset pairs, the data and model inventory, and the assessment framework for TRPA's PROTECT vulnerability assessment." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -112,10 +113,15 @@
     .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
       background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
       font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
-      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
-    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
     .i.tip-right::after{left:auto;right:0;transform:none;}
     .i.tip-left::after{left:0;right:auto;transform:none;}
+    /* Phone widths */
+    @media (max-width:700px){
+      .toolbar input.qf{min-width:0;flex-basis:100%;}
+      calcite-tab-nav{overflow-x:auto;}
+    }
   </style>
 </head>
 <body>

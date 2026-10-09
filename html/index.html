@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT Risk Index and Resilience Tool | TRPA</title>
+  <meta name="description" content="TRPA's PROTECT Task 3 risk index and vulnerability assessment for Lake Tahoe Basin transportation assets: project pages, Workshop 1 milestones, and workstream status." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -106,11 +107,19 @@
     .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
       background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
       font-style:normal;line-height:1.45;width:max-content;max-width:min(260px,calc(100vw - 2rem));text-align:left;white-space:normal;
-      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
-    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
     /* Edge-aware placement (set by placeTips) so a tooltip never widens the page */
     .i.tip-right::after{left:auto;right:0;transform:none;}
     .i.tip-left::after{left:0;right:auto;transform:none;}
+    /* Phone widths: the status table scrolls inside itself instead of widening the page */
+    @media (max-width:700px){
+      .header-content{flex-wrap:wrap;}
+      table.ref{display:block;overflow-x:auto;white-space:nowrap;}
+      .banner .checks{margin-left:0;}
+      .card-grid,.card-grid.compact{grid-template-columns:1fr;}
+      .milestone{min-width:100%;}
+    }
   </style>
 </head>
 <body>
@@ -321,7 +330,7 @@
   </main>
 
   <footer>
-    Internal review draft. Hosted at <a href="https://trpa-agency.github.io/PROTECT/">trpa-agency.github.io/PROTECT</a>;
+    Internal review draft. Hosted at <a href="https://trpa-agency.github.io/PROTECT/" target="_blank" rel="noopener">trpa-agency.github.io/PROTECT</a>;
     final home planned at data.trpa.gov/PROTECT. Content pages carry their own version chips; this landing page is v0.8 of the site entry.
   </footer>
 

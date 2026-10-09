@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT Climate Data | TRPA</title>
+  <meta name="description" content="Climate inputs for the PROTECT vulnerability assessment: downscaled projections, NOAA Atlas 14 design storms, computed metrics, methods, and open decisions." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -83,6 +84,16 @@
     .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
     .i.tip-right::after{left:auto;right:0;transform:none;}
     .i.tip-left::after{left:0;right:auto;transform:none;}
+    footer.app-footer{max-width:1240px;margin:0 auto;padding:1.25rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.82rem;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    /* Phone widths: nav wraps under the title, tables scroll inside themselves */
+    @media (max-width:700px){
+      header.app-header .header-meta{flex-basis:100%;flex-shrink:1;flex-wrap:wrap;}
+      table.ref{display:block;overflow-x:auto;white-space:nowrap;}
+      calcite-tab-nav{overflow-x:auto;}
+      .toolbar input.qf,.toolbar .qf{min-width:0;flex-basis:100%;}
+    }
   </style>
 </head>
 <body>
@@ -204,7 +215,7 @@
           <h2>Climate data product index</h2>
           <p>Status reflects the pipeline as of Aug. 17, 2026. The Link column opens the source in a new tab.</p>
           <div class="toolbar">
-            <input id="src-qf" class="qf" type="text" placeholder="Filter by product, provider, or role" />
+            <input id="src-qf" class="qf" type="text" placeholder="Filter by product, provider, or role" aria-label="Filter climate data products" />
             <button id="src-export">Export CSV</button>
           </div>
           <div id="src-grid" class="ag-theme-quartz" style="width:100%;"></div>
@@ -276,7 +287,7 @@
             coverage is published for California and Nevada (currently pilot only).
           </div>
           <div class="toolbar">
-            <input id="ddf-qf" class="qf" type="text" placeholder="Filter by point, duration, or return period" />
+            <input id="ddf-qf" class="qf" type="text" placeholder="Filter by point, duration, or return period" aria-label="Filter design-storm depths" />
             <button id="ddf-export">Export CSV</button>
           </div>
           <div id="ddf-grid" class="ag-theme-quartz" style="width:100%;"></div>
@@ -304,7 +315,7 @@
           <h3>Provenance and reproducibility</h3>
           <p>
             Every download is recorded in a manifest; raw subsets stay on local disk. Full methods are in
-            <a href="https://github.com/trpa-agency/PROTECT/blob/main/climate/docs/METHODS.md" style="color:var(--trpa-blue);font-weight:600;">climate/docs/METHODS.md</a>.
+            <a href="https://github.com/trpa-agency/PROTECT/blob/main/climate/docs/METHODS.md" target="_blank" rel="noopener" style="color:var(--trpa-blue);font-weight:600;">climate/docs/METHODS.md</a>.
             The extraction spec is a <strong>placeholder pending consultant review</strong>.<i class="i" tabindex="0" data-tip="The manifest records source URL, size, checksum, and retrieval date. Only reviewed summary products are published. The spec (scenarios, ensemble, metrics) lives in climate/config.yaml.">i</i>
           </p>
           <h3>Known caveats</h3>
@@ -337,6 +348,10 @@
       </calcite-tab>
     </calcite-tabs>
   </main>
+
+  <footer class="app-footer">
+    <p>PROTECT Climate Data v0.2. Pipeline and methods in <code>climate/</code> (<a href="https://github.com/trpa-agency/PROTECT/blob/main/climate/docs/METHODS.md" target="_blank" rel="noopener">climate/docs/METHODS.md</a>). Sources: LOCA2 and WRF via the Cal-Adapt data catalog, gridMET, and NOAA Atlas 14. Internal review draft.</p>
+  </footer>
 
   <script>
     // ---------- DATA ----------

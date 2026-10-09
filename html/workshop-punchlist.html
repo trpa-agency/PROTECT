@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROTECT Workshop 1 Punch List | TRPA</title>
+  <meta name="description" content="Dated data-team task list for the PROTECT Workshop 1 on Nov. 9, 2026, with the decisions open and the print-map spec." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -88,6 +89,11 @@
     footer.app-footer{max-width:1240px;margin:0 auto;padding:1.25rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.82rem;}
     footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
     footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    /* Phone widths: tables scroll inside themselves instead of widening the page */
+    @media (max-width:700px){
+      table.ref{display:block;overflow-x:auto;white-space:nowrap;}
+      .toolbar input.qf{min-width:0;flex-basis:100%;}
+    }
   </style>
 </head>
 <body>
