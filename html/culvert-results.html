@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Culvert Results | PROTECT | TRPA</title>
+  <meta name="description" content="Draft vulnerability assessment results for the small culverts and bridges of the Lake Tahoe Region: the culvert profile, the 100-year loading ratio, and flood exposure on the classed FEMA and stream surface." />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Calcite 5 (ArcGIS 4.31's bundled Calcite lazy-loads only what its own widgets use) -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+
+  <!-- UMD bundles MUST load before the ArcGIS SDK or Dojo's AMD loader swallows them -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <!-- ArcGIS Maps SDK (after the UMD bundles) -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;flex-wrap:wrap;}
+    header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
+    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
+    /* KPI cards */
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:.4rem;}
+    .kpi{background:#fff;border:1px solid var(--gray-border);border-top:3px solid var(--trpa-blue);border-radius:6px;padding:.6rem .8rem;}
+    .kpi .v{font-size:1.45rem;font-weight:700;line-height:1.1;}
+    .kpi .l{font-size:.72rem;color:var(--gray-text);margin-top:.15rem;}
+    /* Map */
+    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
+    .layer-panel{width:290px;flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--trpa-navy);margin-top:.35rem;}
+    .lg-dot{flex:0 0 14px;height:14px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-sw{flex:0 0 18px;height:11px;border-radius:2px;display:inline-block;}
+    #map-view{flex:1;height:640px;}
+    /* Charts */
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+    .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
+    .chart h3{font-size:.85rem;font-weight:700;margin:.2rem .4rem .1rem;}
+    .chart .sub{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .3rem;}
+    /* Table */
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
+    .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
+    .grid-wrap{width:100%;height:480px;}
+    .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
+      --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
+    .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
+    .notes li{margin:.25rem 0 .25rem 1.1rem;}
+    footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(300px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;}
+      #map-view{height:420px;}
+      .charts{grid-template-columns:1fr;}
+      .toolbar .qf{min-width:0;flex-basis:100%;}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Culvert and Bridge Results</h1>
+        <div class="header-sub">PROTECT Task 3.2 &middot; Component 2 draft results: culvert profile and flood exposure</div>
+      </div>
+      <div class="right">
+        <span class="chip">v0.1 draft</span>
+        <a href="index.html">Home</a>
+        <a href="risk-index-tool.html">Risk Index Tool</a>
+        <a href="scoring-rubrics.html">Scoring Rubrics</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="tahoe-precip-events.html">Storm Events</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="banner">Draft screening results for workshop review. Values rank crossings for the vulnerability assessment and are not design numbers. Public jurisdictions only: the restricted state DOT export is excluded at the row level and is not aggregated into any figure on this page.</div>
+
+    <p class="lead">
+      This page shows the first results of component 2 for the small culverts and the bridges: the culvert profile
+      (contributing watershed, design flow, capacity, and the loading ratio), the records flagged for owner review, and
+      flood exposure sampled on the classed FEMA and stream surface. The method is section 2 of the
+      <a href="scoring-rubrics.html">scoring rubrics</a>; the values update each time the profile runs.
+    </p>
+
+    <div class="kpis" id="kpis"></div>
+    <p class="note" style="font-size:.72rem;color:var(--gray-text);margin:.2rem 0 .4rem;" id="gen-note"></p>
+
+    <h2 class="sec">Map</h2>
+    <div class="map-wrap" id="map-wrap">
+      <div class="layer-panel">
+        <h3>Culverts, colored by</h3>
+        <calcite-segmented-control id="color-by" scale="s" width="full">
+          <calcite-segmented-control-item value="ratio" checked>Loading ratio</calcite-segmented-control-item>
+          <calcite-segmented-control-item value="flood">Flood exposure</calcite-segmented-control-item>
+        </calcite-segmented-control>
+        <div id="legend-ratio">
+          <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> under 0.5 (S2 = 0)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#0072CE"></span> 0.5 to under 1 (0)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#E8A05A"></span> 1 to under 2 (0.5 to 1)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#E87722"></span> 2 to under 4 (1.5 to 2.5)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#9C3E27"></span> 4 and over (3)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#ffffff"></span> suspect record, ratio withheld</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#cfd4da"></span> no ratio (no watershed or size)</div>
+          <p class="note">100-yr event flow over crossing capacity at headwater equal to the crown. Scores in parentheses are the FL-C S2 values.</p>
+        </div>
+        <div id="legend-flood" style="display:none">
+          <div class="lg-row"><span class="lg-dot" style="background:#cfd4da"></span> 0: no zone, no mapped stream</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> 1: flowline outside a zone</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#0072CE"></span> 2: 0.2 percent zone or mapped stream</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#003B71"></span> 3: 1 percent zone</div>
+          <p class="note">FL-C E1, the maximum over the contributing watershed, plus 1 where the outlet is below the legal maximum lake level.</p>
+        </div>
+        <div class="grp">
+          <h3>Layers</h3>
+          <label class="lyr"><calcite-switch id="tg-cul" checked></calcite-switch> Culverts (scored)</label>
+          <label class="lyr"><calcite-switch id="tg-br" checked></calcite-switch> Bridges (NBI), flood exposure<i class="i" tabindex="0" data-tip="E_FLB: waterway adequacy (NBI item 71) at 0.20 and the flood class within 25 m at 0.10, weight-normalized to 0 to 3.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-dot" style="background:#4A6118"></span> under 1 &nbsp; <span class="lg-dot" style="background:#E87722"></span> 1 to under 2 &nbsp; <span class="lg-dot" style="background:#9C3E27"></span> 2 and over</div>
+          <label class="lyr"><calcite-switch id="tg-flood"></calcite-switch> Classed flood surface<i class="i" tabindex="0" data-tip="FEMA 1 percent zones (3), the 0.2 percent zone and a 10 m buffer on the lidar-derived streams (2). The lake's own stillwater zone is excluded.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(0,59,113,.45)"></span> class 3 &nbsp; <span class="lg-sw" style="background:rgba(0,114,206,.35)"></span> class 2</div>
+          <label class="lyr"><calcite-switch id="tg-bound" checked></calcite-switch> TRPA boundary</label>
+        </div>
+        <div class="grp">
+          <h3>Filter</h3>
+          <label class="lyr"><calcite-switch id="tg-review"></calcite-switch> Flagged for owner review only<i class="i" tabindex="0" data-tip="size_suspect (the recorded size cannot be the crossing for the basin that arrives; ratio withheld) and ratio_review (ratio above 20; scored but listed for the owner).">i</i></label>
+        </div>
+      </div>
+      <div id="map-view"></div>
+    </div>
+
+    <h2 class="sec">Distributions</h2>
+    <div class="charts">
+      <div class="chart"><h3>Loading ratio by pipe size</h3><div class="sub">100-yr event flow over capacity, scored culverts with a ratio; log scale</div><div id="ch-ratio" style="height:290px"></div></div>
+      <div class="chart"><h3>Flood exposure by jurisdiction</h3><div class="sub">FL-C E1 on the watershed sampling rule, share of scored culverts</div><div id="ch-flood" style="height:290px"></div></div>
+    </div>
+
+    <h2 class="sec">Culvert table</h2>
+    <p class="lead">One row per scored culvert in the public jurisdictions. The flags columns carry the review list.</p>
+    <div class="toolbar">
+      <input id="qf" class="qf" type="text" placeholder="Search by id, jurisdiction, road, crossing, or flag" aria-label="Quick search culverts" />
+      <calcite-button id="export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+    </div>
+    <div id="grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <h2 class="sec">Reading the numbers</h2>
+    <ul class="notes">
+      <li>The contributing watershed is delineated on the hydro-enforced lidar DEM after the road fill is breached through every inventoried culvert away from mapped streams and sinks under 3 m are filled. The pour point is the culvert's own cell on the breach.</li>
+      <li>Event flow is the rational method on NOAA Atlas 14 at the basin's time of concentration for basins under 1 sq mi, with the runoff coefficient from NLCD 2021 land cover; larger basins use the USGS regional regression for their state on PRISM 1991 to 2020 precipitation.</li>
+      <li>Capacity is FHWA HDS-5 inlet control at headwater equal to the crown, barrels summed per crossing. It is conservative by roughly 1.5 to 2 against how culverts are designed to run where ponding is tolerable.</li>
+      <li>A record whose size cannot be the crossing for the basin that arrives (24 in. or under on a mapped stream with 100 acres or more, 24 in. or under with 500 acres or more anywhere, or any size under 8 in.) is withheld from the ratio and listed for the owner. A ratio above 20 keeps its score and is listed as well.</li>
+      <li>Flood exposure follows the rubric's watershed sampling proposal (decision 3); the point value within 25 m is carried alongside for comparison.</li>
+    </ul>
+  </main>
+
+  <footer class="app-footer">
+    <p>Culvert and Bridge Results v0.1, draft. Data: <code>data/processed/results/</code> written by <code>scripts/publish_results.py</code> from the analysis geodatabase; method in <code>docs/SCORING_RUBRICS.md</code> sections 2.2 to 2.5. Culvert inventories from Caltrans, Placer County, El Dorado County, Douglas County, the City of South Lake Tahoe, and the TRPA legacy compilation; bridges from the National Bridge Inventory. Flood zones: FEMA via the TRPA <code>Streams_and_Flood_Zone</code> service. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const BASE = "../data/processed/results/";
+    const BOUND_URL = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4";
+    const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
+    const COL = {ice:"#B4CBE8", blue:"#0072CE", navy:"#003B71", peach:"#E8A05A", orange:"#E87722", brick:"#9C3E27", gray:"#cfd4da", forest:"#4A6118"};
+
+    // ---------- KPIs ----------
+    fetch(BASE + "summary.json").then(r => r.json()).then(s => {
+      const c = s.culverts || {}, b = s.bridges || {};
+      const items = [
+        [fmt(c.scored_public), "culverts scored (public)"],
+        [fmt(c.full_profile), "full profile: size, hydrology, condition"],
+        [fmt(c.with_ratio), "with a loading ratio"],
+        [c.ratio_median == null ? "-" : fmt(c.ratio_median, 2), "median 100-yr loading ratio"],
+        [fmt(c.ratio_over_1), "ratio 1 and over"],
+        [fmt(c.size_suspect), "suspect records, ratio withheld"],
+        [fmt(c.ratio_review), "ratio above 20, for owner review"],
+        [fmt(b.count), "bridges (NBI) with flood exposure"]
+      ];
+      document.getElementById("kpis").innerHTML = items.map(([v,l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      document.getElementById("gen-note").textContent = "Generated " + (s.generated || "") + ". Counts exclude the restricted jurisdiction.";
+    }).catch(() => { document.getElementById("gen-note").textContent = "Summary not available: results have not been published yet."; });
+
+    // ---------- TABLE + CHARTS from the culvert GeoJSON ----------
+    let gridApi = null;
+    const cols = [
+      {field:"culvert_id", headerName:"Culvert", minWidth:190, flex:1, filter:"agTextColumnFilter"},
+      {field:"jurisdiction", headerName:"Jurisdiction", width:150, filter:"agTextColumnFilter"},
+      {field:"road_name", headerName:"Road", width:150, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+      {field:"crossing_id", headerName:"Crossing", width:100},
+      {field:"d_eq_in", headerName:"Dia (in)", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+      {field:"contrib_area_ac", headerName:"Basin (ac)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+      {field:"basin_landcover", headerName:"Land cover", width:110, valueFormatter:p=>p.value||"-"},
+      {field:"q_event_100_cfs", headerName:"Q100 (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+      {field:"q_cap_crossing_cfs", headerName:"Qcap (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+      {field:"load_ratio_100", headerName:"Ratio 100-yr", width:115, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2),
+        cellStyle:p=>{const v=p.value; if(v==null) return {}; const c = v>=4?COL.brick: v>=2?COL.orange: v>=1?COL.peach: null;
+          return c ? {background:c, color: v>=2?"#fff":"#003B71", fontWeight:600} : {};}},
+      {field:"load_ratio_25", headerName:"Ratio 25-yr", width:110, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
+      {field:"E_FLC_hist", headerName:"Flood E", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,0),
+        cellStyle:p=>{const m={3:COL.navy,2:COL.blue,1:COL.ice}; const c=m[p.value]; return c?{background:c,color:p.value>=2?"#fff":"#003B71",fontWeight:600}:{};}},
+      {field:"cond_class", headerName:"Cond.", width:85, valueFormatter:p=>p.value==null?"-":p.value},
+      {field:"cond_source", headerName:"Cond. source", width:120},
+      {field:"flags", headerName:"Flags", width:200, filter:"agTextColumnFilter"},
+      {field:"profile_completeness", headerName:"Profile", width:95},
+      {field:"q_method", headerName:"Q method", width:135}
+    ];
+    agGrid.createGrid(document.getElementById("grid"), {
+      columnDefs: cols, rowData: [], defaultColDef:{sortable:true, resizable:true, filter:true},
+      onGridReady: e => { gridApi = e.api; }
+    });
+    document.getElementById("qf").addEventListener("input", e => { if(gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
+    document.getElementById("export").addEventListener("click", () => { if(gridApi) gridApi.exportDataAsCsv({fileName:"PROTECT_culvert_results.csv"}); });
+
+    fetch(BASE + "culverts_results.geojson").then(r => r.json()).then(gj => {
+      const rows = gj.features.map(f => {
+        const p = Object.assign({}, f.properties);
+        const fl = [];
+        if (p.size_suspect == 1) fl.push("size suspect");
+        if (p.ratio_review == 1) fl.push("ratio review");
+        if (p.tailwater_flag == 1) fl.push("tailwater");
+        if (p.on_stream == 1) fl.push("on mapped stream");
+        p.flags = fl.join("; ");
+        return p;
+      });
+      if (gridApi) gridApi.setGridOption("rowData", rows);
+
+      // ratio by size class, log x
+      const classes = ["small","medium","large","major"];
+      const traces = classes.map(c => ({
+        type:"box", name:c, x: rows.filter(r => r.size_class===c && r.load_ratio_100!=null && r.load_ratio_100>0).map(r=>r.load_ratio_100),
+        marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h"
+      }));
+      Plotly.newPlot("ch-ratio", traces, {
+        margin:{l:60,r:10,t:10,b:40}, showlegend:false, font:{family:"Open Sans",size:11,color:"#003B71"},
+        xaxis:{type:"log", title:"Loading ratio (100-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true},
+        shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}],
+        paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
+      }, {displayModeBar:false, responsive:true});
+
+      // flood E by jurisdiction, stacked share
+      const jur = [...new Set(rows.map(r=>r.jurisdiction))].sort();
+      const evals = [0,1,2,3];
+      const ecol = {0:COL.gray,1:COL.ice,2:COL.blue,3:COL.navy};
+      const ft = evals.map(e => ({
+        type:"bar", name:"E = "+e, x:jur, marker:{color:ecol[e]},
+        y: jur.map(j => { const sub=rows.filter(r=>r.jurisdiction===j); const n=sub.length||1;
+          return 100*sub.filter(r=>Math.round(r.E_FLC_hist)===e).length/n; })
+      }));
+      Plotly.newPlot("ch-flood", ft, {
+        barmode:"stack", margin:{l:45,r:10,t:10,b:90}, font:{family:"Open Sans",size:11,color:"#003B71"},
+        legend:{orientation:"h", y:1.12}, yaxis:{title:"percent of culverts", gridcolor:"#eef0f3", range:[0,100]},
+        xaxis:{tickangle:-25}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
+      }, {displayModeBar:false, responsive:true});
+    }).catch(err => { console.warn("culvert results not available", err); });
+
+    // ---------- MAP ----------
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, Home, BasemapToggle){
+
+      const ratioRenderer = {
+        type:"class-breaks",
+        valueExpression: "IIf($feature.size_suspect == 1, -1, IIf(IsEmpty($feature.load_ratio_100), -2, $feature.load_ratio_100))",
+        classBreakInfos:[
+          {minValue:-2.5, maxValue:-1.5, symbol:dot(COL.gray, 4), label:"no ratio"},
+          {minValue:-1.5, maxValue:-0.5, symbol:dot("#ffffff", 5), label:"suspect record"},
+          {minValue:-0.5, maxValue:0.5,  symbol:dot(COL.ice, 5),   label:"under 0.5"},
+          {minValue:0.5,  maxValue:1,    symbol:dot(COL.blue, 5),  label:"0.5 to under 1"},
+          {minValue:1,    maxValue:2,    symbol:dot(COL.peach, 6), label:"1 to under 2"},
+          {minValue:2,    maxValue:4,    symbol:dot(COL.orange, 7),label:"2 to under 4"},
+          {minValue:4,    maxValue:1e9,  symbol:dot(COL.brick, 8), label:"4 and over"}
+        ]
+      };
+      const floodRenderer = {
+        type:"unique-value", valueExpression:"Text(Round($feature.E_FLC_hist))",
+        defaultSymbol:dot(COL.gray,4),
+        uniqueValueInfos:[{value:"0",symbol:dot(COL.gray,4)},{value:"1",symbol:dot(COL.ice,5)},{value:"2",symbol:dot(COL.blue,6)},{value:"3",symbol:dot(COL.navy,7)}]
+      };
+      function dot(color, size){ return {type:"simple-marker", style:"circle", color:color, size:size, outline:{color:[255,255,255,0.9], width:0.6}}; }
+
+      const culverts = new GeoJSONLayer({
+        url: BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], renderer: ratioRenderer,
+        popupTemplate:{
+          title:"{culvert_id}",
+          content:[{type:"fields", fieldInfos:[
+            {fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"},
+            {fieldName:"crossing_id", label:"Crossing"}, {fieldName:"barrels", label:"Barrels"},
+            {fieldName:"d_eq_in", label:"Equivalent diameter (in)", format:{places:1}},
+            {fieldName:"material_class", label:"Material"},
+            {fieldName:"contrib_area_ac", label:"Contributing area (ac)", format:{places:1, digitSeparator:true}},
+            {fieldName:"basin_landcover", label:"Majority land cover"},
+            {fieldName:"q_method", label:"Event flow method"},
+            {fieldName:"q_event_100_cfs", label:"Q100 (cfs)", format:{places:1}},
+            {fieldName:"q_cap_crossing_cfs", label:"Capacity at the crown (cfs)", format:{places:1}},
+            {fieldName:"load_ratio_100", label:"Loading ratio, 100-yr", format:{places:2}},
+            {fieldName:"load_ratio_25", label:"Loading ratio, 25-yr", format:{places:2}},
+            {fieldName:"cond_class", label:"Condition class"}, {fieldName:"cond_source", label:"Condition source"},
+            {fieldName:"E_FLC_hist", label:"Flood exposure E (watershed)"}, {fieldName:"E_FLC_pt", label:"Flood exposure at the point"},
+            {fieldName:"tailwater_flag", label:"Tailwater flag"}, {fieldName:"size_suspect", label:"Size suspect"},
+            {fieldName:"ratio_review", label:"Ratio review"}, {fieldName:"profile_completeness", label:"Profile completeness"}
+          ]}]
+        }
+      });
+      const bridges = new GeoJSONLayer({
+        url: BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"],
+        renderer:{type:"class-breaks", field:"E_FLB_hist",
+          classBreakInfos:[
+            {minValue:-1, maxValue:0.999, symbol:sq(COL.forest)}, {minValue:0.999, maxValue:1.999, symbol:sq(COL.orange)},
+            {minValue:1.999, maxValue:3.1, symbol:sq(COL.brick)}]},
+        popupTemplate:{title:"{facility_carried} over {feature_crossed}",
+          content:[{type:"fields", fieldInfos:[
+            {fieldName:"bridge_id", label:"NBI structure"}, {fieldName:"owner", label:"Owner"},
+            {fieldName:"year_built", label:"Year built"}, {fieldName:"is_culvert_type", label:"Culvert-type structure"},
+            {fieldName:"waterway_eval", label:"Waterway adequacy (item 71)"}, {fieldName:"scour_label", label:"Scour"},
+            {fieldName:"bridge_condition_label", label:"Condition"}, {fieldName:"lowest_rating", label:"Lowest rating"},
+            {fieldName:"E_FLB_e1", label:"E1 waterway adequacy"}, {fieldName:"E_FLB_e2", label:"E2 flood class"},
+            {fieldName:"E_FLB_hist", label:"Flood exposure E"}
+          ]}]}
+      });
+      function sq(color){ return {type:"simple-marker", style:"square", color:color, size:10, outline:{color:[255,255,255,0.95], width:1}}; }
+
+      const flood = new GeoJSONLayer({
+        url: BASE + "flood_surface.geojson", title:"Classed flood surface", visible:false, opacity:0.9,
+        renderer:{type:"unique-value", field:"hz_class",
+          uniqueValueInfos:[{value:3, symbol:{type:"simple-fill", color:[0,59,113,0.45], outline:{color:[0,59,113,0.6], width:0.4}}},
+                            {value:2, symbol:{type:"simple-fill", color:[0,114,206,0.35], outline:{color:[0,114,206,0.5], width:0.3}}},
+                            {value:1, symbol:{type:"simple-fill", color:[180,203,232,0.5], outline:{color:[180,203,232,0.8], width:0.3}}}]},
+        popupTemplate:{title:"Flood class {hz_class}", content:"{label}"}
+      });
+      const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
+
+      const map = new Map({basemap:"topo-vector", layers:[flood, bound, bridges, culverts]});
+      const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}});
+      view.ui.add(new Home({view}), "top-left");
+      view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+
+      const sw = (id, layer) => document.getElementById(id).addEventListener("calciteSwitchChange", e => { layer.visible = e.target.checked; });
+      sw("tg-cul", culverts); sw("tg-br", bridges); sw("tg-flood", flood); sw("tg-bound", bound);
+      document.getElementById("color-by").addEventListener("calciteSegmentedControlChange", e => {
+        const v = e.target.selectedItem.value;
+        culverts.renderer = v === "flood" ? floodRenderer : ratioRenderer;
+        document.getElementById("legend-ratio").style.display = v === "flood" ? "none" : "";
+        document.getElementById("legend-flood").style.display = v === "flood" ? "" : "none";
+      });
+      document.getElementById("tg-review").addEventListener("calciteSwitchChange", e => {
+        culverts.definitionExpression = e.target.checked ? "size_suspect = 1 OR ratio_review = 1" : null;
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
