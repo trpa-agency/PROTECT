@@ -277,10 +277,11 @@
       const classes = ["small","medium","large","major"];
       const traces = classes.map(c => ({
         type:"box", name:c, x: rows.filter(r => r.size_class===c && r.load_ratio_100!=null && r.load_ratio_100>0).map(r=>r.load_ratio_100),
-        marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h"
+        marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h",
+        hovertemplate:"%{x:.2f}<extra>%{fullData.name}</extra>"
       }));
       Plotly.newPlot("ch-ratio", traces, {
-        margin:{l:60,r:10,t:10,b:40}, showlegend:false, font:{family:"Open Sans",size:11,color:"#003B71"},
+        margin:{l:60,r:10,t:10,b:40}, showlegend:false, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
         xaxis:{type:"log", title:"Loading ratio (100-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true},
         shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}],
         paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
@@ -293,10 +294,12 @@
       const ft = evals.map(e => ({
         type:"bar", name:"E = "+e, x:jur, marker:{color:ecol[e]},
         y: jur.map(j => { const sub=rows.filter(r=>r.jurisdiction===j); const n=sub.length||1;
-          return 100*sub.filter(r=>Math.round(r.E_FLC_hist)===e).length/n; })
+          return 100*sub.filter(r=>Math.round(r.E_FLC_hist)===e).length/n; }),
+        customdata: jur.map(j => rows.filter(r=>r.jurisdiction===j && Math.round(r.E_FLC_hist)===e).length),
+        hovertemplate:"%{y:.1f} percent (%{customdata} culverts)<extra>E = " + e + "</extra>"
       }));
       Plotly.newPlot("ch-flood", ft, {
-        barmode:"stack", margin:{l:45,r:10,t:10,b:90}, font:{family:"Open Sans",size:11,color:"#003B71"},
+        barmode:"stack", margin:{l:45,r:10,t:10,b:90}, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
         legend:{orientation:"h", y:1.12}, yaxis:{title:"percent of culverts", gridcolor:"#eef0f3", range:[0,100]},
         xaxis:{tickangle:-25}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
       }, {displayModeBar:false, responsive:true});
@@ -378,7 +381,7 @@
       const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
         renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
 
-      const map = new Map({basemap:"topo-vector", layers:[flood, bound, bridges, culverts]});
+      const map = new Map({basemap:"terrain", layers:[flood, bound, bridges, culverts]});
       const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}});
       view.ui.add(new Home({view}), "top-left");
       view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
