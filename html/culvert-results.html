@@ -166,6 +166,7 @@
           <label class="lyr"><calcite-switch id="tg-flood"></calcite-switch> Classed flood surface<i class="i" tabindex="0" data-tip="FEMA 1 percent zones (3), the 0.2 percent zone and a 10 m buffer on the lidar-derived streams (2). The lake's own stillwater zone is excluded.">i</i></label>
           <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(0,59,113,.45)"></span> class 3 &nbsp; <span class="lg-sw" style="background:rgba(0,114,206,.35)"></span> class 2</div>
           <label class="lyr"><calcite-switch id="tg-bound" checked></calcite-switch> TRPA boundary</label>
+          <label class="lyr"><calcite-switch id="tg-hill"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading drainages and road fills.">i</i></label>
         </div>
         <div class="grp">
           <h3>Filter</h3>
@@ -305,8 +306,12 @@
     }).catch(err => { console.warn("culvert results not available", err); });
 
     // ---------- MAP ----------
-    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/widgets/Home","esri/widgets/BasemapToggle"],
-      function(Map, MapView, FeatureLayer, GeoJSONLayer, Home, BasemapToggle){
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, Home, BasemapToggle){
+
+      // Esri World Hillshade, free tiles, as an optional terrain overlay under the data layers
+      const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+        title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
 
       const ratioRenderer = {
         type:"class-breaks",
@@ -380,13 +385,13 @@
       const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
         renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
 
-      const map = new Map({basemap:"terrain", layers:[flood, bound, bridges, culverts]});
+      const map = new Map({basemap:"gray-vector", layers:[hillshade, flood, bound, bridges, culverts]});
       const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}});
       view.ui.add(new Home({view}), "top-left");
       view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
 
       const sw = (id, layer) => document.getElementById(id).addEventListener("calciteSwitchChange", e => { layer.visible = e.target.checked; });
-      sw("tg-cul", culverts); sw("tg-br", bridges); sw("tg-flood", flood); sw("tg-bound", bound);
+      sw("tg-cul", culverts); sw("tg-br", bridges); sw("tg-flood", flood); sw("tg-bound", bound); sw("tg-hill", hillshade);
       document.getElementById("color-by").addEventListener("calciteSegmentedControlChange", e => {
         const v = e.target.selectedItem.value;
         culverts.renderer = v === "flood" ? floodRenderer : ratioRenderer;
