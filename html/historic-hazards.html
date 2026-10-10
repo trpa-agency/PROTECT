@@ -177,6 +177,7 @@
           <h3>Boundaries</h3>
           <label class="lyr"><calcite-switch id="tg-bound" class="sw" checked></calcite-switch> TRPA boundary</label>
           <label class="lyr"><calcite-switch id="tg-juris" class="sw"></calcite-switch> Jurisdictions<i class="i" tabindex="0" data-tip="Jurisdictions Combined: El Dorado, Placer, Alpine, Washoe, Douglas, Carson City, and the City of South Lake Tahoe.">i</i></label>
+          <label class="lyr"><calcite-switch id="tg-hill" class="sw"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading drainages and road fills.">i</i></label>
           <div class="note">TRPA <code>Boundaries</code> FeatureServer, layers 4 and 10.</div>
         </div>
       </div>
@@ -278,8 +279,12 @@
 
     require([
       "esri/Map","esri/views/MapView","esri/layers/FeatureLayer",
-      "esri/layers/GeoJSONLayer","esri/widgets/Home","esri/widgets/BasemapToggle","esri/rest/support/Query"
-    ], function(Map, MapView, FeatureLayer, GeoJSONLayer, Home, BasemapToggle, Query){
+      "esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/widgets/Home","esri/widgets/BasemapToggle","esri/rest/support/Query"
+    ], function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, Home, BasemapToggle, Query){
+
+      // Esri World Hillshade, free tiles, as an optional terrain overlay under the data layers
+      const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+        title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
 
       // Year ramp: pale ice for the oldest fires through brick for the most recent.
       const fires = new FeatureLayer({
@@ -379,7 +384,7 @@
         popupTemplate: lsPolyPopup
       });
 
-      const map = new Map({ basemap:"gray-vector", layers:[fires, slidePoly, juris, bound, slidePoint, quakes] });
+      const map = new Map({ basemap:"gray-vector", layers:[hillshade, fires, slidePoly, juris, bound, slidePoint, quakes] });
       const view = new MapView({ container:"map-view", map:map, center:[-120.02, 39.09], zoom:9 });
 
       view.when(function(){
@@ -461,6 +466,7 @@
       bindToggle("tg-fire", fires);
       bindToggle("tg-juris", juris);
       bindToggle("tg-bound", bound);
+      bindToggle("tg-hill", hillshade);
       bindToggle("tg-eq", quakes);
       bindToggle("tg-lspoly", slidePoly);
       bindToggle("tg-lspoint", slidePoint);

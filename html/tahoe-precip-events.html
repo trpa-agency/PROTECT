@@ -166,6 +166,7 @@
           <div id="map-view"></div>
           <div id="map-error"></div>
           <div class="map-overlays">
+            <label><calcite-switch id="sw-hill" scale="s"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading drainages and road fills.">i</i></label>
             <label><calcite-switch id="sw-culverts" scale="s"></calcite-switch> Culverts (TRPA, 7,858)</label>
             <label><calcite-switch id="sw-streams" scale="s" checked></calcite-switch> Streams and lakes (LiDAR)</label>
             <label><calcite-switch id="sw-flood" scale="s"></calcite-switch> Flood zone</label>
@@ -480,9 +481,9 @@
       require(['esri/Map', 'esri/views/MapView', 'esri/layers/MediaLayer', 'esri/layers/support/ImageElement',
                'esri/layers/support/ExtentAndRotationGeoreference', 'esri/geometry/Extent',
                'esri/layers/FeatureLayer', 'esri/layers/GeoJSONLayer', 'esri/layers/GraphicsLayer',
-               'esri/Graphic', 'esri/widgets/Home', 'esri/widgets/BasemapToggle'],
+               'esri/layers/TileLayer', 'esri/Graphic', 'esri/widgets/Home', 'esri/widgets/BasemapToggle'],
       function(Map, MapView, MediaLayer, ImageElement, ExtentAndRotationGeoreference, Extent,
-               FeatureLayer, GeoJSONLayer, GraphicsLayer, Graphic, Home, BasemapToggle) {
+               FeatureLayer, GeoJSONLayer, GraphicsLayer, TileLayer, Graphic, Home, BasemapToggle) {
         try {
           ImageElementClass = ImageElement;
           const e = ev.extent3857;
@@ -493,7 +494,11 @@
           imgEl = new ImageElement({ image: currentImage(), georeference: georefObj });
           mediaLayer = new MediaLayer({ source: [imgEl], opacity: 0.8, title: 'MRMS QPE' });
 
-          const map = new Map({ basemap: 'terrain', layers: [mediaLayer] });  // Esri "Terrain with Labels"
+          // Esri World Hillshade, free tiles, as an optional terrain overlay under the data layers
+          const hillshade = new TileLayer({ url: 'https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer',
+            title: 'Hillshade', visible: false, opacity: 0.55, blendMode: 'multiply' });
+
+          const map = new Map({ basemap: 'terrain', layers: [hillshade, mediaLayer] });  // Esri "Terrain with Labels"
           const boundary = new FeatureLayer({
             url: 'https://maps.trpa.org/server/rest/services/Boundaries/MapServer/4',
             renderer: { type: 'simple', symbol: { type: 'simple-fill', color: [0,0,0,0], outline: { color: '#003B71', width: 1.6 } } },
@@ -568,7 +573,7 @@
             popupTemplate: { title: 'WEPP catchment {TopazID}, {watershed}',
               content: 'Sediment yield (high-severity fire): <b>{SdYd_kg_ha} kg/ha</b><br/>Runoff {Runoff_mm_} mm, slope {slope}, {landuse}<br/><span style="color:#5a6577;">TRPA basin-wide WEPP runs, maps.trpa.org</span>' } });
           weppLayer.load().catch(() => { map.remove(weppLayer); weppLayer = null; });
-          map.add(weppLayer, 1);
+          map.add(weppLayer, 2);
 
           const SFZ = 'https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer';
           let streamsLayer = new FeatureLayer({ url: SFZ + '/1', visible: true, opacity: 0.75,
@@ -577,7 +582,7 @@
                         outline: { color: [11, 95, 168, 0.9], width: 0.8 } } },
             popupEnabled: false });
           streamsLayer.load().catch(() => { map.remove(streamsLayer); streamsLayer = null; });
-          map.add(streamsLayer, 2);
+          map.add(streamsLayer, 3);
 
           let floodLayer = new FeatureLayer({ url: SFZ + '/0', visible: false, opacity: 0.5,
             title: 'Flood zone',
@@ -585,13 +590,14 @@
                         outline: { color: [123, 106, 138, 0.8], width: 0.6 } } },
             popupEnabled: false });
           floodLayer.load().catch(() => { map.remove(floodLayer); floodLayer = null; });
-          map.add(floodLayer, 2);
+          map.add(floodLayer, 3);
 
           const swC = document.getElementById('sw-culverts'), swW = document.getElementById('sw-wepp');
           swC.addEventListener('calciteSwitchChange', e => { if (culvertLayer) culvertLayer.visible = e.target.checked; });
           swW.addEventListener('calciteSwitchChange', e => { if (weppLayer) weppLayer.visible = e.target.checked; });
           document.getElementById('sw-streams').addEventListener('calciteSwitchChange', e => { if (streamsLayer) streamsLayer.visible = e.target.checked; });
           document.getElementById('sw-flood').addEventListener('calciteSwitchChange', e => { if (floodLayer) floodLayer.visible = e.target.checked; });
+          document.getElementById('sw-hill').addEventListener('calciteSwitchChange', e => { hillshade.visible = e.target.checked; });
 
           // WRF future 1-hr intensity grid (climate pipeline notebook 07: d02 9 km, 3 models, ssp370).
           // Symbolized on the change factor vs each model's own WY 1981-2010 baseline; the popup
@@ -629,7 +635,7 @@
             const hzSel = document.getElementById('i1h-horizon');
             i1hLayer = new GeoJSONLayer({ url: i1hUrl, visible: false, title: 'WRF 1-hr intensity change',
               renderer: i1hRenderer(hzSel.value), popupTemplate: i1hPopup(hzSel.value) });
-            map.add(i1hLayer, 1);
+            map.add(i1hLayer, 2);
             document.getElementById('i1h-legend').innerHTML = I1H_BREAKS.map(b =>
               '<div class="lg-row"><span class="lg-sw" style="background:rgba(' + b.color.join(',') + ')"></span><span>' + b.label + '</span></div>').join('');
             hzSel.addEventListener('change', () => {

@@ -159,6 +159,10 @@
                 <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Bridges<i class="i" tabindex="0" data-tip="The Bridges layer holds the 40 National Bridge Inventory structures inside the TRPA boundary with condition, scour, channel, and waterway items. It publishes with the PROTECT_VA v2 service (Oct. 23, 2026).">i</i></label>
                 <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Culverts<i class="i" tabindex="0" data-tip="7,858 culverts compiled from six jurisdictions with a condition table. Publishes with the PROTECT_VA v2 service (Oct. 23, 2026); NDOT assets are excluded from publication pending NDOT review.">i</i></label>
               </div>
+              <div class="grp">
+                <h3>Base</h3>
+                <label class="lyr"><calcite-switch id="tg-hill" class="sw"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading drainages and road fills.">i</i></label>
+              </div>
             </div>
             <div id="map-view"></div>
           </div>
@@ -239,10 +243,10 @@
     const CRIT_RAMP = ["#2c7bb6","#ffffbf","#d7191c"];
 
     require([
-      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer",
+      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/TileLayer",
       "esri/widgets/Legend","esri/widgets/Home","esri/widgets/BasemapToggle",
       "esri/smartMapping/statistics/histogram"
-    ], function(Map, MapView, FeatureLayer, Legend, Home, BasemapToggle, histogram){
+    ], function(Map, MapView, FeatureLayer, TileLayer, Legend, Home, BasemapToggle, histogram){
 
       // Percentile off a histogram, interpolated inside the straddling bin.
       function pct(h, p){
@@ -259,6 +263,10 @@
         }
         return h.maxValue;
       }
+
+      // Esri World Hillshade, free tiles, as an optional terrain overlay under the data layers
+      const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+        title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
 
       const flood = new FeatureLayer({
         url: FLOOD_URL, title: "Flood zones", visible:false, opacity:0.55,
@@ -292,7 +300,7 @@
         }
       });
 
-      const map = new Map({ basemap:"gray-vector", layers:[fire, flood, avy, roads] });
+      const map = new Map({ basemap:"gray-vector", layers:[hillshade, fire, flood, avy, roads] });
       const view = new MapView({ container:"map-view", map:map, center:[-120.04, 39.09], zoom:10 });
 
       view.when(function(){
@@ -332,6 +340,7 @@
       bindToggle("tg-avy", avy);
       bindToggle("tg-fire", fire);
       bindToggle("tg-roads", roads);
+      bindToggle("tg-hill", hillshade);
     });
 
     // Flip tooltips that would otherwise extend past a viewport edge.

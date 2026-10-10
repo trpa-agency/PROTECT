@@ -195,7 +195,7 @@
       font-size: 10px; color: var(--text-dim);
     }
     .norm-btns { display: flex; gap: 6px; }
-    .norm-btn {
+    .norm-btn, .map-btn {
       flex: 1;
       font-family: var(--font-display);
       font-size: 10px; font-weight: 700;
@@ -206,8 +206,8 @@
       border-radius: 5px; padding: 7px 4px;
       cursor: pointer; transition: all .15s;
     }
-    .norm-btn:hover { border-color: var(--navy); color: var(--navy); }
-    .norm-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .norm-btn:hover, .map-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .norm-btn.active, .map-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 
     /* trip-ranking switch shares the norm-btn shape, accented in teal */
     .rank-btn {
@@ -621,6 +621,13 @@
       <div class="haz-count" id="haz-count">Showing all segments</div>
     </div>
 
+    <div class="norm-bar">
+      <span class="norm-lbl">Map</span>
+      <div class="norm-btns">
+        <button class="map-btn" id="hillshade-btn">Terrain (hillshade)</button>
+      </div>
+    </div>
+
     <div class="cards-scroll">
 
       <div class="wsum-row">
@@ -775,7 +782,7 @@
 <div class="info-pop hidden" id="info-pop"></div>
 
 <script>
-require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, CustomContent) => {
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/TileLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, TileLayer, CustomContent) => {
 
   // ═══════════════════════════════════════════════════════
   //  DESTINATION DEFINITIONS
@@ -1344,7 +1351,16 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
     definitionExpression: WHERE
   });
 
-  const map  = new Map({ basemap: "gray-vector", layers: [featureLayer] });
+  const hillshade = new TileLayer({
+    url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+    title: "Hillshade", visible: false, opacity: 0.55, blendMode: "multiply"
+  });
+  document.getElementById("hillshade-btn").addEventListener("click", e => {
+    hillshade.visible = !hillshade.visible;
+    e.currentTarget.classList.toggle("active", hillshade.visible);
+  });
+
+  const map  = new Map({ basemap: "gray-vector", layers: [hillshade, featureLayer] });
   const view = new MapView({
     container: "viewDiv", map,
     center: [-120.03, 39.09], zoom: 10,
