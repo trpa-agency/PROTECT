@@ -169,6 +169,12 @@
           <label class="lyr"><calcite-switch id="tg-hill"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading drainages and road fills.">i</i></label>
         </div>
         <div class="grp">
+          <h3>Selected culvert</h3>
+          <div class="lg-row"><span class="lg-sw" style="background:rgba(232,119,34,.38);border:1px solid #9C3E27"></span> drains straight to it</div>
+          <div class="lg-row"><span class="lg-sw" style="background:rgba(0,114,206,.22);border:1px dashed #003B71"></span> arrives through upstream culverts</div>
+          <p class="note" id="drain-note">Click a culvert to draw its drainage area.</p>
+        </div>
+        <div class="grp">
           <h3>Filter</h3>
           <label class="lyr"><calcite-switch id="tg-review"></calcite-switch> Flagged for owner review only<i class="i" tabindex="0" data-tip="size_suspect (the recorded size cannot be the crossing for the basin that arrives; ratio withheld) and ratio_review (ratio above 20; scored but listed for the owner).">i</i></label>
         </div>
@@ -306,8 +312,11 @@
     }).catch(err => { console.warn("culvert results not available", err); });
 
     // ---------- MAP ----------
-    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/widgets/Home","esri/widgets/BasemapToggle"],
-      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, Home, BasemapToggle){
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, Graphic, Home, BasemapToggle){
+
+      // Drainage area of the clicked culvert: one small GeoJSON per crossing, drawn on demand
+      const drain = new GraphicsLayer({title:"Drainage area", listMode:"hide"});
 
       // Esri World Hillshade, free tiles, as an optional terrain overlay under the data layers
       const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
@@ -385,10 +394,43 @@
       const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
         renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
 
-      const map = new Map({basemap:"gray-vector", layers:[hillshade, flood, bound, bridges, culverts]});
-      const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}});
+      const map = new Map({basemap:"gray-vector", layers:[hillshade, flood, drain, bound, bridges, culverts]});
+      const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false},
+        popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
       view.ui.add(new Home({view}), "top-left");
       view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+
+      const SYM = {
+        direct:  {type:"simple-fill", color:[232,119,34,0.38], outline:{color:[156,62,39,0.95], width:1.4}},
+        upstream:{type:"simple-fill", color:[0,114,206,0.22],  outline:{color:[0,59,113,0.9], width:1.1, style:"short-dash"}}
+      };
+      const noteEl = document.getElementById("drain-note");
+      function ringsOf(geom){ return geom.type === "Polygon" ? geom.coordinates : geom.coordinates.flat(); }
+      function showDrainage(cid){
+        drain.removeAll();
+        if(!cid){ noteEl.textContent = "Click a culvert to draw its drainage area."; return; }
+        noteEl.textContent = "Loading drainage for " + cid + "...";
+        fetch(BASE + "watersheds/" + cid + ".geojson").then(r => r.ok ? r.json() : null).then(gj => {
+          if(!gj){ noteEl.textContent = cid + ": no drainage file (no watershed, or a restricted crossing)."; return; }
+          let direct = 0, upstream = 0, nUp = 0;
+          gj.features.forEach(f => {
+            const part = f.properties.part;
+            drain.add(new Graphic({geometry:{type:"polygon", rings:ringsOf(f.geometry), spatialReference:{wkid:4326}},
+              symbol:SYM[part] || SYM.direct, attributes:f.properties}));
+            if(part === "direct") direct = f.properties.area_ac; else { upstream = f.properties.area_ac; nUp = f.properties.n_upstream || 0; }
+          });
+          const total = (direct || 0) + (upstream || 0);
+          noteEl.textContent = cid + ": " + fmt(total,1) + " acres in all; " + fmt(direct,1) + " drain straight to this crossing"
+            + (upstream ? ", " + fmt(upstream,1) + " arrive through " + nUp + " upstream crossing" + (nUp === 1 ? "" : "s") : "") + ".";
+        }).catch(() => { noteEl.textContent = cid + ": drainage could not be loaded."; });
+      }
+      window.showDrainage = showDrainage;
+      view.on("click", evt => {
+        view.hitTest(evt, {include:[culverts]}).then(res => {
+          const g = res.results.length ? res.results[0].graphic : null;
+          showDrainage(g && g.attributes ? g.attributes.crossing_id : null);
+        });
+      });
 
       const sw = (id, layer) => document.getElementById(id).addEventListener("calciteSwitchChange", e => { layer.visible = e.target.checked; });
       sw("tg-cul", culverts); sw("tg-br", bridges); sw("tg-flood", flood); sw("tg-bound", bound); sw("tg-hill", hillshade);
