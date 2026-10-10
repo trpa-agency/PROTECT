@@ -179,7 +179,7 @@ the option 1 matrix locally from its own watershed delineation and estimates Qca
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | **TRPA proposal** (decision 19): FEMA flood zone and stream crossing, in place of the draft's flood depth indicator, because no flood depth model is being acquired | 0.30 | 1 percent zone (A, AE) | 3 | 0 | Maximum within 25 m of the crossing on the road |
+| E1 | **TRPA proposal** (decision 19): FEMA flood zone and stream crossing, in place of the draft's flood depth indicator, because no flood depth model is being acquired. The lake's own 1 percent stillwater zone (AE over Lake Tahoe) is excluded: lake-stage flooding is the high-lake-level pair, not adopted (`exposure.flood.include_lake_zone`) | 0.30 | 1 percent zone (A, AE) | 3 | 0 | Maximum within 25 m of the crossing on the road |
 | | | | 0.2 percent zone (X500) or on a mapped TRPA stream | 2 | | |
 | | | | on an NHD flowline outside a zone | 1 | | |
 | | | | no zone, no flowline | 0 | | |

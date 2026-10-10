@@ -128,8 +128,8 @@ def build_profile_map(aprx, cfg, log):
     simple(ws, GREY, hollow=True, width=0.6, outline=NAVY)
     ws.transparency = 30
 
-    st = m.addDataFromPath(f"{gdb}\\{a['streets_fc']}")
-    st.name = "Streets (Streets_Network_Tahoe)"
+    st = m.addDataFromPath(f"{a.get('streets_gdb') or gdb}\\{a['streets_fc']}")
+    st.name = f"Streets ({a['streets_fc']})"
     simple(st, GREY, width=0.7)
 
     br_l = m.addDataFromPath(f"{gdb}\\{a['bridges_fc']}")
@@ -198,7 +198,7 @@ def build_terrain_map(aprx, cfg, log):
     ws = m.addDataFromPath(f"{gdb}\\CulvertWatersheds_inc")
     ws.name = "Crossing watersheds (incremental)"
     simple(ws, GREY, hollow=True, width=0.8, outline=ORANGE)
-    st = m.addDataFromPath(f"{gdb}\\{a['streets_fc']}")
+    st = m.addDataFromPath(f"{a.get('streets_gdb') or gdb}\\{a['streets_fc']}")
     st.name = "Streets"
     simple(st, NAVY, width=0.6)
     cu = m.addDataFromPath(f"{gdb}\\{a['culverts_fc']}")

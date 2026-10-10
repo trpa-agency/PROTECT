@@ -33,6 +33,25 @@ output:
   # Tahoe Basin working CRS: NAD 1983 UTM Zone 10N.
   target_epsg: 26910
 
+# scripts/score_exposure.py - classed hazard surfaces and E_<pair>_hist per asset (SCORING_RUBRICS 1.7, 2.3, 3.2, 6)
+exposure:
+  hazards_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_hazards.gdb   # classed surfaces, one fc per hazard
+  horizon: hist            # field suffix; 2050 / 2080 columns are added in December
+  point_buffer_m: 25       # bridges and transit centers: maximum within this distance
+  flood:                   # FL-C E1 values (decision 19): 1 pct zone 3, 0.2 pct zone or mapped stream 2, NHD flowline 1
+    zones_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/0
+    zone_field: FLOOD_ZONE
+    year_field: FLOOD_YEAR   # "100-year flood" / "500-year flood"
+    streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
+    stream_buffer_m: 10
+    exclude_water_over_km2: 1   # the lake and large water bodies are not "a mapped stream"
+    include_lake_zone: false    # FEMA maps the lake's 1 pct stillwater elevation as AE (478 km2): lake-stage
+                                # flooding is the high-lake-level pair, not adopted; false drops FEMA polygons
+                                # over exclude_water_over_km2 from the flood surface
+    nhd_flowlines: ""        # optional NHD flowline layer url for the class-1 value; blank = class 1 unused
+    class_fc: Hazard_Flood_Class
+    bridge_weights: {e1: 0.20, e2: 0.10}   # FL-B: waterway adequacy (NBI 71) and the flood class
+
 run:
   crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when
     jurisdictions: [El Dorado County, Washoe County]   # their line crosses a street centerline
@@ -43,8 +62,9 @@ run:
 
 # scripts/load_culverts_gdb.py - load the engineered culvert layer into the analysis geodatabase
 assets:
-  streets_fc: Streets_Network_Tahoe   # road segments in analysis_gdb; key = segment_id
-  streets_key: segment_id
+  streets_gdb: F:\GIS\PROJECTS\Transportation\Protect\Data\Streets_Network\streets_network_tahoe_clean.gdb
+  streets_fc: Streets_Network_Tahoe_Clean   # the network lane's cleaned street layer (Oct. 9, 2026)
+  streets_key: src_objectid         # unique per link (segment_id is the Overture id, shared by split links)
   segment_snap_m: 50                  # max distance from a culvert to its parent road segment
   culverts_fc: Culverts
   condition_table: CulvertCondition
