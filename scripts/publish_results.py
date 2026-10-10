@@ -56,9 +56,72 @@ def tidy(gdf: gpd.GeoDataFrame, cols: list[str]) -> gpd.GeoDataFrame:
     return out.to_crs("EPSG:4326")
 
 
+def write_watersheds(cfg: dict, out_dir: Path, log, simplify_m: float = 5.0) -> int:
+    """One GeoJSON per public crossing under out_dir/watersheds/<crossing_id>.geojson with two
+    features: part = direct (the crossing's own incremental zone) and part = upstream (every
+    zone that reaches it through upstream crossings, dissolved). The page draws them on click.
+    Restricted crossings get no file; an upstream union may cover ground drained through a
+    restricted culvert, which is area, not an asset record."""
+    import pyogrio
+    from shapely.ops import unary_union
+    gdb = cfg["paths"]["analysis_gdb"]
+    ws = pyogrio.read_dataframe(gdb, layer="CulvertWatersheds_inc")
+    xt = pyogrio.read_dataframe(gdb, layer="CulvertCrossings", read_geometry=False)
+    inc = {int(r.gridcode): r.geometry.simplify(simplify_m, preserve_topology=True) for r in ws.itertuples()}
+    pp_of = {r.crossing_id: int(r.crossing_pp) for r in xt.itertuples()}
+    down = {int(r.crossing_pp): pp_of.get(r.downstream_crossing_id) for r in xt.itertuples()}
+    children: dict[int, list[int]] = {}
+    for c, par in down.items():
+        if par is not None and par in down:
+            children.setdefault(par, []).append(c)
+    # leaves first, as in culvert_profile.aggregate_upstream (links were already cycle-cut there)
+    pending = {pid: len(children.get(pid, [])) for pid in down}
+    ready = [pid for pid, k in pending.items() if k == 0]
+    up: dict[int, object] = {}
+    n_up: dict[int, int] = {}
+    while ready:
+        pid = ready.pop()
+        parts, count = [], 0
+        for ch in children.get(pid, []):
+            if ch in inc:
+                parts.append(inc[ch])
+            if up.get(ch) is not None:
+                parts.append(up[ch])
+            count += 1 + n_up.get(ch, 0)
+        up[pid] = unary_union(parts) if parts else None
+        n_up[pid] = count
+        par = down.get(pid)
+        if par is not None and par in pending:
+            pending[par] -= 1
+            if pending[par] == 0:
+                ready.append(par)
+    wdir = out_dir / "watersheds"
+    wdir.mkdir(parents=True, exist_ok=True)
+    for f in wdir.glob("*.geojson"):
+        f.unlink()
+    crs = ws.crs
+    n = 0
+    for r in xt.itertuples():
+        pid = int(r.crossing_pp)
+        if int(r.restricted) == 1 or pid not in inc:
+            continue
+        feats = [{"part": "direct", "crossing_id": r.crossing_id, "area_ac": round(inc[pid].area / 4046.8564, 1),
+                  "geometry": inc[pid]}]
+        if up.get(pid) is not None:
+            feats.append({"part": "upstream", "crossing_id": r.crossing_id,
+                          "area_ac": round(up[pid].area / 4046.8564, 1), "n_upstream": n_up.get(pid, 0),
+                          "geometry": up[pid]})
+        g = gpd.GeoDataFrame(feats, geometry="geometry", crs=crs).to_crs("EPSG:4326")
+        g.to_file(wdir / f"{r.crossing_id}.geojson", driver="GeoJSON")
+        n += 1
+    log.info(f"{n} drainage files -> {wdir} ({sum(f.stat().st_size for f in wdir.glob('*.geojson')) / 1e6:.1f} MB)")
+    return n
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--no-watersheds", action="store_true", help="skip the per-crossing drainage files")
     args = ap.parse_args()
     log = get_logger("publish_results")
     cfg = load_cfg()
@@ -120,8 +183,10 @@ def main() -> None:
     flood.to_file(out_dir / "flood_surface.geojson", driver="GeoJSON")
     pd.DataFrame(cul.drop(columns="geometry")).to_csv(out_dir / "culverts_results.csv", index=False)
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
-    for f in sorted(out_dir.glob("*")):
+    for f in sorted(out_dir.glob("*.*")):
         log.info(f"{f.name}: {f.stat().st_size / 1e6:.2f} MB")
+    if not args.no_watersheds:
+        write_watersheds(cfg, out_dir, log)
 
 
 if __name__ == "__main__":
