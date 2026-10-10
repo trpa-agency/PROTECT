@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "X04443",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "part": "direct", "crossing_id": "X04443", "area_ac": 0.0 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -120.078780871315445, 38.92377513600357 ], [ -120.07891838519447, 38.923796597892377 ], [ -120.07889386563339, 38.923832019783539 ], [ -120.078780871315445, 38.92377513600357 ] ] ] } }
+]
+}
