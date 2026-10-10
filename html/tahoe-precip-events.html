@@ -147,14 +147,14 @@
     </div>
 
     <div class="context-bar" id="context-bar">
-      This page reconstructs each debris-flow trigger storm hour by hour from MRMS radar-gauge QPE and scores it against NOAA Atlas 14 precipitation frequency.<i class="i" tabindex="0" data-tip="MRMS MultiSensor QPE Pass 2, roughly 1 km resolution. Storm structure and rates feed the debris-flow response models (WEPP Cloud, USGS WildCat, HEC-HMS post-fire) and the extreme-precipitation metric decision pending with ICF.">i</i>
+      The storms that set off debris flows in the Tahoe Basin, rebuilt hour by hour from radar, and how rare each one was for the place it hit. The Event menu picks the storm; the map and charts follow it.<i class="i" tabindex="0" data-tip="Hourly rain is NOAA MRMS MultiSensor QPE Pass 2, a radar estimate corrected with gauges, at roughly 1 km resolution. Each storm is scored against NOAA Atlas 14 precipitation frequency. Storm structure and rates feed the debris-flow response models (WEPP Cloud, USGS WildCat, HEC-HMS post-fire) and the extreme-precipitation metric decision pending with ICF.">i</i>
     </div>
 
     <calcite-tabs>
       <calcite-tab-nav slot="title-group">
         <calcite-tab-title selected>Map</calcite-tab-title>
         <calcite-tab-title>Charts</calcite-tab-title>
-        <calcite-tab-title>Atlas 14 Exceedance</calcite-tab-title>
+        <calcite-tab-title>Storm Rarity (Atlas 14)</calcite-tab-title>
         <calcite-tab-title>Storm Frequency</calcite-tab-title>
         <calcite-tab-title>Culvert Screening</calcite-tab-title>
         <calcite-tab-title>Debris Flow Modeling</calcite-tab-title>
@@ -193,20 +193,20 @@
       <calcite-tab>
         <div class="chart-container">
           <h3>Hourly precipitation over the event window</h3>
-          <p class="chart-sub">Bars are the bbox-average rate; the line is the wettest cell each hour.<i class="i" tabindex="0" data-tip="Convective cores are much more intense than the basin average. Times are Pacific local. The vertical marker tracks the hour slider.">i</i></p>
+          <p class="chart-sub">Bars are the average rain rate across the map extent; the line is the wettest single cell each hour.<i class="i" tabindex="0" data-tip="The average is over the clipped bounding box (longitude -120.5 to -119.5, latitude 38.5 to 39.5). Convective cores are much more intense than the basin average. Times are Pacific local. The vertical marker tracks the hour slider.">i</i></p>
           <div id="hyeto-chart" style="height:380px;"></div>
         </div>
         <div class="chart-container">
           <h3>Cumulative precipitation</h3>
-          <p class="chart-sub">Running bbox-average total. Steep segments are the debris-flow-relevant bursts.</p>
+          <p class="chart-sub">Running total of rain, averaged across the map extent. The steep parts of the line are the short bursts that matter for debris flows.</p>
           <div id="cum-chart" style="height:300px;"></div>
         </div>
       </calcite-tab>
 
       <calcite-tab>
         <div class="chart-container">
-          <h3>Event depths against NOAA Atlas 14 frequency estimates</h3>
-          <p class="chart-sub">Event maxima at the MRMS cell nearest each Atlas 14 point, against that point's stationary depth-duration-frequency values. A value of ">= N-yr" means the event met or exceeded the N-year return depth for that duration at that point.</p>
+          <h3>How rare the storm was at eight points around the basin</h3>
+          <p class="chart-sub">The storm's largest 1-hour, 6-hour, and 24-hour rain depths at each point, against how often that much rain is expected there. A value of ">= N-yr" means the storm met or exceeded the depth expected once in N years for that duration at that point.<i class="i" tabindex="0" data-tip="Event running-maximum depths at the MRMS cell nearest each NOAA Atlas 14 point, compared against that point's stationary (no climate adjustment) partial-duration depth-duration-frequency estimates.">i</i></p>
           <div class="grid-container" style="box-shadow:none; padding:0;">
             <div id="a14-grid" class="ag-theme-quartz" style="height:430px; width:100%;"></div>
           </div>
@@ -220,38 +220,41 @@
           <div id="freq-timeline" style="height:360px;"></div>
         </div>
         <div class="chart-container">
-          <h3>WRF annual max 1-hour rate, historical and projected</h3>
-          <p class="chart-sub">Basin spatial mean of each cell's annual maximum 1-hour rate, two-model mean (EC-Earth3, MIROC6). Late century (2070 to 2099, SSP3-7.0) against the 1981 to 2010 baseline: intensity up 37 percent, hours over the 2-yr threshold up 2.9 times, and hours over the 10-yr threshold up 4.6 times.</p>
+          <h3>The strongest hour of rain each year, past and future</h3>
+          <p class="chart-sub">How the peak hourly rain rate changes as the climate warms. By late century (2070 to 2099) the peak rate is up 37 percent, hours over the 2-year threshold up 2.9 times, and hours over the 10-year threshold up 4.6 times.<i class="i" tabindex="0" data-tip="Basin spatial mean of each cell's annual maximum 1-hour rate from UCLA WRF, two-model mean (EC-Earth3 and MIROC6), SSP3-7.0, against the 1981 to 2010 baseline.">i</i></p>
           <div id="freq-wrf" style="height:340px;"></div>
         </div>
         <div class="chart-container">
-          <h3>Hindcast at the July 14 debris flow site</h3>
+          <h3>The July 14 storm at the debris-flow site</h3>
           <p class="chart-sub" id="dfsite-sub">-</p>
           <div id="dfsite-chart" style="height:300px;"></div>
         </div>
         <div class="chart-container">
-          <h3>From anomaly to sediment, each cataloged burst through WEPP</h3>
-          <p class="chart-sub">Each burst episode run through WEPP as a single storm. Unburned slopes barely respond until storms cross a runoff threshold; burned slopes respond to every event.<i class="i" tabindex="0" data-tip="Every episode at or above the 10-year return level, using its observed depth, duration, and peak 1-hour rate at the wettest cell (CAGWIN soil, BAER managements), plus a future twin scaled up 37 percent per the WRF late-century factor. This is the trigger-to-consequence link for the debris-flow pairs.">i</i></p>
+          <h3>What each recorded burst would do to a hillslope</h3>
+          <p class="chart-sub">Each cataloged burst, run through the WEPP erosion model as a single storm. Unburned slopes barely respond until a storm crosses a runoff threshold; burned slopes respond to every one.<i class="i" tabindex="0" data-tip="Every episode at or above the 10-year return level, using its observed depth, duration, and peak 1-hour rate at the wettest cell (CAGWIN soil, BAER managements), plus a future twin scaled up 37 percent per the WRF late-century factor. This is the trigger-to-consequence link for the debris-flow pairs.">i</i></p>
           <div id="freq-events" style="height:380px;"></div>
         </div>
         <div class="chart-container">
-          <h3>WEPP 30-year climate matrix (pilot run)</h3>
-          <p class="chart-sub">30-year WEPP runs, unburned against high-severity fire. Log scale. This is a demonstration of the chain, not a calibrated site prediction.<i class="i" tabindex="0" data-tip="Tahoe City CLIGEN climate, CAGWIN loamy-coarse-sand soil (classic basin granitic), BAER managements with burned-soil conductivity. The future case scales days at or above 20 mm up 25 percent per the WRF change factor. Production runs go through WEPPcloud on real hillslopes.">i</i></p>
+          <h3>Thirty years of erosion, burned against unburned (pilot run)</h3>
+          <p class="chart-sub">Thirty-year WEPP runs on one slope, unburned against high-severity fire, on a log scale. This demonstrates the chain; it is not a calibrated site prediction.<i class="i" tabindex="0" data-tip="Tahoe City CLIGEN climate, CAGWIN loamy-coarse-sand soil (classic basin granitic), BAER managements with burned-soil conductivity. The future case scales days at or above 20 mm up 25 percent per the WRF change factor. Production runs go through WEPPcloud on real hillslopes.">i</i></p>
           <div id="freq-wepp" style="height:340px;"></div>
         </div>
       </calcite-tab>
 
       <calcite-tab>
-        <div class="context-bar"><b>Two methodologies, one chain.</b> Culvert and debris-flow risk screening runs on two complementary engines. <b>CULVERT</b> (<a href="https://culvert-at-risk.org/" target="_blank" rel="noopener">culvert-at-risk.org</a>, USDA Forest Service and FHWA) screens every road-stream crossing for four hazards (flood overtopping, upland erosion with WEPP and RUSLE, debris flow with WDFM, and bank erosion with SBEVA) into one EHVI score. <b>USGS WildCat</b> covers the post-fire debris-flow case (likelihood and volume from soil burn severity) and is run in-house at TRPA. This page supplies the trigger climatology both engines need. WEPP and WEPPcloud hindcasts validate them against observed failures such as the July 14 event.</div>
+        <div class="context-bar">Two screening tools share the storms on this page: CULVERT ranks every road-stream crossing for flood and erosion hazards, and USGS WildCat adds the post-fire debris-flow case.</div>
+        <calcite-block heading="The two tools and how they connect" collapsible scale="s" style="margin-bottom:.75rem">
+          <p class="chart-sub" style="font-size:.84rem;color:var(--trpa-navy);">Culvert and debris-flow risk screening runs on two complementary engines. <b>CULVERT</b> (<a href="https://culvert-at-risk.org/" target="_blank" rel="noopener">culvert-at-risk.org</a>, USDA Forest Service and FHWA) screens every road-stream crossing for four hazards (flood overtopping, upland erosion with WEPP and RUSLE, debris flow with WDFM, and bank erosion with SBEVA) into one EHVI score<i class="i" tabindex="0" data-tip="EHVI: ensemble hydro-geomorphologic vulnerability index, the CULVERT tool's combined score for a crossing (University of Idaho). Values of 3 to 4 are severe and 4 to 5 extreme.">i</i> <b>USGS WildCat</b> covers the post-fire debris-flow case (likelihood and volume from soil burn severity) and is run in-house at TRPA. This page supplies the trigger climatology both engines need. WEPP and WEPPcloud hindcasts validate them against observed failures such as the July 14 event.</p>
+        </calcite-block>
         <div class="chain">
           <div class="step" style="--step-c:#0072CE;"><span class="who">Trigger: this page</span><h4>Storm climatology</h4>MRMS burst catalog (about 1.4 episodes per year at or above the 10-yr level), Atlas 14 frequency anchor, and WRF future factors (moderate-burst hours up 2.9 times by late century).</div>
-          <div class="step" style="--step-c:#B47E00;"><span class="who">Screening: CULVERT</span><h4>Every crossing, four hazards</h4>The TRPA culvert inventory is uploaded (or sites are auto-generated), watersheds are delineated, EHVI is scored per crossing, and ranked shapefiles are exported into the Risk Index (pairs FL-C, LS-C).</div>
+          <div class="step" style="--step-c:#B47E00;"><span class="who">Screening: CULVERT</span><h4>Every crossing, four hazards</h4>The TRPA culvert inventory is uploaded (or sites are auto-generated), watersheds are delineated, EHVI is scored per crossing, and ranked shapefiles are exported into the Risk Index (pairs FL-C<i class="i" tabindex="0" data-tip="FL-C: flooding x small culverts, one of the 15 hazard-asset pairs in the scoring rubrics.">i</i> and LS-C<i class="i" tabindex="0" data-tip="LS-C: landslide x small culverts, one of the 15 hazard-asset pairs in the scoring rubrics.">i</i>).</div>
           <div class="step" style="--step-c:#9C3E27;"><span class="who">Post-fire: WildCat</span><h4>Burn-conditioned debris flow</h4>USGS WildCat likelihood and volume from soil burn severity: the fire-compounding layer that CULVERT's stationary screening does not carry.</div>
           <div class="step" style="--step-c:#4A6118;"><span class="who">Validation: WEPP</span><h4>Hindcasts against observed failures</h4>Site-scale WEPP and WEPPcloud runs (July 14 hindcast: a storm below the 2-yr level, disturbed slope 2.8 t/ha, intact slope zero) check that the screening ranks the right places.</div>
         </div>
         <div class="chart-container">
           <h3>The current culvert layer</h3>
-          <p class="chart-sub">The map's Culverts layer carries all 7,858 compiled crossings, with condition where it exists.<i class="i" tabindex="0" data-tip="Compiled from El Dorado, Washoe, Placer, Douglas, City of South Lake Tahoe, Caltrans district drainage logs, and the TRPA legacy inventory. 2,253 condition records across five jurisdiction-specific rating schemes, with semantics still being reconciled. Swapping to a hosted feature service is a one-line change: CULVERT_LAYER_URL at the top of the script.">i</i> Combined with the WEPP sediment and burst hotspot layers, it identifies crossings under both high sediment supply and repeat storm cores.<i class="i" tabindex="0" data-tip="WEPP sediment is TRPA's published basin-wide runs: high-severity-fire sediment yield per catchment. The recommended pilot is the West Shore corridor around the July 14 failure: those crossings are uploaded to CULVERT and their EHVI rankings compared against this map.">i</i></p>
+          <p class="chart-sub">The map's Culverts layer holds all 7,858 compiled crossings, with condition where it is known.<i class="i" tabindex="0" data-tip="Compiled from El Dorado, Washoe, Placer, Douglas, City of South Lake Tahoe, Caltrans district drainage logs, and the TRPA legacy inventory. 2,253 condition records across five jurisdiction-specific rating schemes, with semantics still being reconciled. Swapping to a hosted feature service is a one-line change: CULVERT_LAYER_URL at the top of the script.">i</i> Shown with the WEPP sediment and burst hotspot layers, it picks out the crossings that sit under both a heavy sediment supply and repeated storm cores.<i class="i" tabindex="0" data-tip="WEPP sediment is TRPA's published basin-wide runs: high-severity-fire sediment yield per catchment. The recommended pilot is the West Shore corridor around the July 14 failure: those crossings are uploaded to CULVERT and their EHVI rankings compared against this map.">i</i></p>
           <p class="chart-sub" style="color:#9C3E27;"><b>Data governance.</b> This embedded layer contains no NDOT records (county, Caltrans, and TRPA legacy sources only), so it is clear for CULVERT upload. Any NDOT state-highway culverts added later are TRPA-only under the sharing agreement. NDOT-derived data is not uploaded to CULVERT or any third-party service without NDOT sign-off.</p>
         </div>
       </calcite-tab>
@@ -263,7 +266,7 @@
           table.wcref td{border:1px solid #e6e9ee;padding:.45rem .75rem;vertical-align:top;}
           table.wcref tr:nth-child(even) td{background:#f8fafc;}
         </style>
-        <div class="context-bar"><b>The hazard-layer build.</b> Debris flow is the one selected PROTECT hazard with no existing basin-wide layer. <b>USGS WildCat</b> (the operational post-fire debris-flow tool, v1.1.1 verified) fills it from the <code>debris-flow/</code> pipeline: for each road segment, culvert, and bridge, the modeled probability, volume, and hazard class of a post-fire debris flow reaching it. This tab holds the working plan; the trigger storms are on the other tabs of this page.</div>
+        <div class="context-bar">Debris flow is the one selected PROTECT hazard with no basin-wide map yet; this tab is the working plan to build one with USGS WildCat, the standard post-fire debris-flow model.<i class="i" tabindex="0" data-tip="WildCat v1.1.1 verified, run from the debris-flow/ pipeline. For each road segment, culvert, and bridge it gives the modeled probability, volume, and hazard class of a post-fire debris flow reaching it. The trigger storms are on the other tabs of this page.">i</i></div>
         <div class="chart-container">
           <h3>What WildCat estimates</h3>
           <div class="csv-row"><button type="button" class="csv-btn" data-tablecsv="wc-results" data-filename="PROTECT_Wildcat_Results.csv">Export CSV</button></div>
@@ -276,11 +279,28 @@
               <tr><td>Rainfall thresholds</td><td>mm/hr at 15, 30, and 60 min</td><td>Inverted M1</td><td>Links hazard directly to this page's storm climatology</td></tr>
             </tbody>
           </table>
-          <p class="chart-sub">WildCat was selected because it is the USGS operational standard behind the USGS post-fire hazard portal, it supports pre-fire planning through constant burn-severity inputs, every command writes a config record that reproduces its outputs exactly, and it fits between WEPP (chronic erosion) and site-scale runout modeling as the network-scale screening layer.</p>
+          <calcite-block heading="Why WildCat was chosen" collapsible scale="s" style="margin-top:.4rem">
+            <ul class="chart-sub" style="font-size:.84rem;color:var(--trpa-navy);margin:0;padding-left:1.2rem;">
+              <li>It is the USGS operational standard behind the USGS post-fire hazard portal.</li>
+              <li>It supports pre-fire planning through constant burn-severity inputs.</li>
+              <li>Every command writes a config record that reproduces its outputs exactly.</li>
+              <li>It fits between WEPP (chronic erosion) and site-scale runout modeling as the network-scale screening layer.</li>
+            </ul>
+          </calcite-block>
         </div>
         <div class="chart-container">
           <h3>The plan, six stages</h3>
-          <p class="chart-sub">1. A dedicated <code>wildcat</code> conda environment is stood up (rasterio and fiona cannot share arcpy's GDAL). 2. The static inputs are acquired once: the USGS 3DEP 10 m DEM (the models are calibrated at 10 m, so finer lidar is deliberately not used), STATSGO KF-factors, and LANDFIRE EVT. 3. The model is validated on the 2021 Caldor Fire with the real perimeter and dNBR against the published USGS assessment. 4. The pre-fire planning scenario runs a hypothetical moderate burn over the HUC12 watersheds intersecting the highway corridors. 5. Tahoe design storms from Atlas 14 are applied (31.6, 49.6, and 63.8 mm/hr I15 for the 2-, 10-, and 25-yr basin medians), then repeated with climate-scaled intensities. 6. Exported segments and basins are intersected with roads, culverts, and bridges to produce the debris-flow exposure inputs for the index. The target is a reviewed layer for Workshop 1 in November 2026.</p>
+          <p class="chart-sub">Six stages take the model from setup to a reviewed debris-flow layer for Workshop 1 in November 2026. The three runs in the table are the validation case, the planning deliverable, and its climate-adjusted twin.</p>
+          <calcite-block heading="The six stages" collapsible scale="s" style="margin-bottom:.6rem">
+            <ol class="chart-sub" style="font-size:.84rem;color:var(--trpa-navy);margin:0;padding-left:1.4rem;">
+              <li>A dedicated <code>wildcat</code> conda environment is stood up (rasterio and fiona cannot share arcpy's GDAL).</li>
+              <li>The static inputs are acquired once: the USGS 3DEP 10 m DEM (the models are calibrated at 10 m, so finer lidar is deliberately not used), STATSGO KF-factors, and LANDFIRE EVT.</li>
+              <li>The model is validated on the 2021 Caldor Fire with the real perimeter and dNBR against the published USGS assessment.</li>
+              <li>The pre-fire planning scenario runs a hypothetical moderate burn over the HUC12 watersheds intersecting the highway corridors.</li>
+              <li>Tahoe design storms from Atlas 14 are applied (31.6, 49.6, and 63.8 mm/hr I15 for the 2-, 10-, and 25-yr basin medians), then repeated with climate-scaled intensities.</li>
+              <li>Exported segments and basins are intersected with roads, culverts, and bridges to produce the debris-flow exposure inputs for the index.</li>
+            </ol>
+          </calcite-block>
           <div class="csv-row"><button type="button" class="csv-btn" data-tablecsv="wc-scenarios" data-filename="PROTECT_Wildcat_Scenarios.csv">Export CSV</button></div>
           <table class="wcref" id="wc-scenarios">
             <thead><tr><th>Scenario</th><th>Purpose</th><th>Perimeter</th><th>Burn inputs</th><th>Design storm</th></tr></thead>
@@ -292,8 +312,8 @@
           </table>
         </div>
         <div class="chart-container">
-          <h3>15-minute design storms for the M1 model</h3>
-          <p class="chart-sub">Atlas 14 partial-duration 15-minute intensities at the eight basin points (basin median in navy, USGS default assessment intensities dashed). Even the basin's 2-yr storm (31.6 mm/hr) exceeds three of the four USGS defaults, so Tahoe-specific design storms are required; the defaults would materially understate likelihoods.</p>
+          <h3>15-minute design storms for WildCat's likelihood model (M1)</h3>
+          <p class="chart-sub">Tahoe's 15-minute rain rates at the eight basin points (basin median in navy) against the USGS default storms (dashed). Even the basin's 2-year storm (31.6 mm/hr) exceeds three of the four USGS defaults, so Tahoe-specific design storms are required; the defaults would materially understate likelihoods.<i class="i" tabindex="0" data-tip="NOAA Atlas 14 partial-duration 15-minute intensities. The USGS defaults are the 16, 20, 24, and 40 mm/hr assessment intensities.">i</i></p>
           <div id="i15-chart" style="height:400px;"></div>
         </div>
         <div class="chart-container">
@@ -310,22 +330,43 @@
               <tr><td>retainments</td><td>Optional</td><td>No basin-wide debris-basin inventory known; jurisdictions to be asked</td><td>Decision open</td></tr>
             </tbody>
           </table>
-          <p class="chart-sub">Open decisions: environment go-ahead; Caldor or Angora for S1; HUC12s or one basin-wide run for S2; constant or modeled severity surface; which return periods anchor the published score (headline to be decided with ICF); sediment-basin inventory inclusion; and the publication path into the packaged Hazards REST service. References: <a href="https://ghsc.code-pages.usgs.gov/lhp/wildcat/" target="_blank" rel="noopener">wildcat docs</a>, <a href="https://ghsc.code-pages.usgs.gov/lhp/pfdf/" target="_blank" rel="noopener">pfdf</a>, <a href="https://doi.org/10.1016/j.geomorph.2016.10.019" target="_blank" rel="noopener">Staley 2017</a>, <a href="https://doi.org/10.1016/j.enggeo.2014.04.008" target="_blank" rel="noopener">Gartner 2014</a>, and <a href="https://doi.org/10.1130/B26459.1" target="_blank" rel="noopener">Cannon 2010</a>.</p>
+          <p class="chart-sub">Seven decisions are open before the first run; the references are the model papers and documentation.</p>
+          <calcite-block heading="Open decisions and references" collapsible scale="s">
+            <ul class="chart-sub" style="font-size:.84rem;color:var(--trpa-navy);margin:0 0 .5rem;padding-left:1.2rem;">
+              <li>Environment go-ahead.</li>
+              <li>Caldor or Angora for S1.</li>
+              <li>HUC12s or one basin-wide run for S2.</li>
+              <li>Constant or modeled severity surface.</li>
+              <li>Which return periods anchor the published score (headline to be decided with ICF).</li>
+              <li>Sediment-basin inventory inclusion.</li>
+              <li>The publication path into the packaged Hazards REST service.</li>
+            </ul>
+            <p class="chart-sub" style="font-size:.84rem;color:var(--trpa-navy);margin:0;">References: <a href="https://ghsc.code-pages.usgs.gov/lhp/wildcat/" target="_blank" rel="noopener">wildcat docs</a>, <a href="https://ghsc.code-pages.usgs.gov/lhp/pfdf/" target="_blank" rel="noopener">pfdf</a>, <a href="https://doi.org/10.1016/j.geomorph.2016.10.019" target="_blank" rel="noopener">Staley 2017</a>, <a href="https://doi.org/10.1016/j.enggeo.2014.04.008" target="_blank" rel="noopener">Gartner 2014</a>, and <a href="https://doi.org/10.1130/B26459.1" target="_blank" rel="noopener">Cannon 2010</a>.</p>
+          </calcite-block>
         </div>
       </calcite-tab>
 
       <calcite-tab>
         <div class="methods-prose">
-          <h3>Source and processing</h3>
+          <p style="margin-top:0;">Where the numbers on this page come from and what they can and cannot support. Each section below opens to the full method note for the consultant and the data team.</p>
+          <calcite-block heading="Where the rain data comes from" collapsible scale="s">
           <p>Hourly precipitation is NOAA MRMS MultiSensor QPE (1-hour, Pass 2): radar-based quantitative precipitation estimates corrected with gauges and model data on a grid of about 1 km, retrieved from the <a href="https://mtarchive.geol.iastate.edu/" target="_blank" rel="noopener">Iowa State mtarchive</a>. Each event is a 72-hour window clipped to the basin bounding box (longitude -120.5 to -119.5, latitude 38.5 to 39.5). Exceedance scoring compares event running-maximum depths (1-hr, 6-hr, and 24-hr) at the cell nearest each of eight NOAA Atlas 14 points against that point's partial-duration-series frequency estimates.</p>
-          <h3>Debris-flow connection</h3>
+          </calcite-block>
+          <calcite-block heading="How the storms connect to debris flow" collapsible scale="s">
           <p>These storms are the trigger side of the basin's debris-flow problem (pairs DF-C, DF-R, and DF-B in the Task 3 hazard-asset matrix, with FL-C and FL-R sharing the same storm inputs). The storm structure shown here, short-duration convective rates versus long-duration saturation, is what distinguishes the candidate climate trigger metrics (max 1-day, max 3-day, max 60-day, and P99) under review with ICF, and it provides the design-storm input for the response models: WEPP Cloud hillslope erosion, USGS WildCat post-fire debris flow (running at TRPA), and HEC-HMS post-wildfire parameterization per the ICF vulnerability assessment deck.</p>
-          <h3>Screening methodologies, CULVERT and WildCat</h3>
-          <p>Crossing-scale risk runs on the <a href="https://culvert-at-risk.org/" target="_blank" rel="noopener">CULVERT tool</a> (USDA Forest Service, FHWA, University of North Georgia, and University of Idaho): watershed delineation from USGS DEMs, hydrologic vulnerability (regional frequency analysis, TR-55 and TR-20, and the Rational Method against NOAA Atlas 14 design storms), and hydrogeomorphic vulnerability (WEPP and RUSLE upland loading, WDFM debris flow, and SBEVA bank erosion) ensembled into an EHVI score per crossing. USGS WildCat provides the post-fire debris-flow complement (likelihood and volume from soil burn severity), run in-house at TRPA. CULVERT's design storms are stationary Atlas 14. The storm-frequency work on this page (WRF change factors, Atlas 15 tracking) is the future-conditions layer applied on top, and the July 14 hindcast is the local validation case. TRPA is collaborating directly with the CULVERT developer.</p>
-          <h3>Frequency and consequence pipeline</h3>
-          <p>The Storm Frequency tab chains three analyses. Observed frequency comes from a catalog of screened days (gridMET daily max-cell depth of 18 mm or more in summer, plus the largest all-season days) scanned in MRMS hourly data for cell-hours over Atlas 14 1-hr depths: seven distinct episodes at or above the 10-yr burst level in five years. Future scaling comes from UCLA WRF hourly precipitation on the 3 km inner domain (store cadcat/wrf/ucla, 1hr/prec, d03; the climate pipeline's wind pulls use the coarser 9 km d02 grid), models EC-Earth3 and MIROC6, SSP3-7.0. The WRF change factors here are provisional and follow the same human review gate as the climate explorer's published projections; they are draft until that review is logged in the climate CHANGELOG. The map tab's <b>Future 1-hr intensity</b> layer is the spatial companion: the climate pipeline's canonical WRF product (notebook 07: d02 9 km grid, three models (ACCESS-CM2, EC-Earth3, and MIROC6), SSP3-7.0), showing each cell's change factor in mean water-year maximum 1-hour rate against its own 1981 to 2010 baseline (basin means of about 1.12 times by 2020 to 2049, 1.16 times by 2040 to 2069, and 1.33 times by 2070 to 2099, consistent with the 37 percent d03 two-model figure above given the coarser grid and larger ensemble). Cell values are 9 km grid averages and run lower than point or 1 km rates, so the change factor, not the absolute mm/hr, is the value applied when scaling Atlas 14 depths. By 2070 to 2099 the basin's annual maximum 1-hr rate rises about 37 percent and hours over the 10-yr threshold increase about 4.6 times, implying several such episodes per year in the late century. The July 14 debris flow itself is hindcast at its mapped location (39.12675, -120.24278). The site received a storm below the 2-yr level, and WEPP shows zero response on an intact slope and an erosive response on a disturbed one. The DF pairs therefore need slope susceptibility crossed with moderate-storm frequency, not extreme-storm frequency alone. Each cataloged burst is also run through WEPP as a single-storm event parameterized from its observed depth, duration, and peak rate, which connects every precipitation anomaly directly to a hillslope sediment response, observed and future-intensified. Longer-term consequences are demonstrated with 30-year WEPP runs (Tahoe City CLIGEN climate, CAGWIN soil, BAER burn treatments): high-severity fire raises sediment yield about 370 times over unburned, and the future-scaled climate adds about 34 percent on top of the burned case. Fire and intensifying storms compound. Production consequence runs go through WEPPcloud on real delineated hillslopes with SSURGO soils.</p>
-          <h3>Caveats</h3>
-          <p>The MRMS MultiSensor product archive begins in late 2020, so observed frequency rests on about five years and the per-year rate is approximate. The burst catalog scans only screened candidate days, so it is a lower bound. WEPP demonstration numbers use one synthetic hillslope and simplified burn adjustments. Radar QPE in complex terrain can under-detect shallow orographic precipitation and overshoot in beam-blocked valleys, so cell-scale values are estimates, most reliable for convective events such as this one. Atlas 14 is stationary (no climate adjustment) and its point estimates are compared against cells of about 1 km, not gauges. The MRMS archive begins in late 2014; earlier events need Stage IV or gridMET daily reconstruction. The companion Climate Data Explorer page covers the projection side of the same record. Internal review draft, not for circulation outside the project team.</p>
+          </calcite-block>
+          <calcite-block heading="The two screening tools, CULVERT and WildCat" collapsible scale="s">
+          <p>Crossing-scale risk runs on the <a href="https://culvert-at-risk.org/" target="_blank" rel="noopener">CULVERT tool</a> (USDA Forest Service, FHWA, University of North Georgia, and University of Idaho): watershed delineation from USGS DEMs, hydrologic vulnerability (regional frequency analysis, TR-55 and TR-20, and the Rational Method against NOAA Atlas 14 design storms), and hydrogeomorphic vulnerability (WEPP and RUSLE upland loading, WDFM debris flow, and SBEVA bank erosion) ensembled into an EHVI score per crossing<i class="i" tabindex="0" data-tip="EHVI: ensemble hydro-geomorphologic vulnerability index, the CULVERT tool's combined score for a crossing (University of Idaho). Values of 3 to 4 are severe and 4 to 5 extreme.">i</i>. USGS WildCat provides the post-fire debris-flow complement (likelihood and volume from soil burn severity), run in-house at TRPA. CULVERT's design storms are stationary Atlas 14. The storm-frequency work on this page (WRF change factors, Atlas 15 tracking) is the future-conditions layer applied on top, and the July 14 hindcast is the local validation case. TRPA is collaborating directly with the CULVERT developer.</p>
+          </calcite-block>
+          <calcite-block heading="How the Storm Frequency tab is built" collapsible scale="s">
+          <p>The Storm Frequency tab chains three analyses. Observed frequency comes from a catalog of screened days (gridMET daily max-cell depth of 18 mm or more in summer, plus the largest all-season days) scanned in MRMS hourly data for cell-hours over Atlas 14 1-hr depths: seven distinct episodes at or above the 10-yr burst level in five years.</p>
+          <p>Future scaling comes from UCLA WRF hourly precipitation on the 3 km inner domain (store cadcat/wrf/ucla, 1hr/prec, d03; the climate pipeline's wind pulls use the coarser 9 km d02 grid), models EC-Earth3 and MIROC6, SSP3-7.0. The WRF change factors here are provisional and follow the same human review gate as the climate explorer's published projections; they are draft until that review is logged in the climate CHANGELOG. The map tab's <b>Future 1-hr intensity</b> layer is the spatial companion: the climate pipeline's canonical WRF product (notebook 07: d02 9 km grid, three models (ACCESS-CM2, EC-Earth3, and MIROC6), SSP3-7.0), showing each cell's change factor in mean water-year maximum 1-hour rate against its own 1981 to 2010 baseline (basin means of about 1.12 times by 2020 to 2049, 1.16 times by 2040 to 2069, and 1.33 times by 2070 to 2099, consistent with the 37 percent d03 two-model figure above given the coarser grid and larger ensemble). Cell values are 9 km grid averages and run lower than point or 1 km rates, so the change factor, not the absolute mm/hr, is the value applied when scaling Atlas 14 depths. By 2070 to 2099 the basin's annual maximum 1-hr rate rises about 37 percent and hours over the 10-yr threshold increase about 4.6 times, implying several such episodes per year in the late century.</p>
+          <p>The July 14 debris flow itself is hindcast at its mapped location (39.12675, -120.24278). The site received a storm below the 2-yr level, and WEPP shows zero response on an intact slope and an erosive response on a disturbed one. The DF pairs therefore need slope susceptibility crossed with moderate-storm frequency, not extreme-storm frequency alone.</p>
+          <p>Each cataloged burst is also run through WEPP as a single-storm event parameterized from its observed depth, duration, and peak rate, which connects every precipitation anomaly directly to a hillslope sediment response, observed and future-intensified. Longer-term consequences are demonstrated with 30-year WEPP runs (Tahoe City CLIGEN climate, CAGWIN soil, BAER burn treatments): high-severity fire raises sediment yield about 370 times over unburned, and the future-scaled climate adds about 34 percent on top of the burned case. Fire and intensifying storms compound. Production consequence runs go through WEPPcloud on real delineated hillslopes with SSURGO soils.</p>
+          </calcite-block>
+          <calcite-block heading="Caveats" collapsible scale="s">
+          <p>The MRMS MultiSensor product archive begins in late 2020, so observed frequency rests on about five years and the per-year rate is approximate; earlier events need Stage IV or gridMET daily reconstruction. The burst catalog scans only screened candidate days, so it is a lower bound. WEPP demonstration numbers use one synthetic hillslope and simplified burn adjustments. Radar QPE in complex terrain can under-detect shallow orographic precipitation and overshoot in beam-blocked valleys, so cell-scale values are estimates, most reliable for convective events such as the July 14 storm. Atlas 14 is stationary (no climate adjustment) and its point estimates are compared against cells of about 1 km, not gauges. The companion Climate Data Explorer page covers the projection side of the same record. Internal review draft, not for circulation outside the project team.</p>
+          </calcite-block>
         </div>
       </calcite-tab>
     </calcite-tabs>

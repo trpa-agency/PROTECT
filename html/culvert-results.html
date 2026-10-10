@@ -123,13 +123,11 @@
   </header>
 
   <main>
-    <div class="banner">Draft screening results for workshop review. Values rank crossings for the vulnerability assessment and are not design numbers. Public jurisdictions only: the restricted state DOT export is excluded at the row level and is not aggregated into any figure on this page.</div>
+    <div class="banner">Draft results for workshop review. The numbers rank crossings; they are not design values.<i class="i" tabindex="0" data-tip="Public jurisdictions only. The restricted state DOT export is excluded at the row level and is not in any figure on this page.">i</i></div>
 
     <p class="lead">
-      This page shows the first results of component 2 for the small culverts and the bridges: the culvert profile
-      (contributing watershed, design flow, capacity, and the loading ratio), the records flagged for owner review, and
-      flood exposure sampled on the classed FEMA and stream surface. The method is section 2 of the
-      <a href="scoring-rubrics.html">scoring rubrics</a>; the values update each time the profile runs.
+      Which culverts and bridges are most exposed to flooding, and which cannot pass a 100-year storm.
+      The method is section 2 of the <a href="scoring-rubrics.html">scoring rubrics</a>.
     </p>
 
     <div class="kpis" id="kpis"></div>
@@ -140,30 +138,30 @@
       <div class="layer-panel">
         <h3>Culverts, colored by</h3>
         <calcite-segmented-control id="color-by" scale="s" width="full">
-          <calcite-segmented-control-item value="ratio" checked>Loading ratio</calcite-segmented-control-item>
+          <calcite-segmented-control-item value="ratio" checked>Storm vs capacity</calcite-segmented-control-item>
           <calcite-segmented-control-item value="flood">Flood exposure</calcite-segmented-control-item>
         </calcite-segmented-control>
         <div id="legend-ratio">
-          <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> under 0.5 (S2 = 0)</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#0072CE"></span> 0.5 to under 1 (0)</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#E8A05A"></span> 1 to under 2 (0.5 to 1)</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#E87722"></span> 2 to under 4 (1.5 to 2.5)</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#9C3E27"></span> 4 and over (3)</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#ffffff"></span> suspect record, ratio withheld</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#cfd4da"></span> no ratio (no watershed or size)</div>
-          <p class="note">100-yr event flow over crossing capacity at headwater equal to the crown. Scores in parentheses are the FL-C S2 values.</p>
+          <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> passes with room (under 0.5)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#0072CE"></span> passes (0.5 to under 1)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#E8A05A"></span> storm up to twice capacity</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#E87722"></span> two to four times capacity</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#9C3E27"></span> over four times capacity</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#ffffff"></span> record to confirm, not scored</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#cfd4da"></span> no check possible</div>
+          <p class="note">The 100-year storm flow divided by what the pipe passes.<i class="i" tabindex="0" data-tip="Loading ratio, FL-C S2: 100-yr event flow over crossing capacity at headwater equal to the crown. Rubric scores: under 0.5 is 0; 0.5 to under 1 is 0; 1 to under 2 is 0.5 to 1; 2 to under 4 is 1.5 to 2.5; 4 and over is 3.">i</i></p>
         </div>
         <div id="legend-flood" style="display:none">
-          <div class="lg-row"><span class="lg-dot" style="background:#cfd4da"></span> 0: no zone, no mapped stream</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> 1: flowline outside a zone</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#0072CE"></span> 2: 0.2 percent zone or mapped stream</div>
-          <div class="lg-row"><span class="lg-dot" style="background:#003B71"></span> 3: 1 percent zone</div>
-          <p class="note">FL-C E1, the maximum over the contributing watershed, plus 1 where the outlet is below the legal maximum lake level.</p>
+          <div class="lg-row"><span class="lg-dot" style="background:#cfd4da"></span> 0: no flood zone, no mapped stream</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> 1: on a small drainage line</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#0072CE"></span> 2: 500-year zone or a mapped stream</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#003B71"></span> 3: 100-year flood zone</div>
+          <p class="note">The highest flood class anywhere in the culvert's drainage area.<i class="i" tabindex="0" data-tip="FL-C E1, sampled as the maximum over the contributing watershed, plus 1 (capped at 3) where the outlet is below the legal maximum lake level and high lake stage backs water up.">i</i></p>
         </div>
         <div class="grp">
           <h3>Layers</h3>
           <label class="lyr"><calcite-switch id="tg-cul" checked></calcite-switch> Culverts (scored)</label>
-          <label class="lyr"><calcite-switch id="tg-br" checked></calcite-switch> Bridges (NBI), flood exposure<i class="i" tabindex="0" data-tip="E_FLB: waterway adequacy (NBI item 71) at 0.20 and the flood class within 25 m at 0.10, weight-normalized to 0 to 3.">i</i></label>
+          <label class="lyr"><calcite-switch id="tg-br" checked></calcite-switch> Bridges, flood exposure<i class="i" tabindex="0" data-tip="E_FLB: how often the bridge has been overtopped (NBI waterway adequacy, item 71) at 0.20 and the flood class within 25 m at 0.10, normalized to 0 to 3.">i</i></label>
           <div class="lg-row" style="margin-left:1.9rem"><span class="lg-dot" style="background:#4A6118"></span> under 1 &nbsp; <span class="lg-dot" style="background:#E87722"></span> 1 to under 2 &nbsp; <span class="lg-dot" style="background:#9C3E27"></span> 2 and over</div>
           <label class="lyr"><calcite-switch id="tg-flood"></calcite-switch> Classed flood surface<i class="i" tabindex="0" data-tip="FEMA 1 percent zones (3), the 0.2 percent zone and a 10 m buffer on the lidar-derived streams (2). The lake's own stillwater zone is excluded.">i</i></label>
           <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(0,59,113,.45)"></span> class 3 &nbsp; <span class="lg-sw" style="background:rgba(0,114,206,.35)"></span> class 2</div>
@@ -179,30 +177,31 @@
 
     <h2 class="sec">Distributions</h2>
     <div class="charts">
-      <div class="chart"><h3>Loading ratio by pipe size</h3><div class="sub">100-yr event flow over capacity, scored culverts with a ratio; log scale</div><div id="ch-ratio" style="height:290px"></div></div>
-      <div class="chart"><h3>Flood exposure by jurisdiction</h3><div class="sub">FL-C E1 on the watershed sampling rule, share of scored culverts</div><div id="ch-flood" style="height:290px"></div></div>
+      <div class="chart"><h3>Storm vs capacity, by pipe size</h3><div class="sub">Above 1, the 100-year storm exceeds the pipe. Log scale.</div><div id="ch-ratio" style="height:290px"></div></div>
+      <div class="chart"><h3>Flood exposure by jurisdiction</h3><div class="sub">Share of each jurisdiction's culverts in each flood class</div><div id="ch-flood" style="height:290px"></div></div>
     </div>
 
     <h2 class="sec">Culvert table</h2>
-    <p class="lead">One row per scored culvert in the public jurisdictions. The flags columns carry the review list.</p>
+    <p class="lead">One row per scored culvert. The Flags column is the owner review list.</p>
     <div class="toolbar">
       <input id="qf" class="qf" type="text" placeholder="Search by id, jurisdiction, road, crossing, or flag" aria-label="Quick search culverts" />
       <calcite-button id="export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
     </div>
     <div id="grid" class="ag-theme-quartz grid-wrap"></div>
 
-    <h2 class="sec">Reading the numbers</h2>
-    <ul class="notes">
-      <li>The contributing watershed is delineated on the hydro-enforced lidar DEM after the road fill is breached through every inventoried culvert away from mapped streams and sinks under 3 m are filled. The pour point is the culvert's own cell on the breach.</li>
-      <li>Event flow is the rational method on NOAA Atlas 14 at the basin's time of concentration for basins under 1 sq mi, with the runoff coefficient from NLCD 2021 land cover; larger basins use the USGS regional regression for their state on PRISM 1991 to 2020 precipitation.</li>
-      <li>Capacity is FHWA HDS-5 inlet control at headwater equal to the crown, barrels summed per crossing. It is conservative by roughly 1.5 to 2 against how culverts are designed to run where ponding is tolerable.</li>
-      <li>A record whose size cannot be the crossing for the basin that arrives (24 in. or under on a mapped stream with 100 acres or more, 24 in. or under with 500 acres or more anywhere, or any size under 8 in.) is withheld from the ratio and listed for the owner. A ratio above 20 keeps its score and is listed as well.</li>
-      <li>Flood exposure follows the rubric's watershed sampling proposal (decision 3); the point value within 25 m is carried alongside for comparison.</li>
-    </ul>
+    <calcite-block heading="How the numbers are made" collapsible scale="s" style="margin-top:1.2rem">
+      <ul class="notes">
+        <li><b>Watershed.</b> Drainage area to each culvert from the 2 m lidar DEM, with the road fill cut through every culvert so creeks pass where they should.</li>
+        <li><b>Flow.</b> The 100-year storm from NOAA Atlas 14 and the land cover; basins over 1 sq mi use the USGS regional equations.</li>
+        <li><b>Capacity.</b> What the pipe passes with water at the top of the opening. Real culverts take more, so the ratio errs high by 1.5 to 2.</li>
+        <li><b>Flags.</b> A small recorded pipe on a big drainage is a record to check, not a score; it is withheld and listed for the owner. A ratio above 20 is listed too.</li>
+        <li><b>Flood exposure.</b> The highest flood class anywhere in the culvert's drainage. The value at the pipe itself is in the table for comparison.</li>
+      </ul>
+    </calcite-block>
   </main>
 
   <footer class="app-footer">
-    <p>Culvert and Bridge Results v0.1, draft. Data: <code>data/processed/results/</code> written by <code>scripts/publish_results.py</code> from the analysis geodatabase; method in <code>docs/SCORING_RUBRICS.md</code> sections 2.2 to 2.5. Culvert inventories from Caltrans, Placer County, El Dorado County, Douglas County, the City of South Lake Tahoe, and the TRPA legacy compilation; bridges from the National Bridge Inventory. Flood zones: FEMA via the TRPA <code>Streams_and_Flood_Zone</code> service. Internal review draft.</p>
+    <p>Draft v0.1. Culvert inventories from six jurisdictions and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA. Method: <code>docs/SCORING_RUBRICS.md</code> 2.2 to 2.5. Internal review draft.</p>
   </footer>
 
   <script>
@@ -216,14 +215,14 @@
     fetch(BASE + "summary.json").then(r => r.json()).then(s => {
       const c = s.culverts || {}, b = s.bridges || {};
       const items = [
-        [fmt(c.scored_public), "culverts scored (public)"],
-        [fmt(c.full_profile), "full profile: size, hydrology, condition"],
-        [fmt(c.with_ratio), "with a loading ratio"],
-        [c.ratio_median == null ? "-" : fmt(c.ratio_median, 2), "median 100-yr loading ratio"],
-        [fmt(c.ratio_over_1), "ratio 1 and over"],
-        [fmt(c.size_suspect), "suspect records, ratio withheld"],
-        [fmt(c.ratio_review), "ratio above 20, for owner review"],
-        [fmt(b.count), "bridges (NBI) with flood exposure"]
+        [fmt(c.scored_public), "culverts scored"],
+        [fmt(c.full_profile), "with size, drainage, and condition all known"],
+        [fmt(c.with_ratio), "with a capacity check"],
+        [c.ratio_median == null ? "-" : fmt(c.ratio_median, 2), "typical storm-to-capacity ratio"],
+        [fmt(c.ratio_over_1), "cannot pass the 100-year storm"],
+        [fmt(c.size_suspect), "records to confirm with the owner"],
+        [fmt(c.ratio_review), "scored but flagged for the owner"],
+        [fmt(b.count), "bridges"]
       ];
       document.getElementById("kpis").innerHTML = items.map(([v,l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
       document.getElementById("gen-note").textContent = "Generated " + (s.generated || "") + ". Counts exclude the restricted jurisdiction.";
@@ -241,7 +240,7 @@
       {field:"basin_landcover", headerName:"Land cover", width:110, valueFormatter:p=>p.value||"-"},
       {field:"q_event_100_cfs", headerName:"Q100 (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
       {field:"q_cap_crossing_cfs", headerName:"Qcap (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
-      {field:"load_ratio_100", headerName:"Ratio 100-yr", width:115, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2),
+      {field:"load_ratio_100", headerName:"Storm / capacity", width:125, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2),
         cellStyle:p=>{const v=p.value; if(v==null) return {}; const c = v>=4?COL.brick: v>=2?COL.orange: v>=1?COL.peach: null;
           return c ? {background:c, color: v>=2?"#fff":"#003B71", fontWeight:600} : {};}},
       {field:"load_ratio_25", headerName:"Ratio 25-yr", width:110, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
@@ -277,10 +276,11 @@
       const classes = ["small","medium","large","major"];
       const traces = classes.map(c => ({
         type:"box", name:c, x: rows.filter(r => r.size_class===c && r.load_ratio_100!=null && r.load_ratio_100>0).map(r=>r.load_ratio_100),
-        marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h"
+        marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h",
+        hovertemplate:"%{x:.2f}<extra>%{fullData.name}</extra>"
       }));
       Plotly.newPlot("ch-ratio", traces, {
-        margin:{l:60,r:10,t:10,b:40}, showlegend:false, font:{family:"Open Sans",size:11,color:"#003B71"},
+        margin:{l:60,r:10,t:10,b:40}, showlegend:false, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
         xaxis:{type:"log", title:"Loading ratio (100-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true},
         shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}],
         paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
@@ -293,10 +293,12 @@
       const ft = evals.map(e => ({
         type:"bar", name:"E = "+e, x:jur, marker:{color:ecol[e]},
         y: jur.map(j => { const sub=rows.filter(r=>r.jurisdiction===j); const n=sub.length||1;
-          return 100*sub.filter(r=>Math.round(r.E_FLC_hist)===e).length/n; })
+          return 100*sub.filter(r=>Math.round(r.E_FLC_hist)===e).length/n; }),
+        customdata: jur.map(j => rows.filter(r=>r.jurisdiction===j && Math.round(r.E_FLC_hist)===e).length),
+        hovertemplate:"%{y:.1f} percent (%{customdata} culverts)<extra>E = " + e + "</extra>"
       }));
       Plotly.newPlot("ch-flood", ft, {
-        barmode:"stack", margin:{l:45,r:10,t:10,b:90}, font:{family:"Open Sans",size:11,color:"#003B71"},
+        barmode:"stack", margin:{l:45,r:10,t:10,b:90}, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
         legend:{orientation:"h", y:1.12}, yaxis:{title:"percent of culverts", gridcolor:"#eef0f3", range:[0,100]},
         xaxis:{tickangle:-25}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
       }, {displayModeBar:false, responsive:true});
@@ -378,7 +380,7 @@
       const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
         renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
 
-      const map = new Map({basemap:"topo-vector", layers:[flood, bound, bridges, culverts]});
+      const map = new Map({basemap:"terrain", layers:[flood, bound, bridges, culverts]});
       const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}});
       view.ui.add(new Home({view}), "top-left");
       view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");

@@ -554,7 +554,7 @@
           <span class="haz-swatch"></span>Flood Zone
         </button>
         <button class="haz-btn" data-haz="fire" style="--hz-color: #B03A1A">
-          <span class="haz-swatch"></span>High-Sev Fire
+          <span class="haz-swatch"></span>High-severity fire
         </button>
         <button class="haz-btn" data-haz="landslide" style="--hz-color: #7A5C2E">
           <span class="haz-swatch"></span>Landslide
@@ -563,7 +563,7 @@
 
       <div class="haz-thresh hidden" id="haz-thresh">
         <div class="haz-thresh-row">
-          <span class="haz-thresh-lbl">Mean &ge;</span>
+          <span class="haz-thresh-lbl">Mean at or above</span>
           <input type="range" id="haz-slider" min="0" max="81" step="1" value="22" style="flex:1">
           <span class="haz-thresh-val" id="haz-slider-val">22</span>
         </div>
@@ -584,7 +584,7 @@
         </div>
         <div class="si-body">
           <div class="si-wt-row">
-            <span class="si-wt-label">Subindex Wt.</span>
+            <span class="si-wt-label">Sub-index weight</span>
             <input type="range" id="siw-equity" min="0" max="1" step="0.01" value="0.333" style="flex:1">
             <span class="si-wt-val" id="siwv-equity">0.33</span>
           </div>
@@ -638,7 +638,7 @@
             </div>
 
             <div class="vsum-row">
-              <span class="vsum-label">Variable &Sigma;</span>
+              <span class="vsum-label">Weights total</span>
               <span class="vsum-val" id="vsum-equity">1.00</span>
             </div>
           </div><!-- /vars-equity -->
@@ -655,7 +655,7 @@
         </div>
         <div class="si-body">
           <div class="si-wt-row">
-            <span class="si-wt-label">Subindex Wt.</span>
+            <span class="si-wt-label">Sub-index weight</span>
             <input type="range" id="siw-traffic" min="0" max="1" step="0.01" value="0.333" style="flex:1">
             <span class="si-wt-val" id="siwv-traffic">0.33</span>
           </div>
@@ -667,16 +667,16 @@
             <div class="var-row">
               <div class="var-top">
                 <div class="var-name-wrap">
-                  <span class="var-lbl">AADT Jenks Score (1 to 10)</span>
+                  <span class="var-lbl">Daily traffic (AADT) class, 1 to 10</span>
                   <button class="invert-pill off" id="inv-AADT_Jenks_Score">INV</button>
                 </div>
                 <span class="var-wt-val" id="vwv-AADT_Jenks_Score">1.00</span>
               </div>
               <input type="range" id="vw-AADT_Jenks_Score" min="0" max="1" step="0.01" value="1">
             </div>
-            <div class="single-note">Single-variable sub-index. Traffic (2024 estimated annual average daily traffic, AADT) is classified into 10 Jenks natural-break categories and normalized on its own.</div>
+            <div class="single-note">This sub-index has one variable. Daily traffic (2024 estimated annual average daily traffic, AADT) is grouped into 10 natural-break (Jenks) classes and normalized on its own.</div>
             <div class="vsum-row">
-              <span class="vsum-label">Variable &Sigma;</span>
+              <span class="vsum-label">Weights total</span>
               <span class="vsum-val" id="vsum-traffic">1.00</span>
             </div>
           </div><!-- /vars-traffic -->
@@ -693,7 +693,7 @@
         </div>
         <div class="si-body">
           <div class="si-wt-row">
-            <span class="si-wt-label">Subindex Wt.</span>
+            <span class="si-wt-label">Sub-index weight</span>
             <input type="range" id="siw-detour" min="0" max="1" step="0.01" value="0.334" style="flex:1">
             <span class="si-wt-val" id="siwv-detour">0.34</span>
           </div>
@@ -705,16 +705,16 @@
             <div class="var-row">
               <div class="var-top">
                 <div class="var-name-wrap">
-                  <span class="var-lbl">SLR Detour Length Jenks (1 to 10)</span>
+                  <span class="var-lbl">Detour length (SLR) class, 1 to 10</span>
                   <button class="invert-pill off" id="inv-SLR_Diff_Length_Jenks_Score">INV</button>
                 </div>
                 <span class="var-wt-val" id="vwv-SLR_Diff_Length_Jenks_Score">1.00</span>
               </div>
               <input type="range" id="vw-SLR_Diff_Length_Jenks_Score" min="0" max="1" step="0.01" value="1">
             </div>
-            <div class="single-note">Single-variable sub-index. Detour length (SLR: added travel distance when the segment is removed from the network) is classified into 10 Jenks natural-break categories and normalized on its own.</div>
+            <div class="single-note">This sub-index has one variable. Detour length (SLR: how much farther trips travel when the segment is removed from the network) is grouped into 10 natural-break (Jenks) classes and normalized on its own.</div>
             <div class="vsum-row">
-              <span class="vsum-label">Variable &Sigma;</span>
+              <span class="vsum-label">Weights total</span>
               <span class="vsum-val" id="vsum-detour">1.00</span>
             </div>
           </div><!-- /vars-detour -->
@@ -793,13 +793,13 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
     {
       key: "traffic", label: "Traffic", color: "#E87722",
       vars: [
-        { field: "AADT_Jenks_Score", label: "AADT Jenks Score (1 to 10)", invert: false }
+        { field: "AADT_Jenks_Score", label: "Daily traffic (AADT) class, 1 to 10", invert: false }
       ]
     },
     {
       key: "detour", label: "Detour Length", color: "#007681",
       vars: [
-        { field: "SLR_Diff_Length_Jenks_Score", label: "SLR Detour Length Jenks (1 to 10)", invert: false }
+        { field: "SLR_Diff_Length_Jenks_Score", label: "Detour length (SLR) class, 1 to 10", invert: false }
       ]
     }
   ];
@@ -1056,7 +1056,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
     const varStyle    = `color:#3a5278;padding-left:10px;`;
     const nStyle      = `color:#7a90aa;font-size:11px;`;
     const metaStyle   = `color:#7a90aa;font-size:11px;margin-bottom:6px;`;
-    const nLabel      = normMode === "minmax" ? "n" : "z";
+    const nLabel      = normMode === "minmax" ? "scaled" : "z-score";
 
     let html = `<div style="${style}">`;
     html += `<div style="${metaStyle}">${attrs.class || "segment"} &middot; segment ${attrs.segment_id || attrs.OBJECTID}</div>`;
@@ -1069,29 +1069,29 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
     if (flags.length) html += `<div style="${metaStyle}">Hazards: ${flags.join(" &middot; ")}</div>`;
 
     if (currentSym === "criticality") {
-      html += `<div>Criticality Score: <span style="${scoreStyle}">${calcCriticality(attrs).toFixed(3)}</span></div>`;
+      html += `<div>Criticality score: <span style="${scoreStyle}">${calcCriticality(attrs).toFixed(3)}</span></div>`;
       html += `<hr style="${hrStyle}">`;
       SUBINDEX_DEFS.forEach(si => {
         html += `<div style="font-weight:700;color:${si.color};">${si.label} `
-             +  `<span style="font-weight:400;font-size:11px;color:#7a90aa;">(wt=${subWeights[si.key].toFixed(2)})</span>: `
+             +  `<span style="font-weight:400;font-size:11px;color:#7a90aa;">(weight ${subWeights[si.key].toFixed(2)})</span>: `
              +  `${subScore(si.key, attrs).toFixed(3)}</div>`;
         si.vars.forEach(v => {
-          const raw = attrs[v.field] != null ? Number(attrs[v.field]).toFixed(2) : "N/A";
+          const raw = attrs[v.field] != null ? Number(attrs[v.field]).toFixed(2) : "no data";
           const inv = invertFlags[si.key][v.field] ? " &#8597;" : "";
           html += `<div style="${varStyle}">${v.label}${inv}: ${raw} `
-               +  `<span style="${nStyle}">(${nLabel}=${normValue(v.field, attrs[v.field]).toFixed(2)})</span></div>`;
+               +  `<span style="${nStyle}">(${nLabel} ${normValue(v.field, attrs[v.field]).toFixed(2)})</span></div>`;
         });
       });
     } else {
       const si = SUBINDEX_DEFS.find(s => s.key === currentSym);
-      html += `<div style="font-weight:700;font-size:14px;color:${si.color};">${si.label} Score: `
+      html += `<div style="font-weight:700;font-size:14px;color:${si.color};">${si.label} score: `
            +  `<span style="${scoreStyle};color:${si.color};">${subScore(si.key, attrs).toFixed(3)}</span></div>`;
       html += `<hr style="${hrStyle}">`;
       si.vars.forEach(v => {
-        const raw = attrs[v.field] != null ? Number(attrs[v.field]).toFixed(2) : "N/A";
+        const raw = attrs[v.field] != null ? Number(attrs[v.field]).toFixed(2) : "no data";
         const inv = invertFlags[si.key][v.field] ? " &#8597;" : "";
         html += `<div>${v.label}${inv}: <strong>${raw}</strong> `
-             +  `<span style="${nStyle}">(${nLabel}=${normValue(v.field, attrs[v.field]).toFixed(2)})</span></div>`;
+             +  `<span style="${nStyle}">(${nLabel} ${normValue(v.field, attrs[v.field]).toFixed(2)})</span></div>`;
       });
     }
 
@@ -1264,7 +1264,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
   }).catch(err => {
     document.getElementById("loading").innerHTML =
       `<div class="spinner" style="border-top-color:#E87722"></div>
-       <div class="loading-text" style="color:#E87722">Error: ${err.message}</div>`;
+       <div class="loading-text" style="color:#E87722">The street segments did not load: ${err.message}</div>`;
   });
 
   // ── Buttons ──────────────────────────────────────────────

@@ -43,6 +43,7 @@
     header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
 
     main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
     .intro{margin-bottom:1.25rem;}
     .intro .lede{font-size:1rem;max-width:95ch;}
     .intro .lede strong{color:var(--trpa-navy);}
@@ -147,11 +148,13 @@
   </header>
 
   <main>
+    <div class="banner">Internal review draft. Nothing is scored until the rubric for its pair is agreed with the consultant.</div>
     <section class="intro">
       <p class="lede">
-        Methodology record for the PROTECT <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>,
-        which supports the Tahoe Resilience Improvement Plan (TRIP): hazard-asset pairs, the data and model
-        inventory, the assessment framework, and the exposure dataset evaluation.
+        What the risk index is built from: the hazard and asset pairs, the data and models behind them, the
+        method, and the exposure datasets that were weighed. This is the methodology record for the PROTECT
+        <strong>Task 3.3 Interactive Risk Index Mapping Tool</strong>, which supports the Tahoe Resilience
+        Improvement Plan (TRIP).
       </p>
     </section>
 
@@ -173,13 +176,13 @@
       <calcite-tab selected>
         <div class="tab-body">
           <h2 class="sec">Hazard-Asset Pairs</h2>
-          <p class="lead">15 pairs are scored in the vulnerability assessment and seven are discussed in the TRIP only, per the June 25, 2026 vulnerability assessment discussion and later revisions. Four more are <strong>proposed</strong> for Steering Committee review and are not yet decided.<i class="i" tabindex="0" data-tip="Include in VA: scored in the system-wide, indicator-based vulnerability assessment. TRIP discussion: excluded from the assessment, with impacts and strategies covered in the TRIP. Proposed: added after the June 25 decision (seiche and high lake level), pending confirmation. Revised after June 25: every flooding pair is scored, avalanche on bridges moved out of the assessment, and the marina pair was dropped. Mirrored in Hazard_Asset_Pairs.md.">i</i></p>
+          <p class="lead">15 hazard and asset pairs are scored, seven are covered in the plan but not scored, and four more are <strong>proposed</strong> and not yet decided.<i class="i" tabindex="0" data-tip="Decided at the June 25, 2026 vulnerability assessment discussion and revised since. Include in VA: scored in the system-wide, indicator-based vulnerability assessment. TRIP discussion: excluded from the assessment, with impacts and strategies covered in the TRIP. Proposed: added after the June 25 decision (seiche and high lake level), pending Steering Committee confirmation. Revised after June 25: every flooding pair is scored, avalanche on bridges moved out of the assessment, and the marina pair was dropped. Mirrored in Hazard_Asset_Pairs.md.">i</i></p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="ha-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="ha-grid" class="ag-theme-quartz grid-wrap"></div>
-          <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Road segments are scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts inherit the score of their segment.<i class="i" tabindex="0" data-tip="The spring 2026 scoping notes behind this table are archived at docs/scoping_archive_2026-spring.md in the repo.">i</i></p>
+          <p class="lead" style="margin-top:.6rem;font-size:.8rem;">Which roads matter most is scored per road segment in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>; bridges and culverts take the score of the road they sit on.<i class="i" tabindex="0" data-tip="Criticality (component 1) is scored per road segment. The spring 2026 scoping notes behind this table are archived at docs/scoping_archive_2026-spring.md in the repo.">i</i></p>
 
           <h2 class="sec">Asset and Vulnerability Matrix</h2>
-          <p class="lead">Working draft of Infrastructure (<strong>I</strong>) and Service (<strong>S</strong>) ratings per asset and hazard.<i class="i" tabindex="0" data-tip="H, M, and L are high, medium, and low. NE is Not Exposed: by design, the asset would not be built in a location exposed to that hazard. A dash means not applicable.">i</i> Landslide, avalanche, and debris flow are rated separately, matching the pair matrix, as are earthquake and seiche. Wind, winter storm, seiche, and high lake level are carried at lower priority rather than dropped.<i class="i" tabindex="0" data-tip="Seeded ratings pending review: avalanche and debris flow carry over from the combined landslide and avalanche column, seiche from the combined earthquake and seiche column, and high lake level from flood as the closest inundation analogue. The source matrix had no debris-flow or high-lake-level column, so the split cannot infer distinct values. Ratings that differ are set in the exported CSV and returned to apply.">i</i></p>
+          <p class="lead">Working draft of how hard each hazard hits each asset, rated for the structure itself (<strong>I</strong>, infrastructure) and for the service it provides (<strong>S</strong>).<i class="i" tabindex="0" data-tip="H, M, and L are high, medium, and low. NE is Not Exposed: by design, the asset would not be built in a location exposed to that hazard. A dash means not applicable.">i</i> Landslide, avalanche, and debris flow are rated separately, as are earthquake and seiche; wind, winter storm, seiche, and high lake level stay in at lower priority rather than being dropped.<i class="i" tabindex="0" data-tip="The separate columns match the pair matrix. Seeded ratings pending review: avalanche and debris flow carry over from the combined landslide and avalanche column, seiche from the combined earthquake and seiche column, and high lake level from flood as the closest inundation analogue. The source matrix had no debris-flow or high-lake-level column, so the split cannot infer distinct values. Ratings that differ are set in the exported CSV and returned to apply.">i</i></p>
           <div style="display:flex;justify-content:flex-end;margin-bottom:.4rem;"><calcite-button id="sens-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button></div>
           <div id="sens-grid" class="ag-theme-quartz grid-wrap"></div>
         </div>
@@ -189,7 +192,7 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">Data inventory</h2>
-          <p class="lead">32 data elements, each mapped to the assessment component it feeds and its availability.<i class="i" tabindex="0" data-tip="Availability: Live is a working TRPA REST endpoint. Building is in progress. Purchased is contracted with delivery pending. Internal is a TRPA internal source, not a published service. Needed means no source yet. External is a non-TRPA source. Context / TRIP elements support the plan or Task 3.4 rather than the scoring. A REST Service entry in plain italic text notes where the layer will come from and is not a live endpoint. Services are at maps.trpa.org/server/rest/services; the layer index is confirmed per service before use.">i</i></p>
+          <p class="lead">32 data elements, each tagged with the part of the assessment it feeds and whether TRPA has it yet.<i class="i" tabindex="0" data-tip="Component is the assessment component the element feeds. Availability: Live is a working TRPA REST endpoint. Building is in progress. Purchased is contracted with delivery pending. Internal is a TRPA internal source, not a published service. Needed means no source yet. External is a non-TRPA source. Context / TRIP elements support the plan or Task 3.4 rather than the scoring. A REST Service entry in plain italic text notes where the layer will come from and is not a live endpoint. Services are at maps.trpa.org/server/rest/services; the layer index is confirmed per service before use.">i</i></p>
           <div class="toolbar">
             <input id="inv-qf" class="qf" type="text" placeholder="Search the data inventory" aria-label="Quick search" />
             <calcite-button id="inv-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -197,7 +200,7 @@
           <div id="inv-grid" class="ag-theme-quartz grid-wrap"></div>
 
           <h2 class="sec">Model inventory</h2>
-          <p class="lead">Modeling platforms and tools. RA2CE is the selected disruption-risk engine.<i class="i" tabindex="0" data-tip="RA2CE runs on the Overture-derived street network. The decision record is on the Framework and Methods tab.">i</i></p>
+          <p class="lead">Modeling platforms and tools. RA2CE is the tool selected for simulating what happens when roads are cut off.<i class="i" tabindex="0" data-tip="RA2CE is the selected disruption-risk engine (component 3). It runs on the Overture-derived street network. The decision record is on the Framework and Methods tab.">i</i></p>
           <div class="toolbar">
             <input id="mdl-qf" class="qf" type="text" placeholder="Search models" aria-label="Quick search models" />
             <calcite-button id="mdl-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -205,7 +208,7 @@
           <div id="mdl-grid" class="ag-theme-quartz grid-wrap"></div>
 
           <h2 class="sec">Index readiness</h2>
-          <p class="lead">Readiness per assessment component.</p>
+          <p class="lead">How ready the data is for each of the three parts of the assessment.</p>
           <div class="card-grid" id="readiness-mount"></div>
         </div>
       </calcite-tab>
@@ -214,42 +217,44 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">Three-component assessment approach</h2>
-          <p class="lead">Adopted at the June 25, 2026 vulnerability assessment discussion.<i class="i" tabindex="0" data-tip="Builds on FHWA VAST guidance. Network redundancy and adaptive capacity are handled in the scenario-based disruption analyses (RA2CE), not as a separate sub-index.">i</i></p>
-          <div class="formula"><strong>Screening (Aug. 20, 2026 draft Vulnerability Assessment Methodology):</strong> Vulnerability = (Exposure Score x w<sub>E</sub>) + (Sensitivity Score x w<sub>S</sub>), with weights set per pair: w<sub>E</sub> 0.7 and w<sub>S</sub> 0.3 by default, 0.3 and 0.7 for bridges and culverts under flooding, and exposure only for transit centers, wildfire trails, and avalanche. Scores are asset-level, 0 to 3, and classed High, Medium, or Low. Criticality is assessed separately as component 1 and read with vulnerability to select scenario locations and TRIP priorities. The indicator rubrics per pair are on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics page</a>.</div>
+          <p class="lead">Three parts: which roads matter most, how vulnerable each asset is, and what happens to the network when a road is cut off. Adopted at the June 25, 2026 vulnerability assessment discussion.<i class="i" tabindex="0" data-tip="Component 1 is the criticality assessment, component 2 the system-wide indicator-based vulnerability assessment, and component 3 the scenario-based disruption analyses. Builds on FHWA VAST guidance. Network redundancy and adaptive capacity are handled in the scenario-based disruption analyses (RA2CE), not as a separate sub-index.">i</i></p>
+          <div class="formula">Each asset's vulnerability score combines how exposed it is and how sensitive it is, weighted per pair, on a 0 to 3 scale classed High, Medium, or Low. Which roads matter most is scored separately and read alongside it.</div>
+          <calcite-block heading="The screening equation" collapsible scale="s">
+            <div class="formula"><strong>Screening (Aug. 20, 2026 draft Vulnerability Assessment Methodology):</strong> Vulnerability = (Exposure Score x w<sub>E</sub>) + (Sensitivity Score x w<sub>S</sub>), with weights set per pair: w<sub>E</sub> 0.7 and w<sub>S</sub> 0.3 by default, 0.3 and 0.7 for bridges and culverts under flooding, and exposure only for transit centers, wildfire trails, and avalanche. Scores are asset-level, 0 to 3, and classed High, Medium, or Low. Criticality is assessed separately as component 1 and read with vulnerability to select scenario locations and TRIP priorities. The indicator rubrics per pair are on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics page</a>.</div>
+          </calcite-block>
           <div class="note">
-            <strong>Proposed: maximum pair score per asset.</strong> One asset appears in several pairs. A culvert
-            carries FL-C, DF-C, and LS-C; a bridge carries FL-B, DF-B, and LS-B. TRPA proposes the asset-level
-            rating as the maximum pair score (V_max, with V_max_pair recording the hazard). Summing would
-            double-count one physical failure at one location. Lane default confirmed Oct. 8, 2026; consultant
-            confirmation requested (decision 9 on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics page</a>).<i class="i" tabindex="0" data-tip="Landslide, debris flow, and avalanche are kept as separate hazards because their triggers differ (multi-day saturation, short-duration burst intensity on burned ground, and snowpack loading) and debris-flow exposure is fire-conditioned. That split makes the aggregation rule matter more, not less.">i</i>
+            <strong>Proposed: one asset, one score, its highest pair.</strong> A culvert or bridge sits in several pairs
+            (flooding, debris flow, and landslide), and TRPA proposes rating it by its highest pair score, because adding
+            the pairs would count one failure at one spot more than once. Lane default confirmed Oct. 8, 2026; consultant
+            confirmation requested (decision 9 on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics page</a>).<i class="i" tabindex="0" data-tip="A culvert carries FL-C, DF-C, and LS-C; a bridge carries FL-B, DF-B, and LS-B. The asset-level rating is the maximum pair score (V_max, with V_max_pair recording the hazard). Landslide, debris flow, and avalanche are kept as separate hazards because their triggers differ (multi-day saturation, short-duration burst intensity on burned ground, and snowpack loading) and debris-flow exposure is fire-conditioned. That split makes the aggregation rule matter more, not less.">i</i>
           </div>
           <div class="note">
-            <strong>Decided since June 25.</strong> Every flooding pair is scored in the vulnerability assessment;
-            avalanche on bridges moved to TRIP discussion; marinas are retired as an asset class; landslide, avalanche,
-            and debris flow are separate hazards throughout; and runout modeling is out of scope, so no runout model
-            or terrain data is being purchased. Wind, winter storm, seiche, high lake level, and earthquake are
-            <strong>tracked</strong> rather than dropped.<i class="i" tabindex="0" data-tip="Tracked means the hazard is carried through the assessment at lower priority: sources are identified and impacts are reported in the TRIP, but it sits behind the scored pairs for scoring effort. Seiche and high lake level remain Proposed pairs pending Steering Committee confirmation.">i</i>
+            <strong>Decided since June 25.</strong> Every flooding pair is scored; avalanche on bridges is covered in
+            the plan but not scored; marinas are dropped as an asset class; landslide, avalanche, and debris flow stay
+            separate hazards throughout; and runout modeling is out of scope, so no runout model or terrain data is
+            being bought. Wind, winter storm, seiche, high lake level, and earthquake are
+            <strong>tracked</strong> rather than dropped.<i class="i" tabindex="0" data-tip="Avalanche on bridges moved from the vulnerability assessment to TRIP discussion. Tracked means the hazard is carried through the assessment at lower priority: sources are identified and impacts are reported in the TRIP, but it sits behind the scored pairs for scoring effort. Seiche and high lake level remain Proposed pairs pending Steering Committee confirmation.">i</i>
           </div>
           <div class="note">
-            <strong>Open: vendor risk scores versus this screening.</strong> The contracted wildfire package ships a
-            pre-computed net-value-change risk score with the same structure as the screening equation above.
-            Recommendation: the component layers are taken as exposure and sensitivity inputs, scored through the
-            weighted exposure and sensitivity equation, and the vendor score is kept as a validation cross-check.<i class="i" tabindex="0" data-tip="Using the vendor score directly would rank wildfire by a federal valued-resource framework and everything else by TRPA criticality, leaving the pairs incomparable. Cross-pair consistency matters more than the best available score per hazard. The wildfire product also models critical access roads, overlapping the Criticality Index.">i</i>
+            <strong>Open: the wildfire vendor's own risk score, or the same scoring as every other hazard?</strong> The
+            contracted wildfire package ships a ready-made risk score built the same way as the screening equation.
+            Recommendation: feed its layers into the TRPA equation as exposure and sensitivity inputs, and keep the
+            vendor score as a cross-check.<i class="i" tabindex="0" data-tip="The vendor score is a pre-computed net-value-change risk score. Using the vendor score directly would rank wildfire by a federal valued-resource framework and everything else by TRPA criticality, leaving the pairs incomparable. Cross-pair consistency matters more than the best available score per hazard. The wildfire product also models critical access roads, overlapping the Criticality Index.">i</i>
           </div>
           <div class="note">
-            <strong>Decided Oct. 8, 2026: no flood depth model.</strong> TRPA is not purchasing the commercial flood
-            model the draft methodology assumed. Flood exposure is scored from FEMA flood zones and stream crossings for
-            every horizon, and the culvert loading ratio carries the hydraulic and future-horizon signal.<i class="i" tabindex="0" data-tip="The draft's depth-based flood rows for culverts and bridges are listed as not applicable on the Scoring Rubrics page (decision 19). USGS StreamStats peak flows and HEC-RAS at selected crossings remain available if the consultant still wants a depth indicator. The licence-expiry, scenario-mismatch, and Atlas 14 double-counting items that came with the commercial model are closed.">i</i>
+            <strong>Decided Oct. 8, 2026: no flood depth model.</strong> TRPA is not buying the commercial flood model
+            the draft methodology assumed. Flood exposure comes from FEMA flood zones and stream crossings for every
+            time horizon, and the culvert loading ratio carries the hydraulic and future-horizon signal.<i class="i" tabindex="0" data-tip="The draft's depth-based flood rows for culverts and bridges are listed as not applicable on the Scoring Rubrics page (decision 19). USGS StreamStats peak flows and HEC-RAS at selected crossings remain available if the consultant still wants a depth indicator. The licence-expiry, scenario-mismatch, and Atlas 14 double-counting items that came with the commercial model are closed.">i</i>
           </div>
 
           <div class="card-grid">
             <div class="card" style="--c:#003B71"><h3>1. Criticality</h3><p><em>What are the critical assets?</em></p><ul><li>Roads, bridges, trails, transit centers<i class="i" tabindex="0" data-tip="Indicators: evacuation route, detour length, AADT, proximity to strategic community assets, and community priority zones.">i</i></li><li>Live: <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a></li></ul></div>
-            <div class="card" style="--c:#E87722"><h3>2. Screening</h3><p><em>Where are the greatest vulnerabilities?</em></p><ul><li>The 15 Include-in-VA pairs</li><li>Weighted exposure and sensitivity per pair; criticality carried separately<i class="i" tabindex="0" data-tip="Scored per asset on a 0 to 3 scale, then classed High, Medium, or Low and mapped.">i</i></li></ul></div>
+            <div class="card" style="--c:#E87722"><h3>2. Screening</h3><p><em>Where are the greatest vulnerabilities?</em></p><ul><li>The 15 Include-in-VA pairs</li><li>How exposed and how sensitive each asset is, weighted per pair; which roads matter most is carried separately<i class="i" tabindex="0" data-tip="Weighted exposure and sensitivity per pair, with criticality carried separately. Scored per asset on a 0 to 3 scale, then classed High, Medium, or Low and mapped.">i</i></li></ul></div>
             <div class="card" style="--c:#4A6118"><h3>3. Disruption scenarios</h3><p><em>How does the system react to an event?</em></p><ul><li>Two to three scenarios per priority hazard</li><li>RA2CE on the Overture network<i class="i" tabindex="0" data-tip="Outputs: detour lengths, travel-time change, blocked assets, populations impacted, and optionally Expected Annual Loss from loss functions and value of time.">i</i></li></ul></div>
           </div>
 
           <h2 class="sec">Sensitivity indicators by asset</h2>
-          <p class="lead">Precedent indicators from the May 20, 2026 consultant deck; the indicators actually scored are on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics page</a>.</p>
+          <p class="lead">Examples of what other agencies have used to rate how easily an asset is damaged, from the May 20, 2026 consultant deck; the indicators actually scored here are on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics page</a>.</p>
           <div class="card-grid">
             <div class="card" style="--c:#0072CE"><h3>Roads <span class="tag">MDOT</span></h3><ul><li>Pavement condition (all)</li><li>Pavement foundation or permeable sub-base (flooding)</li><li>Road elevation (flooding)</li><li>Depth to groundwater<i class="i" tabindex="0" data-tip="Proposed. Shallow groundwater weakens subgrade and drives freeze-thaw damage. Treated as a sensitivity attribute rather than a hazard: it is a persistent site condition with no event frequency, which is what separates sensitivity from exposure. If groundwater rise under climate change is modeled, that becomes an exposure input instead.">i</i></li><li>Asset age (all)</li></ul></div>
             <div class="card" style="--c:#7B6A8A"><h3>Bridges <span class="tag">MDOT</span></h3><ul><li>Bridge condition, deck rating and type, material</li><li>Scour criticality (flooding, debris flow)</li><li>Bridge elevation (flooding, landslide, debris flow)</li><li>Seismic retrofit (earthquake); channel and water-opening adequacy (flooding)</li></ul></div>
@@ -267,7 +272,7 @@
           <h2 class="sec">Assessment approaches by pair type</h2>
           <div class="card-grid">
             <div class="card" style="--c:#E87722"><h3>Indicator-based</h3><p>Asset-level scoring that overlays hazard data on asset locations.<i class="i" tabindex="0" data-tip="Scored on a 0 to 3 or 0 to 5 scale. Best suited to physical-damage pairs.">i</i></p></div>
-            <div class="card" style="--c:#0072CE"><h3>Criticality-focused</h3><p>Identifies which assets are most critical and what happens if they fail.<i class="i" tabindex="0" data-tip="Used where hazard exposure varies little geospatially, or where data is unavailable. Best suited to operational-disruption pairs.">i</i></p></div>
+            <div class="card" style="--c:#0072CE"><h3>Criticality-focused</h3><p>Identifies which assets matter most and what happens if they fail.<i class="i" tabindex="0" data-tip="Used where hazard exposure varies little geospatially, or where data is unavailable. Best suited to operational-disruption pairs.">i</i></p></div>
             <div class="card" style="--c:#7B6A8A"><h3>Qualitative</h3><p>Describes how an asset type may be impacted, driven by sensitivity.<i class="i" tabindex="0" data-tip="Best suited to initial screening, to decide which pairs receive detailed analysis.">i</i></p></div>
           </div>
 
@@ -283,7 +288,7 @@
       <!-- TAB: Exposure Datasets -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">Per-hazard evaluation of datasets for modeling asset exposure. Public options exist for every hazard.<i class="i" tabindex="0" data-tip="From the ICF data review. Commercial and proprietary options are flagged in the Availability column. The Data and Model Inventory tab is the source of record for what TRPA holds and serves; this tab records the evaluation behind those choices.">i</i></p>
+          <p class="lead">For each hazard, the datasets that were weighed for mapping where assets are exposed. A public option exists for every hazard.<i class="i" tabindex="0" data-tip="Per-hazard evaluation of datasets for modeling asset exposure, from the ICF data review. Commercial and proprietary options are flagged in the Availability column. The Data and Model Inventory tab is the source of record for what TRPA holds and serves; this tab records the evaluation behind those choices.">i</i></p>
           <div class="toolbar">
             <input id="exp-qf" class="qf" type="text" placeholder="Search the exposure approach" aria-label="Quick search exposure" />
             <calcite-button id="exp-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
@@ -296,8 +301,7 @@
   </main>
 
   <footer class="app-footer">
-    <p>Reference hub v0.6. Internal review draft, not for public distribution.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; 3.2 is the Risk-Based Vulnerability Assessment and 3.3 is this Interactive Risk Index Mapping Tool.">i</i>
-    Sources: the June 25, 2026 vulnerability assessment discussion deck, the May 20, 2026 ICF and TRPA vulnerability assessment deck, and the consultant's draft Vulnerability Assessment Methodology (Aug. 20, 2026), the source for the equation, weights, and indicator rubrics.<i class="i" tabindex="0" data-tip="The June 25 deck sets the decided pairs and the three-component approach; the May 20 deck sets the sensitivity and criticality precedents; the Aug. 20 methodology sets the screening equation, per-pair weights, and indicator rubrics. Also PROTECT_DataModel_Inventory.xlsx and PROTECT_RiskIndexTool_Scoping_v0.1.docx. Spring 2026 scoping notes are archived at docs/scoping_archive_2026-spring.md.">i</i></p>
+    <p>Reference hub v0.6. Internal review draft, not for public distribution.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; 3.2 is the Risk-Based Vulnerability Assessment and 3.3 is this Interactive Risk Index Mapping Tool.">i</i> Sources: the June 25 and May 20, 2026 vulnerability assessment decks and the consultant's draft methodology (Aug. 20, 2026).<i class="i" tabindex="0" data-tip="The June 25, 2026 vulnerability assessment discussion deck sets the decided pairs and the three-component approach; the May 20, 2026 ICF and TRPA vulnerability assessment deck sets the sensitivity and criticality precedents; the consultant's draft Vulnerability Assessment Methodology (Aug. 20, 2026) sets the screening equation, per-pair weights, and indicator rubrics. Also PROTECT_DataModel_Inventory.xlsx and PROTECT_RiskIndexTool_Scoping_v0.1.docx. Spring 2026 scoping notes are archived at docs/scoping_archive_2026-spring.md.">i</i></p>
   </footer>
 
   <script>
