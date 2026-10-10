@@ -51,6 +51,24 @@ exposure:
     nhd_flowlines: ""        # optional NHD flowline layer url for the class-1 value; blank = class 1 unused
     class_fc: Hazard_Flood_Class
     bridge_weights: {e1: 0.20, e2: 0.10}   # FL-B: waterway adequacy (NBI 71) and the flood class
+  wildfire:                # WF-R, WF-AT, WF-TC (rubric 6.4, decision 22): E = 0.70 E1 + 0.30 E2, each the maximum within 300 ft
+    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\SNV_RRK_Data.gdb\<SET_RASTER_NAME>
+    bp_units: auto           # percent | fraction | auto (fraction when the raster maximum is 1 or less)
+    bp_breaks_pct: [0.5, 1.0]   # E1 annual burn probability: over 0 to 0.5 = 1, over 0.5 to 1 = 2, over 1 percent = 3
+    severity_layer: https://maps.trpa.org/server/rest/services/Fire/MapServer/3   # E2 until the contracted package lands
+    severity_field: MostLikelyFireSeverity
+    severity_classes: {Low Severity: 1, Moderate Severity: 2, High Severity: 3}   # outside the layer = 0
+    flame_length_raster: ""  # contracted fire-behavior package, when delivered: replaces severity as E2 (feet)
+    flame_breaks_ft: [4.0, 8.0]  # over 0 to 4 = 1, over 4 to 8 = 2, over 8 ft = 3 (the draft's breaks)
+    buffer_ft: 300           # sampling distance for every wildfire pair (lines and points)
+    weights: {e1: 0.70, e2: 0.30}
+    bp_fc: Hazard_Wildfire_BurnProb
+    e2_fc: Hazard_Wildfire_Severity
+  # line and point assets scored by the lane's other pairs (roads come from assets.streets_*)
+  active_transport_layer: https://maps.trpa.org/server/rest/services/Transportation/MapServer/3   # existing facilities
+  active_transport_key: OBJECTID
+  transit_centers_layer: https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/Transit_Hubs/FeatureServer/0   # eight hubs (AGOL)
+  transit_centers_key: FID
 
 run:
   crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when
