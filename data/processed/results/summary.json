@@ -1,0 +1,54 @@
+{
+ "generated": "2026-10-09",
+ "culverts": {
+  "scored_public": 5096,
+  "full_profile": 858,
+  "with_ratio": 3901,
+  "ratio_over_1": 1896,
+  "ratio_median": 0.9,
+  "ratio_p90": 8.75,
+  "size_suspect": 93,
+  "ratio_review": 450,
+  "tailwater": 128,
+  "regression": 114,
+  "E_FLC": {
+   "0.0": 3030,
+   "1.0": 88,
+   "2.0": 1746,
+   "3.0": 232
+  },
+  "by_jurisdiction": {
+   "Washoe County": 1612,
+   "El Dorado County": 1322,
+   "TRPA Legacy (provisional)": 961,
+   "Caltrans": 692,
+   "Placer County": 473,
+   "City of South Lake Tahoe": 32,
+   "Douglas County": 4
+  }
+ },
+ "bridges": {
+  "count": 40,
+  "water_crossings": 31,
+  "E_FLB": {
+   "0.0": 5,
+   "0.7": 8,
+   "1.0": 1,
+   "1.3": 10,
+   "1.7": 13,
+   "2.0": 2,
+   "2.3": 1
+  }
+ },
+ "flood_surface": {
+  "polygons": 1307,
+  "area_km2_by_class": {
+   "2": 94.8,
+   "3": 12.0
+  }
+ },
+ "notes": [
+  "Public jurisdictions only; the restricted state DOT export is excluded at the row level.",
+  "Draft screening values for workshop review; the loading ratio ranks crossings and is not a design number."
+ ]
+}
