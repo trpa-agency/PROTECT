@@ -124,12 +124,12 @@
 
   <main>
     <section class="kpi-row">
-      <div class="kpi-card"><div class="kpi-value">18,253</div><div class="kpi-label">Street segments in the criticality network</div></div>
+      <div class="kpi-card"><div class="kpi-value">18,253</div><div class="kpi-label">Street segments scored for how much they matter to the network<i class="i" tabindex="0" data-tip="The criticality network: in-basin street segments from the Overture-derived network, scored in the Criticality Index app.">i</i></div></div>
       <div class="kpi-card"><div class="kpi-value">40</div><div class="kpi-label">Bridges and large culverts (National Bridge Inventory)</div></div>
       <div class="kpi-card"><div class="kpi-value">7,858</div><div class="kpi-label">Culverts compiled from six jurisdictions, with condition</div></div>
-      <div class="kpi-card"><div class="kpi-value">15</div><div class="kpi-label">Hazard-asset pairs in the vulnerability assessment<i class="i" tabindex="0" data-tip="15 pairs are scored in the vulnerability assessment. Seven more are discussed in the plan without scoring, and four are proposed pending Steering Committee review.">i</i></div></div>
+      <div class="kpi-card"><div class="kpi-value">15</div><div class="kpi-label">Hazard and asset combinations being scored<i class="i" tabindex="0" data-tip="15 hazard-asset pairs are scored in the vulnerability assessment. Seven more are discussed in the plan without scoring, and four are proposed pending Steering Committee review.">i</i></div></div>
     </section>
-    <p class="kpi-cap">Counts from the working layers: the Overture-derived criticality network, the Bridges layer built from the NBI basin clip, and the compiled TRPA culvert layer.</p>
+    <p class="kpi-cap">Counts from the working layers: the street network, the bridge layer, and the compiled culvert layer.<i class="i" tabindex="0" data-tip="The Overture-derived criticality network; the Bridges layer built from the National Bridge Inventory clipped to the basin; the compiled TRPA culvert layer.">i</i></p>
 
     <calcite-tabs scale="m">
       <calcite-tab-nav slot="title-group">
@@ -143,18 +143,18 @@
       <calcite-tab selected>
         <div class="tab-body">
           <calcite-notice icon="information" scale="s" open>
-            <span slot="message">Phase 1 MVP. Every layer on this map is live TRPA data. Scored screening layers are added as the vulnerability scoring runs (first results Oct. 16, 2026); interactive criticality scoring is live in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>. Internal review draft.</span>
+            <span slot="message">Every layer on this map is live TRPA data; scored layers are added as results arrive (first results Oct. 16, 2026), and which roads matter most is already scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.<i class="i" tabindex="0" data-tip="Phase 1 MVP, internal review draft. Scored screening layers are added as the vulnerability scoring runs; interactive criticality scoring is live in the Criticality Index app.">i</i></span>
           </calcite-notice>
           <div class="map-wrap" style="margin-top:.8rem;">
             <div class="layer-panel">
-              <h3>Hazards (Exposure)</h3>
-              <div class="note">Symbolized as published today. Each surface is classed 0 to 3 for the exposure scoring, with class breaks held in configuration.</div>
+              <h3>Hazards</h3>
+              <div class="note">Each hazard is shown as published today and is graded 0 to 3 for how exposed an asset is.<i class="i" tabindex="0" data-tip="Exposure scoring: each surface is classed 0 to 3, with class breaks held in configuration.">i</i></div>
               <label class="lyr"><calcite-switch id="tg-flood" class="sw"></calcite-switch> Flood zones</label>
               <label class="lyr"><calcite-switch id="tg-avy" class="sw"></calcite-switch> Avalanche zones</label>
               <label class="lyr"><calcite-switch id="tg-fire" class="sw"></calcite-switch> Fire severity probability</label>
               <div class="grp">
                 <h3>Assets</h3>
-                <div class="note">Assets carry the criticality score from the <a href="criticality-index.html">Criticality Index</a>; bridges and culverts inherit the road segment's score.</div>
+                <div class="note">Roads are colored by how much they matter to the network, from the <a href="criticality-index.html">Criticality Index</a>; bridges and culverts take the score of the road they sit on.<i class="i" tabindex="0" data-tip="Assets carry the criticality score from component 1; bridges and culverts inherit the road segment's score.">i</i></div>
                 <label class="lyr"><calcite-switch id="tg-roads" class="sw" checked></calcite-switch> Roads by criticality<i class="i" tabindex="0" data-tip="18,253 in-basin street segments from the Overture-derived network, colored by criticality at equal weights across the three sub-indices: equity, detour length, and traffic. Weights are adjustable in the Criticality Index app.">i</i></label>
                 <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Bridges<i class="i" tabindex="0" data-tip="The Bridges layer holds the 40 National Bridge Inventory structures inside the TRPA boundary with condition, scour, channel, and waterway items. It publishes with the PROTECT_VA v2 service (Oct. 23, 2026).">i</i></label>
                 <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Culverts<i class="i" tabindex="0" data-tip="7,858 culverts compiled from six jurisdictions with a condition table. Publishes with the PROTECT_VA v2 service (Oct. 23, 2026); NDOT assets are excluded from publication pending NDOT review.">i</i></label>
@@ -168,14 +168,14 @@
       <!-- STATUS -->
       <calcite-tab>
         <div class="tab-body">
-          <p class="lead">Status of each assessment component as of Oct. 8, 2026. The full readiness tracker is in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>.</p>
+          <p class="lead">Where each part of the assessment stands as of Oct. 8, 2026. The full readiness tracker is in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>.</p>
           <div class="card-grid">
-            <div class="card" style="--c:#003B71"><h3>1. Criticality assessment<span class="pill live">Live</span></h3><p>18,253 segments scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.<i class="i" tabindex="0" data-tip="Equity, traffic, detour length, and access to critical locations, with adjustable weights and hazard filters. Bridges and culverts inherit the road segment's score. Final weights and the 0 to 3 class are written to the road layer in October.">i</i></p></div>
-            <div class="card" style="--c:#E87722"><h3>2a. Exposure<span class="pill building">Building</span></h3><p>Hazard surfaces classed 0 to 3 from data in hand for the workshop; the contracted fire package is an upgrade for December.<i class="i" tabindex="0" data-tip="Workshop surfaces: FEMA flood zones and stream crossings, USGS landslide susceptibility, the TRPA burn probability raster and high-severity fire probability layer, DEM dominant slope with avalanche records, and a debris-flow proxy raster. Contracted fire-behavior modeling and predicted soil burn severity are purchased with an Oct. 12 delivery cutoff; if reviewed in time they replace the wildfire inputs for December on the same breaks. No flood depth model is being acquired; flood exposure is the FEMA zone and stream-crossing class. Runout modeling is out of scope.">i</i></p></div>
-            <div class="card" style="--c:#B47E00"><h3>2b. Sensitivity<span class="pill building">Building</span></h3><p>Bridge and culvert condition sourced; pavement condition is the gap.<i class="i" tabindex="0" data-tip="Bridge condition, scour, channel, and waterway items from the National Bridge Inventory (40 structures). Culvert size, capacity loading ratio, and condition from the compiled layer (7,858 assets). Pavement condition has no source; roads default to fair with the source flagged as partial.">i</i></p></div>
-            <div class="card" style="--c:#9C3E27"><h3>2. Vulnerability score<span class="pill pending">Pending</span></h3><p>Vulnerability = (Exposure Score &times; w<sub>E</sub>) + (Sensitivity Score &times; w<sub>S</sub>), weights per pair.<i class="i" tabindex="0" data-tip="Per the consultant's Aug. 20, 2026 draft methodology: scored 0 to 3 per asset and classed High, Medium, and Low. Criticality is assessed separately and read alongside. Rubrics v0.2 are on the Scoring Rubrics page; first results are due Oct. 16. The score colors the map and fills the segment table once the screening runs.">i</i></p></div>
-            <div class="card" style="--c:#4A6118"><h3>3. Disruption scenarios<span class="pill building">Building</span></h3><p>RA2CE on the Overture street network.<i class="i" tabindex="0" data-tip="Outputs are detours, travel-time change, blocked assets, and populations affected. Two scenarios are selected from the high-criticality and high-vulnerability results on Oct. 21 and run by Oct. 30.">i</i></p></div>
-            <div class="card" style="--c:#0072CE"><h3>Supporting layers<span class="pill live">Live</span></h3><p>Emergency services, transit, priority zones, and the equity tessellation.<i class="i" tabindex="0" data-tip="Live TRPA REST services feeding the criticality assessment.">i</i></p></div>
+            <div class="card" style="--c:#003B71"><h3>1. Which roads matter most<span class="pill live">Live</span></h3><p>18,253 road segments scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.<i class="i" tabindex="0" data-tip="Component 1, the criticality assessment: equity, traffic, detour length, and access to critical locations, with adjustable weights and hazard filters. Bridges and culverts inherit the road segment's score. Final weights and the 0 to 3 class are written to the road layer in October.">i</i></p></div>
+            <div class="card" style="--c:#E87722"><h3>2a. How exposed each asset is<span class="pill building">Building</span></h3><p>Each hazard map is graded 0 to 3 from data in hand for the workshop; a purchased fire model may replace the wildfire inputs in December.<i class="i" tabindex="0" data-tip="Exposure scoring. Workshop surfaces: FEMA flood zones and stream crossings, USGS landslide susceptibility, the TRPA burn probability raster and high-severity fire probability layer, DEM dominant slope with avalanche records, and a debris-flow proxy raster. Contracted fire-behavior modeling and predicted soil burn severity are purchased with an Oct. 12 delivery cutoff; if reviewed in time they replace the wildfire inputs for December on the same breaks. No flood depth model is being acquired; flood exposure is the FEMA zone and stream-crossing class. Runout modeling is out of scope.">i</i></p></div>
+            <div class="card" style="--c:#B47E00"><h3>2b. How sensitive each asset is<span class="pill building">Building</span></h3><p>Bridge and culvert condition data are in hand; pavement condition has no source yet.<i class="i" tabindex="0" data-tip="Sensitivity scoring. Bridge condition, scour, channel, and waterway items from the National Bridge Inventory (40 structures). Culvert size, capacity loading ratio, and condition from the compiled layer (7,858 assets). Pavement condition has no source; roads default to fair with the source flagged as partial.">i</i></p></div>
+            <div class="card" style="--c:#9C3E27"><h3>2. Vulnerability score<span class="pill pending">Pending</span></h3><p>How exposed an asset is plus how sensitive it is, weighted for each hazard and asset combination.<i class="i" tabindex="0" data-tip="Vulnerability = (Exposure Score &times; wE) + (Sensitivity Score &times; wS), weights per pair. Per the consultant's Aug. 20, 2026 draft methodology: scored 0 to 3 per asset and classed High, Medium, and Low. Criticality is assessed separately and read alongside. Rubrics v0.2 are on the Scoring Rubrics page; first results are due Oct. 16. The score colors the map and fills the segment table once the screening runs.">i</i></p></div>
+            <div class="card" style="--c:#4A6118"><h3>3. What happens when a road closes<span class="pill building">Building</span></h3><p>Closure scenarios modeled on the street network.<i class="i" tabindex="0" data-tip="Component 3, scenario-based disruption analyses: RA2CE on the Overture street network. Outputs are detours, travel-time change, blocked assets, and populations affected. Two scenarios are selected from the high-criticality and high-vulnerability results on Oct. 21 and run by Oct. 30.">i</i></p></div>
+            <div class="card" style="--c:#0072CE"><h3>Supporting layers<span class="pill live">Live</span></h3><p>Emergency services, transit, priority zones, and the equity grid.<i class="i" tabindex="0" data-tip="Live TRPA REST services feeding the criticality assessment, including the equity tessellation.">i</i></p></div>
           </div>
         </div>
       </calcite-tab>
@@ -183,10 +183,23 @@
       <!-- METHODS -->
       <calcite-tab>
         <div class="tab-body">
-          <h2 class="sec">Three-component assessment approach</h2>
-          <p class="lead">Adopted at the June 25, 2026 vulnerability assessment discussion and detailed in the consultant's Aug. 20, 2026 draft methodology.<i class="i" tabindex="0" data-tip="Component 1: the criticality assessment, live in the Criticality Index app. Component 2: the system-wide, indicator-based vulnerability assessment of the 15 hazard-asset pairs. Component 3: scenario-based disruption analyses in RA2CE for high-criticality and high-vulnerability locations.">i</i></p>
-          <div class="formula"><strong>Indicator screening:</strong> Vulnerability = (Exposure Score &times; w<sub>E</sub>) + (Sensitivity Score &times; w<sub>S</sub>), with weights set per pair: 0.7 and 0.3 for most pairs; 0.3 and 0.7 for bridges and culverts under flooding; exposure only for transit centers, active transport under wildfire, and avalanche. Asset-level scores on a 0 to 3 scale are classed High, Medium, and Low. Criticality is assessed separately in component 1 and read with vulnerability to select scenario locations and TRIP priorities.</div>
-          <p class="lead" style="margin-top:1rem;">Indicator rubrics per pair are on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics</a> page and the full methodology record in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>. Climate inputs are on the <a href="climate-data.html" style="color:var(--trpa-blue);font-weight:600;">Climate Data</a> page; storm and debris-flow methods on the <a href="tahoe-precip-events.html" style="color:var(--trpa-blue);font-weight:600;">Storm Events</a> page.</p>
+          <h2 class="sec">How the assessment is built</h2>
+          <p class="lead">The assessment has three parts: which roads matter most, how vulnerable each asset is to each hazard, and what happens when a key road closes. The approach was adopted at the June 25, 2026 vulnerability assessment discussion and is detailed in the consultant's Aug. 20, 2026 draft methodology.<i class="i" tabindex="0" data-tip="Component 1: the criticality assessment, live in the Criticality Index app. Component 2: the system-wide, indicator-based vulnerability assessment of the 15 hazard-asset pairs. Component 3: scenario-based disruption analyses in RA2CE for high-criticality and high-vulnerability locations.">i</i></p>
+          <calcite-block heading="How the vulnerability score is made" collapsible scale="s">
+            <div class="formula"><strong>Indicator screening:</strong> Vulnerability = (Exposure Score &times; w<sub>E</sub>) + (Sensitivity Score &times; w<sub>S</sub>)</div>
+            <ul style="margin-left:1.05rem;font-size:.84rem;">
+              <li><b>Weights.</b> Set per pair: 0.7 exposure and 0.3 sensitivity for most pairs; 0.3 and 0.7 for bridges and culverts under flooding; exposure only for transit centers, active transport under wildfire, and avalanche.</li>
+              <li><b>Scale.</b> Asset-level scores on a 0 to 3 scale are classed High, Medium, and Low.</li>
+              <li><b>Criticality.</b> Assessed separately in component 1 and read with vulnerability to select scenario locations and TRIP priorities.</li>
+            </ul>
+          </calcite-block>
+          <calcite-block heading="Live layers and services" collapsible scale="s">
+            <ul style="margin-left:1.05rem;font-size:.84rem;">
+              <li><b>On the map today.</b> <code>Streams_and_Flood_Zone</code>, <code>Avalanche_Zones</code>, <code>Fire</code>, and the criticality network <code>PROTECT_VA</code> (<code>Streets_Network_Tahoe</code>).</li>
+              <li><b>Coming in v2.</b> The v2 service adds bridges, culverts, active transport, and transit centers with exposure, sensitivity, criticality, and vulnerability per pair.</li>
+            </ul>
+          </calcite-block>
+          <p class="lead" style="margin-top:1rem;">The scoring rules for each hazard and asset combination are on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics</a> page, and the full methodology record is in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>. Climate inputs are on the <a href="climate-data.html" style="color:var(--trpa-blue);font-weight:600;">Climate Data</a> page, and storm and debris-flow methods are on the <a href="tahoe-precip-events.html" style="color:var(--trpa-blue);font-weight:600;">Storm Events</a> page.</p>
         </div>
       </calcite-tab>
 
@@ -194,16 +207,16 @@
       <calcite-tab>
         <div class="tab-body">
           <h2 class="sec">About this tool</h2>
-          <p class="lead">The Task 3.3 deliverable of TRPA's PROTECT grant: the risk index mapped across the Lake Tahoe Region's transportation network, for technical partners.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; Task 3.2 is the vulnerability assessment and Task 3.3 is this tool.">i</i></p>
+          <p class="lead">This tool maps the risk index across the Lake Tahoe Region's transportation network for technical partners. It is the Task 3.3 deliverable of TRPA's PROTECT grant.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; Task 3.2 is the vulnerability assessment and Task 3.3 is this tool.">i</i></p>
           <p class="lead">Built by the TRPA Science and Data and Transportation teams, with ICF as the climate resilience consultant.<i class="i" tabindex="0" data-tip="Standard TRPA dashboard stack: Calcite Design System and the ArcGIS Maps SDK. Live spatial data from maps.trpa.org. Criticality scoring runs in the companion Criticality Index app.">i</i></p>
-          <p class="lead"><strong>Internal review draft.</strong> Not for public distribution. Workshop 1 release Nov. 9, 2026.</p>
+          <p class="lead"><strong>Internal review draft</strong>, not for public distribution; the Workshop 1 release is Nov. 9, 2026.</p>
         </div>
       </calcite-tab>
     </calcite-tabs>
   </main>
 
   <footer class="app-footer">
-    <p>PROTECT Risk Index Tool (MVP, Phase 1). Live layers: <code>Streams_and_Flood_Zone</code>, <code>Avalanche_Zones</code>, <code>Fire</code>, and the criticality network <code>PROTECT_VA</code> (<code>Streets_Network_Tahoe</code>). The v2 service adds bridges, culverts, active transport, and transit centers with exposure, sensitivity, criticality, and vulnerability per pair. Internal review draft.</p>
+    <p>PROTECT Risk Index Tool (MVP, Phase 1). Live TRPA layers; service names are listed under Methods. Internal review draft.</p>
   </footer>
 
   <script>

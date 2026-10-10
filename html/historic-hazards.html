@@ -48,6 +48,7 @@
     header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
     header.app-header a:hover{color:#fff;}
     main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
     .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
     /* Map layout */
@@ -146,14 +147,14 @@
   </header>
 
   <main>
+    <div class="banner">Internal review draft. The fire record is California only.</div>
+
     <p class="lead">
-      This page compiles the observed hazard record for the Lake Tahoe Region: fire perimeters, mapped
-      landslides, and earthquake epicenters against the TRPA boundary and member jurisdictions. The
-      historical record is the reference against which the predictive exposure surfaces are
-      checked.<i class="i" tabindex="0" data-tip="Historical hazards are a component 2 exposure element in the data inventory. They check the predictive models: a burn-probability or debris-flow surface that disagrees with where fires burned is re-examined before it feeds the vulnerability screening.">i</i>
-      The fire record is queried live from CAL FIRE and clipped to the TRPA boundary polygon;
-      <strong>it is California only</strong>, so fires on the Nevada side are missing.<i class="i" tabindex="0" data-tip="CAL FIRE FRAP covers California. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area. The landslide and earthquake layers cover both states.">i</i>
-      The landslide and earthquake layers cover both states.
+      Where fires, landslides, and earthquakes have been recorded in the Lake Tahoe Region, shown
+      against the TRPA boundary and member jurisdictions. The record is the check on the predictive
+      hazard maps<i class="i" tabindex="0" data-tip="Historical hazards are a component 2 exposure element in the data inventory. They check the predictive models: a burn-probability or debris-flow surface that disagrees with where fires burned is re-examined before it feeds the vulnerability screening.">i</i>,
+      and the fire layer is <strong>California only</strong>, so fires on the Nevada side are
+      missing.<i class="i" tabindex="0" data-tip="CAL FIRE FRAP covers California. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area. The landslide and earthquake layers cover both states.">i</i>
     </p>
 
     <div class="map-wrap" id="map-wrap">
@@ -161,7 +162,7 @@
         <h3>Landslides</h3>
         <label class="lyr"><calcite-switch id="tg-lspoly" class="sw"></calcite-switch> Mapped deposits<i class="i" tabindex="0" data-tip="USGS US Landslide Inventory v3, a compilation of state inventories. Only two mapped deposits fall inside the TRPA boundary, both from the Nevada Bureau of Mines and Geology. The 57 California Geological Survey polygons nearby (Spittler and Wagner 1997) all sit outside the Region.">i</i></label>
         <label class="lyr"><calcite-switch id="tg-lspoint" class="sw"></calcite-switch> Landslide points<i class="i" tabindex="0" data-tip="Three point records inside the TRPA boundary, used where the source inventory located a slide but did not map its extent.">i</i></label>
-        <div class="note"><strong>Sparse inside the Region:</strong> two deposits and three points. These are mapped features, not dated events, so the year filter does not apply to them. The basin has no systematic landslide inventory.</div>
+        <div class="note"><strong>Sparse inside the Region:</strong> two deposits and three points, mapped features rather than dated events, so the year filter does not apply to them.<i class="i" tabindex="0" data-tip="The basin has no systematic landslide inventory.">i</i></div>
 
         <h3 style="margin-top:1rem;">Earthquakes</h3>
         <label class="lyr"><calcite-switch id="tg-eq" class="sw"></calcite-switch> USGS epicenters M2.5+<i class="i" tabindex="0" data-tip="USGS ComCat, magnitude 2.5 and above since 1900, within the basin bounding box. Circles are sized and shaded by magnitude. The earthquake pairs (EQ-B, EQ-R) are discussed in the TRIP rather than scored in the vulnerability assessment, so this layer is context for the plan.">i</i></label>
@@ -199,19 +200,26 @@
     </div>
 
     <h2 class="sec">Fire record</h2>
-    <p class="lead">Every perimeter intersecting the TRPA boundary, newest first. The table follows the year filter on the map.</p>
+    <p class="lead">Every fire perimeter that touches the TRPA boundary, newest first. The table follows the year filter on the map.</p>
     <div class="toolbar">
       <input id="fire-qf" class="qf" type="text" placeholder="Search by fire name, cause, or agency" aria-label="Quick search fires" />
       <calcite-button id="fire-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
     </div>
     <div id="fire-grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <calcite-block heading="Sources and coverage" collapsible scale="s" style="margin-top:1.2rem">
+      <ul style="padding-left:1.1rem;font-size:.84rem;color:var(--gray-text);line-height:1.5;">
+        <li style="margin-bottom:.35rem"><b>Fire perimeters.</b> <a href="https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0" target="_blank" rel="noopener">CAL FIRE California Historic Fire Perimeters</a> (FRAP), queried live and clipped to the TRPA boundary polygon. California only, so fires on the Nevada side are missing. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area.</li>
+        <li style="margin-bottom:.35rem"><b>Landslides.</b> <a href="https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12" target="_blank" rel="noopener">USGS US Landslide Inventory v3</a>, a compilation of state inventories (California Geological Survey and Nevada Bureau of Mines and Geology). Only two mapped deposits fall inside the TRPA boundary, both from the Nevada Bureau of Mines and Geology; the 57 California Geological Survey polygons nearby (Spittler and Wagner 1997) all sit outside the Region. Three point records mark slides the source located but did not map. These are mapped features, not dated events, so the year filter does not apply to them. The basin has no systematic landslide inventory. Covers both states.</li>
+        <li style="margin-bottom:.35rem"><b>Earthquakes.</b> <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noopener">USGS ComCat</a>, magnitude 2.5 and above since 1900, within the basin bounding box. Covers both states. The earthquake pairs (EQ-B, EQ-R) are discussed in the TRIP rather than scored in the vulnerability assessment, so this layer is context for the plan.</li>
+        <li style="margin-bottom:.35rem"><b>Boundaries.</b> TRPA <code>Boundaries</code> FeatureServer: <code>TRPA Boundary</code> (layer 4) and <code>Jurisdictions Combined</code> (layer 10: El Dorado, Placer, Alpine, Washoe, Douglas, Carson City, and the City of South Lake Tahoe).</li>
+        <li><b>Role in the assessment.</b> Historical hazards are a component 2 exposure element in the data inventory. They check the predictive models: a burn-probability or debris-flow surface that disagrees with where fires burned is re-examined before it feeds the vulnerability screening.</li>
+      </ul>
+    </calcite-block>
   </main>
 
   <footer class="app-footer">
-    <p>Historic Hazards v0.1. Fire perimeters: <a href="https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0" target="_blank" rel="noopener">CAL FIRE California Historic Fire Perimeters</a> (FRAP), California only.
-    Landslides: <a href="https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12" target="_blank" rel="noopener">USGS US Landslide Inventory v3</a> (CA Geological Survey and Nevada Bureau of Mines and Geology compilations).
-    Earthquakes: <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noopener">USGS ComCat</a>, M2.5+ since 1900.
-    Boundaries: TRPA <code>Boundaries</code> FeatureServer (<code>TRPA Boundary</code> /4, <code>Jurisdictions Combined</code> /10). Internal review draft.</p>
+    <p>Historic Hazards v0.1. Fire perimeters from CAL FIRE (California only), landslides from the USGS inventory, earthquakes from USGS ComCat, boundaries from TRPA. Internal review draft.</p>
   </footer>
 
   <script>

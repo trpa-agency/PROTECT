@@ -144,14 +144,19 @@ PROTECT/
   the grid's `pairs` array in the HTML and the markdown table. The 32-element data inventory lives in
   the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.
 - **Punctuation**: no em-dashes (use a hyphen or colon), following the Reporting house style.
-- **Copy register (all pages, Oct. 8, 2026)**: house style (lead with the fact, short declarative
-  sentences, Oxford commas, "percent" and "to" not symbols, one to nine spelled out, abbreviated
-  months with dates) in the consultant methodology's register: third person, impersonal, no
-  second person or conversational imperatives. Framework vocabulary follows the draft VA
-  Methodology: "component 1, 2, 3" (criticality assessment, system-wide indicator-based
-  vulnerability assessment, scenario-based disruption analyses), "vulnerability score" and
-  "vulnerability class (High, Medium, Low)", "Vulnerability = (Exposure Score x wE) +
-  (Sensitivity Score x wS)", "Tahoe Resilience Improvement Plan (TRIP)".
+- **Copy register (all pages, revised Oct. 9, 2026)**: readers are workshop attendees first,
+  the consultant and the data team second. Plain, direct, third person: everyday words in the
+  page body ("drainage area", "cannot pass the 100-year storm", "which roads matter most"),
+  with the methodology's terms in tooltips or collapsed blocks and glossed the first time they
+  appear. Leads are two sentences at most, banners one, footers one line. Anything over about
+  three sentences of method, framework, or sources goes into a collapsed
+  `<calcite-block collapsible>` or a tooltip; nothing is deleted, every fact stays reachable.
+  House style still applies: Oxford commas, "percent" and "to" not symbols, one to nine spelled
+  out, abbreviated months with dates. Framework vocabulary, where it appears, follows the draft
+  VA Methodology: "component 1, 2, 3", "vulnerability score" and "vulnerability class (High,
+  Medium, Low)", "Vulnerability = (Exposure Score x wE) + (Sensitivity Score x wS)", "Tahoe
+  Resilience Improvement Plan (TRIP)". When copy depends on something not in the repo, ask
+  Mason rather than guess.
 - **`html/scoring-rubrics.html` mirrors `docs/SCORING_RUBRICS.md`.** When a rubric changes, update
   the `PAIRS` and `DECISIONS` arrays in the HTML and the markdown together. Indicator values and
   scores are the consultant's Aug. 20 draft tables (half-point scale, the draft's breaks and
