@@ -755,6 +755,7 @@
         <span class="sym-swatch" style="background:var(--teal)"></span>
         Detour
       </button>
+      <button class="sym-btn" id="terrainBtn" title="Hillshade under the segments">Terrain (hillshade)</button>
     </div>
 
     <div class="map-legend">
@@ -772,7 +773,7 @@
 </div><!-- /app-body -->
 
 <script>
-require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, CustomContent) => {
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/TileLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, TileLayer, CustomContent) => {
 
   // ═══════════════════════════════════════════════════════
   //  SUBINDEX DEFINITIONS
@@ -1201,10 +1202,10 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
   });
 
   // ── Symbology toggle buttons ─────────────────────────────
-  document.querySelectorAll(".sym-btn").forEach(btn => {
+  document.querySelectorAll(".sym-btn[data-sym]").forEach(btn => {
     btn.addEventListener("click", () => {
       currentSym = btn.dataset.sym;
-      document.querySelectorAll(".sym-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".sym-btn[data-sym]").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       updateMap();
     });
@@ -1223,7 +1224,15 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/popup/
     definitionExpression: WHERE
   });
 
-  const map  = new Map({ basemap: "gray-vector", layers: [featureLayer] });
+  const hillshade = new TileLayer({
+    url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+    title: "Hillshade", visible: false, opacity: 0.55, blendMode: "multiply"
+  });
+  const map  = new Map({ basemap: "gray-vector", layers: [hillshade, featureLayer] });
+  document.getElementById("terrainBtn").addEventListener("click", e => {
+    hillshade.visible = !hillshade.visible;
+    e.currentTarget.classList.toggle("active", hillshade.visible);
+  });
   const view = new MapView({
     container: "viewDiv", map,
     center: [-120.03, 39.09], zoom: 10,
