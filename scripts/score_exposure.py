@@ -244,11 +244,16 @@ def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame) -> pd.DataFram
     sj = gpd.sjoin(lines[["geometry"]], surf[["hz_class", "geometry"]], how="left", predicate="intersects")
     out = pd.DataFrame({"hz_max": sj.groupby(level=0)["hz_class"].max().reindex(lines.index).fillna(0)})
     total = lines.geometry.length.replace(0, np.nan)
+    # length in each class through the spatial index: overlay against the (many, small) class
+    # polygons rather than intersecting every line with one basin-wide union
+    L = gpd.GeoDataFrame({"_lid": lines.index}, geometry=lines.geometry.values, crs=lines.crs)
+    cut = gpd.overlay(L, surf[["hz_class", "geometry"]].explode(index_parts=False).reset_index(drop=True),
+                      how="intersection", keep_geom_type=True)
+    cut["_len"] = cut.geometry.length
+    share = cut.groupby(["_lid", "hz_class"])["_len"].sum().unstack(fill_value=0.0)
     for c in sorted(surf["hz_class"].unique()):
-        geom = surf.loc[surf["hz_class"] == c].geometry.union_all() if hasattr(surf.geometry, "union_all") \
-            else surf.loc[surf["hz_class"] == c].geometry.unary_union
-        inter = lines.geometry.intersection(geom)
-        out[f"len_pct_c{int(c)}"] = (inter.length / total * 100).fillna(0).round(1)
+        col = share[c] if c in share.columns else pd.Series(0.0, index=share.index)
+        out[f"len_pct_c{int(c)}"] = (col.reindex(lines.index).fillna(0) / total * 100).fillna(0).clip(upper=100).round(1)
     return out
 
 

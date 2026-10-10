@@ -62,8 +62,9 @@ run:
 
 # scripts/load_culverts_gdb.py - load the engineered culvert layer into the analysis geodatabase
 assets:
-  streets_fc: Streets_Network_Tahoe   # road segments in analysis_gdb; key = segment_id
-  streets_key: segment_id
+  streets_gdb: F:\GIS\PROJECTS\Transportation\Protect\Data\Streets_Network\streets_network_tahoe_clean.gdb
+  streets_fc: Streets_Network_Tahoe_Clean   # the network lane's cleaned street layer (Oct. 9, 2026)
+  streets_key: src_objectid         # unique per link (segment_id is the Overture id, shared by split links)
   segment_snap_m: 50                  # max distance from a culvert to its parent road segment
   culverts_fc: Culverts
   condition_table: CulvertCondition

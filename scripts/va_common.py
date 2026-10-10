@@ -103,11 +103,17 @@ def line_rep_point(geom, how: str = "midpoint"):
 def read_streets(cfg: dict, log: logging.Logger, columns: list[str] | None = None) -> gpd.GeoDataFrame:
     """Road segments from the analysis geodatabase, in the target CRS."""
     a = cfg["assets"]
-    cols = sorted(set([a["streets_key"]] + (columns or [])))
-    log.info(f"Reading {a['streets_fc']} from the analysis geodatabase (slow on F:)")
-    streets = gpd.read_file(cfg["paths"]["analysis_gdb"], layer=a["streets_fc"], columns=cols)
+    key = a["streets_key"]
+    cols = sorted(set([key] + (columns or [])))
+    gdb = a.get("streets_gdb") or cfg["paths"]["analysis_gdb"]
+    log.info(f"Reading {a['streets_fc']} from {gdb} (slow on F:)")
+    streets = gpd.read_file(gdb, layer=a["streets_fc"], columns=cols)
     streets = streets.to_crs(target_crs(cfg))
-    log.info(f"{len(streets)} segments read")
+    # the key is stored as text on the asset layers (parent_segment_id); keep one representation
+    streets[key] = streets[key].map(lambda v: None if v is None or (isinstance(v, float) and pd.isna(v))
+                                    else str(int(v)) if isinstance(v, (int, float)) and float(v).is_integer() else str(v))
+    dup = int(streets[key].duplicated().sum())
+    log.info(f"{len(streets)} segments read; key {key}" + (f"; {dup} duplicate keys" if dup else ", unique"))
     return streets
 
 
