@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wildfire Results | PROTECT | TRPA</title>
+  <meta name="description" content="Draft component 2 wildfire exposure results for roads, paths, and transit hubs in the Lake Tahoe Region: burn probability and flame length from the 2018 FSim outputs." />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Calcite -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0/calcite.esm.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+  <!-- Plotly and AG Grid load BEFORE the ArcGIS SDK (its AMD loader otherwise captures these UMD bundles) -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <!-- ArcGIS Maps SDK -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;flex-wrap:wrap;}
+    header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
+    /* results tab strip: one page per hazard */
+    .tabs{background:#fff;border-bottom:1px solid var(--gray-border);}
+    .tabs .inner{max-width:1320px;margin:0 auto;padding:0 1.6rem;display:flex;gap:.2rem;}
+    .tabs a{display:inline-block;padding:.6rem .9rem;font-size:.84rem;font-weight:600;color:var(--gray-text);text-decoration:none;border-bottom:3px solid transparent;}
+    .tabs a:hover{color:var(--trpa-navy);}
+    .tabs a.on{color:var(--trpa-navy);border-bottom-color:var(--trpa-blue);}
+    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:.4rem;}
+    .kpi{background:#fff;border:1px solid var(--gray-border);border-top:3px solid var(--trpa-orange);border-radius:6px;padding:.6rem .8rem;}
+    .kpi .v{font-size:1.45rem;font-weight:700;line-height:1.1;}
+    .kpi .l{font-size:.72rem;color:var(--gray-text);margin-top:.15rem;}
+    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
+    .layer-panel{width:290px;flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--trpa-navy);margin-top:.35rem;}
+    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;}
+    .lg-dot{flex:0 0 14px;height:14px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-sw{flex:0 0 18px;height:11px;border-radius:2px;display:inline-block;}
+    #map-view{flex:1;height:640px;}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+    .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
+    .chart h3{font-size:.85rem;font-weight:700;margin:.2rem .4rem .1rem;}
+    .chart .sub{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .3rem;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
+    .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
+    .grid-wrap{width:100%;height:480px;}
+    .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
+      --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
+    .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
+    .notes li{margin:.25rem 0 .25rem 1.1rem;}
+    footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(300px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;}
+      #map-view{height:420px;}
+      .charts{grid-template-columns:1fr;}
+      .toolbar .qf{min-width:0;flex-basis:100%;}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Wildfire Results</h1>
+        <div class="header-sub">PROTECT Task 3.2 &middot; Component 2 draft results: roads, paths, and transit hubs</div>
+      </div>
+      <div class="right">
+        <span class="chip">v0.1 draft</span>
+        <a href="index.html">Home</a>
+        <a href="risk-index-tool.html">Risk Index Tool</a>
+        <a href="scoring-rubrics.html">Scoring Rubrics</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="historic-hazards.html">Historic Hazards</a>
+      </div>
+    </div>
+  </header>
+  <nav class="tabs" aria-label="Results by hazard"><div class="inner">
+    <a href="culvert-results.html">Flooding: culverts and bridges</a>
+    <a href="wildfire-results.html" class="on" aria-current="page">Wildfire: roads, paths, transit hubs</a>
+  </div></nav>
+
+  <main>
+    <div class="banner">Draft results for workshop review. The scores rank segments by where fire is likely and intense; they are not a fire behavior forecast.<i class="i" tabindex="0" data-tip="Component 2 exposure only (WF-R, WF-AT, WF-TC). Sensitivity for roads (wooden guardrails) is not yet scored and sits at the draft default. Criticality is carried separately.">i</i></div>
+
+    <p class="lead">
+      Which roads, paths, and transit hubs sit where fire is most likely and would burn hottest.
+      The method is section 6.4 of the <a href="scoring-rubrics.html">scoring rubrics</a>.
+    </p>
+
+    <div class="kpis" id="kpis"></div>
+    <p class="note" style="font-size:.72rem;color:var(--gray-text);margin:.2rem 0 .4rem;" id="gen-note"></p>
+
+    <h2 class="sec">Map</h2>
+    <div class="map-wrap" id="map-wrap">
+      <div class="layer-panel">
+        <h3>Roads, colored by</h3>
+        <calcite-segmented-control id="color-by" scale="s" width="full">
+          <calcite-segmented-control-item value="e" checked>Score</calcite-segmented-control-item>
+          <calcite-segmented-control-item value="e1">Likelihood</calcite-segmented-control-item>
+          <calcite-segmented-control-item value="e2">Flame length</calcite-segmented-control-item>
+        </calcite-segmented-control>
+        <div id="legend-e">
+          <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: nothing burnable within 300 ft</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: fire unlikely, flames under 4 ft</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E8A05A"></span> 1.3: flames of 4 to 8 ft nearby</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 1.6 to 1.7: flames over 8 ft nearby</div>
+          <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 2 and over: fire more likely and intense</div>
+          <p class="note">Likelihood at 0.7 plus flame length at 0.3, each the highest within 300 ft.<i class="i" tabindex="0" data-tip="WF-R exposure: E = 0.70 x E1 (annual burn probability class) + 0.30 x E2 (flame length class), each sampled as the maximum within a 300 ft buffer of the segment. Scores are 0 to 3; with the 2018 data no segment reaches E1 = 3, so the top of the range is 2.3.">i</i></p>
+        </div>
+        <div id="legend-e1" style="display:none">
+          <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: no burn probability</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: under 0.5 percent a year</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 2: 0.5 to 1 percent a year</div>
+          <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: over 1 percent a year</div>
+          <p class="note">How often fire reaches the ground within 300 ft of the road.<i class="i" tabindex="0" data-tip="E1, annual burn probability from the 2018 FSim integrated burn probability (iBP, 180 m), classed on the draft's breaks of 0.5 and 1 percent. Over 1 percent covers 6.9 km2 of the basin, so class 3 is rare.">i</i></p>
+        </div>
+        <div id="legend-e2" style="display:none">
+          <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: nothing burnable</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: flames under 4 ft</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 2: flames of 4 to 8 ft</div>
+          <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: flames over 8 ft</div>
+          <p class="note">How hot a fire would burn within 300 ft of the road.<i class="i" tabindex="0" data-tip="E2, conditional flame length from the 2018 FSim outputs (iCFL, feet, 180 m), classed on the draft's breaks of 4 and 8 ft. Flames over 8 ft are beyond direct attack by hand crews.">i</i></p>
+        </div>
+        <div class="grp">
+          <h3>Layers</h3>
+          <label class="lyr"><calcite-switch id="tg-roads" checked></calcite-switch> Roads (scored)</label>
+          <label class="lyr"><calcite-switch id="tg-paths" checked></calcite-switch> Paths and bike routes<i class="i" tabindex="0" data-tip="WF-AT: existing active transportation facilities (TRPA Transportation service), scored with the same two indicators and no sensitivity term. Drawn dashed, colored by score.">i</i></label>
+          <label class="lyr"><calcite-switch id="tg-hubs" checked></calcite-switch> Transit hubs<i class="i" tabindex="0" data-tip="WF-TC: the eight transit hubs, scored as the maximum within 300 ft of the point.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-dot" style="background:#cfd4da"></span> 0 &nbsp; <span class="lg-dot" style="background:#E8C77A"></span> 1 &nbsp; <span class="lg-dot" style="background:#E87722"></span> 1.3 to 1.7 &nbsp; <span class="lg-dot" style="background:#9C3E27"></span> 2 and over</div>
+          <label class="lyr"><calcite-switch id="tg-bp"></calcite-switch> Burn probability surface<i class="i" tabindex="0" data-tip="E1 surface: the 2018 FSim burn probability classed 1 to 3 (under 0.5, 0.5 to 1, over 1 percent a year). Zero and non-burnable cells are blank.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(232,199,122,.55)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3</div>
+          <label class="lyr"><calcite-switch id="tg-fl"></calcite-switch> Flame length surface<i class="i" tabindex="0" data-tip="E2 surface: the 2018 FSim conditional flame length classed 1 to 3 (under 4, 4 to 8, over 8 ft). Non-burnable cells are blank.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(232,199,122,.55)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3</div>
+          <label class="lyr"><calcite-switch id="tg-bound" checked></calcite-switch> TRPA boundary</label>
+          <label class="lyr"><calcite-switch id="tg-hill"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers.">i</i></label>
+        </div>
+        <div class="grp">
+          <h3>Filter</h3>
+          <label class="lyr"><calcite-switch id="tg-top"></calcite-switch> Score 1.6 and over only<i class="i" tabindex="0" data-tip="Segments, paths, and hubs with flames over 8 ft within 300 ft, or a burn probability over 0.5 percent with flames over 4 ft.">i</i></label>
+        </div>
+      </div>
+      <div id="map-view"></div>
+    </div>
+
+    <h2 class="sec">Distributions</h2>
+    <div class="charts">
+      <div class="chart"><h3>Road miles by score</h3><div class="sub">Where the network sits on the 0 to 3 scale</div><div id="ch-miles" style="height:290px"></div></div>
+      <div class="chart"><h3>Score by road type</h3><div class="sub">Share of each road type's miles in each score band</div><div id="ch-class" style="height:290px"></div></div>
+    </div>
+
+    <h2 class="sec">Road table</h2>
+    <p class="lead">One row per scored road segment. Paths and hubs are on the map and in the summary.</p>
+    <div class="toolbar">
+      <input id="qf" class="qf" type="text" placeholder="Search by road name, type, or segment id" aria-label="Quick search roads" />
+      <calcite-button id="export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+    </div>
+    <div id="grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <calcite-block heading="How the numbers are made" collapsible scale="s" style="margin-top:1.2rem">
+      <ul class="notes">
+        <li><b>Likelihood (E1).</b> Annual burn probability from the 2018 FSim outputs, classed on the draft's breaks: under 0.5 percent a year is 1, 0.5 to 1 percent is 2, over 1 percent is 3. Over 1 percent covers 6.9 km2 of the basin, so almost every scored segment is class 1 and the score spread comes from flame length.</li>
+        <li><b>Flame length (E2).</b> Conditional flame length from the same outputs: under 4 ft is 1, 4 to 8 ft is 2, over 8 ft is 3.</li>
+        <li><b>Sampling.</b> Each indicator is the highest value within 300 ft of the segment, path, or hub; the share of each segment's length in each likelihood class is in the table. The score is 0.7 x E1 + 0.3 x E2.</li>
+        <li><b>Zeros.</b> FSim treats towns, water, and bare rock as non-burnable, so streets inside the urban cores score 0 for fire itself. Evacuation and smoke are criticality and component 3 questions, not exposure.</li>
+        <li><b>Vintage.</b> The 2018 surfaces predate the 2021 Caldor Fire. The contracted fire-behavior package replaces them on the same breaks if it is delivered and reviewed in time for December.</li>
+        <li><b>Not yet scored.</b> Road sensitivity (wooden guardrails) sits at the draft default of 1. Paths and hubs have no sensitivity term.</li>
+      </ul>
+    </calcite-block>
+  </main>
+
+  <footer class="app-footer">
+    <p>Draft v0.1. Fire inputs from the 2018 FSim outputs on TRPA storage; roads from the TRPA street network; paths and hubs from TRPA services. Method: <code>docs/SCORING_RUBRICS.md</code> 6.4, decision 22. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const BASE = "../data/processed/results/";
+    const BOUND_URL = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4";
+    const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
+    const COL = {gray:"#cfd4da", sand:"#E8C77A", peach:"#E8A05A", orange:"#E87722", brick:"#9C3E27", navy:"#003B71", blue:"#0072CE", ice:"#B4CBE8"};
+    const MI = 1609.344;
+    // score bands shared by the legend, the map, the chart, and the table
+    const bandOf = e => (e == null || isNaN(e)) ? null : e < 0.1 ? "0" : e < 1.15 ? "1" : e < 1.45 ? "1.3" : e < 1.9 ? "1.6 to 1.7" : "2 and over";
+    const BANDS = ["0", "1", "1.3", "1.6 to 1.7", "2 and over"];
+    const BAND_COL = {"0":COL.gray, "1":COL.sand, "1.3":COL.peach, "1.6 to 1.7":COL.orange, "2 and over":COL.brick};
+    const clsCol = v => ({0:COL.gray, 1:COL.sand, 2:COL.orange, 3:COL.brick})[Math.round(v)] || COL.gray;
+
+    // ---------- KPIs ----------
+    fetch(BASE + "summary.json").then(r => r.json()).then(s => {
+      const w = s.wildfire;
+      if (!w) { document.getElementById("gen-note").textContent = "Wildfire results have not been published yet."; return; }
+      const r = w.roads || {}, p = w.paths || {}, t = w.transit || {};
+      const km2 = w.surfaces_km2 && w.surfaces_km2.wildfire_burnprob ? w.surfaces_km2.wildfire_burnprob : {};
+      const likely = (Number(km2["2"] || 0) + Number(km2["3"] || 0));
+      const items = [
+        [fmt(r.segments), "road segments scored"],
+        [fmt(r.miles), "road miles scored"],
+        [fmt(r.miles_e2_class3), "road miles with flames over 8 ft nearby"],
+        [fmt(r.zero_segments), "segments with nothing burnable within 300 ft"],
+        [fmt(likely), "km2 of the basin where fire is 0.5 percent or more likely a year"],
+        [fmt(p.count), "paths scored"],
+        [fmt(p.miles_e_ge_1_6, 1), "path miles with flames over 8 ft nearby"],
+        [(t.count == null ? "-" : fmt(t.n_e_ge_1_6) + " of " + fmt(t.count)), "transit hubs with flames over 8 ft nearby"]
+      ];
+      document.getElementById("kpis").innerHTML = items.map(([v,l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      document.getElementById("gen-note").textContent = "Generated " + (s.generated || "") + ". " + (w.inputs ? "E1: " + w.inputs.e1 + ". E2: " + w.inputs.e2 + "." : "");
+    }).catch(() => { document.getElementById("gen-note").textContent = "Summary not available: results have not been published yet."; });
+
+    // ---------- TABLE + CHARTS from the roads GeoJSON ----------
+    let gridApi = null;
+    const eStyle = p => { const b = bandOf(p.value); return b ? {background:BAND_COL[b], color:(b==="0"||b==="1")?"#003B71":"#fff", fontWeight:600} : {}; };
+    const cStyle = p => { if (p.value == null) return {}; const c = clsCol(p.value); return {background:c, color:Math.round(p.value)>=2?"#fff":"#003B71", fontWeight:600}; };
+    const cols = [
+      {field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"},
+      {field:"class", headerName:"Type", width:120, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+      {field:"src_objectid", headerName:"Segment", width:100},
+      {field:"E_WFR_hist", headerName:"Score", width:95, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,1), cellStyle:eStyle},
+      {field:"E_WFR_e1", headerName:"Likelihood", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:cStyle},
+      {field:"E_WFR_e2", headerName:"Flame length", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:cStyle},
+      {field:"len_pct_c1", headerName:"Length in class 1 (%)", width:150, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+      {field:"len_pct_c2", headerName:"in class 2 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+      {field:"len_pct_c3", headerName:"in class 3 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+      {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}
+    ];
+    agGrid.createGrid(document.getElementById("grid"), {
+      columnDefs: cols, rowData: [], defaultColDef:{sortable:true, resizable:true, filter:true},
+      onGridReady: e => { gridApi = e.api; }
+    });
+    document.getElementById("qf").addEventListener("input", e => { if(gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
+    document.getElementById("export").addEventListener("click", () => { if(gridApi) gridApi.exportDataAsCsv({fileName:"PROTECT_wildfire_roads.csv"}); });
+
+    fetch(BASE + "roads_wildfire.geojson").then(r => r.json()).then(gj => {
+      const rows = gj.features.map(f => { const p = Object.assign({}, f.properties); p.miles = (p.seg_len_m || 0) / MI; return p; });
+      if (gridApi) gridApi.setGridOption("rowData", rows);
+
+      // miles by score band
+      const miles = {}; BANDS.forEach(b => miles[b] = 0);
+      const counts = {}; BANDS.forEach(b => counts[b] = 0);
+      rows.forEach(r => { const b = bandOf(r.E_WFR_hist); if (b) { miles[b] += r.miles; counts[b] += 1; } });
+      Plotly.newPlot("ch-miles", [{
+        type:"bar", x:BANDS, y:BANDS.map(b => miles[b]), marker:{color:BANDS.map(b => BAND_COL[b])},
+        customdata:BANDS.map(b => counts[b]), hovertemplate:"%{y:.1f} miles (%{customdata} segments)<extra></extra>"
+      }], {
+        margin:{l:50,r:10,t:10,b:45}, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
+        xaxis:{title:"score"}, yaxis:{title:"road miles", gridcolor:"#eef0f3"},
+        paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
+      }, {displayModeBar:false, responsive:true});
+
+      // share of miles by road type and band
+      const types = [...new Set(rows.map(r => r.class || "unknown"))];
+      const tmiles = t => rows.filter(r => (r.class || "unknown") === t).reduce((s, r) => s + r.miles, 0);
+      types.sort((a, b) => tmiles(b) - tmiles(a));
+      const top = types.slice(0, 8);
+      const traces = BANDS.map(b => ({
+        type:"bar", name:b, x:top, marker:{color:BAND_COL[b]},
+        y: top.map(t => { const tot = tmiles(t) || 1; return 100 * rows.filter(r => (r.class || "unknown") === t && bandOf(r.E_WFR_hist) === b).reduce((s, r) => s + r.miles, 0) / tot; }),
+        customdata: top.map(t => rows.filter(r => (r.class || "unknown") === t && bandOf(r.E_WFR_hist) === b).reduce((s, r) => s + r.miles, 0)),
+        hovertemplate:"%{y:.1f} percent (%{customdata:.1f} miles)<extra>score " + b + "</extra>"
+      }));
+      Plotly.newPlot("ch-class", traces, {
+        barmode:"stack", margin:{l:45,r:10,t:10,b:80}, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
+        legend:{orientation:"h", y:1.14}, yaxis:{title:"percent of miles", gridcolor:"#eef0f3", range:[0,100]},
+        xaxis:{tickangle:-25}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
+      }, {displayModeBar:false, responsive:true});
+    }).catch(err => { console.warn("wildfire road results not available", err); });
+
+    // ---------- MAP ----------
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, Home, BasemapToggle){
+
+      const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+        title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
+
+      function line(color, width, dash){ return {type:"simple-line", color:color, width:width, style:dash ? "short-dash" : "solid"}; }
+      function dot(color, size){ return {type:"simple-marker", style:"circle", color:color, size:size, outline:{color:[255,255,255,0.95], width:0.8}}; }
+      function sq(color){ return {type:"simple-marker", style:"square", color:color, size:11, outline:{color:[255,255,255,0.95], width:1}}; }
+      // the five score bands as class breaks on the field
+      function bandRenderer(field, dash){
+        return {type:"class-breaks", field:field, classBreakInfos:[
+          {minValue:-0.01, maxValue:0.1,  symbol:line(COL.gray, 1.2, dash)},
+          {minValue:0.1,   maxValue:1.15, symbol:line(COL.sand, 1.8, dash)},
+          {minValue:1.15,  maxValue:1.45, symbol:line(COL.peach, 2.2, dash)},
+          {minValue:1.45,  maxValue:1.9,  symbol:line(COL.orange, 2.6, dash)},
+          {minValue:1.9,   maxValue:3.1,  symbol:line(COL.brick, 3, dash)}]};
+      }
+      function classRenderer(field, dash){
+        return {type:"class-breaks", field:field, classBreakInfos:[
+          {minValue:-0.01, maxValue:0.5, symbol:line(COL.gray, 1.2, dash)},
+          {minValue:0.5,   maxValue:1.5, symbol:line(COL.sand, 1.8, dash)},
+          {minValue:1.5,   maxValue:2.5, symbol:line(COL.orange, 2.4, dash)},
+          {minValue:2.5,   maxValue:3.5, symbol:line(COL.brick, 3, dash)}]};
+      }
+      const roadFields = [
+        {fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"},
+        {fieldName:"E_WFR_hist", label:"Wildfire exposure score", format:{places:1}},
+        {fieldName:"E_WFR_e1", label:"E1 burn probability class"}, {fieldName:"E_WFR_e2", label:"E2 flame length class"},
+        {fieldName:"len_pct_c1", label:"Length in likelihood class 1 (percent)", format:{places:0}},
+        {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}},
+        {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}},
+        {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}];
+      const roads = new GeoJSONLayer({
+        url: BASE + "roads_wildfire.geojson", title:"Roads", outFields:["*"], renderer: bandRenderer("E_WFR_hist", false),
+        popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:roadFields}]}
+      });
+      const paths = new GeoJSONLayer({
+        url: BASE + "paths_wildfire.geojson", title:"Paths", outFields:["*"], renderer: bandRenderer("E_WFAT_hist", true),
+        popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[
+          {fieldName:"class", label:"Facility class"}, {fieldName:"E_WFAT_hist", label:"Wildfire exposure score", format:{places:1}},
+          {fieldName:"E_WFAT_e1", label:"E1 burn probability class"}, {fieldName:"E_WFAT_e2", label:"E2 flame length class"},
+          {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}
+      });
+      const hubs = new GeoJSONLayer({
+        url: BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"],
+        renderer:{type:"class-breaks", field:"E_WFTC_hist", classBreakInfos:[
+          {minValue:-0.01, maxValue:0.1, symbol:sq(COL.gray)}, {minValue:0.1, maxValue:1.15, symbol:sq(COL.sand)},
+          {minValue:1.15, maxValue:1.9, symbol:sq(COL.orange)}, {minValue:1.9, maxValue:3.1, symbol:sq(COL.brick)}]},
+        popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[
+          {fieldName:"E_WFTC_hist", label:"Wildfire exposure score", format:{places:1}},
+          {fieldName:"E_WFTC_e1", label:"E1 burn probability class"}, {fieldName:"E_WFTC_e2", label:"E2 flame length class"}]}]}
+      });
+      function surface(stem, title){
+        return new GeoJSONLayer({url: BASE + stem + ".geojson", title:title, visible:false, opacity:0.9,
+          renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[
+            {value:3, symbol:{type:"simple-fill", color:[156,62,39,0.55], outline:{color:[156,62,39,0.6], width:0.3}}},
+            {value:2, symbol:{type:"simple-fill", color:[232,119,34,0.5], outline:{color:[232,119,34,0.6], width:0.3}}},
+            {value:1, symbol:{type:"simple-fill", color:[232,199,122,0.55], outline:{color:[232,199,122,0.8], width:0.3}}}]},
+          popupTemplate:{title:title + " class {hz_class}", content:"{label}"}});
+      }
+      const bp = surface("wildfire_burnprob", "Burn probability");
+      const fl = surface("wildfire_flamelength", "Flame length");
+      const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
+
+      const map = new Map({basemap:"gray-vector", layers:[hillshade, bp, fl, bound, roads, paths, hubs]});
+      const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false},
+        popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
+      view.ui.add(new Home({view}), "top-left");
+      view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+
+      // color by
+      const colorBy = document.getElementById("color-by");
+      colorBy.addEventListener("calciteSegmentedControlChange", e => {
+        const v = e.target.value;
+        ["e","e1","e2"].forEach(k => document.getElementById("legend-" + k).style.display = (k === v ? "" : "none"));
+        if (v === "e") { roads.renderer = bandRenderer("E_WFR_hist", false); paths.renderer = bandRenderer("E_WFAT_hist", true); }
+        else if (v === "e1") { roads.renderer = classRenderer("E_WFR_e1", false); paths.renderer = classRenderer("E_WFAT_e1", true); }
+        else { roads.renderer = classRenderer("E_WFR_e2", false); paths.renderer = classRenderer("E_WFAT_e2", true); }
+      });
+      // toggles
+      const bind = (id, layer) => document.getElementById(id).addEventListener("calciteSwitchChange", e => { layer.visible = e.target.checked; });
+      bind("tg-roads", roads); bind("tg-paths", paths); bind("tg-hubs", hubs); bind("tg-bp", bp); bind("tg-fl", fl); bind("tg-bound", bound); bind("tg-hill", hillshade);
+      document.getElementById("tg-top").addEventListener("calciteSwitchChange", e => {
+        const on = e.target.checked;
+        roads.definitionExpression = on ? "E_WFR_hist >= 1.55" : null;
+        paths.definitionExpression = on ? "E_WFAT_hist >= 1.55" : null;
+        hubs.definitionExpression = on ? "E_WFTC_hist >= 1.55" : null;
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

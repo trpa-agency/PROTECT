@@ -46,6 +46,12 @@
     header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
     header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
     header.app-header a:hover{color:#fff;}
+    /* results tab strip: one page per hazard */
+    .tabs{background:#fff;border-bottom:1px solid var(--gray-border);}
+    .tabs .inner{max-width:1320px;margin:0 auto;padding:0 1.6rem;display:flex;gap:.2rem;}
+    .tabs a{display:inline-block;padding:.6rem .9rem;font-size:.84rem;font-weight:600;color:var(--gray-text);text-decoration:none;border-bottom:3px solid transparent;}
+    .tabs a:hover{color:var(--trpa-navy);}
+    .tabs a.on{color:var(--trpa-navy);border-bottom-color:var(--trpa-blue);}
     main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
     .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
@@ -121,6 +127,10 @@
       </div>
     </div>
   </header>
+  <nav class="tabs" aria-label="Results by hazard"><div class="inner">
+    <a href="culvert-results.html" class="on" aria-current="page">Flooding: culverts and bridges</a>
+    <a href="wildfire-results.html">Wildfire: roads, paths, transit hubs</a>
+  </div></nav>
 
   <main>
     <div class="banner">Draft results for workshop review. The numbers rank crossings; they are not design values.<i class="i" tabindex="0" data-tip="Public jurisdictions only. The restricted state DOT export is excluded at the row level and is not in any figure on this page.">i</i></div>

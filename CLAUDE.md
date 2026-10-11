@@ -32,7 +32,19 @@ segments, linked site-wide) and the **OD Services Index** (`html/od-services-ind
 access-to-critical-locations criticality factor); the historic hazards map
 (`html/historic-hazards.html`); the climate inputs page (`html/climate-data.html`); and the storm
 events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culvert layer and
-WRF 1-hr intensity grid). Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
+WRF 1-hr intensity grid). The **Workshop Feedback app** (`html/workshop-feedback.html`, Oct. 10,
+2026) replaces the paper sticky notes in the Workshop 1 results activity: five hazard stations, click
+an asset (roads, bridges, culverts, transit, paths) or drop a pin, concern 1 to 3, hazards, why,
+missing-from-results flag; sends to the hosted table "PROTECT Workshop Feedback notes" on TRPA's
+ArcGIS Online (public Create-only submit view and public read view, made by
+`scripts/create_workshop_feedback_layer.py`; the email address is never sent, only its hash), CSV
+export and import as the fallback; the Report out tab and the printable master list tally
+everyone's notes by hazard and asset. The **results pages** share a tab strip under the header, one page per hazard:
+`html/culvert-results.html` (flooding: culverts and bridges) and `html/wildfire-results.html`
+(Oct. 10, 2026: WF-R, WF-AT, WF-TC from the 2018 FSim burn probability and conditional flame
+length; roads colored by score, likelihood, or flame length; paths dashed; the eight transit
+hubs; both surfaces; road miles by score and by road type; road table). Both read
+`data/processed/results/` written by `scripts/publish_results.py`. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
 Jekyll skips underscore directories, so nothing in it is served by Pages.
 
 ## Project context
@@ -97,7 +109,11 @@ PROTECT/
 ├── html/reference-hub.html          # v0.6 reference hub incl. data + model inventory (Calcite + AG Grid)
 ├── html/scoring-rubrics.html        # v0.3 interactive rubrics (score an asset, rubric tables, framework, decisions, departures)
 ├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
+├── html/workshop-feedback.html      # Workshop 1 digital sticky notes: hazard stations, click an asset or drop a pin, concern 1-3, why, missing flag; sends to the AGOL table (SURVEY block), CSV fallback; Report out tab + printable master list
+├── scripts/create_workshop_feedback_layer.py  # makes/checks the AGOL table + submit/read views for the feedback page (--smoke-test)
 ├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
+├── html/culvert-results.html        # flooding results: culverts and bridges (tab strip with the wildfire page)
+├── html/wildfire-results.html       # wildfire results: roads, paths, transit hubs, the two surfaces
 ├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
 ├── html/od-services-index.html      # OD access-to-services index (RA2CE routed trips; criticality factor 4)
 ├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)

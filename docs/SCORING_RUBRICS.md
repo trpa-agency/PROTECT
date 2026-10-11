@@ -729,26 +729,24 @@ same classed surface.
 
 The draft scores wildfire exposure as annual burn probability and flame length, the maximum
 within a 300 ft buffer, current conditions only, and names the contracted fire-behavior package
-as the source. TRPA holds wildfire data that serves both indicators today: the basin burn
-probability raster, scored on the draft's breaks, and the TRPA high-severity fire probability
-layer (`Fire` service, layer 3), classed 0 to 3 in place of flame length. **TRPA proposal**
-(decision 22): these are the wildfire exposure inputs for the workshop; the contracted package
-replaces them for the December release if it is delivered and reviewed in time, on the same
-breaks, so the scores change in value but not in form.
+as the source. TRPA holds both indicators today in the 2018 FSim outputs (180 m): annual burn
+probability (`iBP`, a fraction) and conditional flame length (`iCFL`, feet), so the workshop
+scores use the draft's own indicators on the draft's breaks. **TRPA proposal** (decision 22,
+revised Oct. 10, 2026): the 2018 FSim surfaces are the wildfire exposure inputs for the
+workshop; the contracted package replaces them for the December release if it is delivered and
+reviewed in time, on the same breaks, so the scores change in value but not in form. The 2018
+surfaces predate the 2021 Caldor Fire. The TRPA most-likely fire severity layer (`Fire` service,
+layer 3, classed Low 1, Moderate 2, High 3) stays configured as the E2 fallback.
 
 **WF-R, wildfire x roads** (E 0.7 / S 0.3)
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | Annual burn probability (TRPA burn probability raster; contracted fire-behavior modeling when delivered) | 0.70 | over 1 percent | 3 | 0 | Maximum within a 300 ft buffer, length-weighted along the segment |
+| E1 | Annual burn probability (2018 FSim `iBP`; contracted fire-behavior modeling when delivered) | 0.70 | over 1 percent | 3 | 0 | Maximum within a 300 ft buffer, length-weighted along the segment |
 | | | | over 0.5 to 1 percent | 2 | | |
 | | | | over 0 to 0.5 percent | 1 | | |
 | | | | 0 percent | 0 | | |
-| E2 | **TRPA proposal** (decision 22): TRPA high-severity fire probability classed 0 to 3, in place of flame length | 0.30 | class 3 (highest) | 3 | 0 | Maximum within a 300 ft buffer |
-| | | | class 2 | 2 | | |
-| | | | class 1 | 1 | | |
-| | | | class 0 | 0 | | |
-| E2 (draft, when the contracted package is delivered) | Flame length | 0.30 | over 8 ft | 3 | 0 | Maximum within a 300 ft buffer |
+| E2 | Flame length (2018 FSim conditional flame length `iCFL`; contracted fire-behavior modeling when delivered) | 0.30 | over 8 ft | 3 | 0 | Maximum within a 300 ft buffer |
 | | | | over 4 to 8 ft | 2 | | |
 | | | | over 0 to 4 ft | 1 | | |
 | | | | 0 ft | 0 | | |
@@ -768,9 +766,10 @@ buffer; transit centers the maximum within 300 ft.
     into one at the full exposure weight. The draft's extent scale would score the 100-year
     floodplain 2 and the 500-year 1, with 3 and 2.5 reserved for the 10- and 50-year
     floodplains that FEMA does not map.
-22. Wildfire exposure from the TRPA data in hand: the burn probability raster on the draft's
-    breaks, and TRPA high-severity fire probability classed 0 to 3 in place of flame length.
-    The contracted fire-behavior package replaces them for December if delivered and reviewed
-    in time, on the same breaks.
+22. Wildfire exposure from the 2018 FSim outputs in hand: annual burn probability (`iBP`) and
+    conditional flame length (`iCFL`), the draft's own indicators on the draft's breaks
+    (revised Oct. 10, 2026, from a severity-layer stand-in for flame length). The contracted
+    fire-behavior package replaces them for December if delivered and reviewed in time, on the
+    same breaks.
 23. Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1
     (5 to under 10 percent), both flagged `S_source` partial.
