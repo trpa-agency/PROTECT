@@ -208,7 +208,7 @@
         <li><b>Likelihood (E1).</b> Annual burn probability from the Sierra Nevada Regional Resource Kit (Pyrologix 2022, 30 m), classed on the draft's breaks: under 0.5 percent a year is 1, 0.5 to 1 percent is 2, over 1 percent is 3.</li>
         <li><b>Severity (E2).</b> TRPA most-likely fire severity, the Resource Kit's three severity probabilities stacked: low is 1, moderate is 2, high is 3. It stands in for the draft's flame length (decision 22).</li>
         <li><b>Sampling.</b> Each indicator is the highest value within 300 ft of the segment, path, or hub; the share of each segment's length in each likelihood class is in the table. The score is 0.7 x E1 + 0.3 x E2.</li>
-        <li><b>Zeros.</b> The fire models treat towns, water, and bare rock as non-burnable, so streets inside the urban cores score 0 for fire itself. Evacuation and smoke are criticality and component 3 questions, not exposure.</li>
+        <li><b>No zeros.</b> The Resource Kit model gives urban ground a burn probability too, so every segment scores at least 1; only water and bare rock are blank. Evacuation and smoke are criticality and component 3 questions, not exposure.</li>
         <li><b>Vintage.</b> Both inputs are the 2022 to 2023 Pyrologix generation, after the 2021 Caldor Fire. The contracted fire-behavior package replaces them on the same breaks if it is delivered and reviewed in time for December.</li>
         <li><b>Not yet scored.</b> Road sensitivity (wooden guardrails) sits at the draft default of 1. Paths and hubs have no sensitivity term.</li>
       </ul>
@@ -243,7 +243,7 @@
         [fmt(r.segments), "road segments scored"],
         [fmt(r.miles), "road miles scored"],
         [fmt(r.miles_e2_class3), "road miles where high-severity fire is most likely nearby"],
-        [fmt(r.zero_segments), "segments with nothing burnable within 300 ft"],
+        [fmt(((r.E || {})["3.0"]) || 0), "segments at the top score (3.0)"],
         [fmt(likely), "km2 of the basin where fire is 0.5 percent or more likely a year"],
         [fmt(p.count), "paths scored"],
         [fmt(p.miles_e_ge_1_6, 1), "path miles where high-severity fire is most likely nearby"],
