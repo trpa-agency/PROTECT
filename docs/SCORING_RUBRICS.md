@@ -219,10 +219,10 @@ Note on S3. The draft has no condition term for small culverts. TRPA proposes re
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database) | 0.50 | class 5 (very high), or any recorded landslide | 3 | 0 | **TRPA proposal:** maximum over the watershed; 25 m buffer where none |
-| | | | class 4 (high) | 2 | | |
-| | | | class 3 (moderate) | 1 | | |
-| | | | class 1 or 2 (very low or low) | 0 | | |
+| E1 | USGS landslide susceptibility, or a recorded landslide. **TRPA proposal** (decision 24): the USGS 2024 release holds the share of each 90 m cell that is landslide-prone, not five classes, so the draft's classes 5, 4, and 3 are read as over 80, 60, and 40 percent of the cell | 0.50 | over 80 percent of the cell prone (the draft's class 5), or any recorded landslide | 3 | 0 | **TRPA proposal:** maximum over the watershed; 25 m buffer where none |
+| | | | over 60 to 80 percent (class 4) | 2 | | |
+| | | | over 40 to 60 percent (class 3) | 1 | | |
+| | | | 40 percent and under (classes 1 and 2) | 0 | | |
 | E2 | Cal-Adapt annual precipitation change versus historical | 0.20 | over 40 percent | 3 | 0; the historical horizon scores 0 by definition | Watershed mean |
 | | | | over 20 to 40 percent | 2 | | |
 | | | | over 0 to 20 percent | 1 | | |
@@ -729,24 +729,29 @@ same classed surface.
 
 The draft scores wildfire exposure as annual burn probability and flame length, the maximum
 within a 300 ft buffer, current conditions only, and names the contracted fire-behavior package
-as the source. TRPA holds both indicators today in the 2018 FSim outputs (180 m): annual burn
-probability (`iBP`, a fraction) and conditional flame length (`iCFL`, feet), so the workshop
-scores use the draft's own indicators on the draft's breaks. **TRPA proposal** (decision 22,
-revised Oct. 10, 2026): the 2018 FSim surfaces are the wildfire exposure inputs for the
+as the source. TRPA holds current data for both today, from the Sierra Nevada Regional Resource
+Kit (Pyrologix 2022, 30 m): the annual burn probability raster, scored on the draft's breaks,
+and the three fire severity probabilities, which TRPA publishes stacked as the most-likely fire
+severity layer (`Fire` service, layer 3), classed Low 1, Moderate 2, High 3 in place of flame
+length. **TRPA proposal** (decision 22): these are the wildfire exposure inputs for the
 workshop; the contracted package replaces them for the December release if it is delivered and
-reviewed in time, on the same breaks, so the scores change in value but not in form. The 2018
-surfaces predate the 2021 Caldor Fire. The TRPA most-likely fire severity layer (`Fire` service,
-layer 3, classed Low 1, Moderate 2, High 3) stays configured as the E2 fallback.
+reviewed in time, on the same breaks, so the scores change in value but not in form. The older
+2018 FSim set (burn probability and conditional flame length at 180 m) is on hand but mixes
+vintages and predates the 2021 Caldor Fire, so it is not used.
 
 **WF-R, wildfire x roads** (E 0.7 / S 0.3)
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | Annual burn probability (2018 FSim `iBP`; contracted fire-behavior modeling when delivered) | 0.70 | over 1 percent | 3 | 0 | Maximum within a 300 ft buffer, length-weighted along the segment |
+| E1 | Annual burn probability (RRK Pyrologix 2022; contracted fire-behavior modeling when delivered) | 0.70 | over 1 percent | 3 | 0 | Maximum within a 300 ft buffer, length-weighted along the segment |
 | | | | over 0.5 to 1 percent | 2 | | |
 | | | | over 0 to 0.5 percent | 1 | | |
 | | | | 0 percent | 0 | | |
-| E2 | Flame length (2018 FSim conditional flame length `iCFL`; contracted fire-behavior modeling when delivered) | 0.30 | over 8 ft | 3 | 0 | Maximum within a 300 ft buffer |
+| E2 | **TRPA proposal** (decision 22): TRPA most-likely fire severity (RRK 2023 severity probabilities, stacked) in place of flame length | 0.30 | High | 3 | 0 | Maximum within a 300 ft buffer |
+| | | | Moderate | 2 | | |
+| | | | Low | 1 | | |
+| | | | outside the layer (non-burnable) | 0 | | |
+| E2 (draft, when the contracted package is delivered) | Flame length | 0.30 | over 8 ft | 3 | 0 | Maximum within a 300 ft buffer |
 | | | | over 4 to 8 ft | 2 | | |
 | | | | over 0 to 4 ft | 1 | | |
 | | | | 0 ft | 0 | | |
@@ -766,10 +771,18 @@ buffer; transit centers the maximum within 300 ft.
     into one at the full exposure weight. The draft's extent scale would score the 100-year
     floodplain 2 and the 500-year 1, with 3 and 2.5 reserved for the 10- and 50-year
     floodplains that FEMA does not map.
-22. Wildfire exposure from the 2018 FSim outputs in hand: annual burn probability (`iBP`) and
-    conditional flame length (`iCFL`), the draft's own indicators on the draft's breaks
-    (revised Oct. 10, 2026, from a severity-layer stand-in for flame length). The contracted
-    fire-behavior package replaces them for December if delivered and reviewed in time, on the
-    same breaks.
+22. Wildfire exposure from the current data in hand: the Regional Resource Kit annual burn
+    probability (Pyrologix 2022, 30 m) on the draft's breaks, and TRPA most-likely fire
+    severity (the RRK severity probabilities stacked) classed Low 1, Moderate 2, High 3 in place
+    of flame length. The contracted fire-behavior package replaces them for December if delivered
+    and reviewed in time, on the same breaks.
 23. Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1
     (5 to under 10 percent), both flagged `S_source` partial.
+24. Landslide susceptibility read from the USGS 2024 release (Mirus and others, doi
+    10.5066/P13KAGU3), which gives the share of each 90 m cell that is landslide-prone rather
+    than five classes: over 80 percent scores 3, over 60 scores 2, over 40 scores 1, equal
+    intervals standing in for the draft's classes 5, 4, and 3. Recorded landslides come from the
+    USGS inventory (CGS and NBMG in the basin); inventory polygons over 10 km2 are mapping
+    units and are dropped, and a landslide point counts within 50 m. The precipitation-change
+    term scores 0 at the historical horizon and keeps its weight, so landslide exposure tops out
+    at 2.14 until the 2050 and 2080 columns are added.

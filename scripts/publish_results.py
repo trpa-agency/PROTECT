@@ -28,13 +28,15 @@ CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "pare
                 "q_event_25_cfs", "q_event_100_cfs", "q_cap_crossing_cfs", "load_ratio_25", "load_ratio_100",
                 "cond_class", "cond_source", "cond_stale", "blockage_pct", "tailwater_flag", "on_stream",
                 "size_suspect", "ratio_review", "profile_completeness", "E_FLC_hist", "E_FLC_pt", "E_FLC_src",
-                "E_source"]
+                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_source",
+                "S_FLC", "V_FLC_hist", "S_LSC", "V_LSC_hist", "V_max", "V_max_pair", "V_class", "S_source"]
 BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_crossed", "year_built",
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
                "channel_cond", "lowest_rating", "bridge_condition_label", "water_crossing", "parent_segment_id",
-               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_source"]
-WF_ROAD_COLS = ["src_objectid", "name", "class", "E_WFR_hist", "E_WFR_e1", "E_WFR_e2", "len_pct_c1", "len_pct_c2",
-                "len_pct_c3", "seg_len_m"]
+               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_source"]
+ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e2", "len_pct_c1", "len_pct_c2",
+             "len_pct_c3", "seg_len_m"]
+WF_ROAD_COLS = [c.format(p="WFR") for c in ROAD_COLS]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
          "q_cap_crossing_cfs": 1, "load_ratio_25": 2, "load_ratio_100": 2, "max_span_m": 1, "span_in": 1, "d_eq_in": 1}
 
@@ -136,27 +138,37 @@ def _geojson(gdf: gpd.GeoDataFrame, path: Path, log, precision: int = 5) -> None
     log.info(f"{len(gdf)} features -> {path.name} ({path.stat().st_size / 1e6:.2f} MB)")
 
 
+def slim_surface(surf: gpd.GeoDataFrame, crs, log, stem: str, simplify_m: float = 20.0,
+                 many: int = 20000, min_ha: float = 0.5) -> gpd.GeoDataFrame:
+    """Web-size a classed surface: simplify, and when it has more than `many` parts drop the
+    parts under min_ha (the severity surface has 58,896 parts and 25 MB otherwise). The
+    dropped area is logged; the summary areas are computed before this."""
+    surf = surf.copy()
+    surf["geometry"] = surf.geometry.simplify(simplify_m, preserve_topology=True)
+    if len(surf) > many:
+        a = surf.to_crs(crs).area / 1e4
+        keep = a >= min_ha
+        log.info(f"{stem}: {int((~keep).sum())} of {len(surf)} parts under {min_ha:g} ha dropped for the web layer "
+                 f"({a[~keep].sum() / 100:.1f} of {a.sum() / 100:.1f} km2)")
+        surf = surf[keep]
+    return surf
+
+
 def _e_counts(series: pd.Series) -> dict:
     return {str(k): int(v) for k, v in series.round(1).value_counts().sort_index().items()}
 
 
-def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
-    """Wildfire exposure (WF-R, WF-AT, WF-TC) for the results page: roads with their scores
-    joined to the street geometry, the paths and transit hubs, the burn probability and flame
-    length surfaces, and the summary block. Skips cleanly when the tables are not there yet."""
+def write_hazard_roads(cfg: dict, out_dir: Path, log, hazard: str, pair: str):
+    """Road scores for one hazard joined to the street geometry -> roads_<hazard>.geojson and
+    .csv, plus the summary block. Returns (frame, summary) or (None, None) when the table is
+    not there yet."""
     import pyogrio
-    from score_exposure import fetch_with_fields
     gdb = cfg["paths"]["analysis_gdb"]
-    hz_gdb = cfg["exposure"]["hazards_gdb"]
-    wf = cfg["exposure"]["wildfire"]
     crs = target_crs(cfg)
     key = cfg["assets"]["streets_key"]
-    roads = _table(gdb, "Exposure_wildfire_roads", log)
+    roads = _table(gdb, f"Exposure_{hazard}_roads", log)
     if roads is None:
-        return None
-    summary: dict = {}
-
-    # roads: scores joined to the street geometry (name and class where the layer has them)
+        return None, None
     info = pyogrio.read_info(cfg["assets"]["streets_gdb"], layer=cfg["assets"]["streets_fc"])
     extra = [c for c in ("name", "class") if c in list(info["fields"])]
     st = read_streets(cfg, log, columns=extra).drop_duplicates(key)
@@ -166,26 +178,82 @@ def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
     for c in ("name", "class"):
         if c not in r.columns:
             r[c] = None
-    r = r[[c for c in WF_ROAD_COLS if c in r.columns] + ["geometry"]]
-    for c in ("E_WFR_hist", "E_WFR_e1", "E_WFR_e2"):
+    cols = [c.format(p=pair) for c in ROAD_COLS]
+    r = r[[c for c in cols if c in r.columns] + ["geometry"]]
+    ecols = [c for c in (f"E_{pair}_hist", f"E_{pair}_e1", f"E_{pair}_e2") if c in r.columns]
+    for c in ecols:
         r[c] = pd.to_numeric(r[c], errors="coerce").round(2)
     r["seg_len_m"] = pd.to_numeric(r["seg_len_m"], errors="coerce").round(1)
-    _geojson(gpd.GeoDataFrame(r, geometry="geometry", crs=crs), out_dir / "roads_wildfire.geojson", log)
-    pd.DataFrame(r.drop(columns="geometry")).to_csv(out_dir / "roads_wildfire.csv", index=False)
+    _geojson(gpd.GeoDataFrame(r, geometry="geometry", crs=crs), out_dir / f"roads_{hazard}.geojson", log)
+    pd.DataFrame(r.drop(columns="geometry")).to_csv(out_dir / f"roads_{hazard}.csv", index=False)
     mi = r["seg_len_m"] / 1609.344
-    summary["roads"] = {
-        "segments": int(len(r)), "miles": round(float(mi.sum()), 1),
-        "E": _e_counts(r["E_WFR_hist"]),
-        "miles_by_E": {str(k): round(float(v), 1) for k, v in mi.groupby(r["E_WFR_hist"].round(1)).sum().items()},
-        "E1": _e_counts(r["E_WFR_e1"]), "E2": _e_counts(r["E_WFR_e2"]),
-        "zero_segments": int((r["E_WFR_hist"] == 0).sum()),
-        "miles_e2_class3": round(float(mi[r["E_WFR_e2"] >= 3].sum()), 1),
-        "miles_e_ge_1_6": round(float(mi[r["E_WFR_hist"] >= 1.6].sum()), 1),
-    }
+    e = r[f"E_{pair}_hist"]
+    summ = {"segments": int(len(r)), "miles": round(float(mi.sum()), 1), "E": _e_counts(e),
+            "miles_by_E": {str(k): round(float(v), 1) for k, v in mi.groupby(e.round(1)).sum().items()},
+            "zero_segments": int((e == 0).sum())}
+    for name in ("e1", "e2"):
+        c = f"E_{pair}_{name}"
+        if c in r.columns:
+            summ[name.upper()] = _e_counts(r[c])
+            summ[f"miles_by_{name.upper()}"] = {str(k): round(float(v), 1) for k, v in mi.groupby(r[c].round(1)).sum().items()}
     if "class" in r.columns and r["class"].notna().any():
-        summary["roads"]["miles_by_class_E"] = {str(c): {str(k): round(float(v), 1) for k, v in
-                                                        mi[r["class"] == c].groupby(r.loc[r["class"] == c, "E_WFR_hist"].round(1)).sum().items()}
-                                                for c in sorted(r["class"].dropna().unique())}
+        summ["miles_by_class_E"] = {str(c): {str(k): round(float(v), 1) for k, v in
+                                             mi[r["class"] == c].groupby(e[r["class"] == c].round(1)).sum().items()}
+                                    for c in sorted(r["class"].dropna().unique())}
+    return r, summ
+
+
+def write_landslide(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br: gpd.GeoDataFrame) -> dict | None:
+    """Landslide exposure (LS-R, LS-C, LS-B): roads joined to the street geometry, the classed
+    susceptibility surface, and the summary block; the culvert and bridge columns ride on the
+    flood exports (E_LSC_*, E_LSB_*)."""
+    import pyogrio
+    ls = cfg["exposure"]["landslide"]
+    r, summ = write_hazard_roads(cfg, out_dir, log, "landslide", "LSR")
+    if r is None:
+        return None
+    summary = {"roads": summ}
+    mi = r["seg_len_m"] / 1609.344
+    summary["roads"]["miles_e1_class3"] = round(float(mi[r["E_LSR_e1"] >= 3].sum()), 1) if "E_LSR_e1" in r.columns else None
+    if "E_LSC_hist" in cul.columns:
+        summary["culverts"] = {"scored": int(cul["E_LSC_hist"].notna().sum()), "E": _e_counts(cul["E_LSC_hist"].dropna()),
+                               "E1": _e_counts(cul["E_LSC_e1"].dropna()) if "E_LSC_e1" in cul.columns else {},
+                               "n_e1_class3": int((cul.get("E_LSC_e1", pd.Series(dtype=float)) >= 3).sum()),
+                               "by_jurisdiction_e1_class3": {j: int(n) for j, n in
+                                                             cul.loc[cul.get("E_LSC_e1", pd.Series(dtype=float)) >= 3, "jurisdiction"].value_counts().items()}}
+    if "E_LSB_hist" in br.columns:
+        summary["bridges"] = {"count": int(br["E_LSB_hist"].notna().sum()), "E": _e_counts(br["E_LSB_hist"].dropna()),
+                              "n_e1_class3": int((br.get("E_LSB_e1", pd.Series(dtype=float)) >= 3).sum())}
+    surf = pyogrio.read_dataframe(cfg["exposure"]["hazards_gdb"], layer=ls["class_fc"])
+    summary["surface_km2"] = {str(int(k)): round(float(v), 1) for k, v in
+                              surf.to_crs(target_crs(cfg)).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
+    surf = slim_surface(surf, target_crs(cfg), log, "landslide_surface", simplify_m=10)
+    _geojson(surf[["hz_class", "label", "geometry"]], out_dir / "landslide_surface.geojson", log)
+    summary["inputs"] = {"e1": "USGS 2024 landslide susceptibility, share of the 90 m cell that is prone (over 80 = 3, over 60 = 2, over 40 = 1) or a recorded landslide (USGS inventory; polygons under "
+                               f"{ls.get('recorded_max_area_km2', 10)} km2, points within {ls.get('recorded_point_buffer_m', 50)} m) = 3",
+                         "e2": "Cal-Adapt precipitation change, 0 at the historical horizon by definition",
+                         "weights": ls["weights"], "sampling": "culverts: maximum over the watershed; bridges: 25 m; roads: along the segment"}
+    return summary
+
+
+def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
+    """Wildfire exposure (WF-R, WF-AT, WF-TC) for the results page: roads with their scores
+    joined to the street geometry, the paths and transit hubs, the burn probability and E2
+    (severity or flame length) surfaces, and the summary block. Skips cleanly when the tables are not there yet."""
+    import pyogrio
+    from score_exposure import fetch_with_fields
+    gdb = cfg["paths"]["analysis_gdb"]
+    hz_gdb = cfg["exposure"]["hazards_gdb"]
+    wf = cfg["exposure"]["wildfire"]
+    crs = target_crs(cfg)
+    key = cfg["assets"]["streets_key"]
+    r, summ = write_hazard_roads(cfg, out_dir, log, "wildfire", "WFR")
+    if r is None:
+        return None
+    summary: dict = {"roads": summ}
+    mi = r["seg_len_m"] / 1609.344
+    summary["roads"]["miles_e2_class3"] = round(float(mi[r["E_WFR_e2"] >= 3].sum()), 1)
+    summary["roads"]["miles_e_ge_1_6"] = round(float(mi[r["E_WFR_hist"] >= 1.6].sum()), 1)
 
     # paths (existing active transportation facilities) and transit hubs, geometry from the services
     at = _table(gdb, "Exposure_wildfire_active_transport", log)
@@ -216,16 +284,16 @@ def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
 
     # the two surfaces (180 m cells; 20 m simplify keeps the shapes)
     areas = {}
-    for name, stem in ((wf["bp_fc"], "wildfire_burnprob"), (wf["e2_fc"], "wildfire_flamelength")):
+    for name, stem in ((wf["bp_fc"], "wildfire_burnprob"), (wf["e2_fc"], "wildfire_e2")):
         surf = pyogrio.read_dataframe(hz_gdb, layer=name)
         areas[stem] = {str(int(k)): round(float(v), 1) for k, v in
                        surf.to_crs(crs).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
-        surf["geometry"] = surf.geometry.simplify(20, preserve_topology=True)
+        surf = slim_surface(surf, crs, log, stem)
         _geojson(surf[["hz_class", "label", "geometry"]], out_dir / f"{stem}.geojson", log)
     summary["surfaces_km2"] = areas
-    summary["inputs"] = {"e1": "2018 FSim annual burn probability (iBP), breaks 0.5 and 1 percent",
-                         "e2": "2018 FSim conditional flame length (iCFL), breaks 4 and 8 ft" if wf.get("flame_length_raster")
-                               else "TRPA most-likely fire severity (Low 1, Moderate 2, High 3)",
+    summary["inputs"] = {"e1": "Regional Resource Kit annual burn probability (Pyrologix 2022, 30 m), breaks 0.5 and 1 percent",
+                         "e2": "contracted flame length, breaks 4 and 8 ft" if wf.get("flame_length_raster")
+                               else "TRPA most-likely fire severity (RRK severity probabilities stacked; Low 1, Moderate 2, High 3)",
                          "sampling": f"maximum within {wf['buffer_ft']} ft", "weights": wf["weights"]}
     return summary
 
@@ -235,6 +303,7 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-watersheds", action="store_true", help="skip the per-crossing drainage files")
     ap.add_argument("--no-wildfire", action="store_true", help="skip the wildfire roads, paths, hubs, and surfaces")
+    ap.add_argument("--no-landslide", action="store_true", help="skip the landslide roads and surface")
     args = ap.parse_args()
     log = get_logger("publish_results")
     cfg = load_cfg()
@@ -273,6 +342,15 @@ def main() -> None:
             "E_FLC": {str(k): int(v) for k, v in cul["E_FLC_hist"].value_counts().sort_index().items()}
             if "E_FLC_hist" in cul else {},
             "by_jurisdiction": {j: int(n) for j, n in cul["jurisdiction"].value_counts().items()},
+            "vulnerability": ({
+                "V_FLC_median": float(cul["V_FLC_hist"].median()),
+                "V_FLC_class": {str(k): int(v) for k, v in cul["V_FLC_hist"].map(
+                    lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")).value_counts().items()},
+                "V_class": {str(k): int(v) for k, v in cul["V_class"].value_counts().items()} if "V_class" in cul else {},
+                "V_max_pair": {str(k): int(v) for k, v in cul["V_max_pair"].value_counts().items()} if "V_max_pair" in cul else {},
+                "S_source": {str(k): int(v) for k, v in cul["S_source"].value_counts().items()} if "S_source" in cul else {},
+                "high_by_jurisdiction": {j: int(n) for j, n in cul.loc[cul["V_FLC_hist"] >= 2, "jurisdiction"].value_counts().items()},
+            } if "V_FLC_hist" in cul.columns and cul["V_FLC_hist"].notna().any() else None),
         },
         "bridges": {
             "count": int(len(br)),
@@ -295,6 +373,10 @@ def main() -> None:
         wf_summary = write_wildfire(cfg, out_dir, log)
         if wf_summary:
             summary["wildfire"] = wf_summary
+    if not args.no_landslide:
+        ls_summary = write_landslide(cfg, out_dir, log, cul, br)
+        if ls_summary:
+            summary["landslide"] = ls_summary
     cul.to_file(out_dir / "culverts_results.geojson", driver="GeoJSON")
     br.to_file(out_dir / "bridges_results.geojson", driver="GeoJSON")
     flood.to_file(out_dir / "flood_surface.geojson", driver="GeoJSON")

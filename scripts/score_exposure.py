@@ -11,7 +11,11 @@ Two jobs, both config-driven (config.yaml `exposure:`):
      0.5 percent 1) and E2 the TRPA most-likely fire severity polygons (Low 1, Moderate 2,
      High 3; the contracted flame-length raster replaces it on 4 and 8 ft breaks when set),
      combined per asset as 0.70 E1 + 0.30 E2 after each is sampled as the maximum within
-     300 ft. Landslide, debris flow, and avalanche plug in the same way.
+     300 ft. Landslide (rubric 2, 3, 6.3): E1 the USGS landslide susceptibility raster classed
+     5 = 3, 4 = 2, 3 = 1, else 0, with every recorded landslide (USGS inventory polygons, and
+     points within a set distance) as class 3; E2 the Cal-Adapt precipitation change, which
+     scores 0 at the historical horizon by definition, so E_LS*_hist = 0.50 E1 / 0.70.
+     Debris flow and avalanche plug in the same way.
   2. Sample it per asset on the rubric's sampling rule (section 1.7) and write the scores:
        culverts   maximum over the contributing watershed (CulvertWatersheds_inc aggregated up
                   the drainage tree from CulvertCrossings), 25 m buffer where no watershed;
@@ -30,6 +34,8 @@ Usage (arcgispro-py3; runs on the server):
     python scripts/score_exposure.py --hazard flood --assets culverts bridges roads --overwrite
     python scripts/score_exposure.py --hazard wildfire --build
     python scripts/score_exposure.py --hazard wildfire --assets roads active_transport --overwrite
+    python scripts/score_exposure.py --hazard landslide --build
+    python scripts/score_exposure.py --hazard landslide --assets culverts bridges roads --overwrite
 
 Outputs: fields on Culverts and Bridges (E_FLC_hist, E_FLC_pt, E_FLC_src, E_FLB_hist, E_FLB_e1,
 E_FLB_e2, E_source), a table Exposure_<hazard>_roads in the analysis geodatabase (segment_id,
@@ -153,7 +159,9 @@ def weighted_exposure(parts: dict, weights: dict) -> float:
 
 def indicators(surf) -> list:
     """A builder returns one classed surface (single indicator at weight 1) or a dict of
-    indicator name -> (weight, surface). Normalize to [(name, weight, surface), ...]."""
+    indicator name -> (weight, surface). Normalize to [(name, weight, surface), ...]. A None
+    surface is an indicator that scores 0 everywhere (the precipitation-change terms at the
+    historical horizon) but keeps its weight in the denominator, as the rubric defines it."""
     if isinstance(surf, dict):
         return [(k, float(w), g) for k, (w, g) in surf.items()]
     return [("e1", 1.0, surf)]
@@ -179,6 +187,30 @@ def fetch_with_fields(url: str, fields: list, crs, log, where: str = "1=1", page
     out = pd.concat(frames, ignore_index=True) if frames else gpd.GeoDataFrame(columns=fields, geometry=[], crs="EPSG:4326")
     out = gpd.GeoDataFrame(out, geometry="geometry", crs="EPSG:4326").to_crs(crs)
     log.info(f"{len(out)} features from {url}")
+    return out
+
+
+def fetch_in_bbox(url: str, fields: list, bbox4326, crs, log, where: str = "1=1", page: int = 1000) -> gpd.GeoDataFrame:
+    """Paged REST query limited to a WGS84 envelope (xmin, ymin, xmax, ymax)."""
+    import requests
+    frames, offset = [], 0
+    env = ",".join(f"{v:.6f}" for v in bbox4326)
+    while True:
+        r = requests.get(f"{url}/query", params={"where": where, "outFields": ",".join(fields), "returnGeometry": "true",
+                                                 "geometry": env, "geometryType": "esriGeometryEnvelope", "inSR": 4326,
+                                                 "spatialRel": "esriSpatialRelIntersects", "f": "geojson",
+                                                 "resultOffset": offset, "resultRecordCount": page}, timeout=300)
+        r.raise_for_status()
+        feats = r.json().get("features", [])
+        if not feats:
+            break
+        frames.append(gpd.GeoDataFrame.from_features(feats, crs="EPSG:4326"))
+        offset += len(feats)
+        if len(feats) < page:
+            break
+    out = pd.concat(frames, ignore_index=True) if frames else gpd.GeoDataFrame(columns=fields, geometry=[], crs="EPSG:4326")
+    out = gpd.GeoDataFrame(out, geometry="geometry", crs="EPSG:4326").to_crs(crs)
+    log.info(f"{len(out)} features from {url} in the basin box")
     return out
 
 
@@ -220,10 +252,11 @@ def dissolve_classes(allp: gpd.GeoDataFrame, crs) -> gpd.GeoDataFrame:
     return surf[~surf.geometry.is_empty].explode(index_parts=False).reset_index(drop=True)
 
 
-def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scratch_gdb: str, name: str) -> gpd.GeoDataFrame:
-    """Reclassify a continuous raster to 0 to 3 on two upper breaks (class 1 over 0, class 2
-    over breaks[0], class 3 over breaks[1]) inside the basin's bounding box, and return the
-    class polygons (hz_class) in the target CRS."""
+def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scratch_gdb: str, name: str,
+                      zero_below: float = 0.0) -> gpd.GeoDataFrame:
+    """Reclassify a continuous raster to 0 to 3 on two upper breaks (class 1 over zero_below,
+    class 2 over breaks[0], class 3 over breaks[1]) inside the basin's bounding box, and return
+    the class polygons (hz_class) in the target CRS."""
     import arcpy
     import pyogrio
     from arcpy.sa import Con, Raster
@@ -233,7 +266,7 @@ def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scr
     basin = fetch_basin(cfg, log)
     sr = arcpy.Describe(raster).spatialReference
     b = basin.to_crs(f"EPSG:{sr.factoryCode}" if sr.factoryCode else sr.exportToString()).total_bounds
-    pad = 500.0
+    pad = 0.005 if sr.type == "Geographic" else 500.0   # about 500 m either way
     clip = f"{scratch_gdb}\\{name}_clip"
     arcpy.management.Clip(raster, f"{b[0] - pad} {b[1] - pad} {b[2] + pad} {b[3] + pad}", clip,
                           clipping_geometry="NONE", maintain_clipping_extent="NO_MAINTAIN_EXTENT")
@@ -245,8 +278,8 @@ def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scr
         log.info(f"{Path(raster).name}: maximum {vmax:g} inside the basin box; read as {units}")
     if units == "fraction":
         scale = 100.0
-    b1, b2 = float(breaks[0]) / scale, float(breaks[1]) / scale
-    cls = Con(r > b2, 3, Con(r > b1, 2, Con(r > 0, 1, 0)))
+    b0, b1, b2 = float(zero_below) / scale, float(breaks[0]) / scale, float(breaks[1]) / scale
+    cls = Con(r > b2, 3, Con(r > b1, 2, Con(r > b0, 1, 0)))
     cls_path = f"{scratch_gdb}\\{name}_cls"
     cls.save(cls_path)
     poly = f"{scratch_gdb}\\{name}_poly"
@@ -257,6 +290,126 @@ def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scr
     log.info(f"{Path(raster).name} classed on breaks {breaks} {units}: cells by class (polygons)\n"
              + g["hz_class"].value_counts().sort_index().to_string())
     return g
+
+
+def raster_classes_mapped(raster: str, mapping: dict, cfg: dict, log, scratch_gdb: str, name: str) -> gpd.GeoDataFrame:
+    """Reclassify a categorical raster by an explicit value -> class map (unmapped values and
+    NoData score 0, dropped) inside the basin's bounding box; returns class polygons."""
+    import arcpy
+    import pyogrio
+    from arcpy.sa import Raster, Reclassify, RemapValue
+    arcpy.CheckOutExtension("Spatial")
+    arcpy.env.overwriteOutput = True
+    crs = target_crs(cfg)
+    basin = fetch_basin(cfg, log)
+    sr = arcpy.Describe(raster).spatialReference
+    cell = arcpy.Describe(raster).meanCellWidth
+    b = basin.to_crs(f"EPSG:{sr.factoryCode}" if sr.factoryCode else sr.exportToString()).total_bounds
+    pad = 0.005 if sr.type == "Geographic" else 500.0   # about 500 m either way
+    clip = f"{scratch_gdb}\\{name}_clip"
+    arcpy.management.Clip(raster, f"{b[0] - pad} {b[1] - pad} {b[2] + pad} {b[3] + pad}", clip,
+                          clipping_geometry="NONE", maintain_clipping_extent="NO_MAINTAIN_EXTENT")
+    vals = sorted({int(r[0]) for r in arcpy.da.SearchCursor(arcpy.management.BuildRasterAttributeTable(clip, "Overwrite"), ["VALUE"])}) \
+        if arcpy.Describe(clip).isInteger else None
+    log.info(f"{Path(raster).name}: {cell:g} {sr.linearUnitName or 'deg'} cells, {sr.name}; values in the basin box: {vals}")
+    unmapped = [v for v in (vals or []) if v not in {int(k) for k in mapping}]
+    if unmapped:
+        log.warning(f"raster values not in the class map score 0: {unmapped}")
+    remap = RemapValue([[int(k), int(v)] for k, v in mapping.items()])
+    cls = Reclassify(Raster(clip), "VALUE", remap, "NODATA")
+    cls_path = f"{scratch_gdb}\\{name}_cls"
+    cls.save(cls_path)
+    poly = f"{scratch_gdb}\\{name}_poly"
+    arcpy.conversion.RasterToPolygon(cls_path, poly, "NO_SIMPLIFY", "VALUE")
+    g = pyogrio.read_dataframe(scratch_gdb, layer=f"{name}_poly").to_crs(crs)
+    g = g.rename(columns={"gridcode": "hz_class"})[["hz_class", "geometry"]]
+    g["hz_class"] = g["hz_class"].astype(int)
+    return g
+
+
+def build_landslide_surface(cfg: dict, log, overwrite: bool) -> dict:
+    """LS-C, LS-B, LS-R (rubric 2, 3, 6.3). E1: the USGS landslide susceptibility raster by
+    class (exposure.landslide.lsi_classes) with every recorded landslide from the USGS
+    inventory (polygons, and points within recorded_point_buffer_m) as class 3, written as
+    exposure.landslide.class_fc. E2: Cal-Adapt precipitation change, 0 at the historical horizon
+    by definition (a None surface with its weight kept). Returns {"e1": (w, surface),
+    "e2": (w, None)}."""
+    import arcpy
+    import pyogrio
+    ex = cfg["exposure"]
+    ls = ex["landslide"]
+    crs = target_crs(cfg)
+    gdb = ex["hazards_gdb"]
+    ensure_gdb(gdb, log)
+    w = ls["weights"]
+    fc = ls["class_fc"]
+    if arcpy.Exists(f"{gdb}\\{fc}") and not overwrite:
+        log.info(f"{fc} exists; reading it (use --build to rebuild)")
+        return {"e1": (float(w["e1"]), pyogrio.read_dataframe(gdb, layer=fc).to_crs(crs)), "e2": (float(w["e2"]), None)}
+    raster = resolve_raster(str(ls["lsi_raster"]))
+    if not arcpy.Exists(raster):
+        raise SystemExit(f"exposure.landslide.lsi_raster not found: {raster}")
+    if ls.get("lsi_mode", "concentration") == "classes":
+        lsi = raster_classes_mapped(raster, ls["lsi_classes"], cfg, log, gdb, "ls_lsi")
+    else:
+        # USGS 2024 release (Mirus et al.; doi 10.5066/P13KAGU3): each 90 m cell holds the count of
+        # landslide-prone 10 m cells, 0 to 81. Scored on the share of the cell that is prone
+        # (exposure.landslide.lsi_share_pct): class 1 over the first share, 2 over the second,
+        # 3 over the third; below the first share scores 0.
+        pct = [float(v) for v in ls["lsi_share_pct"]]
+        full = float(ls.get("lsi_cell_max", 81))
+        counts = [p / 100.0 * full for p in pct]
+        log.info(f"Susceptibility classed on the share of each cell that is landslide-prone: class 1 over {pct[0]:g}, "
+                 f"2 over {pct[1]:g}, 3 over {pct[2]:g} percent ({counts[0]:.1f}, {counts[1]:.1f}, {counts[2]:.1f} of {full:g} cells)")
+        lsi = raster_to_classes(raster, counts[1:], "percent", cfg, log, gdb, "ls_lsi", zero_below=counts[0])
+    log.info("Susceptibility classes, area by class (km2):\n"
+             + (lsi.groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6)).round(1).to_string())
+    parts = [lsi]
+    basin = fetch_basin(cfg, log)
+    bbox = basin.to_crs("EPSG:4326").total_bounds
+    where = str(ls.get("recorded_where") or "1=1")
+    n_rec = 0
+    if ls.get("recorded_polys"):
+        polys = fetch_in_bbox(ls["recorded_polys"], ["OBJECTID", "Inventory", "Confidence"], bbox, crs, log, where=where)
+        cap = float(ls.get("recorded_max_area_km2", 10)) * 1e6
+        big = polys[polys.area > cap]
+        if len(big):
+            log.warning(f"{len(big)} recorded-landslide polygon(s) over {cap / 1e6:g} km2 dropped as mapping units, not slides: "
+                        f"{[round(a / 1e6, 1) for a in big.area]} km2 ({big['Inventory'].astype(str).tolist()})")
+            polys = polys[polys.area <= cap]
+        if len(polys):
+            parts.append(gpd.GeoDataFrame({"hz_class": [3] * len(polys)}, geometry=polys.geometry.values, crs=crs))
+            n_rec += len(polys)
+    if ls.get("recorded_points"):
+        pts = fetch_in_bbox(ls["recorded_points"], ["OBJECTID"], bbox, crs, log, where=where)
+        if len(pts):
+            buf = pts.geometry.buffer(float(ls.get("recorded_point_buffer_m", 50)))
+            parts.append(gpd.GeoDataFrame({"hz_class": [3] * len(pts)}, geometry=buf.values, crs=crs))
+            n_rec += len(pts)
+    log.info(f"{n_rec} recorded landslides (USGS inventory) added as class 3")
+    surf = dissolve_classes(gpd.GeoDataFrame(pd.concat(parts, ignore_index=True), geometry="geometry", crs=crs), crs)
+    log.info("Landslide E1 surface, area by class (km2):\n"
+             + (surf.groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6)).round(1).to_string())
+    write_class_fc(surf, gdb, fc, "landslide", {3: "very high susceptibility (class 5) or a recorded landslide",
+                                                2: "high susceptibility (class 4)", 1: "moderate susceptibility (class 3)"}, cfg, log)
+    log.info(f"E2 (precipitation change) scores {ls.get('precip_change_hist', 0)} at the historical horizon; weight kept")
+    return {"e1": (float(w["e1"]), surf), "e2": (float(w["e2"]), None)}
+
+
+def resolve_raster(path: str) -> str:
+    """A raster path as given, or the single .tif inside a folder (an unzipped download), or
+    the path with .tif added. Returns the input unchanged when nothing resolves."""
+    import os
+    p = str(path or "")
+    if not p or "<" in p:
+        return p
+    if os.path.isdir(p):
+        tifs = sorted(f for f in os.listdir(p) if f.lower().endswith((".tif", ".tiff", ".img")))
+        if tifs:
+            return os.path.join(p, tifs[0])
+    if not os.path.exists(p) and os.path.exists(p + ".tif"):
+        return p + ".tif"
+    return p
 
 
 def build_wildfire_surface(cfg: dict, log, overwrite: bool) -> dict:
@@ -280,9 +433,10 @@ def build_wildfire_surface(cfg: dict, log, overwrite: bool) -> dict:
                 "e2": (float(w["e2"]), pyogrio.read_dataframe(gdb, layer=e2_fc).to_crs(crs))}
 
     # E1: burn probability
-    bp_raster = str(wf["bp_raster"])
+    bp_raster = resolve_raster(str(wf["bp_raster"]))
     if not bp_raster or "<" in bp_raster or not arcpy.Exists(bp_raster):
         raise SystemExit(f"exposure.wildfire.bp_raster is not set or not found: {bp_raster}")
+    log.info(f"E1 raster: {bp_raster}")
     bp = raster_to_classes(bp_raster, wf["bp_breaks_pct"], str(wf.get("bp_units", "auto")), cfg, log, gdb, "wf_bp")
     bp = dissolve_classes(bp, crs)
     log.info("Burn probability surface, area by class (km2):\n"
@@ -293,7 +447,7 @@ def build_wildfire_surface(cfg: dict, log, overwrite: bool) -> dict:
                                                 1: f"burn probability over 0 to {bk[0]:g} percent"}, cfg, log)
 
     # E2: flame length when the contracted raster is set, else the TRPA severity polygons
-    fl_raster = str(wf.get("flame_length_raster") or "")
+    fl_raster = resolve_raster(str(wf.get("flame_length_raster") or ""))
     if fl_raster:
         fb = wf["flame_breaks_ft"]
         e2 = dissolve_classes(raster_to_classes(fl_raster, fb, "ft", cfg, log, gdb, "wf_fl"), crs)
@@ -383,10 +537,11 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
     return surf
 
 
-SURFACE_BUILDERS = {"flood": build_flood_surface, "wildfire": build_wildfire_surface}
+SURFACE_BUILDERS = {"flood": build_flood_surface, "wildfire": build_wildfire_surface, "landslide": build_landslide_surface}
 # asset classes that are a scored pair under each hazard (Hazard_Asset_Pairs.md)
 PAIRS = {"flood": {"culverts", "bridges", "roads", "active_transport", "transit_centers"},
-         "wildfire": {"roads", "active_transport", "transit_centers"}}
+         "wildfire": {"roads", "active_transport", "transit_centers"},
+         "landslide": {"culverts", "bridges", "roads"}}
 
 
 def sample_distance_m(cfg: dict, hazard: str) -> float:
@@ -401,6 +556,8 @@ def sample_distance_m(cfg: dict, hazard: str) -> float:
 
 def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float) -> pd.Series:
     """Maximum hz_class within buffer_m of each point (0 where none). Index = pts.index."""
+    if surf is None:
+        return pd.Series(0.0, index=pts.index)
     buf = gpd.GeoDataFrame(geometry=pts.geometry.buffer(buffer_m), crs=pts.crs)
     sj = gpd.sjoin(buf, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
     return sj.groupby(level=0)["hz_class"].max().reindex(pts.index).fillna(0)
@@ -409,6 +566,8 @@ def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float
 def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float = 0.0) -> pd.DataFrame:
     """Maximum hz_class within buffer_m of each line (touching it when 0) and the share of the
     line's own length inside each class."""
+    if surf is None:
+        return pd.DataFrame({"hz_max": pd.Series(0.0, index=lines.index)})
     probe = lines[["geometry"]] if buffer_m <= 0 else gpd.GeoDataFrame(geometry=lines.geometry.buffer(buffer_m), crs=lines.crs)
     sj = gpd.sjoin(probe, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
     out = pd.DataFrame({"hz_max": sj.groupby(level=0)["hz_class"].max().reindex(lines.index).fillna(0)})
@@ -434,8 +593,11 @@ def sample_watersheds(cfg: dict, surf: gpd.GeoDataFrame, log) -> pd.DataFrame:
     crs = target_crs(cfg)
     ws = pyogrio.read_dataframe(gdb, layer="CulvertWatersheds_inc").to_crs(crs)
     xt = pyogrio.read_dataframe(gdb, layer="CulvertCrossings", read_geometry=False)
-    sj = gpd.sjoin(ws[["gridcode", "geometry"]], surf[["hz_class", "geometry"]], how="left", predicate="intersects")
-    per_zone = sj.groupby("gridcode")["hz_class"].max().fillna(0)
+    if surf is None:
+        per_zone = pd.Series(0.0, index=ws["gridcode"].astype(int).values)
+    else:
+        sj = gpd.sjoin(ws[["gridcode", "geometry"]], surf[["hz_class", "geometry"]], how="left", predicate="intersects")
+        per_zone = sj.groupby("gridcode")["hz_class"].max().fillna(0)
     values = {int(pp): float(per_zone.get(int(pp), 0.0)) for pp in xt["crossing_pp"]}
     dn = xt.set_index("crossing_pp")["downstream_crossing_id"]
     id_to_pp = {f"X{int(pp):05d}": int(pp) for pp in xt["crossing_pp"]}
@@ -461,23 +623,34 @@ def score_culverts(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run:
     cul = read_culverts(cfg, log)
     cul = cul[cul["scored"] == 1].copy() if "scored" in cul.columns else cul
     log.info(f"{len(cul)} scored culverts")
-    pt = sample_points(cul, surf, float(ex["point_buffer_m"]))
-    wsx = sample_watersheds(cfg, surf, log).set_index("crossing_id")["hz_ws"]
-    cul["hz_pt"] = pt.values
-    cul["hz_ws"] = cul["crossing_id"].map(wsx) if "crossing_id" in cul.columns else np.nan
-    e = cul["hz_ws"].where(cul["hz_ws"].notna(), cul["hz_pt"])
-    src = np.where(cul["hz_ws"].notna(), "watershed", "buffer")
+    inds = indicators(surf)
+    weights = {name: wt for name, wt, _ in inds}
+    parts, pt_parts, src = {}, {}, None
+    for name, wt, g in inds:
+        pt = sample_points(cul, g, float(ex["point_buffer_m"]))
+        wsx = sample_watersheds(cfg, g, log).set_index("crossing_id")["hz_ws"]
+        hz_ws = cul["crossing_id"].map(wsx) if "crossing_id" in cul.columns else pd.Series(np.nan, index=cul.index)
+        parts[name] = hz_ws.where(hz_ws.notna(), pt.values)
+        pt_parts[name] = pt.values
+        if src is None:
+            src = np.where(hz_ws.notna(), "watershed", "buffer")
+    e = pd.Series([weighted_exposure({k: v.iloc[j] for k, v in parts.items()}, weights) for j in range(len(cul))], index=cul.index)
+    e_pt = pd.Series([weighted_exposure({k: v[j] for k, v in pt_parts.items()}, weights) for j in range(len(cul))], index=cul.index)
     if hazard == "flood" and "tailwater_flag" in cul.columns:
         tw = cul["tailwater_flag"].fillna(0).astype(int) == 1
         e = (e + tw.astype(int)).clip(upper=3)
         log.info(f"Tailwater modifier applied on {int(tw.sum())} culverts")
     cul[f"E_{pair}_{h}"] = e.round(2)
-    cul[f"E_{pair}_pt"] = cul["hz_pt"].round(2)
+    cul[f"E_{pair}_pt"] = e_pt.round(2)
     cul[f"E_{pair}_src"] = src
     cul["E_source"] = np.where(src == "watershed", "full", "partial")
-    log.info(f"E_{pair}_{h} distribution:\n" + cul[f"E_{pair}_{h}"].value_counts().sort_index().to_string())
     fields = [(f"E_{pair}_{h}", "DOUBLE", None), (f"E_{pair}_pt", "DOUBLE", None), (f"E_{pair}_src", "TEXT", 12),
               ("E_source", "TEXT", 10)]
+    if len(inds) > 1:
+        for name in parts:
+            cul[f"E_{pair}_{name}"] = parts[name].astype(float).round(2)
+            fields.append((f"E_{pair}_{name}", "DOUBLE", None))
+    log.info(f"E_{pair}_{h} distribution:\n" + cul[f"E_{pair}_{h}"].value_counts().sort_index().to_string())
     out = cul[["culvert_id", "jurisdiction", "crossing_id"] + [f[0] for f in fields]].copy()
     write_split_csv(out, f"exposure_{hazard}_culverts", cfg, log)
     if not dry_run:
@@ -496,10 +669,12 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
     h = ex["horizon"]
     gdb = cfg["paths"]["analysis_gdb"]
     br = pyogrio.read_dataframe(gdb, layer=cfg["assets"]["bridges_fc"]).to_crs(target_crs(cfg))
-    hz = sample_points(br, surf, float(ex["point_buffer_m"]))
+    hz = pd.Series(0.0, index=br.index)
     br["hz_pt"] = hz.values
     fields = []
     if hazard == "flood":
+        surf_single = indicators(surf)[0][2]
+        br["hz_pt"] = sample_points(br, surf_single, float(ex["point_buffer_m"])).values
         w = ex["flood"]["bridge_weights"]  # e1 waterway adequacy, e2 flood class
         e1 = br["waterway_eval"].map(waterway_score)
         e2 = br["hz_pt"].astype(float)
@@ -510,9 +685,16 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
         fields = [(f"E_{pair}_{h}", "DOUBLE", None), (f"E_{pair}_e1", "DOUBLE", None), (f"E_{pair}_e2", "DOUBLE", None),
                   ("E_source", "TEXT", 10)]
     else:
-        br[f"E_{pair}_{h}"] = br["hz_pt"].round(2)
+        inds = indicators(surf)
+        weights = {name: wt for name, wt, _ in inds}
+        parts = {name: sample_points(br, g, float(ex["point_buffer_m"])).values for name, _, g in inds}
+        br[f"E_{pair}_{h}"] = [round(weighted_exposure({k: v[j] for k, v in parts.items()}, weights), 2) for j in range(len(br))]
         br["E_source"] = "full"
         fields = [(f"E_{pair}_{h}", "DOUBLE", None), ("E_source", "TEXT", 10)]
+        if len(inds) > 1:
+            for name in parts:
+                br[f"E_{pair}_{name}"] = np.round(parts[name].astype(float), 2)
+                fields.append((f"E_{pair}_{name}", "DOUBLE", None))
     log.info(f"E_{pair}_{h} on {len(br)} structures:\n" + br[f"E_{pair}_{h}"].round(1).value_counts().sort_index().to_string())
     out = br[["bridge_id", "facility_carried", "feature_crossed"] + [f[0] for f in fields]].copy()
     p = REPO / cfg["paths"]["outputs"] / f"exposure_{hazard}_bridges.csv"

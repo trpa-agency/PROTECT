@@ -52,27 +52,67 @@ exposure:
     class_fc: Hazard_Flood_Class
     bridge_weights: {e1: 0.20, e2: 0.10}   # FL-B: waterway adequacy (NBI 71) and the flood class
   wildfire:                # WF-R, WF-AT, WF-TC (rubric 6.4, decision 22): E = 0.70 E1 + 0.30 E2, each the maximum within 300 ft
-    # 2018 FSim outputs, 180 m, CA Teale Albers: iBP annual burn probability (fraction, max 0.058),
-    # iCFL conditional flame length (ft, max 100), iMFI fireline intensity, iCBP_FIL1-6 by flame-length class
-    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\Download\BurnProbability_2018.gdb\iBP
-    bp_units: fraction       # percent | fraction | auto (fraction when the raster maximum is 1 or less)
+    # Sierra Nevada Regional Resource Kit (caregionalresourcekits.org/sierra.html, Fire Dynamics): Pyrologix 2022
+    # annual burn probability, 30 m (AnnualBurnProbability_202308.zip). The 2018 FSim set
+    # (Download\BurnProbability_2018.gdb: iBP, iCFL, iMFI, iCBP_FIL1-6) is the older generation of the same products.
+    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\AnnualBurnProbability_202308\AnnualBurnProbability_202308.tif   # the unzipped RRK download (a folder also resolves to the .tif inside it)
+    bp_units: auto           # percent | fraction | auto (fraction when the raster maximum is 1 or less)
     bp_breaks_pct: [0.5, 1.0]   # E1 annual burn probability: over 0 to 0.5 = 1, over 0.5 to 1 = 2, over 1 percent = 3
     severity_layer: https://maps.trpa.org/server/rest/services/Fire/MapServer/3   # E2 until the contracted package lands
     severity_field: MostLikelyFireSeverity
     severity_classes: {Low Severity: 1, Moderate Severity: 2, High Severity: 3}   # outside the layer = 0
-    # E2 is flame length (the draft's indicator) from the 2018 FSim iCFL (Oct. 10, 2026); the contracted package
-    # replaces it here when delivered. Blank falls back to the severity layer below (decision 22 as first drafted).
-    flame_length_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\Download\BurnProbability_2018.gdb\iCFL
+    # E2 is the TRPA most-likely fire severity (decision 22): the RRK 2023 severity probabilities stacked into one class,
+    # the same vintage as the burn probability. Set this to the contracted flame-length raster when delivered
+    # (feet, breaks below); the 2018 FSim iCFL is available but mixes vintages.
+    flame_length_raster: ""
     flame_breaks_ft: [4.0, 8.0]  # over 0 to 4 = 1, over 4 to 8 = 2, over 8 ft = 3 (the draft's breaks)
     buffer_ft: 300           # sampling distance for every wildfire pair (lines and points)
     weights: {e1: 0.70, e2: 0.30}
     bp_fc: Hazard_Wildfire_BurnProb
-    e2_fc: Hazard_Wildfire_FlameLength   # name the E2 surface for what it holds
+    e2_fc: Hazard_Wildfire_Severity      # the E2 surface (severity classes, or flame length when that raster is set)
+  landslide:               # LS-C, LS-B, LS-R (rubric 2, 3, 6.3): E1 susceptibility or recorded landslide 0.50, E2 precipitation change 0.20
+    lsi_raster: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\usgs_landslide_risk.tif   # USGS Landslide Susceptibility Index
+    # usgs_landslide_risk.tif is the USGS 2024 release (Mirus et al., doi 10.5066/P13KAGU3): 90 m cells holding the
+    # count of landslide-prone 10 m cells, 0 to 81, not the five classes the draft rubric names. TRPA proposal: score
+    # the share of each cell that is prone, equal intervals, so the draft's class 3 / 4 / 5 become over 40 / 60 / 80 percent.
+    lsi_mode: concentration              # concentration (share of the cell, below) | classes (a 1 to 5 class raster, lsi_classes)
+    lsi_share_pct: [40, 60, 80]          # class 1 over 40, 2 over 60, 3 over 80 percent of the cell prone; under 40 = 0
+    lsi_cell_max: 81                     # 10 m cells per 90 m cell
+    lsi_classes: {5: 3, 4: 2, 3: 1}      # used only in classes mode: raster class -> score
+    recorded_polys: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12   # USGS inventory (CGS and NBMG in the basin)
+    recorded_points: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_point_v2/FeatureServer/11
+    recorded_point_buffer_m: 50          # a mapped landslide point counts within this distance (TRPA choice; the rubric says any recorded landslide)
+    recorded_where: "1=1"
+    recorded_max_area_km2: 10            # inventory polygons larger than this are mapping units, not slides (one 202 km2 polygon touches the basin)
+    precip_change_hist: 0                # E2 scores 0 at the historical horizon by definition; 2050 and 2080 columns come in December
+    weights: {e1: 0.50, e2: 0.20}        # E_LS*_hist = (0.50 E1 + 0.20 x 0) / 0.70
+    class_fc: Hazard_Landslide_Class
   # line and point assets scored by the lane's other pairs (roads come from assets.streets_*)
   active_transport_layer: https://maps.trpa.org/server/rest/services/Transportation/MapServer/3   # existing facilities
   active_transport_key: OBJECTID
   transit_centers_layer: https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/Transit_Hubs/FeatureServer/0   # eight hubs (AGOL)
   transit_centers_key: FID
+
+# scripts/score_vulnerability.py - sensitivity and vulnerability (docs/SCORING_RUBRICS.md 1.1, 1.2, 1.4, 2.3)
+scoring:
+  v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
+  flc:                            # flooding x small culverts
+    s3: true                      # TRPA proposal: condition and blockage as S3 (weights_s3); false = the draft's S1 / S2 only
+    weights_s3: {e: 0.30, s1: 0.25, s2: 0.30, s3: 0.15}
+    weights_draft: {e: 0.30, s1: 0.35, s2: 0.35}
+    s1_default: 1                 # no watershed: debris potential 1, S_source partial
+    s2_default: 1                 # loading ratio withheld (size_suspect) or no size: 1, S_source partial
+    landcover_columns:            # profile basin_landcover group -> draft matrix column (TRPA choice for grass, barren, wetland)
+      forest: trees
+      shrub: shrubs
+      grass: shrubs
+      barren: shrubs
+      developed: urban
+      water: water and snow
+      wetland: water and snow
+  lsc:                            # landslide x small culverts
+    weights: {e: 0.70, s1: 0.15, s2: 0.15}
+    s1_default: 2                 # no size: 2, S_source partial
 
 run:
   crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when

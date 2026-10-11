@@ -22,7 +22,7 @@ scripts, data paths, and references moved to the appendix of `docs/WORKSHOP1_BUI
 tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
 (incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Scoring
 Rubrics page** (`html/scoring-rubrics.html`, v0.3: interactive per-pair scoring for all 15 pairs
-on the consultant's half-point scale, rubric tables, framework, 23 decisions, and the list of
+on the consultant's half-point scale, rubric tables, framework, 24 decisions, and the list of
 TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
 model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
 every page; never describe a flood model as purchased or pending. The **Phase 1
@@ -40,10 +40,13 @@ ArcGIS Online (public Create-only submit view and public read view, made by
 `scripts/create_workshop_feedback_layer.py`; the email address is never sent, only its hash), CSV
 export and import as the fallback; the Report out tab and the printable master list tally
 everyone's notes by hazard and asset. The **results pages** share a tab strip under the header, one page per hazard:
-`html/culvert-results.html` (flooding: culverts and bridges) and `html/wildfire-results.html`
-(Oct. 10, 2026: WF-R, WF-AT, WF-TC from the 2018 FSim burn probability and conditional flame
-length; roads colored by score, likelihood, or flame length; paths dashed; the eight transit
-hubs; both surfaces; road miles by score and by road type; road table). Both read
+`html/culvert-results.html` (flooding: culverts and bridges), `html/wildfire-results.html`
+(Oct. 10, 2026: WF-R, WF-AT, WF-TC from the Regional Resource Kit burn probability, Pyrologix
+2022, and TRPA most-likely fire severity; roads colored by score, likelihood, or severity; paths dashed; the eight transit
+hubs; both surfaces; road miles by score and by road type; road table), and
+`html/landslide-results.html` (Oct. 10, 2026: LS-R, LS-C, LS-B from the USGS susceptibility
+index plus recorded landslides; the climate term is 0 at the historical horizon so scores top
+out at 2.14; culverts by watershed maximum). All read
 `data/processed/results/` written by `scripts/publish_results.py`. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
 Jekyll skips underscore directories, so nothing in it is served by Pages.
 
@@ -114,6 +117,7 @@ PROTECT/
 ├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
 ├── html/culvert-results.html        # flooding results: culverts and bridges (tab strip with the wildfire page)
 ├── html/wildfire-results.html       # wildfire results: roads, paths, transit hubs, the two surfaces
+├── html/landslide-results.html      # landslide results: roads, culverts, bridges, the susceptibility surface
 ├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
 ├── html/od-services-index.html      # OD access-to-services index (RA2CE routed trips; criticality factor 4)
 ├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)
