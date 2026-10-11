@@ -1,6 +1,6 @@
 # PROTECT scoring rubrics
 
-**Version 0.3, Oct. 9, 2026.** Draft for consultant review (ICF checkpoint Oct. 9).
+**Version 0.4, Oct. 11, 2026.** Draft for consultant review (ICF checkpoint Oct. 12).
 **Scope of this version:** the shared framework (section 1) and all 15 pairs: FL-C, LS-C, DF-C
 (section 2), FL-B, LS-B, DF-B (section 3), DF-R (section 4), AV-R (section 5), and FL-R, FL-AT,
 FL-TC, LS-R, WF-R, WF-AT, and WF-TC (section 6). Sections 2 to 5 were drafted first; section 6
@@ -10,6 +10,21 @@ from the first full runs of the culvert profile: the DEM is breached through the
 inventory away from mapped streams, basins over 1 sq mi use the USGS regional regression on
 PRISM precipitation, suspect size records are withheld from the loading ratio (section 2.2),
 and the headwater criterion's conservatism is stated.
+
+**What changed in v0.4.** First results are scored for every pair except the future horizons:
+exposure for all 15 pairs on the historical horizon, and vulnerability (exposure plus
+sensitivity) for culverts, bridges, roads, active transport, and transit centers, with the
+draft's sensitivity defaults where no attribute exists yet (road pavement, surface, truck
+traffic, and guardrails; S_source records it). Three input decisions were taken from data in
+hand and are numbered: wildfire exposure from the Sierra Nevada Regional Resource Kit burn
+probability (Pyrologix 2022) with TRPA most-likely fire severity in place of flame length
+(decision 22, revised); landslide susceptibility read from the USGS 2024 release as the share
+of each cell that is landslide-prone (decision 24, new); debris flow as the draft's option 1
+with the fire severity surface standing in for predicted soil burn severity, and decision 7's
+sensitivity set applied (DF_option records the stand-in). Avalanche records are the TRPA
+avalanche zones only; the accident databases are not used (decision 18, resolved by TRPA).
+Culverts read debris-flow slope and area from their own delineated basin. The results pages
+were consolidated into one Results page (`html/results.html`).
 
 **What changed in v0.3.** Every indicator value and score now matches the rubric tables in the
 consultant's draft Vulnerability Assessment Methodology (Aug. 20, 2026): the half-point score

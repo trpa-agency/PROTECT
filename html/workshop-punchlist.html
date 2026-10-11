@@ -94,7 +94,15 @@
       table.ref{display:block;overflow-x:auto;white-space:nowrap;}
       .toolbar input.qf{min-width:0;flex-basis:100%;}
     }
-  </style>
+      /* site nav: five groups */
+    .sitenav{background:#fff;border-bottom:1px solid #DDDDDD;}
+    .sitenav .inner{max-width:1320px;margin:0 auto;padding:.35rem 1.6rem;display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.78rem;font-family:'Open Sans',system-ui,sans-serif;}
+    .sitenav .g{display:flex;gap:.5rem;align-items:baseline;}
+    .sitenav .g b{color:#5a6577;font-weight:600;text-transform:uppercase;font-size:.66rem;letter-spacing:.06em;}
+    .sitenav a{color:#003B71;text-decoration:none;font-weight:600;}
+    .sitenav a:hover{color:#0072CE;}
+    .sitenav a.on{color:#0072CE;}
+</style>
 </head>
 <body>
 
@@ -115,6 +123,8 @@
       </div>
     </div>
   </header>
+  <nav class="sitenav" aria-label="Site"><div class="inner"><span class="g"><b>Results</b><a href="results.html">Results</a></span><span class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></span><span class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></span><span class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></span><span class="g"><b>Workshop</b><a href="workshop-punchlist.html" class="on">Punch list</a><a href="workshop-feedback.html">Feedback</a></span></div></nav>
+
 
   <main>
     <section class="intro">

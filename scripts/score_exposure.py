@@ -163,8 +163,19 @@ def indicators(surf) -> list:
     surface is an indicator that scores 0 everywhere (the precipitation-change terms at the
     historical horizon) but keeps its weight in the denominator, as the rubric defines it."""
     if isinstance(surf, dict):
-        return [(k, float(w), g) for k, (w, g) in surf.items()]
-    return [("e1", 1.0, surf)]
+        out = []
+        for k, v in surf.items():
+            w, g = v[0], v[1]
+            hint = v[2] if len(v) > 2 else "max"
+            out.append((k, float(w), g, hint))
+        return out
+    return [("e1", 1.0, surf, "max")]
+
+
+def hint_agg(hint: str) -> str:
+    """'min' when the hint asks for the largest-area cell (the draft's maximum-accumulation
+    rule for DF E2 on roads and bridges); 'max' otherwise."""
+    return "min" if (hint or "").endswith("min") else "max"
 
 
 def fetch_with_fields(url: str, fields: list, crs, log, where: str = "1=1", page: int = 1000) -> gpd.GeoDataFrame:
@@ -232,11 +243,12 @@ def write_class_fc(surf: gpd.GeoDataFrame, gdb: str, name: str, hazard: str, lab
     if arcpy.Exists(out_fc):
         arcpy.management.Delete(out_fc)
     arcpy.management.CreateFeatureclass(gdb, name, "POLYGON", spatial_reference=sr)
-    arcpy.management.AddFields(out_fc, [["hz_class", "SHORT", "hz_class", ""], ["hazard", "TEXT", "hazard", 20],
+    arcpy.management.AddFields(out_fc, [["hz_class", "DOUBLE", "hz_class", ""], ["hazard", "TEXT", "hazard", 20],
                                         ["label", "TEXT", "label", 80]])
     with arcpy.da.InsertCursor(out_fc, ["SHAPE@", "hz_class", "hazard", "label"]) as cur:
         for r in surf.itertuples():
-            cur.insertRow([arcpy.FromWKB(r.geometry.wkb), int(r.hz_class), hazard, labels.get(int(r.hz_class), "")])
+            c = float(r.hz_class)
+            cur.insertRow([arcpy.FromWKB(r.geometry.wkb), c, hazard, labels.get(int(c) if c == int(c) else c, "")])
     log.info(f"{len(surf)} polygons -> {out_fc}")
 
 
@@ -244,7 +256,7 @@ def dissolve_classes(allp: gpd.GeoDataFrame, crs) -> gpd.GeoDataFrame:
     """Dissolve by hz_class, higher class winning where classes overlap, exploded to parts."""
     allp = allp[allp["hz_class"] > 0]
     dissolved = allp.dissolve(by="hz_class", as_index=False)[["hz_class", "geometry"]]
-    geoms = {int(r.hz_class): r.geometry for r in dissolved.itertuples()}
+    geoms = {float(r.hz_class): r.geometry for r in dissolved.itertuples()}
     for c in sorted(geoms):
         for higher in [h for h in geoms if h > c]:
             geoms[c] = geoms[c].difference(geoms[higher])
@@ -537,11 +549,24 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
     return surf
 
 
-SURFACE_BUILDERS = {"flood": build_flood_surface, "wildfire": build_wildfire_surface, "landslide": build_landslide_surface}
+def _build_df(cfg, log, overwrite):
+    from surfaces_dfav import build_debris_flow_surface
+    return build_debris_flow_surface(cfg, log, overwrite)
+
+
+def _build_av(cfg, log, overwrite):
+    from surfaces_dfav import build_avalanche_products
+    return build_avalanche_products(cfg, log, overwrite)
+
+
+SURFACE_BUILDERS = {"flood": build_flood_surface, "wildfire": build_wildfire_surface, "landslide": build_landslide_surface,
+                    "debris_flow": _build_df, "avalanche": _build_av}
 # asset classes that are a scored pair under each hazard (Hazard_Asset_Pairs.md)
 PAIRS = {"flood": {"culverts", "bridges", "roads", "active_transport", "transit_centers"},
          "wildfire": {"roads", "active_transport", "transit_centers"},
-         "landslide": {"culverts", "bridges", "roads"}}
+         "landslide": {"culverts", "bridges", "roads"},
+         "debris_flow": {"culverts", "bridges", "roads"},
+         "avalanche": {"roads"}}
 
 
 def sample_distance_m(cfg: dict, hazard: str) -> float:
@@ -554,23 +579,25 @@ def sample_distance_m(cfg: dict, hazard: str) -> float:
 # ----------------------------------------------------------------------------------------
 # sampling
 
-def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float) -> pd.Series:
-    """Maximum hz_class within buffer_m of each point (0 where none). Index = pts.index."""
+def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float, agg: str = "max") -> pd.Series:
+    """Maximum (or minimum) hz_class within buffer_m of each point (0 where none). Index = pts.index."""
     if surf is None:
         return pd.Series(0.0, index=pts.index)
     buf = gpd.GeoDataFrame(geometry=pts.geometry.buffer(buffer_m), crs=pts.crs)
     sj = gpd.sjoin(buf, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
-    return sj.groupby(level=0)["hz_class"].max().reindex(pts.index).fillna(0)
+    g = sj.groupby(level=0)["hz_class"]
+    return (g.min() if agg == "min" else g.max()).reindex(pts.index).fillna(0)
 
 
-def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float = 0.0) -> pd.DataFrame:
-    """Maximum hz_class within buffer_m of each line (touching it when 0) and the share of the
-    line's own length inside each class."""
+def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float = 0.0, agg: str = "max") -> pd.DataFrame:
+    """Maximum (or minimum) hz_class within buffer_m of each line (touching it when 0) and the
+    share of the line's own length inside each class."""
     if surf is None:
         return pd.DataFrame({"hz_max": pd.Series(0.0, index=lines.index)})
     probe = lines[["geometry"]] if buffer_m <= 0 else gpd.GeoDataFrame(geometry=lines.geometry.buffer(buffer_m), crs=lines.crs)
     sj = gpd.sjoin(probe, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
-    out = pd.DataFrame({"hz_max": sj.groupby(level=0)["hz_class"].max().reindex(lines.index).fillna(0)})
+    g = sj.groupby(level=0)["hz_class"]
+    out = pd.DataFrame({"hz_max": (g.min() if agg == "min" else g.max()).reindex(lines.index).fillna(0)})
     total = lines.geometry.length.replace(0, np.nan)
     # length in each class through the spatial index: overlay against the (many, small) class
     # polygons rather than intersecting every line with one basin-wide union
@@ -624,10 +651,23 @@ def score_culverts(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run:
     cul = cul[cul["scored"] == 1].copy() if "scored" in cul.columns else cul
     log.info(f"{len(cul)} scored culverts")
     inds = indicators(surf)
-    weights = {name: wt for name, wt, _ in inds}
+    weights = {name: wt for name, wt, _, _ in inds}
     parts, pt_parts, src = {}, {}, None
-    for name, wt, g in inds:
-        pt = sample_points(cul, g, float(ex["point_buffer_m"]))
+    for name, wt, g, hint in inds:
+        if hint.startswith("profile:"):
+            # the culvert's own profile value (DF E1 mean basin slope, DF E2 contributing area)
+            from surfaces_dfav import df_area_score, df_slope_score
+            what = hint.split(":")[1].split("|")[0]
+            if what == "slope":
+                v = cul["basin_slope_pct"].map(df_slope_score)
+            else:
+                v = (cul["contrib_area_ac"] * 4046.8564 / 2_589_988.11).map(df_area_score)
+            parts[name] = v.where(v.notna(), 0.0)
+            pt_parts[name] = parts[name].values
+            if src is None:
+                src = np.where(v.notna(), "profile", "default")
+            continue
+        pt = sample_points(cul, g, float(ex["point_buffer_m"]), hint_agg(hint))
         wsx = sample_watersheds(cfg, g, log).set_index("crossing_id")["hz_ws"]
         hz_ws = cul["crossing_id"].map(wsx) if "crossing_id" in cul.columns else pd.Series(np.nan, index=cul.index)
         parts[name] = hz_ws.where(hz_ws.notna(), pt.values)
@@ -650,6 +690,9 @@ def score_culverts(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run:
         for name in parts:
             cul[f"E_{pair}_{name}"] = parts[name].astype(float).round(2)
             fields.append((f"E_{pair}_{name}", "DOUBLE", None))
+    if hazard == "debris_flow":
+        cul["DF_option"] = "1 (severity stand-in)"
+        fields.append(("DF_option", "TEXT", 24))
     log.info(f"E_{pair}_{h} distribution:\n" + cul[f"E_{pair}_{h}"].value_counts().sort_index().to_string())
     out = cul[["culvert_id", "jurisdiction", "crossing_id"] + [f[0] for f in fields]].copy()
     write_split_csv(out, f"exposure_{hazard}_culverts", cfg, log)
@@ -672,6 +715,8 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
     hz = pd.Series(0.0, index=br.index)
     br["hz_pt"] = hz.values
     fields = []
+    if hazard == "debris_flow":
+        br["DF_option"] = "1 (severity stand-in)"
     if hazard == "flood":
         surf_single = indicators(surf)[0][2]
         br["hz_pt"] = sample_points(br, surf_single, float(ex["point_buffer_m"])).values
@@ -686,8 +731,8 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
                   ("E_source", "TEXT", 10)]
     else:
         inds = indicators(surf)
-        weights = {name: wt for name, wt, _ in inds}
-        parts = {name: sample_points(br, g, float(ex["point_buffer_m"])).values for name, _, g in inds}
+        weights = {name: wt for name, wt, _, _ in inds}
+        parts = {name: sample_points(br, g, float(ex["point_buffer_m"]), hint_agg(hint)).values for name, _, g, hint in inds}
         br[f"E_{pair}_{h}"] = [round(weighted_exposure({k: v[j] for k, v in parts.items()}, weights), 2) for j in range(len(br))]
         br["E_source"] = "full"
         fields = [(f"E_{pair}_{h}", "DOUBLE", None), ("E_source", "TEXT", 10)]
@@ -695,6 +740,8 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
             for name in parts:
                 br[f"E_{pair}_{name}"] = np.round(parts[name].astype(float), 2)
                 fields.append((f"E_{pair}_{name}", "DOUBLE", None))
+        if "DF_option" in br.columns:
+            fields.append(("DF_option", "TEXT", 24))
     log.info(f"E_{pair}_{h} on {len(br)} structures:\n" + br[f"E_{pair}_{h}"].round(1).value_counts().sort_index().to_string())
     out = br[["bridge_id", "facility_carried", "feature_crossed"] + [f[0] for f in fields]].copy()
     p = REPO / cfg["paths"]["outputs"] / f"exposure_{hazard}_bridges.csv"
@@ -719,7 +766,11 @@ def score_roads(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: bo
     key = cfg["assets"]["streets_key"]
     st = read_streets(cfg, log)
     st = st.drop_duplicates(key).reset_index(drop=True)
-    out = score_line_assets(st, key, cfg, hazard, surf, log)
+    if hazard == "avalanche":
+        from surfaces_dfav import score_avalanche_lines
+        out = score_avalanche_lines(st, key, surf, cfg, log)
+    else:
+        out = score_line_assets(st, key, cfg, hazard, surf, log)
     write_line_scores(out, key, f"{hazard}_roads", pair, cfg, log, dry_run, overwrite)
     return out
 
@@ -735,15 +786,15 @@ def score_line_assets(lines: gpd.GeoDataFrame, key: str, cfg: dict, hazard: str,
     inds = indicators(surf)
     out = pd.DataFrame({key: lines[key].values})
     parts = {}
-    for i, (name, w, g) in enumerate(inds):
-        res = sample_lines(lines, g, dist)
+    for i, (name, w, g, hint) in enumerate(inds):
+        res = sample_lines(lines, g, dist, hint_agg(hint))
         parts[name] = res["hz_max"].values
         if len(inds) > 1:
             out[f"E_{name}"] = res["hz_max"].values
         if i == 0:
             for c in [c for c in res.columns if c.startswith("len_pct_")]:
                 out[c] = res[c].values
-    weights = {name: w for name, w, _ in inds}
+    weights = {name: w for name, w, _, _ in inds}
     out[f"E_{h}"] = [round(weighted_exposure({k: v[j] for k, v in parts.items()}, weights), 2) for j in range(len(lines))]
     out["seg_len_m"] = lines.geometry.length.round(1).values
     log.info(f"{code} E_{h} on {len(out)} lines (sampled within {dist:.0f} m):\n"
@@ -768,7 +819,8 @@ def write_line_scores(out: pd.DataFrame, key: str, stem: str, pair: str, cfg: di
         if not overwrite:
             raise SystemExit(f"{tbl} exists; re-run with --overwrite")
         arcpy.management.Delete(tbl)
-    fields = [(key, "TEXT", 64)] + [(c, "DOUBLE", None) for c in out.columns if c != key and c != "name"]
+    fields = [(key, "TEXT", 64)] + [(c, "SHORT", None) if c in ("av_tier", "av_record") else (c, "DOUBLE", None)
+                                     for c in out.columns if c != key and c != "name"]
     if "name" in out.columns:
         fields.insert(1, ("name", "TEXT", 120))
     write_table(out, fields, cfg["paths"]["analysis_gdb"], name, log)
@@ -810,8 +862,8 @@ def score_transit_centers(cfg: dict, hazard: str, surf, log, dry_run: bool, over
     tc[key] = tc[src_key].astype(str)
     dist = sample_distance_m(cfg, hazard) or float(ex["point_buffer_m"])
     inds = indicators(surf)
-    parts = {name: sample_points(tc, g, dist).values for name, _, g in inds}
-    weights = {name: w for name, w, _ in inds}
+    parts = {name: sample_points(tc, g, dist, hint_agg(hint)).values for name, _, g, hint in inds}
+    weights = {name: w for name, w, _, _ in inds}
     out = pd.DataFrame({key: tc[key].values})
     for name in parts:
         if len(inds) > 1:
