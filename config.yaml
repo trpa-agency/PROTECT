@@ -60,13 +60,14 @@ exposure:
     severity_layer: https://maps.trpa.org/server/rest/services/Fire/MapServer/3   # E2 until the contracted package lands
     severity_field: MostLikelyFireSeverity
     severity_classes: {Low Severity: 1, Moderate Severity: 2, High Severity: 3}   # outside the layer = 0
-    flame_length_raster: ""  # replaces severity as E2 (feet): the contracted package when delivered, or the 2018
-                             # FSim iCFL in the same geodatabase (open: decision 22 chose severity assuming no flame length)
+    # E2 is flame length (the draft's indicator) from the 2018 FSim iCFL (Oct. 10, 2026); the contracted package
+    # replaces it here when delivered. Blank falls back to the severity layer below (decision 22 as first drafted).
+    flame_length_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\Download\BurnProbability_2018.gdb\iCFL
     flame_breaks_ft: [4.0, 8.0]  # over 0 to 4 = 1, over 4 to 8 = 2, over 8 ft = 3 (the draft's breaks)
     buffer_ft: 300           # sampling distance for every wildfire pair (lines and points)
     weights: {e1: 0.70, e2: 0.30}
     bp_fc: Hazard_Wildfire_BurnProb
-    e2_fc: Hazard_Wildfire_Severity
+    e2_fc: Hazard_Wildfire_FlameLength   # name the E2 surface for what it holds
   # line and point assets scored by the lane's other pairs (roads come from assets.streets_*)
   active_transport_layer: https://maps.trpa.org/server/rest/services/Transportation/MapServer/3   # existing facilities
   active_transport_key: OBJECTID
