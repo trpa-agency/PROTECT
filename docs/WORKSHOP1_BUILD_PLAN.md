@@ -37,7 +37,8 @@ depend on this lane's classed exposure surfaces; this lane depends on the street
 for segment IDs and the criticality class. Those two handoffs are the only cross-lane blockers.
 Baseline surfaces in hand (Oct. 8): FEMA zones from `Streams_and_Flood_Zone`, the USGS
 landslide susceptibility raster, and the high-severity fire probability layer, already
-extracted per segment in `scripts/Hazard_Vulnerability.ipynb`.
+extracted per segment in `scripts/Hazard_Vulnerability.ipynb`. Wildfire now uses the 2018 FSim
+burn probability and conditional flame length (Oct. 10; `scripts/score_exposure.py --hazard wildfire`).
 
 ---
 
@@ -490,7 +491,7 @@ All paths resolve through `config.yaml`; change them there, not in scripts.
 | Legacy TRPA culverts (read only) | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert` | `paths.legacy_culverts`; gap fill only |
 | Landslide surface | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\usgs_landslide_risk.tif` | USGS susceptibility; to be classed 0 to 3 |
 | Flood surface | `https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer` | FEMA zones and TRPA streams on the four-value scale; confirm the layer index. No flood depth model is being acquired |
-| Wildfire surface | `https://maps.trpa.org/server/rest/services/Fire/MapServer` (high-severity probability, layer 3) plus the TRPA burn probability raster | Record where the burn probability raster lives on F: |
+| Wildfire surfaces | `F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\Download\BurnProbability_2018.gdb` (`iBP` annual burn probability, `iCFL` conditional flame length; 180 m, 2018) | Fallback for E2: `Fire/MapServer/3` most-likely severity (config `exposure.wildfire`) |
 | Avalanche inputs | DEM dominant uphill slope within 1,000 ft; records from the Sierra Avalanche Center map, the National Avalanche Accident Database, `https://maps.trpa.org/server/rest/services/Avalanche_Zones/MapServer`, and documented closures | Rubric section 5 |
 | DEM of record (hydro-enforced) | `F:\GIS\DB_CONNECT\Raster.sde\SDE.DEM_BareEarth_LiDAR_2010` | `paths.dem`; 2 m, EPSG 26910. The profile breaches it through the culvert inventory and applies a depth-limited Fill (`profile.fill_z_limit_m`); the raw DEM is not usable for blue-spot work |
 | Engineered culvert layer (public) | `data/processed/culverts.gpkg` and `data/processed/culvert_condition.parquet` | Git-tracked, served by Pages; never put NDOT rows here |
