@@ -281,7 +281,8 @@
       note(s){ return "Generated " + (s.generated || "") + ". Class breaks: Low under 1, Medium 1 to under 2, High 2 and over. Criticality class from percentile breaks 25, 50, 75 (provisional)."; },
       emptyText:"Vulnerability results have not been published yet. The hazard tabs show exposure.",
       colorBy:[
-        {value:"vmax", label:"Combined", field:{roads:"V_max", paths:"V_max"}, legend:legendRows(VC_LEG, "lg-line"), note:"The highest pair score on each asset; the popup says which hazard set it."},
+        {value:"vmax", label:"Combined", field:{roads:"V_max", paths:"V_max"}, legend:legendRows(VC_LEG, "lg-line"), note:"The highest pair score on each asset, leaving out pairs scored on a stand-in input (debris flow, until the contracted burn severity arrives); the popup says which hazard set it."},
+        {value:"vall", label:"With stand-ins", field:{roads:"V_max_all", paths:"V_max_all"}, legend:legendRows(VC_LEG, "lg-line"), note:"The same reading with the stand-in pairs included. Debris flow sets most of it, because the draft's drainage-size break scores nearly every basin 3."},
         {value:"crit", label:"Criticality", field:{roads:"C_class"}, legend:legendRows([[COL.gray,"0: lowest quarter"],[COL.ice,"1"],[COL.blue,"2"],[COL.navy,"3: top quarter"]], "lg-line"), note:"Component 1 from the street network lane, cut into quarters by percentile (provisional)."},
         {value:"FLR", label:"Flooding", field:{roads:"V_FLR_hist", paths:"V_FLAT_hist"}, legend:legendRows(VC_LEG, "lg-line")},
         {value:"WFR", label:"Wildfire", field:{roads:"V_WFR_hist", paths:"V_WFAT_hist"}, legend:legendRows(VC_LEG, "lg-line")},
@@ -290,9 +291,10 @@
         {value:"AVR", label:"Avalanche", field:{roads:"V_AVR_hist"}, legend:legendRows(VC_LEG, "lg-line")}],
       colorHeading:"Roads, colored by",
       layers(){ return [
-        {id:"roads", label:"Roads", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "roads_vulnerability.geojson", title:"Roads", outFields:["*"], renderer:vClassRenderer("V_max", (c,k) => line(c, [1.2,1.8,2.4,3][k])),
+        {id:"roads", label:"Roads", checked:true, make:() => roadLayer(null, {renderer:vClassRenderer("V_max", (c,k) => line(c, [1.2,1.8,2.4,3][k])),
           popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}},
-            {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}, {fieldName:"V_FLR_hist", label:"Flooding V", format:{places:2}}, {fieldName:"V_WFR_hist", label:"Wildfire V", format:{places:2}},
+            {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}, {fieldName:"V_max_all", label:"Vulnerability with the stand-in pairs", format:{places:2}}, {fieldName:"V_max_all_pair", label:"Set by, with stand-ins"},
+            {fieldName:"V_FLR_hist", label:"Flooding V", format:{places:2}}, {fieldName:"V_WFR_hist", label:"Wildfire V", format:{places:2}},
             {fieldName:"V_LSR_hist", label:"Landslide V", format:{places:2}}, {fieldName:"V_DFR_hist", label:"Debris flow V", format:{places:2}}, {fieldName:"V_AVR_hist", label:"Avalanche V", format:{places:2}},
             {fieldName:"C_class", label:"Criticality class (provisional)"}, {fieldName:"criticality_pctl", label:"Criticality percentile", format:{places:0}}]}]}})},
         {id:"culverts", label:"Culverts", checked:true, tip:"Highest pair among flooding, landslide, and debris flow; public jurisdictions only.", legend:legendRows(VC_LEG.slice(0,3), "lg-dot"),
@@ -309,7 +311,7 @@
           popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[{fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}]}]}})}];
       },
       filters:[{id:"hot", label:"Hotspots only", tip:"High vulnerability on top-quarter criticality (roads), or High vulnerability (other assets).",
-        apply(on, L){ L.roads.definitionExpression = on ? "V_max >= 1.999 AND C_class = 3" : null; ["culverts","bridges","paths","hubs"].forEach(k => { if (L[k]) L[k].definitionExpression = on ? "V_max >= 1.999" : null; }); }}],
+        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "V_max >= 1.999 AND C_class = 3" : null; ["culverts","bridges","paths","hubs"].forEach(k => { if (L[k]) L[k].definitionExpression = on ? "V_max >= 1.999" : null; }); }}],
       charts:[
         {title:"Road miles by vulnerability and criticality", sub:"Each criticality quarter, split by vulnerability class", async draw(div, s){
           const m = ((s.vulnerability||{}).roads||{}).matrix; if (!m) return;
@@ -322,7 +324,7 @@
             y:groups.map(g => { const t = Object.values(g[1]).reduce((a,b)=>a+b,0) || 1; return 100 * (g[1][vc]||0) / t; }), customdata:groups.map(g => g[1][vc]||0), hovertemplate:"%{y:.1f} percent (%{customdata})<extra>" + vc + "</extra>"}));
           Plotly.newPlot(div, traces, Object.assign({}, LAYOUT, {barmode:"stack", margin:{l:45,r:10,t:10,b:60}, legend:{orientation:"h", y:1.14}, yaxis:{title:"percent", gridcolor:"#eef0f3", range:[0,100]}}), {displayModeBar:false, responsive:true}); }}],
       table:{title:"Hotspot table", lead:"Road segments at High vulnerability on top-quarter criticality, highest first. Clear the switch above the map to see every segment here.", exportName:"PROTECT_hotspots.csv",
-        async rows(){ const r = await rowsOf(BASE + "roads_vulnerability.geojson"); r.forEach(p => { p.miles = (p.seg_len_m||0)/MI; }); return r; },
+        async rows(){ return roadRows(null); },
         filterRows:(rows, on) => on ? rows.filter(r => r.V_class === "High" && r.C_class === 3) : rows, defaultFilter:true,
         cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:110},
           {field:"V_max", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}},
@@ -332,6 +334,7 @@
           {field:"C_class", headerName:"Criticality class", width:125, type:"numericColumn"}, {field:"criticality_pctl", headerName:"Crit. percentile", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
           {field:"miles", headerName:"Miles", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"src_objectid", headerName:"Segment", width:95}]},
       notes:["<b>Score.</b> For each hazard pair, exposure times its weight plus sensitivity times its weight, each 0 to 3. The asset carries the highest pair; the popup says which hazard set it.",
+        "<b>Stand-in pairs.</b> Debris flow is scored on the fire severity surface in place of the contracted soil burn severity, and the draft's drainage-size break puts nearly every basin at 3, so it is left out of the combined class until the real input arrives. The \"With stand-ins\" view and the popup carry the every-pair reading.",
         "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal).",
         "<b>Why roads are never Low.</b> Wildfire likelihood is at least 1 everywhere with the Resource Kit data, and the draft's sensitivity floors are 1, so every segment scores at least 1.",
         "<b>Criticality.</b> Component 1 from the street network lane, carried separately and never multiplied in. The class here cuts the criticality percentile into quarters and is provisional until that lane sets its rule.",
@@ -452,7 +455,7 @@
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_WFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), paths:vClassRenderer("V_WFAT_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k], true))}, legend:legendRows(VC_LEG, "lg-line"),
           note:"Exposure at 0.7 plus wooden guardrails at 0.3 (default: not present).", noteTip:"V_WFR = 0.70 x E + 0.30 x S1. No guardrail inventory exists yet, so S1 is the draft default of 1 and S_source is default."}],
       layers(){ return [
-        {id:"roads", label:"Roads (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "roads_wildfire.geojson", title:"Roads", outFields:["*"],
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("wildfire", {
           popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"}, {fieldName:"E_WFR_hist", label:"Wildfire exposure score", format:{places:1}},
             {fieldName:"E_WFR_e1", label:"E1 burn probability class"}, {fieldName:"E_WFR_e2", label:"E2 fire severity class"}, {fieldName:"V_WFR_hist", label:"Wildfire vulnerability V", format:{places:2}},
             {fieldName:"len_pct_c1", label:"Length in likelihood class 1 (percent)", format:{places:0}}, {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}}, {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}}, {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}})},
@@ -479,7 +482,7 @@
         });
       },
       filters:[{id:"top", label:"Score 1.6 and over only", tip:"Segments, paths, and hubs with high-severity fire most likely within 300 ft, or a burn probability over 0.5 percent with moderate severity.",
-        apply(on, L){ L.roads.definitionExpression = on ? "E_WFR_hist >= 1.55" : null; L.paths.definitionExpression = on ? "E_WFAT_hist >= 1.55" : null; L.hubs.definitionExpression = on ? "E_WFTC_hist >= 1.55" : null; }}],
+        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_WFR_hist >= 1.55" : null; if (L.paths) L.paths.definitionExpression = on ? "E_WFAT_hist >= 1.55" : null; if (L.hubs) L.hubs.definitionExpression = on ? "E_WFTC_hist >= 1.55" : null; }}],
       charts:[
         {title:"Road miles by score", sub:"Where the network sits on the 0 to 3 scale", async draw(div){ const rows = await roadRows("wildfire"); const bandOf = e => e < 0.1 ? "0" : e < 1.15 ? "1" : e < 1.45 ? "1.3" : e < 1.9 ? "1.6 to 1.7" : "2 and over";
           const bands = ["0","1","1.3","1.6 to 1.7","2 and over"], colors = {"0":RAMP[0],"1":RAMP[1],"1.3":RAMP[2],"1.6 to 1.7":RAMP[3],"2 and over":RAMP[4]}, miles = {}, counts = {};
@@ -520,7 +523,7 @@
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_LSR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:vClassRenderer("V_LSC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_LSB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
           note:"Exposure at 0.7 plus sensitivity at 0.3; exposure tops out at 2.14 until the climate term is scored.", noteTip:"E = (0.50 x E1 + 0.20 x E2) / 0.70; E2 is the Cal-Adapt precipitation change, 0 at the historical horizon. Roads: pavement condition default. Culverts: opening width and condition. Bridges: span type, condition, span length."}],
       layers(){ return [
-        {id:"roads", label:"Roads (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "roads_landslide.geojson", title:"Roads", outFields:["*"],
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("landslide", {
           popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"}, {fieldName:"E_LSR_e1", label:"Susceptibility class (E1)"}, {fieldName:"E_LSR_hist", label:"Landslide exposure score", format:{places:2}}, {fieldName:"V_LSR_hist", label:"Landslide vulnerability V", format:{places:2}},
             {fieldName:"len_pct_c1", label:"Length in class 1 (percent)", format:{places:0}}, {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}}, {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}}, {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}})},
         {id:"culverts", label:"Culverts", checked:true, tip:"LS-C E1, the highest susceptibility class anywhere in the culvert's drainage area. Public jurisdictions only.", legend:legendRows([[COL.gray,"0"],[COL.ice,"1"],[COL.orange,"2"],[COL.brick,"3"]], "lg-dot"),
@@ -530,7 +533,7 @@
         {id:"surf", label:"Susceptibility surface", checked:false, tip:"The classed E1 surface: USGS 2024 susceptibility over 40, 60, and 80 percent of the cell plus recorded landslides.", legend:`<span class="lg-sw" style="background:rgba(180,203,232,.6)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3`,
           make:() => new M.GeoJSONLayer({url:BASE + "landslide_surface.geojson", title:"Susceptibility surface", visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([156,62,39],0.55)},{value:2, symbol:fill([232,119,34],0.5)},{value:1, symbol:fill([180,203,232],0.6)}]}, popupTemplate:{title:"Susceptibility class {hz_class}", content:"{label}"}})}];
       },
-      filters:[{id:"top", label:"Class 3 only", tip:"Roads, culverts, and bridges on very high susceptibility ground or at a recorded landslide.", apply(on, L){ L.roads.definitionExpression = on ? "E_LSR_e1 >= 2.5" : null; L.culverts.definitionExpression = on ? "E_LSC_e1 >= 2.5" : null; L.bridges.definitionExpression = on ? "E_LSB_e1 >= 2.5" : null; }}],
+      filters:[{id:"top", label:"Class 3 only", tip:"Roads, culverts, and bridges on very high susceptibility ground or at a recorded landslide.", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_LSR_e1 >= 2.5" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_LSC_e1 >= 2.5" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_LSB_e1 >= 2.5" : null; }}],
       charts:[
         {title:"Road miles by susceptibility class", sub:"Where the network sits on the 0 to 3 class scale", async draw(div){ const rows = await roadRows("landslide"); const labs = {0:"0: under 40 percent prone", 1:"1: 40 to 60 percent", 2:"2: 60 to 80 percent", 3:"3: over 80 percent or recorded"}; const miles = {}, counts = {};
           rows.forEach(r => { const k = labs[Math.round(r.E_LSR_e1 || 0)]; miles[k] = (miles[k]||0) + r.miles; counts[k] = (counts[k]||0) + 1; }); barBands(div, Object.values(labs), miles, counts, {[labs[0]]:COL.gray, [labs[1]]:COL.ice, [labs[2]]:COL.orange, [labs[3]]:COL.brick}, "", "road miles"); }},
@@ -567,11 +570,11 @@
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_DFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:vClassRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
           note:"Exposure at 0.7 plus sensitivity at 0.3.", noteTip:"Roads: pavement and surface defaults. Culverts: opening width and condition with blockage (decision 7). Bridges: span type, condition, span length."}],
       layers(){ return [
-        {id:"roads", label:"Roads (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "roads_debris_flow.geojson", title:"Roads", outFields:["*"], popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_DFR_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFR_e1", label:"E1 slope class", format:{places:1}}, {fieldName:"E_DFR_e2", label:"E2 drainage size class", format:{places:1}}, {fieldName:"E_DFR_e3", label:"E3 burn severity class"}, {fieldName:"V_DFR_hist", label:"Vulnerability V", format:{places:2}}]}]}})},
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_DFR_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFR_e1", label:"E1 slope class", format:{places:1}}, {fieldName:"E_DFR_e2", label:"E2 drainage size class", format:{places:1}}, {fieldName:"E_DFR_e3", label:"E3 burn severity class"}, {fieldName:"V_DFR_hist", label:"Vulnerability V", format:{places:2}}]}]}})},
         {id:"culverts", label:"Culverts", checked:true, legend:legendRows(BAND_LEG, "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_DFC_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFC_e1", label:"E1 basin slope class", format:{places:1}}, {fieldName:"E_DFC_e2", label:"E2 basin size class", format:{places:1}}, {fieldName:"E_DFC_e3", label:"E3 burn severity in the drainage"}, {fieldName:"V_DFC_hist", label:"Vulnerability V", format:{places:2}}, {fieldName:"DF_option", label:"Option"}]}]}})},
         {id:"bridges", label:"Bridges", checked:true, legend:legendRows(BAND_LEG, "lg-sq"), make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"owner", label:"Owner"}, {fieldName:"E_DFB_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"V_DFB_hist", label:"Vulnerability V", format:{places:2}}]}]}})}];
       },
-      filters:[{id:"top", label:"Exposure 2 and over only", apply(on, L){ L.roads.definitionExpression = on ? "E_DFR_hist >= 1.9" : null; L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.9" : null; L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.9" : null; }}],
+      filters:[{id:"top", label:"Exposure 2 and over only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_DFR_hist >= 1.9" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.9" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.9" : null; }}],
       charts:[
         {title:"Road miles by exposure band", sub:"Where the network sits on the 0 to 3 scale", async draw(div){ const rows = await roadRows("debris_flow"); const bands = BAND_LEG.map(b => b[1]), colors = Object.fromEntries(BAND_LEG.map(b => [b[1], b[0]])); const bandOf = e => bands[e < 0.1 ? 0 : e < 1.15 ? 1 : e < 1.45 ? 2 : e < 1.9 ? 3 : 4]; const miles = {}, counts = {};
           rows.forEach(r => { const b = bandOf(r.E_DFR_hist || 0); miles[b] = (miles[b]||0) + r.miles; counts[b] = (counts[b]||0) + 1; }); barBands(div, bands, miles, counts, colors, "exposure", "road miles"); }},
@@ -606,10 +609,10 @@
           note:"The slope tier that covers the most ground above the road within 1,000 ft, raised one step where a mapped zone is within 1,000 ft.", noteTip:"Tiers: under 25 degrees 0; 25 to 30 or over 50 is 1; 30 to 35 or 45 to 50 is 2; 35 to 45 is 3. Scores: no record 0 / 1 / 1.5 / 2, with a record 1 / 2 / 2.5 / 3."},
         {value:"tier", label:"Slope tier", renderer:{roads:breaksRenderer("av_tier", cls4Infos((c,k) => line(c, [1.2,1.8,2.4,3][k])))}, legend:legendRows([[COL.gray,"0: under 25 degrees"],[COL.ice,"1: 25 to 30 or over 50"],[COL.orange,"2: 30 to 35 or 45 to 50"],[COL.brick,"3: 35 to 45 degrees"]], "lg-line"), note:"The dominant slope tier on the uphill side, before the record."}],
       layers(){ return [
-        {id:"roads", label:"Roads (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "roads_avalanche.geojson", title:"Roads", outFields:["*"], popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_AVR_hist", label:"Avalanche score", format:{places:1}}, {fieldName:"av_tier", label:"Dominant uphill slope tier"}, {fieldName:"av_record", label:"Mapped zone within 1,000 ft (1 = yes)"}, {fieldName:"uphill_ha", label:"Uphill ground within 1,000 ft (ha)", format:{places:1}}]}]}})},
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("avalanche", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_AVR_hist", label:"Avalanche score", format:{places:1}}, {fieldName:"av_tier", label:"Dominant uphill slope tier"}, {fieldName:"av_record", label:"Mapped zone within 1,000 ft (1 = yes)"}, {fieldName:"uphill_ha", label:"Uphill ground within 1,000 ft (ha)", format:{places:1}}]}]}})},
         {id:"zones", label:"TRPA avalanche zones", checked:true, legend:`<span class="lg-sw" style="background:rgba(123,106,138,.45)"></span> mapped zone`, make:() => new M.FeatureLayer({url:AVZ_URL, title:"Avalanche zones", opacity:0.8, renderer:{type:"simple", symbol:fill([123,106,138], 0.45)}, popupTemplate:{title:"{Name}", content:"Frequency: {Frequency}"}})}];
       },
-      filters:[{id:"top", label:"Score 2 and over only", apply(on, L){ L.roads.definitionExpression = on ? "E_AVR_hist >= 1.9" : null; }}],
+      filters:[{id:"top", label:"Score 2 and over only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_AVR_hist >= 1.9" : null; }}],
       charts:[
         {title:"Road miles by score", sub:"Where the network sits on the 0 to 3 scale", async draw(div){ const rows = await roadRows("avalanche"); const bands = ["0","1","1.5","2","2.5","3"], colors = {"0":RAMP[0],"1":RAMP[1],"1.5":RAMP[2],"2":RAMP[3],"2.5":RAMP[3],"3":RAMP[4]}; const miles = {}, counts = {};
           rows.forEach(r => { const b = String(Number(r.E_AVR_hist || 0)); miles[b] = (miles[b]||0) + r.miles; counts[b] = (counts[b]||0) + 1; }); barBands(div, bands, miles, counts, colors, "score", "road miles"); }},
@@ -632,17 +635,33 @@
     // ---------- shared pieces ----------
     function fireSurface(stem, title){ return new M.GeoJSONLayer({url:BASE + stem + ".geojson", title, visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([156,62,39],0.55)},{value:2, symbol:fill([232,119,34],0.5)},{value:1, symbol:fill([180,203,232],0.6)}]}, popupTemplate:{title:title + " class {hz_class}", content:"{label}"}}); }
     const topTypes = rows => { const t = [...new Set(rows.map(r => r.class || "unknown"))]; const mi = x => rows.filter(r => (r.class || "unknown") === x).reduce((s, r) => s + r.miles, 0); return t.sort((a, b) => mi(b) - mi(a)).slice(0, 8); };
-    // road rows for a hazard: the hazard's exposure file joined to the vulnerability file on the segment key
+    // roads: one geometry file (downloaded once) plus a small score table per hazard, joined here
+    const roadGeom = () => cache.__geom || (cache.__geom = getJSON(BASE + "roads_geometry.geojson").then(gj => {
+      const byId = {}; gj.features.forEach(f => { byId[String(f.properties.src_objectid)] = f; }); return {gj, byId};
+    }));
+    const scoreTable = stem => cache["__t_" + stem] || (cache["__t_" + stem] = getJSON(BASE + stem + ".json").then(t => { const m = {}; const cols = t.columns; t.rows.forEach(a => { const r = {}; cols.forEach((c, i) => { r[c] = a[i]; }); m[String(r.src_objectid)] = r; }); return m; }));
+    // rows for charts and tables: geometry attributes + the hazard's scores + the vulnerability columns
     async function roadRows(hazard){
-      const key = "roads_rows_" + hazard;
+      const key = "roads_rows_" + (hazard || "vulnerability");
       if (cache[key]) return cache[key];
       cache[key] = (async () => {
-        const ex = await rowsOf(BASE + "roads_" + hazard + ".geojson");
-        let vul = {}; try { (await rowsOf(BASE + "roads_vulnerability.geojson")).forEach(r => { vul[r.src_objectid] = r; }); } catch (e) {}
-        ex.forEach(p => { p.miles = (p.seg_len_m || 0) / MI; const v = vul[p.src_objectid]; if (v) Object.keys(v).forEach(k => { if (k.startsWith("V_") || k === "C_class" || k.startsWith("criticality")) p[k] = v[k]; }); });
-        return ex;
+        const {gj} = await roadGeom();
+        const sc = hazard ? await scoreTable("roads_" + hazard) : {};
+        let vul = {}; try { vul = await scoreTable("roads_vulnerability"); } catch (e) {}
+        return gj.features.map(f => { const p = Object.assign({}, f.properties, sc[String(f.properties.src_objectid)] || {});
+          const v = vul[String(f.properties.src_objectid)]; if (v) Object.keys(v).forEach(k => { if (k.startsWith("V_") || k === "C_class" || k.startsWith("criticality")) p[k] = v[k]; });
+          p.miles = (p.seg_len_m || 0) / MI; return p; });
       })();
       return cache[key];
+    }
+    // a GeoJSONLayer of the roads carrying the joined attributes, served from an in-memory blob
+    async function roadLayer(hazard, opts){
+      const rows = await roadRows(hazard);
+      const {gj} = await roadGeom();
+      const byId = {}; rows.forEach(r => { byId[String(r.src_objectid)] = r; });
+      const fc = {type:"FeatureCollection", features: gj.features.map(f => ({type:"Feature", geometry:f.geometry, properties: byId[String(f.properties.src_objectid)] || f.properties}))};
+      const url = URL.createObjectURL(new Blob([JSON.stringify(fc)], {type:"application/geo+json"}));
+      return new M.GeoJSONLayer(Object.assign({url, title:"Roads", outFields:["*"]}, opts));
     }
 
     // ---------- page state ----------
@@ -695,7 +714,9 @@
       if (ctx) { ctx.layers.forEach(l => view.map.remove(l)); ctx.extraLayers.forEach(l => view.map.remove(l)); if (ctx.clickHandle) ctx.clickHandle.remove(); }
       ctx = {view, layers:[], extraLayers:[], onClick:null, clickHandle:null, L:{}};
       const defs = mode.layers();
-      defs.forEach(d => { const l = d.make(); l.visible = d.checked; ctx.L[d.id] = l; ctx.layers.push(l); });
+      const made = await Promise.all(defs.map(d => Promise.resolve(d.make()).catch(e => { console.warn("layer", d.id, e); return null; })));
+      if (current !== name) return;
+      defs.forEach((d, i) => { const l = made[i]; if (!l) return; l.visible = d.checked; ctx.L[d.id] = l; ctx.layers.push(l); });
       // operational layers above hillshade (index 0) and below the boundary: insert after hillshade, keep polygons under points
       ctx.layers.slice().reverse().forEach(l => view.map.add(l, 1));
       view.map.reorder(BASE_LAYERS.bound, 1);

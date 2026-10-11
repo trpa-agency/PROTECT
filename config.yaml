@@ -107,6 +107,11 @@ exposure:
 # scripts/score_vulnerability.py - sensitivity and vulnerability (docs/SCORING_RUBRICS.md 1.1, 1.2, 1.4, 2.3)
 scoring:
   v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
+  # Pairs scored on a stand-in input stay out of the combined class (V_max, V_class) until the input is real:
+  # debris flow uses the fire severity surface for soil burn severity and the draft's drainage-size break puts
+  # nearly every asset at 3, so it set V_max on 87 percent of culverts and 69 percent of roads (Oct. 11).
+  # V_max_all / V_class_all always carry the every-pair reading alongside. Empty the list to include them.
+  v_max_exclude: [DFC, DFB, DFR]
   flc:                            # flooding x small culverts
     s3: true                      # TRPA proposal: condition and blockage as S3 (weights_s3); false = the draft's S1 / S2 only
     weights_s3: {e: 0.30, s1: 0.25, s2: 0.30, s3: 0.15}
