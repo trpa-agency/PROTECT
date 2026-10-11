@@ -52,13 +52,16 @@ exposure:
     class_fc: Hazard_Flood_Class
     bridge_weights: {e1: 0.20, e2: 0.10}   # FL-B: waterway adequacy (NBI 71) and the flood class
   wildfire:                # WF-R, WF-AT, WF-TC (rubric 6.4, decision 22): E = 0.70 E1 + 0.30 E2, each the maximum within 300 ft
-    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\SNV_RRK_Data.gdb\<SET_RASTER_NAME>
-    bp_units: auto           # percent | fraction | auto (fraction when the raster maximum is 1 or less)
+    # 2018 FSim outputs, 180 m, CA Teale Albers: iBP annual burn probability (fraction, max 0.058),
+    # iCFL conditional flame length (ft, max 100), iMFI fireline intensity, iCBP_FIL1-6 by flame-length class
+    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\Download\BurnProbability_2018.gdb\iBP
+    bp_units: fraction       # percent | fraction | auto (fraction when the raster maximum is 1 or less)
     bp_breaks_pct: [0.5, 1.0]   # E1 annual burn probability: over 0 to 0.5 = 1, over 0.5 to 1 = 2, over 1 percent = 3
     severity_layer: https://maps.trpa.org/server/rest/services/Fire/MapServer/3   # E2 until the contracted package lands
     severity_field: MostLikelyFireSeverity
     severity_classes: {Low Severity: 1, Moderate Severity: 2, High Severity: 3}   # outside the layer = 0
-    flame_length_raster: ""  # contracted fire-behavior package, when delivered: replaces severity as E2 (feet)
+    flame_length_raster: ""  # replaces severity as E2 (feet): the contracted package when delivered, or the 2018
+                             # FSim iCFL in the same geodatabase (open: decision 22 chose severity assuming no flame length)
     flame_breaks_ft: [4.0, 8.0]  # over 0 to 4 = 1, over 4 to 8 = 2, over 8 ft = 3 (the draft's breaks)
     buffer_ft: 300           # sampling distance for every wildfire pair (lines and points)
     weights: {e1: 0.70, e2: 0.30}

@@ -296,7 +296,7 @@ def build_wildfire_surface(cfg: dict, log, overwrite: bool) -> dict:
     fl_raster = str(wf.get("flame_length_raster") or "")
     if fl_raster:
         fb = wf["flame_breaks_ft"]
-        e2 = dissolve_classes(raster_to_classes(fl_raster, fb, "percent", cfg, log, gdb, "wf_fl"), crs)
+        e2 = dissolve_classes(raster_to_classes(fl_raster, fb, "ft", cfg, log, gdb, "wf_fl"), crs)
         labels = {3: f"flame length over {fb[1]:g} ft", 2: f"flame length over {fb[0]:g} to {fb[1]:g} ft",
                   1: f"flame length over 0 to {fb[0]:g} ft"}
         log.info("E2 is flame length (contracted package)")
