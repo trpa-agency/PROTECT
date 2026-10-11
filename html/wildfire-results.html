@@ -44,7 +44,7 @@
     header.app-header a:hover{color:#fff;}
     /* results tab strip: one page per hazard */
     .tabs{background:#fff;border-bottom:1px solid var(--gray-border);}
-    .tabs .inner{max-width:1320px;margin:0 auto;padding:0 1.6rem;display:flex;gap:.2rem;}
+    .tabs .inner{max-width:1320px;margin:0 auto;padding:0 1.6rem;display:flex;gap:.2rem;flex-wrap:wrap;}
     .tabs a{display:inline-block;padding:.6rem .9rem;font-size:.84rem;font-weight:600;color:var(--gray-text);text-decoration:none;border-bottom:3px solid transparent;}
     .tabs a:hover{color:var(--trpa-navy);}
     .tabs a.on{color:var(--trpa-navy);border-bottom-color:var(--trpa-blue);}
@@ -123,6 +123,7 @@
   <nav class="tabs" aria-label="Results by hazard"><div class="inner">
     <a href="culvert-results.html">Flooding: culverts and bridges</a>
     <a href="wildfire-results.html" class="on" aria-current="page">Wildfire: roads, paths, transit hubs</a>
+    <a href="landslide-results.html">Landslide: roads, culverts, bridges</a>
   </div></nav>
 
   <main>

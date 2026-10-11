@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Landslide Results | PROTECT | TRPA</title>
+  <meta name="description" content="Draft component 2 landslide exposure results for roads, culverts, and bridges in the Lake Tahoe Region: USGS landslide susceptibility and recorded landslides." />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Calcite -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0/calcite.esm.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+  <!-- Plotly and AG Grid load BEFORE the ArcGIS SDK (its AMD loader otherwise captures these UMD bundles) -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <!-- ArcGIS Maps SDK -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;flex-wrap:wrap;}
+    header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
+    /* results tab strip: one page per hazard */
+    .tabs{background:#fff;border-bottom:1px solid var(--gray-border);}
+    .tabs .inner{max-width:1320px;margin:0 auto;padding:0 1.6rem;display:flex;gap:.2rem;flex-wrap:wrap;}
+    .tabs a{display:inline-block;padding:.6rem .9rem;font-size:.84rem;font-weight:600;color:var(--gray-text);text-decoration:none;border-bottom:3px solid transparent;}
+    .tabs a:hover{color:var(--trpa-navy);}
+    .tabs a.on{color:var(--trpa-navy);border-bottom-color:var(--trpa-blue);}
+    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:.4rem;}
+    .kpi{background:#fff;border:1px solid var(--gray-border);border-top:3px solid var(--trpa-earth);border-radius:6px;padding:.6rem .8rem;}
+    .kpi .v{font-size:1.45rem;font-weight:700;line-height:1.1;}
+    .kpi .l{font-size:.72rem;color:var(--gray-text);margin-top:.15rem;}
+    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
+    .layer-panel{width:290px;flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--trpa-navy);margin-top:.35rem;}
+    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;}
+    .lg-dot{flex:0 0 14px;height:14px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-sq{flex:0 0 12px;height:12px;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-sw{flex:0 0 18px;height:11px;border-radius:2px;display:inline-block;}
+    #map-view{flex:1;height:640px;}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+    .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
+    .chart h3{font-size:.85rem;font-weight:700;margin:.2rem .4rem .1rem;}
+    .chart .sub{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .3rem;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
+    .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
+    .grid-wrap{width:100%;height:480px;}
+    .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
+      --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
+    .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
+    .notes li{margin:.25rem 0 .25rem 1.1rem;}
+    footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(300px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;}
+      #map-view{height:420px;}
+      .charts{grid-template-columns:1fr;}
+      .toolbar .qf{min-width:0;flex-basis:100%;}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Landslide Results</h1>
+        <div class="header-sub">PROTECT Task 3.2 &middot; Component 2 draft results: roads, culverts, and bridges</div>
+      </div>
+      <div class="right">
+        <span class="chip">v0.1 draft</span>
+        <a href="index.html">Home</a>
+        <a href="risk-index-tool.html">Risk Index Tool</a>
+        <a href="scoring-rubrics.html">Scoring Rubrics</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="historic-hazards.html">Historic Hazards</a>
+      </div>
+    </div>
+  </header>
+  <nav class="tabs" aria-label="Results by hazard"><div class="inner">
+    <a href="culvert-results.html">Flooding: culverts and bridges</a>
+    <a href="wildfire-results.html">Wildfire: roads, paths, transit hubs</a>
+    <a href="landslide-results.html" class="on" aria-current="page">Landslide: roads, culverts, bridges</a>
+  </div></nav>
+
+  <main>
+    <div class="banner">Draft results for workshop review. The scores rank assets by how landslide-prone the ground around them is; they do not model where a slide would run.<i class="i" tabindex="0" data-tip="Component 2 exposure only (LS-R, LS-C, LS-B). Sensitivity is not yet scored: pavement condition for roads, size and condition for culverts, span type, condition, and span length for bridges. Criticality is carried separately. Runout modeling is not being pursued.">i</i></div>
+
+    <p class="lead">
+      Which roads, culverts, and bridges sit on ground that is prone to landslides or has already slid.
+      The method is sections 2, 3, and 6.3 of the <a href="scoring-rubrics.html">scoring rubrics</a>.
+    </p>
+
+    <div class="kpis" id="kpis"></div>
+    <p class="note" style="font-size:.72rem;color:var(--gray-text);margin:.2rem 0 .4rem;" id="gen-note"></p>
+
+    <h2 class="sec">Map</h2>
+    <div class="map-wrap" id="map-wrap">
+      <div class="layer-panel">
+        <h3>Susceptibility class</h3>
+        <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: very low or low</div>
+        <div class="lg-row"><span class="lg-line" style="background:#E0C68A"></span> 1: moderate</div>
+        <div class="lg-row"><span class="lg-line" style="background:#B47E00"></span> 2: high</div>
+        <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: very high, or a recorded landslide</div>
+        <p class="note">The highest class touching the road, within 25 m of the bridge, or anywhere in the culvert's drainage area.<i class="i" tabindex="0" data-tip="E1 for LS-R, LS-B, and LS-C: the USGS Landslide Susceptibility Index class (5 = 3, 4 = 2, 3 = 1, 1 and 2 = 0), with every recorded landslide in the USGS inventory as 3. Roads sample along the segment, bridges within 25 m, culverts as the maximum over the contributing watershed with a 25 m buffer where no watershed exists.">i</i></p>
+        <p class="note">The exposure score is 0.5 x this class divided by 0.7, so it tops out at 2.1 until the climate term is scored.<i class="i" tabindex="0" data-tip="E = (0.50 x E1 + 0.20 x E2) / 0.70. E2 is the Cal-Adapt precipitation change, which scores 0 at the historical horizon by definition; the 2050 and 2080 columns are added in December. Scores shown: 0, 0.71, 1.43, 2.14.">i</i></p>
+        <div class="grp">
+          <h3>Layers</h3>
+          <label class="lyr"><calcite-switch id="tg-roads" checked></calcite-switch> Roads (scored)</label>
+          <label class="lyr"><calcite-switch id="tg-cul" checked></calcite-switch> Culverts<i class="i" tabindex="0" data-tip="LS-C E1, the highest susceptibility class anywhere in the culvert's drainage area. Public jurisdictions only.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-dot" style="background:#cfd4da"></span> 0 &nbsp; <span class="lg-dot" style="background:#E0C68A"></span> 1 &nbsp; <span class="lg-dot" style="background:#B47E00"></span> 2 &nbsp; <span class="lg-dot" style="background:#9C3E27"></span> 3</div>
+          <label class="lyr"><calcite-switch id="tg-br" checked></calcite-switch> Bridges<i class="i" tabindex="0" data-tip="LS-B E1, the highest susceptibility class within 25 m of the structure. The rubric's add-on for abutment slopes past the buffer is not applied.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sq" style="background:#cfd4da"></span> 0 &nbsp; <span class="lg-sq" style="background:#E0C68A"></span> 1 &nbsp; <span class="lg-sq" style="background:#B47E00"></span> 2 &nbsp; <span class="lg-sq" style="background:#9C3E27"></span> 3</div>
+          <label class="lyr"><calcite-switch id="tg-surf"></calcite-switch> Susceptibility surface<i class="i" tabindex="0" data-tip="The classed E1 surface: USGS susceptibility classes 3 to 5 plus recorded landslides. Classes 1 and 2 are blank.">i</i></label>
+          <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(224,198,138,.55)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(180,126,0,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3</div>
+          <label class="lyr"><calcite-switch id="tg-bound" checked></calcite-switch> TRPA boundary</label>
+          <label class="lyr"><calcite-switch id="tg-hill"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading the slopes behind the classes.">i</i></label>
+        </div>
+        <div class="grp">
+          <h3>Filter</h3>
+          <label class="lyr"><calcite-switch id="tg-top"></calcite-switch> Class 3 only<i class="i" tabindex="0" data-tip="Roads, culverts, and bridges on very high susceptibility ground or at a recorded landslide.">i</i></label>
+        </div>
+      </div>
+      <div id="map-view"></div>
+    </div>
+
+    <h2 class="sec">Distributions</h2>
+    <div class="charts">
+      <div class="chart"><h3>Road miles by susceptibility class</h3><div class="sub">Where the network sits on the 0 to 3 class scale</div><div id="ch-miles" style="height:290px"></div></div>
+      <div class="chart"><h3>Culverts by jurisdiction</h3><div class="sub">Share of each jurisdiction's culverts in each class, by drainage area</div><div id="ch-cul" style="height:290px"></div></div>
+    </div>
+
+    <h2 class="sec">Road table</h2>
+    <p class="lead">One row per scored road segment. Culvert and bridge values are on the map and in the flooding tab's exports.</p>
+    <div class="toolbar">
+      <input id="qf" class="qf" type="text" placeholder="Search by road name, type, or segment id" aria-label="Quick search roads" />
+      <calcite-button id="export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+    </div>
+    <div id="grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <calcite-block heading="How the numbers are made" collapsible scale="s" style="margin-top:1.2rem">
+      <ul class="notes">
+        <li><b>Susceptibility (E1).</b> The USGS Landslide Susceptibility Index, classed on the draft's mapping: very high (5) is 3, high (4) is 2, moderate (3) is 1, low and very low are 0.</li>
+        <li><b>Recorded landslides.</b> Every mapped landslide in the USGS inventory (California Geological Survey and Nevada Bureau of Mines and Geology in the basin) counts as class 3. Polygons over 10 km2 are mapping units, not slides, and are left out; a landslide point counts within 50 m. Both are TRPA choices the rubric leaves open.</li>
+        <li><b>Climate term (E2).</b> Cal-Adapt precipitation change at weight 0.2 scores 0 at the historical horizon by definition, so the score is 0.5 x E1 / 0.7 and tops out at 2.1 until the 2050 and 2080 columns are added.</li>
+        <li><b>Sampling.</b> Roads take the highest class touching the segment, with the share of length in each class in the table. Bridges take the highest class within 25 m. Culverts take the highest class anywhere in their drainage area, which is why a culvert in town can score 3 when the slope above it does.</li>
+        <li><b>Not modeled.</b> Where a slide would run. The scores say how prone the ground is, not what it would hit.</li>
+        <li><b>Not yet scored.</b> Sensitivity: pavement condition (roads), size and condition (culverts), span type, condition, and span length (bridges) sit at the draft defaults.</li>
+      </ul>
+    </calcite-block>
+  </main>
+
+  <footer class="app-footer">
+    <p>Draft v0.1. Susceptibility from the USGS Landslide Susceptibility Index; recorded landslides from the USGS US Landslide Inventory; roads from the TRPA street network; culverts and bridges as on the flooding tab. Method: <code>docs/SCORING_RUBRICS.md</code> 2, 3, and 6.3. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const BASE = "../data/processed/results/";
+    const BOUND_URL = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4";
+    const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
+    const COL = {gray:"#cfd4da", tan:"#E0C68A", earth:"#B47E00", brick:"#9C3E27", navy:"#003B71"};
+    const MI = 1609.344;
+    const CLS = [0, 1, 2, 3];
+    const CLS_COL = {0:COL.gray, 1:COL.tan, 2:COL.earth, 3:COL.brick};
+    const CLS_LABEL = {0:"0: very low or low", 1:"1: moderate", 2:"2: high", 3:"3: very high or recorded"};
+    const clsOf = v => (v == null || isNaN(v)) ? null : Math.max(0, Math.min(3, Math.round(v)));
+
+    // ---------- KPIs ----------
+    fetch(BASE + "summary.json").then(r => r.json()).then(s => {
+      const w = s.landslide;
+      if (!w) { document.getElementById("gen-note").textContent = "Landslide results have not been published yet."; return; }
+      const r = w.roads || {}, c = w.culverts || {}, b = w.bridges || {};
+      const km2 = w.surface_km2 || {};
+      const items = [
+        [fmt(r.segments), "road segments scored"],
+        [fmt(r.miles), "road miles scored"],
+        [fmt(r.miles_e1_class3), "road miles on class 3 ground"],
+        [fmt(km2["3"]), "km2 of class 3 ground in the basin"],
+        [fmt(c.scored), "culverts scored"],
+        [fmt(c.n_e1_class3), "culverts with class 3 in their drainage"],
+        [fmt(b.count), "bridges scored"],
+        [fmt(b.n_e1_class3), "bridges on class 3 ground"]
+      ];
+      document.getElementById("kpis").innerHTML = items.map(([v,l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      document.getElementById("gen-note").textContent = "Generated " + (s.generated || "") + ". Culvert counts exclude the restricted jurisdiction.";
+    }).catch(() => { document.getElementById("gen-note").textContent = "Summary not available: results have not been published yet."; });
+
+    // ---------- TABLE + ROAD CHART ----------
+    let gridApi = null;
+    const cStyle = p => { const k = clsOf(p.value); return k == null ? {} : {background:CLS_COL[k], color:k>=2?"#fff":"#003B71", fontWeight:600}; };
+    const cols = [
+      {field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"},
+      {field:"class", headerName:"Type", width:120, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+      {field:"src_objectid", headerName:"Segment", width:100},
+      {field:"E_LSR_e1", headerName:"Class", width:90, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,0), cellStyle:cStyle},
+      {field:"E_LSR_hist", headerName:"Score", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
+      {field:"len_pct_c1", headerName:"Length in class 1 (%)", width:150, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+      {field:"len_pct_c2", headerName:"in class 2 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+      {field:"len_pct_c3", headerName:"in class 3 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+      {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}
+    ];
+    agGrid.createGrid(document.getElementById("grid"), {
+      columnDefs: cols, rowData: [], defaultColDef:{sortable:true, resizable:true, filter:true},
+      onGridReady: e => { gridApi = e.api; }
+    });
+    document.getElementById("qf").addEventListener("input", e => { if(gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
+    document.getElementById("export").addEventListener("click", () => { if(gridApi) gridApi.exportDataAsCsv({fileName:"PROTECT_landslide_roads.csv"}); });
+
+    fetch(BASE + "roads_landslide.geojson").then(r => r.json()).then(gj => {
+      const rows = gj.features.map(f => { const p = Object.assign({}, f.properties); p.miles = (p.seg_len_m || 0) / MI; return p; });
+      if (gridApi) gridApi.setGridOption("rowData", rows);
+      const miles = {0:0,1:0,2:0,3:0}, counts = {0:0,1:0,2:0,3:0};
+      rows.forEach(r => { const k = clsOf(r.E_LSR_e1); if (k != null) { miles[k] += r.miles; counts[k] += 1; } });
+      Plotly.newPlot("ch-miles", [{
+        type:"bar", x:CLS.map(k => CLS_LABEL[k]), y:CLS.map(k => miles[k]), marker:{color:CLS.map(k => CLS_COL[k])},
+        customdata:CLS.map(k => counts[k]), hovertemplate:"%{y:.1f} miles (%{customdata} segments)<extra></extra>"
+      }], {
+        margin:{l:50,r:10,t:10,b:60}, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
+        xaxis:{tickangle:-15}, yaxis:{title:"road miles", gridcolor:"#eef0f3"},
+        paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
+      }, {displayModeBar:false, responsive:true});
+    }).catch(err => { console.warn("landslide road results not available", err); });
+
+    // ---------- CULVERT CHART from the culvert GeoJSON ----------
+    fetch(BASE + "culverts_results.geojson").then(r => r.json()).then(gj => {
+      const rows = gj.features.map(f => f.properties).filter(p => p.E_LSC_e1 != null);
+      if (!rows.length) { document.getElementById("ch-cul").innerHTML = "<p class='sub'>Culvert landslide scores have not been published yet.</p>"; return; }
+      const jur = [...new Set(rows.map(r => r.jurisdiction))].sort();
+      const traces = CLS.map(k => ({
+        type:"bar", name:CLS_LABEL[k], x:jur, marker:{color:CLS_COL[k]},
+        y: jur.map(j => { const sub = rows.filter(r => r.jurisdiction === j); const n = sub.length || 1; return 100 * sub.filter(r => clsOf(r.E_LSC_e1) === k).length / n; }),
+        customdata: jur.map(j => rows.filter(r => r.jurisdiction === j && clsOf(r.E_LSC_e1) === k).length),
+        hovertemplate:"%{y:.1f} percent (%{customdata} culverts)<extra>" + CLS_LABEL[k] + "</extra>"
+      }));
+      Plotly.newPlot("ch-cul", traces, {
+        barmode:"stack", margin:{l:45,r:10,t:10,b:90}, font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified",
+        legend:{orientation:"h", y:1.14}, yaxis:{title:"percent of culverts", gridcolor:"#eef0f3", range:[0,100]},
+        xaxis:{tickangle:-25}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"
+      }, {displayModeBar:false, responsive:true});
+    }).catch(err => { console.warn("culvert results not available", err); });
+
+    // ---------- MAP ----------
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, Home, BasemapToggle){
+
+      const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+        title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
+
+      function line(color, width){ return {type:"simple-line", color:color, width:width}; }
+      function dot(color, size){ return {type:"simple-marker", style:"circle", color:color, size:size, outline:{color:[255,255,255,0.95], width:0.7}}; }
+      function sq(color){ return {type:"simple-marker", style:"square", color:color, size:11, outline:{color:[255,255,255,0.95], width:1}}; }
+      const breaks = (field, sym) => ({type:"class-breaks", field:field, classBreakInfos:[
+        {minValue:-0.5, maxValue:0.5, symbol:sym(COL.gray, 0)}, {minValue:0.5, maxValue:1.5, symbol:sym(COL.tan, 1)},
+        {minValue:1.5, maxValue:2.5, symbol:sym(COL.earth, 2)}, {minValue:2.5, maxValue:3.5, symbol:sym(COL.brick, 3)}]});
+
+      const roads = new GeoJSONLayer({
+        url: BASE + "roads_landslide.geojson", title:"Roads", outFields:["*"],
+        renderer: breaks("E_LSR_e1", (c, k) => line(c, [1.2, 1.8, 2.4, 3][k])),
+        popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[
+          {fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"},
+          {fieldName:"E_LSR_e1", label:"Susceptibility class (E1)"}, {fieldName:"E_LSR_hist", label:"Landslide exposure score", format:{places:2}},
+          {fieldName:"len_pct_c1", label:"Length in class 1 (percent)", format:{places:0}},
+          {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}},
+          {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}},
+          {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}
+      });
+      const culverts = new GeoJSONLayer({
+        url: BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"],
+        renderer: breaks("E_LSC_e1", (c, k) => dot(c, [4, 5, 6, 7][k])),
+        popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[
+          {fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"crossing_id", label:"Crossing"},
+          {fieldName:"E_LSC_e1", label:"Susceptibility class in the drainage (E1)"}, {fieldName:"E_LSC_pt", label:"Score at the pipe", format:{places:2}},
+          {fieldName:"E_LSC_hist", label:"Landslide exposure score", format:{places:2}},
+          {fieldName:"contrib_area_ac", label:"Contributing area (ac)", format:{places:1, digitSeparator:true}},
+          {fieldName:"E_FLC_hist", label:"Flood exposure E"}]}]}
+      });
+      const bridges = new GeoJSONLayer({
+        url: BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"],
+        renderer: breaks("E_LSB_e1", (c, k) => sq(c)),
+        popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[
+          {fieldName:"bridge_id", label:"NBI structure"}, {fieldName:"owner", label:"Owner"},
+          {fieldName:"E_LSB_e1", label:"Susceptibility class within 25 m (E1)"}, {fieldName:"E_LSB_hist", label:"Landslide exposure score", format:{places:2}},
+          {fieldName:"E_FLB_hist", label:"Flood exposure E", format:{places:2}}]}]}
+      });
+      const surf = new GeoJSONLayer({url: BASE + "landslide_surface.geojson", title:"Susceptibility surface", visible:false, opacity:0.9,
+        renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[
+          {value:3, symbol:{type:"simple-fill", color:[156,62,39,0.55], outline:{color:[156,62,39,0.6], width:0.3}}},
+          {value:2, symbol:{type:"simple-fill", color:[180,126,0,0.5], outline:{color:[180,126,0,0.6], width:0.3}}},
+          {value:1, symbol:{type:"simple-fill", color:[224,198,138,0.55], outline:{color:[224,198,138,0.8], width:0.3}}}]},
+        popupTemplate:{title:"Susceptibility class {hz_class}", content:"{label}"}});
+      const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
+
+      const map = new Map({basemap:"gray-vector", layers:[hillshade, surf, bound, roads, bridges, culverts]});
+      const view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false},
+        popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
+      view.ui.add(new Home({view}), "top-left");
+      view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+
+      const bind = (id, layer) => document.getElementById(id).addEventListener("calciteSwitchChange", e => { layer.visible = e.target.checked; });
+      bind("tg-roads", roads); bind("tg-cul", culverts); bind("tg-br", bridges); bind("tg-surf", surf); bind("tg-bound", bound); bind("tg-hill", hillshade);
+      document.getElementById("tg-top").addEventListener("calciteSwitchChange", e => {
+        const on = e.target.checked;
+        roads.definitionExpression = on ? "E_LSR_e1 >= 2.5" : null;
+        culverts.definitionExpression = on ? "E_LSC_e1 >= 2.5" : null;
+        bridges.definitionExpression = on ? "E_LSB_e1 >= 2.5" : null;
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
