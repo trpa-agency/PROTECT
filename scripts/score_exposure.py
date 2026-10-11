@@ -715,10 +715,10 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
     hz = pd.Series(0.0, index=br.index)
     br["hz_pt"] = hz.values
     fields = []
-    if hazard == "flood":
-        surf_single = indicators(surf)[0][2]
     if hazard == "debris_flow":
         br["DF_option"] = "1 (severity stand-in)"
+    if hazard == "flood":
+        surf_single = indicators(surf)[0][2]
         br["hz_pt"] = sample_points(br, surf_single, float(ex["point_buffer_m"])).values
         w = ex["flood"]["bridge_weights"]  # e1 waterway adequacy, e2 flood class
         e1 = br["waterway_eval"].map(waterway_score)
@@ -740,6 +740,8 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
             for name in parts:
                 br[f"E_{pair}_{name}"] = np.round(parts[name].astype(float), 2)
                 fields.append((f"E_{pair}_{name}", "DOUBLE", None))
+        if "DF_option" in br.columns:
+            fields.append(("DF_option", "TEXT", 24))
     log.info(f"E_{pair}_{h} on {len(br)} structures:\n" + br[f"E_{pair}_{h}"].round(1).value_counts().sort_index().to_string())
     out = br[["bridge_id", "facility_carried", "feature_crossed"] + [f[0] for f in fields]].copy()
     p = REPO / cfg["paths"]["outputs"] / f"exposure_{hazard}_bridges.csv"
