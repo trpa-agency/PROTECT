@@ -600,10 +600,11 @@ def score_active_transport(cfg: dict, hazard: str, surf, log, dry_run: bool, ove
     if not url:
         log.warning("exposure.active_transport_layer is blank; active transport skipped")
         return pd.DataFrame()
-    key = ex.get("active_transport_key", "OBJECTID")
-    at = fetch_with_fields(url, [key, "NAME", "CLASS"], target_crs(cfg), log)
+    src_key = ex.get("active_transport_key", "OBJECTID")
+    at = fetch_with_fields(url, [src_key, "NAME", "CLASS"], target_crs(cfg), log)
     at = at[at.geometry.notna() & ~at.geometry.is_empty].reset_index(drop=True)
-    at[key] = at[key].astype(str)
+    key = "at_id"   # the source layer's id; the output table gets its own OBJECTID
+    at[key] = at[src_key].astype(str)
     out = score_line_assets(at, key, cfg, hazard, surf, log)
     out.insert(1, "name", at["NAME"].fillna("").astype(str).str.slice(0, 120).values)
     write_line_scores(out, key, f"{hazard}_active_transport", pair, cfg, log, dry_run, overwrite)
@@ -621,9 +622,10 @@ def score_transit_centers(cfg: dict, hazard: str, surf, log, dry_run: bool, over
     if not url:
         log.warning("exposure.transit_centers_layer is blank; transit centers skipped (which layer holds them is an open item)")
         return pd.DataFrame()
-    key = ex.get("transit_centers_key", "OBJECTID")
-    tc = fetch_with_fields(url, [key], target_crs(cfg), log)
-    tc[key] = tc[key].astype(str)
+    src_key = ex.get("transit_centers_key", "OBJECTID")
+    tc = fetch_with_fields(url, [src_key], target_crs(cfg), log)
+    key = "tc_id"   # the source layer's id; the output table gets its own OBJECTID
+    tc[key] = tc[src_key].astype(str)
     dist = sample_distance_m(cfg, hazard) or float(ex["point_buffer_m"])
     inds = indicators(surf)
     parts = {name: sample_points(tc, g, dist).values for name, _, g in inds}
@@ -647,8 +649,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--hazard", default="flood", choices=list(HAZARD_CODE))
     ap.add_argument("--assets", nargs="*", default=[], choices=list(SCORERS), help="asset classes to score")
-    ap.add_argument("--build", action="store_true", help="(re)build the classed surface")
-    ap.add_argument("--overwrite", action="store_true")
+    ap.add_argument("--build", action="store_true", help="(re)build the classed surfaces (otherwise read if present)")
+    ap.add_argument("--overwrite", action="store_true", help="replace existing Exposure_* tables")
     ap.add_argument("--dry-run", action="store_true", help="CSV only; no geodatabase writes")
     args = ap.parse_args()
     log = get_logger(f"score_exposure_{args.hazard}")
@@ -659,7 +661,7 @@ def main() -> None:
     bad = [a for a in args.assets if a not in PAIRS.get(args.hazard, set())]
     if bad:
         raise SystemExit(f"{args.hazard} x {', '.join(bad)} is not a scored pair (Hazard_Asset_Pairs.md)")
-    surf = builder(cfg, log, overwrite=args.build or args.overwrite)
+    surf = builder(cfg, log, overwrite=args.build)
     if not args.assets:
         log.info("No --assets given; surface built only")
         return
