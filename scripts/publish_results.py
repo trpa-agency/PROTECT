@@ -1,5 +1,6 @@
 """Publish draft VA results for the web pages: public-jurisdiction culverts with the profile and
-exposure fields, the bridges, the classed flood surface, and a summary JSON for the page KPIs.
+exposure fields, the bridges, the classed flood surface, the wildfire scores on roads, paths, and
+transit hubs with the two wildfire surfaces, and a summary JSON for the page KPIs.
 
     python scripts/publish_results.py            # writes data/processed/results/*
     python scripts/publish_results.py --dry-run  # counts only
@@ -19,7 +20,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from va_common import REPO, get_logger, load_cfg
+from va_common import REPO, get_logger, load_cfg, read_streets, target_crs
 
 CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "parent_segment_id", "crossing_id",
                 "barrels", "span_in", "d_eq_in", "size_class", "material_class", "contrib_area_ac",
@@ -32,6 +33,8 @@ BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_cross
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
                "channel_cond", "lowest_rating", "bridge_condition_label", "water_crossing", "parent_segment_id",
                "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_source"]
+WF_ROAD_COLS = ["src_objectid", "name", "class", "E_WFR_hist", "E_WFR_e1", "E_WFR_e2", "len_pct_c1", "len_pct_c2",
+                "len_pct_c3", "seg_len_m"]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
          "q_cap_crossing_cfs": 1, "load_ratio_25": 2, "load_ratio_100": 2, "max_span_m": 1, "span_in": 1, "d_eq_in": 1}
 
@@ -118,10 +121,120 @@ def write_watersheds(cfg: dict, out_dir: Path, log, simplify_m: float = 5.0) -> 
     return n
 
 
+def _table(gdb: str, name: str, log):
+    """Analysis-geodatabase table as a DataFrame, or None when it has not been written yet."""
+    import arcpy
+    import pyogrio
+    if not arcpy.Exists(f"{gdb}\\{name}"):
+        log.warning(f"{name} not in {gdb}; skipped")
+        return None
+    return pyogrio.read_dataframe(gdb, layer=name, read_geometry=False)
+
+
+def _geojson(gdf: gpd.GeoDataFrame, path: Path, log, precision: int = 5) -> None:
+    gdf.to_crs("EPSG:4326").to_file(path, driver="GeoJSON", COORDINATE_PRECISION=precision)
+    log.info(f"{len(gdf)} features -> {path.name} ({path.stat().st_size / 1e6:.2f} MB)")
+
+
+def _e_counts(series: pd.Series) -> dict:
+    return {str(k): int(v) for k, v in series.round(1).value_counts().sort_index().items()}
+
+
+def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
+    """Wildfire exposure (WF-R, WF-AT, WF-TC) for the results page: roads with their scores
+    joined to the street geometry, the paths and transit hubs, the burn probability and flame
+    length surfaces, and the summary block. Skips cleanly when the tables are not there yet."""
+    import pyogrio
+    from score_exposure import fetch_with_fields
+    gdb = cfg["paths"]["analysis_gdb"]
+    hz_gdb = cfg["exposure"]["hazards_gdb"]
+    wf = cfg["exposure"]["wildfire"]
+    crs = target_crs(cfg)
+    key = cfg["assets"]["streets_key"]
+    roads = _table(gdb, "Exposure_wildfire_roads", log)
+    if roads is None:
+        return None
+    summary: dict = {}
+
+    # roads: scores joined to the street geometry (name and class where the layer has them)
+    info = pyogrio.read_info(cfg["assets"]["streets_gdb"], layer=cfg["assets"]["streets_fc"])
+    extra = [c for c in ("name", "class") if c in list(info["fields"])]
+    st = read_streets(cfg, log, columns=extra).drop_duplicates(key)
+    roads[key] = roads[key].astype(str)
+    r = st.merge(roads, on=key, how="inner")
+    r["geometry"] = r.geometry.simplify(5, preserve_topology=True)
+    for c in ("name", "class"):
+        if c not in r.columns:
+            r[c] = None
+    r = r[[c for c in WF_ROAD_COLS if c in r.columns] + ["geometry"]]
+    for c in ("E_WFR_hist", "E_WFR_e1", "E_WFR_e2"):
+        r[c] = pd.to_numeric(r[c], errors="coerce").round(2)
+    r["seg_len_m"] = pd.to_numeric(r["seg_len_m"], errors="coerce").round(1)
+    _geojson(gpd.GeoDataFrame(r, geometry="geometry", crs=crs), out_dir / "roads_wildfire.geojson", log)
+    pd.DataFrame(r.drop(columns="geometry")).to_csv(out_dir / "roads_wildfire.csv", index=False)
+    mi = r["seg_len_m"] / 1609.344
+    summary["roads"] = {
+        "segments": int(len(r)), "miles": round(float(mi.sum()), 1),
+        "E": _e_counts(r["E_WFR_hist"]),
+        "miles_by_E": {str(k): round(float(v), 1) for k, v in mi.groupby(r["E_WFR_hist"].round(1)).sum().items()},
+        "E1": _e_counts(r["E_WFR_e1"]), "E2": _e_counts(r["E_WFR_e2"]),
+        "zero_segments": int((r["E_WFR_hist"] == 0).sum()),
+        "miles_e2_class3": round(float(mi[r["E_WFR_e2"] >= 3].sum()), 1),
+        "miles_e_ge_1_6": round(float(mi[r["E_WFR_hist"] >= 1.6].sum()), 1),
+    }
+    if "class" in r.columns and r["class"].notna().any():
+        summary["roads"]["miles_by_class_E"] = {str(c): {str(k): round(float(v), 1) for k, v in
+                                                        mi[r["class"] == c].groupby(r.loc[r["class"] == c, "E_WFR_hist"].round(1)).sum().items()}
+                                                for c in sorted(r["class"].dropna().unique())}
+
+    # paths (existing active transportation facilities) and transit hubs, geometry from the services
+    at = _table(gdb, "Exposure_wildfire_active_transport", log)
+    if at is not None:
+        ex = cfg["exposure"]
+        g = fetch_with_fields(ex["active_transport_layer"], [ex.get("active_transport_key", "OBJECTID"), "NAME", "CLASS"], crs, log)
+        g["at_id"] = g[ex.get("active_transport_key", "OBJECTID")].astype(str)
+        at["at_id"] = at["at_id"].astype(str)
+        a = g.merge(at.drop(columns=[c for c in ("name",) if c in at.columns]), on="at_id", how="inner")
+        a = a.rename(columns={"NAME": "name", "CLASS": "class"})
+        a = a[["at_id", "name", "class", "E_WFAT_hist", "E_WFAT_e1", "E_WFAT_e2", "seg_len_m", "geometry"]]
+        a["geometry"] = a.geometry.simplify(5, preserve_topology=True)
+        _geojson(gpd.GeoDataFrame(a, geometry="geometry", crs=crs), out_dir / "paths_wildfire.geojson", log)
+        summary["paths"] = {"count": int(len(a)), "miles": round(float(a["seg_len_m"].sum() / 1609.344), 1),
+                            "E": _e_counts(a["E_WFAT_hist"]),
+                            "miles_e_ge_1_6": round(float(a.loc[a["E_WFAT_hist"] >= 1.6, "seg_len_m"].sum() / 1609.344), 1)}
+    tc = _table(gdb, "Exposure_wildfire_transit_centers", log)
+    if tc is not None:
+        ex = cfg["exposure"]
+        k = ex.get("transit_centers_key", "OBJECTID")
+        g = fetch_with_fields(ex["transit_centers_layer"], [k], crs, log)
+        g["tc_id"] = g[k].astype(str)
+        tc["tc_id"] = tc["tc_id"].astype(str)
+        t = g.merge(tc, on="tc_id", how="inner")[["tc_id", "E_WFTC_hist", "E_WFTC_e1", "E_WFTC_e2", "geometry"]]
+        _geojson(gpd.GeoDataFrame(t, geometry="geometry", crs=crs), out_dir / "transit_wildfire.geojson", log)
+        summary["transit"] = {"count": int(len(t)), "E": _e_counts(t["E_WFTC_hist"]),
+                              "n_e_ge_1_6": int((t["E_WFTC_hist"] >= 1.6).sum())}
+
+    # the two surfaces (180 m cells; 20 m simplify keeps the shapes)
+    areas = {}
+    for name, stem in ((wf["bp_fc"], "wildfire_burnprob"), (wf["e2_fc"], "wildfire_flamelength")):
+        surf = pyogrio.read_dataframe(hz_gdb, layer=name)
+        areas[stem] = {str(int(k)): round(float(v), 1) for k, v in
+                       surf.to_crs(crs).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
+        surf["geometry"] = surf.geometry.simplify(20, preserve_topology=True)
+        _geojson(surf[["hz_class", "label", "geometry"]], out_dir / f"{stem}.geojson", log)
+    summary["surfaces_km2"] = areas
+    summary["inputs"] = {"e1": "2018 FSim annual burn probability (iBP), breaks 0.5 and 1 percent",
+                         "e2": "2018 FSim conditional flame length (iCFL), breaks 4 and 8 ft" if wf.get("flame_length_raster")
+                               else "TRPA most-likely fire severity (Low 1, Moderate 2, High 3)",
+                         "sampling": f"maximum within {wf['buffer_ft']} ft", "weights": wf["weights"]}
+    return summary
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-watersheds", action="store_true", help="skip the per-crossing drainage files")
+    ap.add_argument("--no-wildfire", action="store_true", help="skip the wildfire roads, paths, hubs, and surfaces")
     args = ap.parse_args()
     log = get_logger("publish_results")
     cfg = load_cfg()
@@ -178,6 +291,10 @@ def main() -> None:
     if args.dry_run:
         log.info("Dry run; nothing written")
         return
+    if not args.no_wildfire:
+        wf_summary = write_wildfire(cfg, out_dir, log)
+        if wf_summary:
+            summary["wildfire"] = wf_summary
     cul.to_file(out_dir / "culverts_results.geojson", driver="GeoJSON")
     br.to_file(out_dir / "bridges_results.geojson", driver="GeoJSON")
     flood.to_file(out_dir / "flood_surface.geojson", driver="GeoJSON")
