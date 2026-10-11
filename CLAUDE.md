@@ -21,7 +21,7 @@ open, the print-map spec; it replaced `docs/WORKSHOP1_PUNCHLIST.md` on Oct. 8, 2
 scripts, data paths, and references moved to the appendix of `docs/WORKSHOP1_BUILD_PLAN.md`); a reference hub (`html/reference-hub.html`, v0.6) with
 tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
 (incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Scoring
-Rubrics page** (`html/scoring-rubrics.html`, v0.3: interactive per-pair scoring for all 15 pairs
+Rubrics page** (`html/scoring-rubrics.html`, v0.4: interactive per-pair scoring for all 15 pairs
 on the consultant's half-point scale, rubric tables, framework, 24 decisions, and the list of
 TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
 model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
@@ -88,7 +88,7 @@ PROTECT/
 ├── docs/                            # methodology, build notes, scoping archive
 ├── html/index.html                  # v0.7 landing page (page cards, Workshop 1 banner, phasing, workstream status; no CDN libs)
 ├── html/reference-hub.html          # v0.6 reference hub incl. data + model inventory (Calcite + AG Grid)
-├── html/scoring-rubrics.html        # v0.3 interactive rubrics (score an asset, rubric tables, framework, decisions, departures)
+├── html/scoring-rubrics.html        # v0.4 interactive rubrics (score an asset, rubric tables, framework, decisions, departures)
 ├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
 ├── html/workshop-feedback.html      # Workshop 1 digital sticky notes: hazard stations, click an asset or drop a pin, concern 1-3, why, missing flag; sends to the AGOL table (SURVEY block), CSV fallback; Report out tab + printable master list
 ├── scripts/create_workshop_feedback_layer.py  # makes/checks the AGOL table + submit/read views for the feedback page (--smoke-test)
