@@ -135,6 +135,7 @@ PROTECT/
   Dojo/AMD loader otherwise makes those UMD bundles register as AMD modules (`Error: multipleDefine`;
   `window.Plotly` / `window.agGrid` end up undefined and the map fails). Pages without ArcGIS (the hub,
   the inventory) are unaffected.
+- **Calcite components created after load do not register on ArcGIS pages.** The ArcGIS SDK 4.31 registers its own Calcite build for its widgets (button, icon, loader, scrim); a second Calcite include then never defines the rest, so `calcite-switch`, `calcite-block`, or a segmented control inserted by script after load stays an empty tag. Static Calcite markup present at parse time upgrades by luck of order. On `results.html` (Oct. 11, 2026) every page-owned control is native: `input.sw` switches, a `details.block` collapsible, `.cb` and `.btn` buttons. Do the same on any page that both loads the SDK and builds its panel in script.
 - **`html/reference-hub.html` and `Hazard_Asset_Pairs.md` mirror the pair list.** When pairs change, update
   the grid's `pairs` array in the HTML and the markdown table. The 32-element data inventory lives in
   the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.

@@ -7,9 +7,8 @@
   <meta name="description" content="Draft vulnerability assessment results for the Lake Tahoe Region transportation network: an overview by asset and criticality, and one tab per hazard." />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
-  <!-- Calcite -->
-  <script type="module" src="https://js.arcgis.com/calcite-components/5.0/calcite.esm.js"></script>
-  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+  <!-- No Calcite include: the ArcGIS SDK registers its own Calcite build for its widgets, which blocks a second
+       copy from defining components created after load. The page's own controls are native elements. -->
   <!-- Plotly and AG Grid load BEFORE the ArcGIS SDK (its AMD loader otherwise captures these UMD bundles) -->
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
   <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
@@ -77,6 +76,17 @@
     .lg-sq{flex:0 0 12px;height:12px;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
     .lg-sw{flex:0 0 18px;height:11px;border-radius:2px;display:inline-block;}
     .sub-lg{margin-left:1.9rem}
+    .sw{appearance:none;-webkit-appearance:none;width:30px;height:16px;border-radius:999px;background:#c9d1da;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s;outline:none;}
+    .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+    .sw:checked{background:var(--trpa-blue);} .sw:checked::after{left:16px;}
+    .sw:focus-visible{box-shadow:0 0 0 2px var(--trpa-ice);}
+    .btn{font:600 .8rem 'Open Sans',sans-serif;color:var(--trpa-blue);background:#fff;border:1px solid var(--trpa-blue);border-radius:6px;padding:.4rem .8rem;cursor:pointer;}
+    .btn:hover{background:var(--trpa-blue);color:#fff;}
+    details.block{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.5rem .9rem;margin-top:1.2rem;}
+    details.block summary{font-size:.9rem;font-weight:700;cursor:pointer;padding:.3rem 0;list-style:none;display:flex;align-items:center;gap:.5rem;}
+    details.block summary::before{content:"";width:0;height:0;border-left:6px solid var(--trpa-blue);border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .15s;}
+    details.block[open] summary::before{transform:rotate(90deg);}
+    details.block .notes{margin:.4rem 0 .5rem;}
     .cb{display:flex;flex-wrap:wrap;gap:.3rem;margin:.1rem 0 .5rem;}
     .cb button{font:600 .74rem 'Open Sans',sans-serif;color:var(--trpa-navy);background:#fff;border:1px solid var(--gray-border);border-radius:999px;padding:.22rem .6rem;cursor:pointer;}
     .cb button:hover{border-color:var(--trpa-blue);}
@@ -176,13 +186,13 @@
     <p class="lead" id="table-lead"></p>
     <div class="toolbar">
       <input id="qf" class="qf" type="text" placeholder="Search the table" aria-label="Quick search" />
-      <calcite-button id="export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
+      <button type="button" id="export" class="btn">Export CSV</button>
     </div>
     <div id="grid" class="ag-theme-quartz grid-wrap"></div>
 
-    <calcite-block heading="How the numbers are made" collapsible scale="s" style="margin-top:1.2rem">
+    <details class="block"><summary>How the numbers are made</summary>
       <ul class="notes" id="notes"></ul>
-    </calcite-block>
+    </details>
   </main>
 
   <footer class="app-footer">
@@ -697,11 +707,12 @@
         $("legend").innerHTML = (o.legend || "") + (o.note ? `<p class="note">${esc(o.note)}${o.noteTip ? tip(o.noteTip) : ""}</p>` : ""); };
       if (cb.length) { applyColor(cb[0]); $("color-by").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { $("color-by").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); const o = cb.find(x => x.value === b.dataset.v); if (o) applyColor(o); })); }
       // layer toggles
-      $("panel-layers").innerHTML = defs.map(d => `<label class="lyr"><calcite-switch id="tg-${d.id}"${d.checked ? " checked" : ""}></calcite-switch> ${esc(d.label)}${d.tip ? tip(d.tip) : ""}</label>${d.legend ? `<div class="lg-row sub-lg">${d.legend}</div>` : ""}`).join("")
-        + `<label class="lyr"><calcite-switch id="tg-bound" checked></calcite-switch> TRPA boundary</label><label class="lyr"><calcite-switch id="tg-hill"></calcite-switch> Terrain (hillshade)${tip("Esri World Hillshade under the data layers.")}</label>`;
-      defs.forEach(d => $("tg-" + d.id).addEventListener("calciteSwitchChange", e => { ctx.L[d.id].visible = e.target.checked; }));
-      $("tg-bound").addEventListener("calciteSwitchChange", e => { BASE_LAYERS.bound.visible = e.target.checked; });
-      $("tg-hill").addEventListener("calciteSwitchChange", e => { BASE_LAYERS.hill.visible = e.target.checked; });
+      const sw = (id, on) => `<input type="checkbox" class="sw" id="${id}"${on ? " checked" : ""} />`;
+      $("panel-layers").innerHTML = defs.map(d => `<label class="lyr">${sw("tg-" + d.id, d.checked)} ${esc(d.label)}${d.tip ? tip(d.tip) : ""}</label>${d.legend ? `<div class="lg-row sub-lg">${d.legend}</div>` : ""}`).join("")
+        + `<label class="lyr">${sw("tg-bound", true)} TRPA boundary</label><label class="lyr">${sw("tg-hill", false)} Terrain (hillshade)${tip("Esri World Hillshade under the data layers.")}</label>`;
+      defs.forEach(d => $("tg-" + d.id).addEventListener("change", e => { ctx.L[d.id].visible = e.target.checked; }));
+      $("tg-bound").addEventListener("change", e => { BASE_LAYERS.bound.visible = e.target.checked; });
+      $("tg-hill").addEventListener("change", e => { BASE_LAYERS.hill.visible = e.target.checked; });
       BASE_LAYERS.bound.visible = true; BASE_LAYERS.hill.visible = false;
       // extras and click
       $("panel-extra").innerHTML = "";
@@ -710,8 +721,8 @@
       // filters
       const fl = mode.filters || [];
       $("panel-filter-wrap").style.display = fl.length ? "" : "none";
-      $("panel-filter").innerHTML = fl.map(f => `<label class="lyr"><calcite-switch id="fl-${f.id}"></calcite-switch> ${esc(f.label)}${f.tip ? tip(f.tip) : ""}</label>`).join("");
-      fl.forEach(f => $("fl-" + f.id).addEventListener("calciteSwitchChange", e => { f.apply(e.target.checked, ctx.L); if (mode.table.filterRows && gridApi) mode.table.rows().then(rows => gridApi.setGridOption("rowData", mode.table.filterRows(rows, e.target.checked))); }));
+      $("panel-filter").innerHTML = fl.map(f => `<label class="lyr">${sw("fl-" + f.id, false)} ${esc(f.label)}${f.tip ? tip(f.tip) : ""}</label>`).join("");
+      fl.forEach(f => $("fl-" + f.id).addEventListener("change", e => { f.apply(e.target.checked, ctx.L); if (mode.table.filterRows && gridApi) mode.table.rows().then(rows => gridApi.setGridOption("rowData", mode.table.filterRows(rows, e.target.checked))); }));
 
       // charts and table (each guarded: a missing file leaves its block empty)
       if (items) {
