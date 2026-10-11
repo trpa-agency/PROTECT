@@ -93,6 +93,27 @@ exposure:
   transit_centers_layer: https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/Transit_Hubs/FeatureServer/0   # eight hubs (AGOL)
   transit_centers_key: FID
 
+# scripts/score_vulnerability.py - sensitivity and vulnerability (docs/SCORING_RUBRICS.md 1.1, 1.2, 1.4, 2.3)
+scoring:
+  v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
+  flc:                            # flooding x small culverts
+    s3: true                      # TRPA proposal: condition and blockage as S3 (weights_s3); false = the draft's S1 / S2 only
+    weights_s3: {e: 0.30, s1: 0.25, s2: 0.30, s3: 0.15}
+    weights_draft: {e: 0.30, s1: 0.35, s2: 0.35}
+    s1_default: 1                 # no watershed: debris potential 1, S_source partial
+    s2_default: 1                 # loading ratio withheld (size_suspect) or no size: 1, S_source partial
+    landcover_columns:            # profile basin_landcover group -> draft matrix column (TRPA choice for grass, barren, wetland)
+      forest: trees
+      shrub: shrubs
+      grass: shrubs
+      barren: shrubs
+      developed: urban
+      water: water and snow
+      wetland: water and snow
+  lsc:                            # landslide x small culverts
+    weights: {e: 0.70, s1: 0.15, s2: 0.15}
+    s1_default: 2                 # no size: 2, S_source partial
+
 run:
   crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when
     jurisdictions: [El Dorado County, Washoe County]   # their line crosses a street centerline
