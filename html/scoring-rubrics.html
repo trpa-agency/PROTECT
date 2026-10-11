@@ -413,7 +413,7 @@
               <tr><td>Dominant slope and records</td><td>Dominant slope undefined; two accident databases as records</td><td>Largest-area slope class on the uphill side within 1,000 ft; the TRPA zone layer and documented closures also count as records</td><td class="num">17, 18</td></tr>
               <tr><td>Two gaps in the draft's tables</td><td>No row for culvert openings over 8 ft or for an avalanche record with no slope over 25 degrees</td><td>Both score 1</td><td class="num">20</td></tr>
               <tr><td>Flood exposure for roads, active transport, and transit centers</td><td>Floodplain extent (10-yr 3 down to 1,000-yr 0.5) at 0.35 and 100-yr depth at 0.35</td><td>One indicator, the FEMA zone and stream-crossing scale, at the full exposure weight; FEMA maps only the 100-yr and 500-yr floodplains</td><td class="num">21</td></tr>
-              <tr><td>Wildfire exposure inputs</td><td>Contracted burn probability and flame length</td><td>2018 FSim burn probability and conditional flame length on the draft's breaks, the draft's own indicators from data in hand; the contracted package replaces them for December if delivered in time</td><td class="num">22</td></tr>
+              <tr><td>Wildfire exposure inputs</td><td>Contracted burn probability and flame length</td><td>Regional Resource Kit burn probability (Pyrologix 2022) on the draft's breaks and TRPA most-likely fire severity in place of flame length; the contracted package replaces them for December if delivered in time</td><td class="num">22</td></tr>
               <tr><td>Truck AADT and trail slope defaults</td><td>TBD</td><td>1 each, flagged partial</td><td class="num">23</td></tr>
             </tbody>
           </table>
@@ -450,14 +450,15 @@
     const PAVED_VALUES = [[3,"unpaved"],[1,"paved"]];
     const BP_VALUES = [[3,"over 1 percent"],[2,"over 0.5 to 1 percent"],[1,"over 0 to 0.5 percent"],[0,"0 percent"]];
     const FLAME_VALUES = [[3,"over 8 ft"],[2,"over 4 to 8 ft"],[1,"over 0 to 4 ft"],[0,"0 ft"]];
+    const SEV_VALUES = [[3,"High severity most likely"],[2,"Moderate"],[1,"Low"],[0,"outside the layer (non-burnable)"]];
     const WF_OPTION = {id:"wfsrc", label:"Wildfire exposure source (decision 22)",
-      choices:[["trpa","Data in hand: 2018 FSim burn probability and flame length"],["model","Contracted fire-behavior modeling, when delivered"]], def:"trpa",
-      hint:"TRPA holds both indicators today in the 2018 FSim outputs (180 m, before the Caldor Fire). The contracted package, if delivered and reviewed in time, replaces them for December on the same breaks, so scores change in value but not in form."};
+      choices:[["trpa","Data in hand: RRK burn probability and TRPA fire severity"],["model","Contracted fire-behavior modeling, when delivered"]], def:"trpa",
+      hint:"Current data from the Sierra Nevada Regional Resource Kit (Pyrologix 2022, 30 m): annual burn probability, and the severity probabilities TRPA publishes stacked as most-likely fire severity. The contracted package, if delivered and reviewed in time, replaces them for December on the same breaks, so scores change in value but not in form."};
     // Wildfire exposure rows shared by WF-R, WF-AT, WF-TC.
     function wfExposure(samp){
       return [
-        {k:"wf_e1t", code:"E1", comp:"E", name:"Annual burn probability, 2018 FSim (iBP) on the draft's breaks", weight:0.70, values:BP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"Data in hand"},
-        {k:"wf_e2t", code:"E2", comp:"E", name:"Flame length, 2018 FSim conditional flame length (iCFL)", weight:0.30, values:FLAME_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"Data in hand", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 22): data in hand, revised Oct. 10, 2026"}},
+        {k:"wf_e1t", code:"E1", comp:"E", name:"Annual burn probability, Regional Resource Kit (Pyrologix 2022) on the draft's breaks", weight:0.70, values:BP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"Data in hand"},
+        {k:"wf_e2t", code:"E2", comp:"E", name:"TRPA most-likely fire severity (RRK severity probabilities, stacked), in place of flame length", weight:0.30, values:SEV_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"Data in hand", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 22)"}},
         {k:"wf_e1m", code:"E1", comp:"E", name:"Annual burn probability, contracted fire-behavior modeling", weight:0.70, values:BP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="model", opt:"Contracted package, when delivered", tags:["pending"], tagText:{pending:"contracted data pending delivery"}},
         {k:"wf_e2m", code:"E2", comp:"E", name:"Flame length, contracted fire-behavior modeling", weight:0.30, values:FLAME_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="model", opt:"Contracted package, when delivered", tags:["pending"], tagText:{pending:"contracted data pending delivery"}}
       ];
@@ -610,7 +611,7 @@
       [17,"5.4 Avalanche","The definition of dominant slope: the largest-area slope class on the uphill side within 1,000 ft. The classes and scores are the draft's.","As in section 5.2 (confirmed Oct. 8)","Open"],
       [18,"5.4 Avalanche","Whether the TRPA avalanche zone layer and documented closures count as records alongside the two accident databases.","Both count as records (confirmed Oct. 8)","Open"],
       [21,"6.5 Roads, trails, transit","FEMA flood zones as the flood exposure indicator for roads, active transport, and transit centers, with the 1 percent zone scoring 3 and the extent and depth indicators collapsed into one at the full exposure weight. The draft's extent scale would score the 100-year floodplain 2 and the 500-year 1, with 3 and 2.5 reserved for the 10- and 50-year floodplains that FEMA does not map.","FEMA four-value scale at 0.70 (1.0 for transit centers)","Open"],
-      [22,"6.5 Roads, trails, transit","Wildfire exposure from the 2018 FSim outputs in hand: annual burn probability (iBP) and conditional flame length (iCFL), the draft's own indicators on the draft's breaks (revised Oct. 10, 2026, from a severity-layer stand-in). The contracted fire-behavior package replaces them for December if delivered and reviewed in time, on the same breaks.","TRPA data for the workshop","Open"],
+      [22,"6.5 Roads, trails, transit","Wildfire exposure from the current data in hand: the Regional Resource Kit annual burn probability (Pyrologix 2022, 30 m) on the draft's breaks, and TRPA most-likely fire severity (the RRK severity probabilities stacked) classed Low 1, Moderate 2, High 3 in place of flame length. The contracted fire-behavior package replaces them for December if delivered and reviewed in time, on the same breaks.","TRPA data for the workshop","Open"],
       [23,"6.5 Roads, trails, transit","Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1 (5 to under 10 percent), both flagged S_source partial.","As stated","Open"]
     ];
 

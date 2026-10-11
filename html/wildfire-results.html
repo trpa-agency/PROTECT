@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Wildfire Results | PROTECT | TRPA</title>
-  <meta name="description" content="Draft component 2 wildfire exposure results for roads, paths, and transit hubs in the Lake Tahoe Region: burn probability and flame length from the 2018 FSim outputs." />
+  <meta name="description" content="Draft component 2 wildfire exposure results for roads, paths, and transit hubs in the Lake Tahoe Region: burn probability (Regional Resource Kit, Pyrologix 2022) and TRPA most-likely fire severity." />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
   <!-- Calcite -->
@@ -144,29 +144,29 @@
         <calcite-segmented-control id="color-by" scale="s" width="full">
           <calcite-segmented-control-item value="e" checked>Score</calcite-segmented-control-item>
           <calcite-segmented-control-item value="e1">Likelihood</calcite-segmented-control-item>
-          <calcite-segmented-control-item value="e2">Flame length</calcite-segmented-control-item>
+          <calcite-segmented-control-item value="e2">Severity</calcite-segmented-control-item>
         </calcite-segmented-control>
         <div id="legend-e">
           <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: nothing burnable within 300 ft</div>
-          <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: fire unlikely, flames under 4 ft</div>
-          <div class="lg-row"><span class="lg-line" style="background:#E8A05A"></span> 1.3: flames of 4 to 8 ft nearby</div>
-          <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 1.6 to 1.7: flames over 8 ft nearby</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: fire unlikely, low severity most likely</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E8A05A"></span> 1.3: moderate severity most likely nearby</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 1.6 to 1.7: high severity most likely nearby</div>
           <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 2 and over: fire more likely and intense</div>
-          <p class="note">Likelihood at 0.7 plus flame length at 0.3, each the highest within 300 ft.<i class="i" tabindex="0" data-tip="WF-R exposure: E = 0.70 x E1 (annual burn probability class) + 0.30 x E2 (flame length class), each sampled as the maximum within a 300 ft buffer of the segment. Scores are 0 to 3; with the 2018 data no segment reaches E1 = 3, so the top of the range is 2.3.">i</i></p>
+          <p class="note">Likelihood at 0.7 plus severity at 0.3, each the highest within 300 ft.<i class="i" tabindex="0" data-tip="WF-R exposure: E = 0.70 x E1 (annual burn probability class) + 0.30 x E2 (most-likely fire severity class, in place of the draft's flame length), each sampled as the maximum within a 300 ft buffer of the segment. Scores are 0 to 3.">i</i></p>
         </div>
         <div id="legend-e1" style="display:none">
           <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: no burn probability</div>
           <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: under 0.5 percent a year</div>
           <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 2: 0.5 to 1 percent a year</div>
           <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: over 1 percent a year</div>
-          <p class="note">How often fire reaches the ground within 300 ft of the road.<i class="i" tabindex="0" data-tip="E1, annual burn probability from the 2018 FSim integrated burn probability (iBP, 180 m), classed on the draft's breaks of 0.5 and 1 percent. Over 1 percent covers 6.9 km2 of the basin, so class 3 is rare.">i</i></p>
+          <p class="note">How often fire reaches the ground within 300 ft of the road.<i class="i" tabindex="0" data-tip="E1, annual burn probability from the Sierra Nevada Regional Resource Kit (Pyrologix 2022, 30 m), classed on the draft's breaks of 0.5 and 1 percent.">i</i></p>
         </div>
         <div id="legend-e2" style="display:none">
           <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: nothing burnable</div>
-          <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: flames under 4 ft</div>
-          <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 2: flames of 4 to 8 ft</div>
-          <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: flames over 8 ft</div>
-          <p class="note">How hot a fire would burn within 300 ft of the road.<i class="i" tabindex="0" data-tip="E2, conditional flame length from the 2018 FSim outputs (iCFL, feet, 180 m), classed on the draft's breaks of 4 and 8 ft. Flames over 8 ft are beyond direct attack by hand crews.">i</i></p>
+          <div class="lg-row"><span class="lg-line" style="background:#E8C77A"></span> 1: low severity most likely</div>
+          <div class="lg-row"><span class="lg-line" style="background:#E87722"></span> 2: moderate severity most likely</div>
+          <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: high severity most likely</div>
+          <p class="note">How severely a fire would most likely burn within 300 ft of the road.<i class="i" tabindex="0" data-tip="E2, TRPA most-likely fire severity (Fire service, layer 3): the Regional Resource Kit's low, moderate, and high severity probabilities stacked into the most likely class. Stands in for the draft's flame length (decision 22) until the contracted package is delivered.">i</i></p>
         </div>
         <div class="grp">
           <h3>Layers</h3>
@@ -174,16 +174,16 @@
           <label class="lyr"><calcite-switch id="tg-paths" checked></calcite-switch> Paths and bike routes<i class="i" tabindex="0" data-tip="WF-AT: existing active transportation facilities (TRPA Transportation service), scored with the same two indicators and no sensitivity term. Drawn dashed, colored by score.">i</i></label>
           <label class="lyr"><calcite-switch id="tg-hubs" checked></calcite-switch> Transit hubs<i class="i" tabindex="0" data-tip="WF-TC: the eight transit hubs, scored as the maximum within 300 ft of the point.">i</i></label>
           <div class="lg-row" style="margin-left:1.9rem"><span class="lg-dot" style="background:#cfd4da"></span> 0 &nbsp; <span class="lg-dot" style="background:#E8C77A"></span> 1 &nbsp; <span class="lg-dot" style="background:#E87722"></span> 1.3 to 1.7 &nbsp; <span class="lg-dot" style="background:#9C3E27"></span> 2 and over</div>
-          <label class="lyr"><calcite-switch id="tg-bp"></calcite-switch> Burn probability surface<i class="i" tabindex="0" data-tip="E1 surface: the 2018 FSim burn probability classed 1 to 3 (under 0.5, 0.5 to 1, over 1 percent a year). Zero and non-burnable cells are blank.">i</i></label>
+          <label class="lyr"><calcite-switch id="tg-bp"></calcite-switch> Burn probability surface<i class="i" tabindex="0" data-tip="E1 surface: the Regional Resource Kit burn probability classed 1 to 3 (under 0.5, 0.5 to 1, over 1 percent a year). Zero and non-burnable cells are blank.">i</i></label>
           <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(232,199,122,.55)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3</div>
-          <label class="lyr"><calcite-switch id="tg-fl"></calcite-switch> Flame length surface<i class="i" tabindex="0" data-tip="E2 surface: the 2018 FSim conditional flame length classed 1 to 3 (under 4, 4 to 8, over 8 ft). Non-burnable cells are blank.">i</i></label>
+          <label class="lyr"><calcite-switch id="tg-fl"></calcite-switch> Fire severity surface<i class="i" tabindex="0" data-tip="E2 surface: TRPA most-likely fire severity classed 1 to 3 (low, moderate, high). Non-burnable ground is blank.">i</i></label>
           <div class="lg-row" style="margin-left:1.9rem"><span class="lg-sw" style="background:rgba(232,199,122,.55)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3</div>
           <label class="lyr"><calcite-switch id="tg-bound" checked></calcite-switch> TRPA boundary</label>
           <label class="lyr"><calcite-switch id="tg-hill"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers.">i</i></label>
         </div>
         <div class="grp">
           <h3>Filter</h3>
-          <label class="lyr"><calcite-switch id="tg-top"></calcite-switch> Score 1.6 and over only<i class="i" tabindex="0" data-tip="Segments, paths, and hubs with flames over 8 ft within 300 ft, or a burn probability over 0.5 percent with flames over 4 ft.">i</i></label>
+          <label class="lyr"><calcite-switch id="tg-top"></calcite-switch> Score 1.6 and over only<i class="i" tabindex="0" data-tip="Segments, paths, and hubs with high-severity fire most likely within 300 ft, or a burn probability over 0.5 percent with moderate severity.">i</i></label>
         </div>
       </div>
       <div id="map-view"></div>
@@ -205,18 +205,18 @@
 
     <calcite-block heading="How the numbers are made" collapsible scale="s" style="margin-top:1.2rem">
       <ul class="notes">
-        <li><b>Likelihood (E1).</b> Annual burn probability from the 2018 FSim outputs, classed on the draft's breaks: under 0.5 percent a year is 1, 0.5 to 1 percent is 2, over 1 percent is 3. Over 1 percent covers 6.9 km2 of the basin, so almost every scored segment is class 1 and the score spread comes from flame length.</li>
-        <li><b>Flame length (E2).</b> Conditional flame length from the same outputs: under 4 ft is 1, 4 to 8 ft is 2, over 8 ft is 3.</li>
+        <li><b>Likelihood (E1).</b> Annual burn probability from the Sierra Nevada Regional Resource Kit (Pyrologix 2022, 30 m), classed on the draft's breaks: under 0.5 percent a year is 1, 0.5 to 1 percent is 2, over 1 percent is 3.</li>
+        <li><b>Severity (E2).</b> TRPA most-likely fire severity, the Resource Kit's three severity probabilities stacked: low is 1, moderate is 2, high is 3. It stands in for the draft's flame length (decision 22).</li>
         <li><b>Sampling.</b> Each indicator is the highest value within 300 ft of the segment, path, or hub; the share of each segment's length in each likelihood class is in the table. The score is 0.7 x E1 + 0.3 x E2.</li>
-        <li><b>Zeros.</b> FSim treats towns, water, and bare rock as non-burnable, so streets inside the urban cores score 0 for fire itself. Evacuation and smoke are criticality and component 3 questions, not exposure.</li>
-        <li><b>Vintage.</b> The 2018 surfaces predate the 2021 Caldor Fire. The contracted fire-behavior package replaces them on the same breaks if it is delivered and reviewed in time for December.</li>
+        <li><b>Zeros.</b> The fire models treat towns, water, and bare rock as non-burnable, so streets inside the urban cores score 0 for fire itself. Evacuation and smoke are criticality and component 3 questions, not exposure.</li>
+        <li><b>Vintage.</b> Both inputs are the 2022 to 2023 Pyrologix generation, after the 2021 Caldor Fire. The contracted fire-behavior package replaces them on the same breaks if it is delivered and reviewed in time for December.</li>
         <li><b>Not yet scored.</b> Road sensitivity (wooden guardrails) sits at the draft default of 1. Paths and hubs have no sensitivity term.</li>
       </ul>
     </calcite-block>
   </main>
 
   <footer class="app-footer">
-    <p>Draft v0.1. Fire inputs from the 2018 FSim outputs on TRPA storage; roads from the TRPA street network; paths and hubs from TRPA services. Method: <code>docs/SCORING_RUBRICS.md</code> 6.4, decision 22. Internal review draft.</p>
+    <p>Draft v0.1. Fire inputs from the Sierra Nevada Regional Resource Kit and the TRPA Fire service; roads from the TRPA street network; paths and hubs from TRPA services. Method: <code>docs/SCORING_RUBRICS.md</code> 6.4, decision 22. Internal review draft.</p>
   </footer>
 
   <script>
@@ -242,12 +242,12 @@
       const items = [
         [fmt(r.segments), "road segments scored"],
         [fmt(r.miles), "road miles scored"],
-        [fmt(r.miles_e2_class3), "road miles with flames over 8 ft nearby"],
+        [fmt(r.miles_e2_class3), "road miles where high-severity fire is most likely nearby"],
         [fmt(r.zero_segments), "segments with nothing burnable within 300 ft"],
         [fmt(likely), "km2 of the basin where fire is 0.5 percent or more likely a year"],
         [fmt(p.count), "paths scored"],
-        [fmt(p.miles_e_ge_1_6, 1), "path miles with flames over 8 ft nearby"],
-        [(t.count == null ? "-" : fmt(t.n_e_ge_1_6) + " of " + fmt(t.count)), "transit hubs with flames over 8 ft nearby"]
+        [fmt(p.miles_e_ge_1_6, 1), "path miles where high-severity fire is most likely nearby"],
+        [(t.count == null ? "-" : fmt(t.n_e_ge_1_6) + " of " + fmt(t.count)), "transit hubs where high-severity fire is most likely nearby"]
       ];
       document.getElementById("kpis").innerHTML = items.map(([v,l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
       document.getElementById("gen-note").textContent = "Generated " + (s.generated || "") + ". " + (w.inputs ? "E1: " + w.inputs.e1 + ". E2: " + w.inputs.e2 + "." : "");
@@ -263,7 +263,7 @@
       {field:"src_objectid", headerName:"Segment", width:100},
       {field:"E_WFR_hist", headerName:"Score", width:95, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,1), cellStyle:eStyle},
       {field:"E_WFR_e1", headerName:"Likelihood", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:cStyle},
-      {field:"E_WFR_e2", headerName:"Flame length", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:cStyle},
+      {field:"E_WFR_e2", headerName:"Severity", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:cStyle},
       {field:"len_pct_c1", headerName:"Length in class 1 (%)", width:150, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
       {field:"len_pct_c2", headerName:"in class 2 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
       {field:"len_pct_c3", headerName:"in class 3 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
@@ -340,7 +340,7 @@
       const roadFields = [
         {fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"},
         {fieldName:"E_WFR_hist", label:"Wildfire exposure score", format:{places:1}},
-        {fieldName:"E_WFR_e1", label:"E1 burn probability class"}, {fieldName:"E_WFR_e2", label:"E2 flame length class"},
+        {fieldName:"E_WFR_e1", label:"E1 burn probability class"}, {fieldName:"E_WFR_e2", label:"E2 fire severity class"},
         {fieldName:"len_pct_c1", label:"Length in likelihood class 1 (percent)", format:{places:0}},
         {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}},
         {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}},
@@ -353,7 +353,7 @@
         url: BASE + "paths_wildfire.geojson", title:"Paths", outFields:["*"], renderer: bandRenderer("E_WFAT_hist", true),
         popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[
           {fieldName:"class", label:"Facility class"}, {fieldName:"E_WFAT_hist", label:"Wildfire exposure score", format:{places:1}},
-          {fieldName:"E_WFAT_e1", label:"E1 burn probability class"}, {fieldName:"E_WFAT_e2", label:"E2 flame length class"},
+          {fieldName:"E_WFAT_e1", label:"E1 burn probability class"}, {fieldName:"E_WFAT_e2", label:"E2 fire severity class"},
           {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}
       });
       const hubs = new GeoJSONLayer({
@@ -363,7 +363,7 @@
           {minValue:1.15, maxValue:1.9, symbol:sq(COL.orange)}, {minValue:1.9, maxValue:3.1, symbol:sq(COL.brick)}]},
         popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[
           {fieldName:"E_WFTC_hist", label:"Wildfire exposure score", format:{places:1}},
-          {fieldName:"E_WFTC_e1", label:"E1 burn probability class"}, {fieldName:"E_WFTC_e2", label:"E2 flame length class"}]}]}
+          {fieldName:"E_WFTC_e1", label:"E1 burn probability class"}, {fieldName:"E_WFTC_e2", label:"E2 fire severity class"}]}]}
       });
       function surface(stem, title){
         return new GeoJSONLayer({url: BASE + stem + ".geojson", title:title, visible:false, opacity:0.9,
@@ -374,7 +374,7 @@
           popupTemplate:{title:title + " class {hz_class}", content:"{label}"}});
       }
       const bp = surface("wildfire_burnprob", "Burn probability");
-      const fl = surface("wildfire_flamelength", "Flame length");
+      const fl = surface("wildfire_e2", "Fire severity");
       const bound = new FeatureLayer({url: BOUND_URL, title:"TRPA boundary",
         renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
 

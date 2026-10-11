@@ -41,8 +41,8 @@ ArcGIS Online (public Create-only submit view and public read view, made by
 export and import as the fallback; the Report out tab and the printable master list tally
 everyone's notes by hazard and asset. The **results pages** share a tab strip under the header, one page per hazard:
 `html/culvert-results.html` (flooding: culverts and bridges), `html/wildfire-results.html`
-(Oct. 10, 2026: WF-R, WF-AT, WF-TC from the 2018 FSim burn probability and conditional flame
-length; roads colored by score, likelihood, or flame length; paths dashed; the eight transit
+(Oct. 10, 2026: WF-R, WF-AT, WF-TC from the Regional Resource Kit burn probability, Pyrologix
+2022, and TRPA most-likely fire severity; roads colored by score, likelihood, or severity; paths dashed; the eight transit
 hubs; both surfaces; road miles by score and by road type; road table), and
 `html/landslide-results.html` (Oct. 10, 2026: LS-R, LS-C, LS-B from the USGS susceptibility
 index plus recorded landslides; the climate term is 0 at the historical horizon so scores top

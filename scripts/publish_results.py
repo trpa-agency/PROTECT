@@ -221,8 +221,8 @@ def write_landslide(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br: gp
 
 def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
     """Wildfire exposure (WF-R, WF-AT, WF-TC) for the results page: roads with their scores
-    joined to the street geometry, the paths and transit hubs, the burn probability and flame
-    length surfaces, and the summary block. Skips cleanly when the tables are not there yet."""
+    joined to the street geometry, the paths and transit hubs, the burn probability and E2
+    (severity or flame length) surfaces, and the summary block. Skips cleanly when the tables are not there yet."""
     import pyogrio
     from score_exposure import fetch_with_fields
     gdb = cfg["paths"]["analysis_gdb"]
@@ -267,16 +267,16 @@ def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
 
     # the two surfaces (180 m cells; 20 m simplify keeps the shapes)
     areas = {}
-    for name, stem in ((wf["bp_fc"], "wildfire_burnprob"), (wf["e2_fc"], "wildfire_flamelength")):
+    for name, stem in ((wf["bp_fc"], "wildfire_burnprob"), (wf["e2_fc"], "wildfire_e2")):
         surf = pyogrio.read_dataframe(hz_gdb, layer=name)
         areas[stem] = {str(int(k)): round(float(v), 1) for k, v in
                        surf.to_crs(crs).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
         surf["geometry"] = surf.geometry.simplify(20, preserve_topology=True)
         _geojson(surf[["hz_class", "label", "geometry"]], out_dir / f"{stem}.geojson", log)
     summary["surfaces_km2"] = areas
-    summary["inputs"] = {"e1": "2018 FSim annual burn probability (iBP), breaks 0.5 and 1 percent",
-                         "e2": "2018 FSim conditional flame length (iCFL), breaks 4 and 8 ft" if wf.get("flame_length_raster")
-                               else "TRPA most-likely fire severity (Low 1, Moderate 2, High 3)",
+    summary["inputs"] = {"e1": "Regional Resource Kit annual burn probability (Pyrologix 2022, 30 m), breaks 0.5 and 1 percent",
+                         "e2": "contracted flame length, breaks 4 and 8 ft" if wf.get("flame_length_raster")
+                               else "TRPA most-likely fire severity (RRK severity probabilities stacked; Low 1, Moderate 2, High 3)",
                          "sampling": f"maximum within {wf['buffer_ft']} ft", "weights": wf["weights"]}
     return summary
 
