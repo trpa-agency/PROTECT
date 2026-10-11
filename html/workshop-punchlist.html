@@ -148,14 +148,14 @@
     <div id="task-grid" class="ag-theme-quartz grid-wrap"></div>
 
     <h2 class="sec">Decisions open</h2>
-    <p class="lead">Decisions that gate a task above; the 23 numbered rubric decisions for the consultant stay on the <a href="scoring-rubrics.html">Scoring Rubrics</a> page and are not repeated here.</p>
+    <p class="lead">Decisions that gate a task above; the 24 numbered rubric decisions for the consultant stay on the <a href="scoring-rubrics.html">Scoring Rubrics</a> page and are not repeated here.</p>
     <div class="toolbar" style="justify-content:flex-end;"><button data-tablecsv="dec-table" data-filename="PROTECT_Workshop1_Decisions.csv">Export CSV</button></div>
     <table class="ref" id="dec-table">
       <thead><tr><th style="width:6rem;">Need by</th><th>Decision</th><th style="width:16rem;">Who decides</th></tr></thead>
       <tbody>
         <tr><td class="num">Oct. 9</td><td>Who presents the vulnerability assessment block at the workshop, TRPA or the consultant. This decides who builds the slides.</td><td>TRPA project lead with the consultant</td></tr>
-        <tr><td class="num">Oct. 9</td><td>Maximum-pair aggregation across pairs (TRPA default confirmed Oct. 8; rubric decision 9).</td><td>Consultant confirms</td></tr>
-        <tr><td class="num">Oct. 12</td><td>Contracted fire data delivery dates, or confirmation that the TRPA wildfire layers carry the workshop. Flood is FEMA zones for every horizon; no depth model.</td><td>Consultant</td></tr>
+        <tr><td class="num">Oct. 15</td><td>Maximum-pair aggregation across pairs (rubric decision 9), and whether the debris-flow stand-in stays in V_max for the workshop: today it sets the combined class on 87 percent of culverts and 69 percent of roads because the draft's drainage-size break (under 0.25 sq mi scores 3) is met almost everywhere.</td><td>Consultant with TRPA</td></tr>
+        <tr><td class="num">Oct. 15</td><td>Wildfire inputs: the Regional Resource Kit burn probability and TRPA fire severity carry the workshop (decision 22); the contracted package replaces them in December if delivered. Flood is FEMA zones for every horizon; no depth model.</td><td>Consultant confirms</td></tr>
         <tr><td class="num">Oct. 12</td><td>Wildcat environment approval. If approved, Wildcat runs in parallel with the proxy and the proxy is not swapped out mid-stream.</td><td>TRPA IT</td></tr>
         <tr><td class="num">Oct. 16</td><td>Steering Committee outcome on the four proposed pairs (seiche and high lake level on roads and active transport).</td><td>Steering Committee via the consultant</td></tr>
         <tr><td class="num">Oct. 21</td><td>Scenario 2 location and hazard (other state, other hazard, other season than Scenario 1).</td><td>Data team</td></tr>
@@ -212,70 +212,38 @@
       ["2026-11-09","Workshop 1"]
     ];
     const TASKS = [
-      ["2026-10-07","Criticality weights final; the combined 0 to 3 class written to the road layer; score_criticality.py promoted from the notebook with weights in config.yaml; road layer and method note to the consultant","Open"],
-      ["2026-10-08","TRPA defaults confirmed: debris-flow proxy for the workshop and Wildcat for December; road-crossing rule for El Dorado and Washoe pipes; maximum-pair aggregation; avalanche by dominant slope with a record flag; no runout modeling","Done"],
-      ["2026-10-08","No flood depth model: flood exposure is the FEMA zone and stream-crossing scale for every flood pair and horizon","Done"],
-      ["2026-10-08","Scoring rubrics v0.3 realigned to the consultant's Aug. 20 draft tables and extended to all 15 pairs; scoring-rubrics.html built","Done"],
-      ["2026-10-08","Site review: landing page v0.7, reference hub v0.6, copy pass on every page, duplicate pages archived","Done"],
-      ["2026-10-08","Bridges layer rebuilt with NBI items 45 and 48","Done"],
-      ["2026-10-08","Culvert profile: 10 m smoke test and two 2 m runs on the server; depth-limited Fill added; creek capture along ditches found and diagnosed","Done"],
-      ["2026-10-08","NDOT workshop-display sign-off request sent (segment-level aggregates only; NDOT reviews before anything is shown)","Open"],
-      ["2026-10-08","Baseline surface inventory: FEMA zones, USGS landslide raster, TRPA wildfire layers (paths, CRS, resolution, vintage, Nevada-side gaps)","Open"],
-      ["2026-10-09","Scoring rubrics v0.4 PDF exported (scripts/md2html.py); goes with the Oct. 12 package","Done"],
-      ["2026-10-09","Confirm the section 6 inputs: wildfire from the RRK burn probability (Pyrologix 2022) and TRPA fire severity (set Oct. 10); truck AADT, trail slope, wooden guardrails, and pavement defaults","Done"],
-      ["2026-10-09","Culvert profile rerun with the DEM breached through the culvert inventory and the 4 m pour snap; fetch_prism.py first; qa_crossings.py --capture after","Done"],
-      ["2026-10-09","Nevada regression equation decided (region 1 or Lahontan basin-wide); recorded in rubric section 2.4 and the FL-C method note","Open"],
-      ["2026-10-09","One geodatabase: Streets_Network_Tahoe in PROTECT_analysis.gdb; hazard flags migrated; the recovered geodatabase and Streets_Network_Drive retired","Open"],
-      ["2026-10-09","Segment layer with stable IDs and C_class, so bridges and culverts inherit criticality through parent_segment_id","Open"],
-      ["2026-10-09","Active transport and transit center inventories in the analysis geodatabase with stable IDs and criticality","Open"],
-      ["2026-10-09","Asset_Criticality.ipynb cell 9 fixed (says 100 m buffer, uses 10 m)","Open"],
-      ["2026-10-09","PROTECT_VA v2 schema agreed: field names for E, S, C, V per pair, V_max, V_max_pair, S_source; docs/PROTECT_VA_schema.md stubbed","Open"],
-      ["2026-10-09","Flood surface classed on the FEMA four-value scale in the analysis geodatabase, breaks in config.yaml","Done"],
-      ["2026-10-09","score_exposure.py: flood, wildfire, landslide, debris flow, and avalanche builders; breaks from config; 25 m points, length-weighted lines, watershed maximum for culverts","Done"],
-      ["2026-10-09","Culvert layer rerun with the road-crossing rule for El Dorado and Washoe; geopackage regenerated and reloaded (NDOT rows in memory only)","Done"],
-      ["2026-10-10","criticality-index.html adopts the config weights and shows the 0 to 3 class next to the index","Open"],
-      ["2026-10-11","Site restructure: one Results page with hazard tabs, five-group nav on every page, grouped landing page, four pages archived","Done"],
-      ["2026-10-12","ICF package: rubrics v0.4 PDF, FL-C and FL-B method note refreshed for decisions 22 and 24, the sensitivity defaults, and the debris-flow drainage-size floor as a question","Open"],
-      ["2026-10-13","Trim the per-page header mini-nav now that every content page carries the shared site nav","Open"],
-      ["2026-10-15","Decide with the consultant whether stand-in pairs (debris flow) stay in V_max for the workshop, and whether the drainage-size breaks (under 0.25 sq mi = 3) hold; today debris flow sets the combined class on 87 percent of culverts and 69 percent of roads","Open"],
-      ["2026-10-15","Criticality class rule from the street network lane (replace the provisional percentile quarters); C_class then inherited by bridges and culverts","Open"],
-      ["2026-10-12","NLCD 2021 clip saved to F: and the culvert profile rerun with land cover (default runoff coefficient until then, stated in the FL-C method note)","Done"],
-      ["2026-10-12","Wildfire surfaces classed 0 to 3: RRK burn probability (Pyrologix 2022) on the draft's breaks and TRPA most-likely fire severity (decision 22); scored Oct. 10","Done"],
-      ["2026-10-12","FL-B and FL-C exposure and vulnerability to the consultant: feature classes, method note, CSVs (scored; package Oct. 12)","Open"],
-      ["2026-10-12","FL-R, FL-AT, FL-TC exposure to the consultant from the classed flood surface","Done"],
-      ["2026-10-12","Contracted fire data cutoff: anything not in hand goes to December; the tool Status tab says so","Open"],
-      ["2026-10-13","Landslide surface classed 0 to 3 from the USGS 2024 release as the share of each cell that is prone (decision 24); LS-C, LS-B, LS-R scored","Done"],
-      ["2026-10-13","WF-R, WF-AT, WF-TC exposure to the consultant","Done"],
-      ["2026-10-14","Avalanche surface: dominant uphill slope tier within 1,000 ft with the TRPA zones as the record (decisions 17, 18, 20); AV-R scored: 11 High, 442 Medium","Done"],
-      ["2026-10-14","LS-R exposure to the consultant","Done"],
-      ["2026-10-15","score_vulnerability.py: bridge sensitivity (channel, scour, span type, span length, condition) and culvert sensitivity (debris potential, loading ratio, condition and blockage, size) with S_source; FL, LS, DF pairs scored","Done"],
-      ["2026-10-15","Road, active transport, and transit center sensitivity on the draft's defaults (pavement fair, surface paved, truck AADT, trail slope, guardrails) with S_source default; the street layer carries none of these attributes yet","Done"],
-      ["2026-10-15","Consultant VA meeting","Open"],
-      ["2026-10-16","Debris flow as the draft's option 1 with the fire severity surface standing in for soil burn severity (DF_option recorded); DF-R, DF-B, DF-C scored; the WRF-intensity proxy raster not needed","Done"],
-      ["2026-10-16","Vulnerability on every asset class: weighted exposure and sensitivity per pair, classes from config, provisional C_class from the criticality percentile, V_max and V_max_pair; hotspots v0.1 (707 segments High on top-quarter criticality) live on the Results overview","Done"],
-      ["2026-10-16","Results page (results.html): overview plus one tab per hazard, hazard selector by tab, layer toggles, color-by control, hotspot filter; replaces the three hazard pages and the Phase 1 map","Done"],
-      ["2026-10-21","Consultant feedback from the Oct. 15 meeting and the rolling reviews applied","Open"],
-      ["2026-10-21","Two scenarios picked from the hotspot output: Scenario 1 the SR-89 West Shore wildfire closure; Scenario 2 another state, hazard, and season","Open"],
-      ["2026-10-23","Scenario hazard rasters and run_scenario.py with a scenario YAML","Open"],
-      ["2026-10-23","Closure set for a post-fire storm or shoreline flood scenario (which culverts and bridges fail at the scenario intensity) as the RA2CE link-failure input","Open"],
-      ["2026-10-23","PROTECT_VA v2 published: five layers with E, S, C, V per pair; schema document final","Open"],
-      ["2026-10-23","Tool reads the published GeoJSON (done Oct. 11); PROTECT_VA v2 service and the Arcade criticality expression retirement remain","Open"],
-      ["2026-10-28","If Wildcat ran: comparison with the proxy, one chosen for the final results","Open"],
-      ["2026-10-30","RA2CE scenario runs: single-link redundancy delta, access to the four service types, isolated hexes and population, top 10 reroute links; one-page fact sheet per scenario","Open"],
-      ["2026-10-30","All 15 pairs final; hotspots.py final (top 25 per hazard, corridor roll-up) to the facilitator sheet","Open"],
-      ["2026-10-30","Tool: table and charts on every tab (done Oct. 11); methods tab from the rubrics; scenarios tab only if time allows","Open"],
-      ["2026-11-02","Symbology set once in Pro and saved as layer files for every scored layer: one High, Medium, Low field, bridge and culvert point symbols, road line widths by class","Open"],
-      ["2026-11-02","Scored layers and the two scenario outputs delivered clean for the maps","Open"],
-      ["2026-11-04","Print maps: 10 hazard layouts and 2 scenario layouts from one template","Open"],
-      ["2026-11-04","Screen PDFs of the same 12 layouts for the on-screen reveal (exposure first, assets revealed)","Open"],
-      ["2026-11-04","Tool freeze: popups with E, S, C, V and S_source; bridges and culverts in hotspots and table; Status tab current; dashboard QA checklist on every page","Open"],
-      ["2026-11-04","Storm events page: culvert screening linked to the FL-C results; header matched to the site","Open"],
-      ["2026-11-04","Hub inventory rows to Live or Proxy; Steering Committee decision on the four proposed pairs recorded; landing page December milestone","Open"],
-      ["2026-11-05","Posters to the printer","Open"],
-      ["2026-11-05","Slides to the presenter: criticality; bridge and culvert sensitivity sources; debris flow and avalanche methods; one scenario overview","Open"],
-      ["2026-11-06","Workshop1_Feedback hosted layer (hazard, asset class, location, comment, source) and the Feedback toggle in the tool","Open"],
-      ["2026-11-09","Workshop 1","Open"],
-      ["2026-11-13","Sticky notes and Mentimeter answers digitized into Workshop1_Feedback; December backlog started","Open"]
+      // done (short log; the detail is in the repo history and docs/SCORING_RUBRICS.md)
+      ["2026-10-08","Scoring rubrics v0.3 aligned to the consultant's Aug. 20 tables for all 15 pairs; scoring-rubrics.html built","Done","surfaces"],
+      ["2026-10-09","Culvert profile of record on the server: DEM breached through the culvert inventory, 3 m fill, USGS regression over 1 sq mi, review flags; owner review list written","Done","surfaces"],
+      ["2026-10-09","Flooding exposure scored: FL-C (watershed maximum), FL-B (NBI waterway adequacy), FL-R, FL-AT, FL-TC on the FEMA zone and stream-crossing surface","Done","surfaces"],
+      ["2026-10-10","Wildfire exposure scored from the Regional Resource Kit burn probability and TRPA fire severity (decision 22): WF-R, WF-AT, WF-TC","Done","surfaces"],
+      ["2026-10-10","Landslide exposure scored from the USGS 2024 susceptibility as the share of each cell that is prone (decision 24): LS-C, LS-B, LS-R","Done","surfaces"],
+      ["2026-10-11","Debris flow (option 1, fire severity standing in for soil burn severity) and avalanche (uphill slope tiers, TRPA zones as the record) scored","Done","surfaces"],
+      ["2026-10-11","Vulnerability on every asset class: bridge and culvert sensitivity from the NBI and the profile, road defaults, V_max and class; hotspots on the Results overview","Done","surfaces"],
+      ["2026-10-11","Site restructure: one Results page (overview plus a tab per hazard), five-group nav, grouped landing page; three hazard pages and the Phase 1 map archived; rubrics v0.4","Done","surfaces"],
+      // open: surfaces lane
+      ["2026-10-08","NDOT workshop-display sign-off (segment-level aggregates only; NDOT reviews before anything is shown)","Open","surfaces"],
+      ["2026-10-12","ICF package: rubrics v0.4 PDF, FL-C and FL-B method note refreshed for decisions 22 and 24, the sensitivity defaults, and the debris-flow drainage-size floor as a question","Open","surfaces"],
+      ["2026-10-12","Contracted fire data cutoff: anything not in hand stays out until December; the RRK inputs carry the workshop","Open","surfaces"],
+      ["2026-10-13","Trim the per-page header mini-nav now that every content page carries the shared site nav","Open","surfaces"],
+      ["2026-10-15","Consultant VA meeting: settle the debris-flow drainage-size floor and whether stand-in pairs stay in V_max, the Nevada regression choice, the span-length direction (decision 12), and legacy culvert points in the rating","Open","surfaces"],
+      ["2026-10-16","Known-failure check in Pro against the results: Northwood Blvd, the Washoe flash flood, Meeks Creek (NBI 25 0019)","Open","surfaces"],
+      ["2026-10-16","Culvert owner review list (size suspects and ratios over 20) to the jurisdictions","Open","surfaces"],
+      ["2026-10-28","If the Wildcat environment is approved and the run finishes: compare with the stand-in and choose one for December","Open","surfaces"],
+      ["2026-10-30","All 15 pairs final after consultant feedback; hotspots final (top 25 per hazard, corridor roll-up) to the facilitator sheet","Open","surfaces"],
+      ["2026-11-02","Symbology set once in Pro and saved as layer files: High, Medium, Low on every scored layer, bridge and culvert point symbols, road widths by class","Open","surfaces"],
+      ["2026-11-04","Print maps: 10 hazard layouts and 2 scenario layouts from one template, plus screen PDFs for the on-screen reveal","Open","surfaces"],
+      ["2026-11-04","Results page freeze: popups with E, S, C, V and S_source; dashboard QA checklist; storm events page linked to the flooding results","Open","surfaces"],
+      ["2026-11-05","Posters to the printer; slides to the presenter (criticality; sensitivity sources; debris flow and avalanche methods; one scenario)","Open","both"],
+      ["2026-11-06","Workshop feedback: the Survey123 layer configured in workshop-feedback.html (CSV fallback until then)","Open","surfaces"],
+      ["2026-11-09","Workshop 1","Open","both"],
+      ["2026-11-13","Sticky notes and Mentimeter answers digitized into the feedback layer; December backlog started","Open","both"],
+      // open: network lane
+      ["2026-10-15","Criticality class rule: the 0 to 3 class on the road layer, inherited by bridges, culverts, paths, and hubs (replaces the provisional percentile quarters on the Results page)","Open","network"],
+      ["2026-10-21","Two scenarios picked from the hotspots: Scenario 1 the SR-89 West Shore wildfire closure; Scenario 2 another state, hazard, and season","Open","network"],
+      ["2026-10-23","Scenario hazard rasters and the closure set (which culverts and bridges fail at the scenario intensity) as the RA2CE link-failure input","Open","network"],
+      ["2026-10-23","PROTECT_VA v2 hosted service with E, S, C, V per pair, if the workshop tool needs more than the published GeoJSON","Open","network"],
+      ["2026-10-30","RA2CE scenario runs: redundancy delta, access to the four service types, isolated hexes and population, top reroute links; one fact sheet per scenario","Open","network"]
     ];
 
     // ---------- HELPERS ----------
@@ -285,7 +253,7 @@
     function weekOf(iso){ const d = parse(iso); const day = d.getDay(); const mon = new Date(d); mon.setDate(d.getDate() - ((day+6)%7)); const fri = new Date(mon); fri.setDate(mon.getDate()+4); return fmt(mon.toISOString().slice(0,10))+" to "+fri.getDate(); }
     const today = new Date(); today.setHours(0,0,0,0);
     function status(row){ if(row[2]==="Done") return "Done"; return parse(row[0]) < today ? "Past due" : "Open"; }
-    const rows = TASKS.map(t => ({due:t[0], dueLabel:fmt(t[0]), week:weekOf(t[0]), item:t[1], status:status(t)}));
+    const rows = TASKS.map(t => ({due:t[0], dueLabel:fmt(t[0]), week:weekOf(t[0]), item:t[1], status:status(t), lane:{surfaces:"Surfaces and assets", network:"Network and criticality", both:"Both"}[t[3]] || t[3] || ""}));
 
     // ---------- KPIs AND CHECKPOINTS ----------
     const daysLeft = Math.round((parse(WORKSHOP) - today) / 86400000);
@@ -309,9 +277,10 @@
       {field:"dueLabel", headerName:"Due", width:95, pinned:"left", cellStyle:{fontWeight:"700"}, comparator:(a,b,na,nb)=> na.data.due < nb.data.due ? -1 : (na.data.due > nb.data.due ? 1 : 0)},
       {field:"week", headerName:"Week", width:120},
       {field:"item", headerName:"Task", flex:1, minWidth:320, wrapText:true, autoHeight:true},
+      {field:"lane", headerName:"Lane", width:170},
       {field:"status", headerName:"Status", width:110, cellStyle:colorCell(statusColor)}
     ];
-    let api = null, filter = "All";
+    let api = null, filter = "Not done";
     function initGrid(){
       if(!window.agGrid){ setTimeout(initGrid, 60); return; }
       agGrid.createGrid(document.getElementById("task-grid"), {
