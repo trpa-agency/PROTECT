@@ -87,6 +87,17 @@ exposure:
     precip_change_hist: 0                # E2 scores 0 at the historical horizon by definition; 2050 and 2080 columns come in December
     weights: {e1: 0.50, e2: 0.20}        # E_LS*_hist = (0.50 E1 + 0.20 x 0) / 0.70
     class_fc: Hazard_Landslide_Class
+  debris_flow:             # DF-C, DF-B, DF-R, option 1 with a burn-severity stand-in (rubric 4.2; DF_option = proxy)
+    cell_m: 30             # the 2 m terrain rasters are aggregated to this for the E1 and E2 surfaces
+    weights: {e1: 0.20, e2: 0.20, e3: 0.30}   # E1 mean upslope slope, E2 contributing area, E3 severity stand-in
+    slope_fc: Hazard_DebrisFlow_Slope
+    area_fc: Hazard_DebrisFlow_Area
+  avalanche:               # AV-R (rubric 5): dominant uphill slope tier within 1,000 ft x a zone record within 1,000 ft
+    zones_layer: https://maps.trpa.org/server/rest/services/Avalanche_Zones/MapServer/0   # the record (decision 18); accident databases not used
+    buffer_ft: 1000
+    cell_m: 10             # DEM aggregated to this for the slope tiers (decision 17)
+    band_m: 20             # elevation bands; cells at least one band above the segment midpoint count as uphill
+    cells_fc: Hazard_Avalanche_Cells
   # line and point assets scored by the lane's other pairs (roads come from assets.streets_*)
   active_transport_layer: https://maps.trpa.org/server/rest/services/Transportation/MapServer/3   # existing facilities
   active_transport_key: OBJECTID
@@ -113,6 +124,11 @@ scoring:
   lsc:                            # landslide x small culverts
     weights: {e: 0.70, s1: 0.15, s2: 0.15}
     s1_default: 2                 # no size: 2, S_source partial
+  dfc:                            # debris flow x small culverts: decision 7, opening size and condition (the LS-C set)
+    weights: {e: 0.70, s1: 0.15, s2: 0.15}
+    s1_default: 2
+  dfb:                            # debris flow x bridges: the LS-B sensitivity set
+    weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}
   flb:                            # flooding x bridges: S1 channel (NBI 61), S2 scour (113), S3 span type (45), S4 condition
     weights: {e: 0.30, s1: 0.10, s2: 0.40, s3: 0.10, s4: 0.10}
   lsb:                            # landslide x bridges: S1 span type, S2 condition, S3 span length (draft direction; decision 12)
@@ -121,6 +137,8 @@ scoring:
     flr: {weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}, pavement_default: 2, paved_default: 1, truck_default: 1}
     lsr: {weights: {e: 0.70, s1: 0.30}, pavement_default: 2}
     wfr: {weights: {e: 0.70, s1: 0.30}, guardrail_default: 1}
+    dfr: {weights: {e: 0.70, s1: 0.15, s2: 0.15}, pavement_default: 2, paved_default: 1}
+    # avr: exposure only (E 1.0), V = E
   active_transport:
     flat: {weights: {e: 0.70, s1: 0.15, s2: 0.15}, paved_default: 3, slope_default: 1}   # the draft's unpaved default; slope unknown
   c_class_pctl_breaks: [25, 50, 75]   # provisional C_class 0 to 3 from the street layer's criticality_pctl, until the other lane sets its rule
