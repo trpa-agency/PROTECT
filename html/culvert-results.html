@@ -151,6 +151,7 @@
         <calcite-segmented-control id="color-by" scale="s" width="full">
           <calcite-segmented-control-item value="ratio" checked>Storm vs capacity</calcite-segmented-control-item>
           <calcite-segmented-control-item value="flood">Flood exposure</calcite-segmented-control-item>
+          <calcite-segmented-control-item value="vuln">Vulnerability</calcite-segmented-control-item>
         </calcite-segmented-control>
         <div id="legend-ratio">
           <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> passes with room (under 0.5)</div>
@@ -168,6 +169,13 @@
           <div class="lg-row"><span class="lg-dot" style="background:#0072CE"></span> 2: 500-year zone or a mapped stream</div>
           <div class="lg-row"><span class="lg-dot" style="background:#003B71"></span> 3: 100-year flood zone</div>
           <p class="note">The highest flood class anywhere in the culvert's drainage area.<i class="i" tabindex="0" data-tip="FL-C E1, sampled as the maximum over the contributing watershed, plus 1 (capped at 3) where the outlet is below the legal maximum lake level and high lake stage backs water up.">i</i></p>
+        </div>
+        <div id="legend-vuln" style="display:none">
+          <div class="lg-row"><span class="lg-dot" style="background:#B4CBE8"></span> Low (under 1)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#E87722"></span> Medium (1 to under 2)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#9C3E27"></span> High (2 and over)</div>
+          <div class="lg-row"><span class="lg-dot" style="background:#cfd4da"></span> not scored yet</div>
+          <p class="note">Flooding vulnerability: exposure at 0.3 plus how the pipe would cope at 0.7.<i class="i" tabindex="0" data-tip="V_FLC = 0.30 x E (flood class) + 0.25 x S1 (debris potential from basin slope and land cover) + 0.30 x S2 (100-yr loading ratio) + 0.15 x S3 (condition and blockage). S3 is a TRPA proposal. Culverts with no inspection carry the fair default and are marked partial. Class breaks: Low under 1, Medium 1 to under 2, High 2 and over. Criticality is carried separately.">i</i></p>
         </div>
         <div class="grp">
           <h3>Layers</h3>
@@ -214,6 +222,7 @@
         <li><b>Capacity.</b> What the pipe passes with water at the top of the opening. Real culverts take more, so the ratio errs high by 1.5 to 2.</li>
         <li><b>Flags.</b> A small recorded pipe on a big drainage is a record to check, not a score; it is withheld and listed for the owner. A ratio above 20 is listed too.</li>
         <li><b>Flood exposure.</b> The highest flood class anywhere in the culvert's drainage. The value at the pipe itself is in the table for comparison.</li>
+        <li><b>Vulnerability.</b> Exposure at 0.3 plus sensitivity at 0.7: how much debris the basin can send (slope and land cover), whether the pipe passes the 100-year storm, and its condition and blockage. Low under 1, Medium 1 to under 2, High 2 and over. Condition exists for about a third of culverts; the rest carry the fair default and are marked partial. Criticality from the street network is joined later and is not in this score.</li>
       </ul>
     </calcite-block>
   </main>
@@ -240,6 +249,7 @@
         [fmt(c.ratio_over_1), "cannot pass the 100-year storm"],
         [fmt(c.size_suspect), "records to confirm with the owner"],
         [fmt(c.ratio_review), "scored but flagged for the owner"],
+        [c.vulnerability ? fmt((c.vulnerability.V_FLC_class || {}).High) : "-", "high flooding vulnerability"],
         [fmt(b.count), "bridges"]
       ];
       document.getElementById("kpis").innerHTML = items.map(([v,l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
@@ -264,6 +274,10 @@
       {field:"load_ratio_25", headerName:"Ratio 25-yr", width:110, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
       {field:"E_FLC_hist", headerName:"Flood E", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,0),
         cellStyle:p=>{const m={3:COL.navy,2:COL.blue,1:COL.ice}; const c=m[p.value]; return c?{background:c,color:p.value>=2?"#fff":"#003B71",fontWeight:600}:{};}},
+      {field:"V_FLC_hist", headerName:"Vulnerability", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,2),
+        cellStyle:p=>{const v=p.value; if(v==null) return {}; const c = v>=2?COL.brick: v>=1?COL.orange: COL.ice;
+          return {background:c, color: v>=1?"#fff":"#003B71", fontWeight:600};}},
+      {field:"S_source", headerName:"Sensitivity data", width:130, valueFormatter:p=>p.value||"-"},
       {field:"cond_class", headerName:"Cond.", width:85, valueFormatter:p=>p.value==null?"-":p.value},
       {field:"cond_source", headerName:"Cond. source", width:120},
       {field:"flags", headerName:"Flags", width:200, filter:"agTextColumnFilter"},
@@ -352,6 +366,14 @@
         uniqueValueInfos:[{value:"0",symbol:dot(COL.gray,4)},{value:"1",symbol:dot(COL.ice,5)},{value:"2",symbol:dot(COL.blue,6)},{value:"3",symbol:dot(COL.navy,7)}]
       };
       function dot(color, size){ return {type:"simple-marker", style:"circle", color:color, size:size, outline:{color:[255,255,255,0.9], width:0.6}}; }
+      const vulnRenderer = {
+        type:"class-breaks", valueExpression:"IIf(IsEmpty($feature.V_FLC_hist), -1, $feature.V_FLC_hist)",
+        classBreakInfos:[
+          {minValue:-1.5, maxValue:-0.5, symbol:dot(COL.gray, 4), label:"not scored"},
+          {minValue:-0.5, maxValue:0.999, symbol:dot(COL.ice, 5), label:"Low"},
+          {minValue:0.999, maxValue:1.999, symbol:dot(COL.orange, 6), label:"Medium"},
+          {minValue:1.999, maxValue:3.1, symbol:dot(COL.brick, 8), label:"High"}]
+      };
 
       const culverts = new GeoJSONLayer({
         url: BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], renderer: ratioRenderer,
@@ -371,6 +393,8 @@
             {fieldName:"load_ratio_25", label:"Loading ratio, 25-yr", format:{places:2}},
             {fieldName:"cond_class", label:"Condition class"}, {fieldName:"cond_source", label:"Condition source"},
             {fieldName:"E_FLC_hist", label:"Flood exposure E (watershed)"}, {fieldName:"E_FLC_pt", label:"Flood exposure at the point"},
+            {fieldName:"S_FLC", label:"Flood sensitivity S", format:{places:2}}, {fieldName:"V_FLC_hist", label:"Flood vulnerability V", format:{places:2}},
+            {fieldName:"V_class", label:"Vulnerability class (highest pair)"}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"S_source", label:"Sensitivity data"},
             {fieldName:"tailwater_flag", label:"Tailwater flag"}, {fieldName:"size_suspect", label:"Size suspect"},
             {fieldName:"ratio_review", label:"Ratio review"}, {fieldName:"profile_completeness", label:"Profile completeness"}
           ]}]
@@ -447,9 +471,8 @@
       sw("tg-cul", culverts); sw("tg-br", bridges); sw("tg-flood", flood); sw("tg-bound", bound); sw("tg-hill", hillshade);
       document.getElementById("color-by").addEventListener("calciteSegmentedControlChange", e => {
         const v = e.target.selectedItem.value;
-        culverts.renderer = v === "flood" ? floodRenderer : ratioRenderer;
-        document.getElementById("legend-ratio").style.display = v === "flood" ? "none" : "";
-        document.getElementById("legend-flood").style.display = v === "flood" ? "" : "none";
+        culverts.renderer = v === "flood" ? floodRenderer : v === "vuln" ? vulnRenderer : ratioRenderer;
+        ["ratio", "flood", "vuln"].forEach(k => document.getElementById("legend-" + k).style.display = (k === v ? "" : "none"));
       });
       document.getElementById("tg-review").addEventListener("calciteSwitchChange", e => {
         culverts.definitionExpression = e.target.checked ? "size_suspect = 1 OR ratio_review = 1" : null;

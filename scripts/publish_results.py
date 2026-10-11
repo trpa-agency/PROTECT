@@ -28,7 +28,8 @@ CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "pare
                 "q_event_25_cfs", "q_event_100_cfs", "q_cap_crossing_cfs", "load_ratio_25", "load_ratio_100",
                 "cond_class", "cond_source", "cond_stale", "blockage_pct", "tailwater_flag", "on_stream",
                 "size_suspect", "ratio_review", "profile_completeness", "E_FLC_hist", "E_FLC_pt", "E_FLC_src",
-                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_source"]
+                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_source",
+                "S_FLC", "V_FLC_hist", "S_LSC", "V_LSC_hist", "V_max", "V_max_pair", "V_class", "S_source"]
 BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_crossed", "year_built",
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
                "channel_cond", "lowest_rating", "bridge_condition_label", "water_crossing", "parent_segment_id",
@@ -325,6 +326,15 @@ def main() -> None:
             "E_FLC": {str(k): int(v) for k, v in cul["E_FLC_hist"].value_counts().sort_index().items()}
             if "E_FLC_hist" in cul else {},
             "by_jurisdiction": {j: int(n) for j, n in cul["jurisdiction"].value_counts().items()},
+            "vulnerability": ({
+                "V_FLC_median": float(cul["V_FLC_hist"].median()),
+                "V_FLC_class": {str(k): int(v) for k, v in cul["V_FLC_hist"].map(
+                    lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")).value_counts().items()},
+                "V_class": {str(k): int(v) for k, v in cul["V_class"].value_counts().items()} if "V_class" in cul else {},
+                "V_max_pair": {str(k): int(v) for k, v in cul["V_max_pair"].value_counts().items()} if "V_max_pair" in cul else {},
+                "S_source": {str(k): int(v) for k, v in cul["S_source"].value_counts().items()} if "S_source" in cul else {},
+                "high_by_jurisdiction": {j: int(n) for j, n in cul.loc[cul["V_FLC_hist"] >= 2, "jurisdiction"].value_counts().items()},
+            } if "V_FLC_hist" in cul.columns and cul["V_FLC_hist"].notna().any() else None),
         },
         "bridges": {
             "count": int(len(br)),
