@@ -113,6 +113,17 @@ scoring:
   lsc:                            # landslide x small culverts
     weights: {e: 0.70, s1: 0.15, s2: 0.15}
     s1_default: 2                 # no size: 2, S_source partial
+  flb:                            # flooding x bridges: S1 channel (NBI 61), S2 scour (113), S3 span type (45), S4 condition
+    weights: {e: 0.30, s1: 0.10, s2: 0.40, s3: 0.10, s4: 0.10}
+  lsb:                            # landslide x bridges: S1 span type, S2 condition, S3 span length (draft direction; decision 12)
+    weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}
+  roads:                          # the street layer carries no sensitivity attributes today: draft defaults, S_source default
+    flr: {weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}, pavement_default: 2, paved_default: 1, truck_default: 1}
+    lsr: {weights: {e: 0.70, s1: 0.30}, pavement_default: 2}
+    wfr: {weights: {e: 0.70, s1: 0.30}, guardrail_default: 1}
+  active_transport:
+    flat: {weights: {e: 0.70, s1: 0.15, s2: 0.15}, paved_default: 3, slope_default: 1}   # the draft's unpaved default; slope unknown
+  c_class_pctl_breaks: [25, 50, 75]   # provisional C_class 0 to 3 from the street layer's criticality_pctl, until the other lane sets its rule
 
 run:
   crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when
