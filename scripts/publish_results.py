@@ -138,6 +138,22 @@ def _geojson(gdf: gpd.GeoDataFrame, path: Path, log, precision: int = 5) -> None
     log.info(f"{len(gdf)} features -> {path.name} ({path.stat().st_size / 1e6:.2f} MB)")
 
 
+def slim_surface(surf: gpd.GeoDataFrame, crs, log, stem: str, simplify_m: float = 20.0,
+                 many: int = 20000, min_ha: float = 0.5) -> gpd.GeoDataFrame:
+    """Web-size a classed surface: simplify, and when it has more than `many` parts drop the
+    parts under min_ha (the severity surface has 58,896 parts and 25 MB otherwise). The
+    dropped area is logged; the summary areas are computed before this."""
+    surf = surf.copy()
+    surf["geometry"] = surf.geometry.simplify(simplify_m, preserve_topology=True)
+    if len(surf) > many:
+        a = surf.to_crs(crs).area / 1e4
+        keep = a >= min_ha
+        log.info(f"{stem}: {int((~keep).sum())} of {len(surf)} parts under {min_ha:g} ha dropped for the web layer "
+                 f"({a[~keep].sum() / 100:.1f} of {a.sum() / 100:.1f} km2)")
+        surf = surf[keep]
+    return surf
+
+
 def _e_counts(series: pd.Series) -> dict:
     return {str(k): int(v) for k, v in series.round(1).value_counts().sort_index().items()}
 
@@ -211,7 +227,7 @@ def write_landslide(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br: gp
     surf = pyogrio.read_dataframe(cfg["exposure"]["hazards_gdb"], layer=ls["class_fc"])
     summary["surface_km2"] = {str(int(k)): round(float(v), 1) for k, v in
                               surf.to_crs(target_crs(cfg)).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
-    surf["geometry"] = surf.geometry.simplify(10, preserve_topology=True)
+    surf = slim_surface(surf, target_crs(cfg), log, "landslide_surface", simplify_m=10)
     _geojson(surf[["hz_class", "label", "geometry"]], out_dir / "landslide_surface.geojson", log)
     summary["inputs"] = {"e1": "USGS 2024 landslide susceptibility, share of the 90 m cell that is prone (over 80 = 3, over 60 = 2, over 40 = 1) or a recorded landslide (USGS inventory; polygons under "
                                f"{ls.get('recorded_max_area_km2', 10)} km2, points within {ls.get('recorded_point_buffer_m', 50)} m) = 3",
@@ -272,7 +288,7 @@ def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
         surf = pyogrio.read_dataframe(hz_gdb, layer=name)
         areas[stem] = {str(int(k)): round(float(v), 1) for k, v in
                        surf.to_crs(crs).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
-        surf["geometry"] = surf.geometry.simplify(20, preserve_topology=True)
+        surf = slim_surface(surf, crs, log, stem)
         _geojson(surf[["hz_class", "label", "geometry"]], out_dir / f"{stem}.geojson", log)
     summary["surfaces_km2"] = areas
     summary["inputs"] = {"e1": "Regional Resource Kit annual burn probability (Pyrologix 2022, 30 m), breaks 0.5 and 1 percent",
