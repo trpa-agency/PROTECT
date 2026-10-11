@@ -219,10 +219,10 @@ Note on S3. The draft has no condition term for small culverts. TRPA proposes re
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database) | 0.50 | class 5 (very high), or any recorded landslide | 3 | 0 | **TRPA proposal:** maximum over the watershed; 25 m buffer where none |
-| | | | class 4 (high) | 2 | | |
-| | | | class 3 (moderate) | 1 | | |
-| | | | class 1 or 2 (very low or low) | 0 | | |
+| E1 | USGS landslide susceptibility, or a recorded landslide. **TRPA proposal** (decision 24): the USGS 2024 release holds the share of each 90 m cell that is landslide-prone, not five classes, so the draft's classes 5, 4, and 3 are read as over 80, 60, and 40 percent of the cell | 0.50 | over 80 percent of the cell prone (the draft's class 5), or any recorded landslide | 3 | 0 | **TRPA proposal:** maximum over the watershed; 25 m buffer where none |
+| | | | over 60 to 80 percent (class 4) | 2 | | |
+| | | | over 40 to 60 percent (class 3) | 1 | | |
+| | | | 40 percent and under (classes 1 and 2) | 0 | | |
 | E2 | Cal-Adapt annual precipitation change versus historical | 0.20 | over 40 percent | 3 | 0; the historical horizon scores 0 by definition | Watershed mean |
 | | | | over 20 to 40 percent | 2 | | |
 | | | | over 0 to 20 percent | 1 | | |
@@ -778,3 +778,11 @@ buffer; transit centers the maximum within 300 ft.
     and reviewed in time, on the same breaks.
 23. Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1
     (5 to under 10 percent), both flagged `S_source` partial.
+24. Landslide susceptibility read from the USGS 2024 release (Mirus and others, doi
+    10.5066/P13KAGU3), which gives the share of each 90 m cell that is landslide-prone rather
+    than five classes: over 80 percent scores 3, over 60 scores 2, over 40 scores 1, equal
+    intervals standing in for the draft's classes 5, 4, and 3. Recorded landslides come from the
+    USGS inventory (CGS and NBMG in the basin); inventory polygons over 10 km2 are mapping
+    units and are dropped, and a landslide point counts within 50 m. The precipitation-change
+    term scores 0 at the historical horizon and keeps its weight, so landslide exposure tops out
+    at 2.14 until the 2050 and 2080 columns are added.

@@ -414,6 +414,7 @@
               <tr><td>Two gaps in the draft's tables</td><td>No row for culvert openings over 8 ft or for an avalanche record with no slope over 25 degrees</td><td>Both score 1</td><td class="num">20</td></tr>
               <tr><td>Flood exposure for roads, active transport, and transit centers</td><td>Floodplain extent (10-yr 3 down to 1,000-yr 0.5) at 0.35 and 100-yr depth at 0.35</td><td>One indicator, the FEMA zone and stream-crossing scale, at the full exposure weight; FEMA maps only the 100-yr and 500-yr floodplains</td><td class="num">21</td></tr>
               <tr><td>Wildfire exposure inputs</td><td>Contracted burn probability and flame length</td><td>Regional Resource Kit burn probability (Pyrologix 2022) on the draft's breaks and TRPA most-likely fire severity in place of flame length; the contracted package replaces them for December if delivered in time</td><td class="num">22</td></tr>
+              <tr><td>Landslide susceptibility classes</td><td>USGS Landslide Susceptibility Index classes 1 to 5</td><td>The USGS 2024 release gives the share of each 90 m cell that is landslide-prone, not classes; over 80, 60, and 40 percent stand in for classes 5, 4, and 3. Inventory polygons over 10 km2 dropped; points count within 50 m</td><td class="num">24</td></tr>
               <tr><td>Truck AADT and trail slope defaults</td><td>TBD</td><td>1 each, flagged partial</td><td class="num">23</td></tr>
             </tbody>
           </table>
@@ -436,7 +437,7 @@
     // lock: {horizon: score} forces the score under that horizon.
     // mods: checkbox modifiers applied to the score (clamped 0 to 3).
     const FEMA_VALUES = [[3,"1 percent zone (A, AE)"],[2,"0.2 percent zone (X500) or on a mapped TRPA stream"],[1,"on an NHD flowline outside a zone"],[0,"no zone, no flowline"]];
-    const LSI_VALUES = [[3,"class 5 (very high), or any recorded landslide"],[2,"class 4 (high)"],[1,"class 3 (moderate)"],[0,"class 1 or 2 (very low or low)"]];
+    const LSI_VALUES = [[3,"over 80 percent of the cell prone (the draft's class 5), or any recorded landslide"],[2,"over 60 to 80 percent (class 4)"],[1,"over 40 to 60 percent (class 3)"],[0,"40 percent and under (classes 1 and 2)"]];
     const PPT_VALUES = [[3,"over 40 percent"],[2,"over 20 to 40 percent"],[1,"over 0 to 20 percent"],[0,"no change or decrease"]];
     const SIZE_VALUES = [[3,"under 2 ft opening"],[2.5,"2 to under 3 ft"],[2,"3 to under 5 ft"],[1.5,"5 to under 7 ft"],[1,"7 ft and over (over 8 ft is a TRPA interpretation, decision 20)"]];
     const COND_VALUES = [[3,"poor"],[2,"fair"],[1,"good"]];
@@ -500,7 +501,7 @@
         ]},
       {id:"LS-C", hazard:"Landslide", asset:"culvert", assetLabel:"Small culverts", wE:0.7, wS:0.3, section:"Rubrics section 2.3", options:[],
         indicators:[
-          {k:"lsc_e1", code:"E1", comp:"E", name:"USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database)", weight:0.50, values:LSI_VALUES, def:0, sampling:"Maximum over the watershed; 25 m buffer where none (TRPA proposal, decision 3)"},
+          {k:"lsc_e1", code:"E1", comp:"E", name:"USGS landslide susceptibility (share of the 90 m cell that is prone; decision 24), or a recorded landslide", weight:0.50, values:LSI_VALUES, def:0, sampling:"Maximum over the watershed; 25 m buffer where none (TRPA proposal, decision 3)"},
           {k:"lsc_e2", code:"E2", comp:"E", name:"Cal-Adapt annual precipitation change versus historical", weight:0.20, values:PPT_VALUES, def:0, sampling:"Watershed mean", lock:{hist:0}},
           {k:"lsc_s1", code:"S1", comp:"S", name:"Culvert size, opening width (d_eq_in)", weight:0.15, values:SIZE_VALUES, def:2, defNote:"2, S_source partial (TRPA proposal)", sampling:"Per asset"},
           {k:"lsc_s2", code:"S2", comp:"S", name:"Culvert condition where available (cond_class)", weight:0.15, values:COND_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection"}
@@ -525,7 +526,7 @@
         ]},
       {id:"LS-B", hazard:"Landslide", asset:"bridge", assetLabel:"Bridges and large culverts", wE:0.7, wS:0.3, section:"Rubrics section 3.2", options:[],
         indicators:[
-          {k:"lsb_e1", code:"E1", comp:"E", name:"USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database)", weight:0.50, values:LSI_VALUES, def:0, sampling:"Maximum within 25 m, plus the parent segment's value where the abutment slopes extend past the buffer"},
+          {k:"lsb_e1", code:"E1", comp:"E", name:"USGS landslide susceptibility (share of the 90 m cell that is prone; decision 24), or a recorded landslide", weight:0.50, values:LSI_VALUES, def:0, sampling:"Maximum within 25 m, plus the parent segment's value where the abutment slopes extend past the buffer"},
           {k:"lsb_e2", code:"E2", comp:"E", name:"Cal-Adapt annual precipitation change versus historical", weight:0.20, values:PPT_VALUES, def:0, sampling:"At the structure", lock:{hist:0}}
         ].concat(BRIDGE_S)},
       {id:"DF-B", hazard:"Debris flow", asset:"bridge", assetLabel:"Bridges and large culverts", wE:0.7, wS:0.3, section:"Rubrics sections 3.2 and 4.2", options:[DF_OPTION],
@@ -561,7 +562,7 @@
         ]},
       {id:"LS-R", hazard:"Landslide", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 6.3", options:[],
         indicators:[
-          {k:"lsr_e1", code:"E1", comp:"E", name:"USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database)", weight:0.50, values:LSI_VALUES, def:0, sampling:"Length-weighted maximum along the segment"},
+          {k:"lsr_e1", code:"E1", comp:"E", name:"USGS landslide susceptibility (share of the 90 m cell that is prone; decision 24), or a recorded landslide", weight:0.50, values:LSI_VALUES, def:0, sampling:"Length-weighted maximum along the segment"},
           {k:"lsr_e2", code:"E2", comp:"E", name:"Cal-Adapt annual precipitation change versus historical", weight:0.20, values:PPT_VALUES, def:0, sampling:"Segment mean", lock:{hist:0}},
           {k:"lsr_s1", code:"S1", comp:"S", name:"Pavement condition (the draft prefers embankment condition or stabilization measures where available)", weight:0.30, values:PAVE_VALUES, def:2, defNote:"2 (fair, per the draft), S_source partial", sampling:"Jurisdiction outreach; unavailable today", tags:["pending"], tagText:{pending:"source TBD; the open sensitivity gap for every road pair"}}
         ]},
@@ -612,7 +613,8 @@
       [18,"5.4 Avalanche","Whether the TRPA avalanche zone layer and documented closures count as records alongside the two accident databases.","Both count as records (confirmed Oct. 8)","Open"],
       [21,"6.5 Roads, trails, transit","FEMA flood zones as the flood exposure indicator for roads, active transport, and transit centers, with the 1 percent zone scoring 3 and the extent and depth indicators collapsed into one at the full exposure weight. The draft's extent scale would score the 100-year floodplain 2 and the 500-year 1, with 3 and 2.5 reserved for the 10- and 50-year floodplains that FEMA does not map.","FEMA four-value scale at 0.70 (1.0 for transit centers)","Open"],
       [22,"6.5 Roads, trails, transit","Wildfire exposure from the current data in hand: the Regional Resource Kit annual burn probability (Pyrologix 2022, 30 m) on the draft's breaks, and TRPA most-likely fire severity (the RRK severity probabilities stacked) classed Low 1, Moderate 2, High 3 in place of flame length. The contracted fire-behavior package replaces them for December if delivered and reviewed in time, on the same breaks.","TRPA data for the workshop","Open"],
-      [23,"6.5 Roads, trails, transit","Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1 (5 to under 10 percent), both flagged S_source partial.","As stated","Open"]
+      [23,"6.5 Roads, trails, transit","Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1 (5 to under 10 percent), both flagged S_source partial.","As stated","Open"],
+      [24,"2, 3, 6.3 Landslide","Landslide susceptibility read from the USGS 2024 release (Mirus and others), which gives the share of each 90 m cell that is landslide-prone rather than five classes: over 80 percent scores 3, over 60 scores 2, over 40 scores 1, standing in for the draft's classes 5, 4, and 3. Recorded landslides from the USGS inventory; polygons over 10 km2 dropped as mapping units, points count within 50 m. The precipitation-change term scores 0 at the historical horizon and keeps its weight.","TRPA proposal","Open"]
     ];
 
     // ---------- STATE ----------

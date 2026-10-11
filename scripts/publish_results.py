@@ -212,7 +212,7 @@ def write_landslide(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br: gp
                               surf.to_crs(target_crs(cfg)).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
     surf["geometry"] = surf.geometry.simplify(10, preserve_topology=True)
     _geojson(surf[["hz_class", "label", "geometry"]], out_dir / "landslide_surface.geojson", log)
-    summary["inputs"] = {"e1": "USGS landslide susceptibility class (5 = 3, 4 = 2, 3 = 1) or a recorded landslide (USGS inventory; polygons under "
+    summary["inputs"] = {"e1": "USGS 2024 landslide susceptibility, share of the 90 m cell that is prone (over 80 = 3, over 60 = 2, over 40 = 1) or a recorded landslide (USGS inventory; polygons under "
                                f"{ls.get('recorded_max_area_km2', 10)} km2, points within {ls.get('recorded_point_buffer_m', 50)} m) = 3",
                          "e2": "Cal-Adapt precipitation change, 0 at the historical horizon by definition",
                          "weights": ls["weights"], "sampling": "culverts: maximum over the watershed; bridges: 25 m; roads: along the segment"}

@@ -142,11 +142,11 @@
     <div class="map-wrap" id="map-wrap">
       <div class="layer-panel">
         <h3>Susceptibility class</h3>
-        <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: very low or low</div>
-        <div class="lg-row"><span class="lg-line" style="background:#E0C68A"></span> 1: moderate</div>
-        <div class="lg-row"><span class="lg-line" style="background:#B47E00"></span> 2: high</div>
-        <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: very high, or a recorded landslide</div>
-        <p class="note">The highest class touching the road, within 25 m of the bridge, or anywhere in the culvert's drainage area.<i class="i" tabindex="0" data-tip="E1 for LS-R, LS-B, and LS-C: the USGS Landslide Susceptibility Index class (5 = 3, 4 = 2, 3 = 1, 1 and 2 = 0), with every recorded landslide in the USGS inventory as 3. Roads sample along the segment, bridges within 25 m, culverts as the maximum over the contributing watershed with a 25 m buffer where no watershed exists.">i</i></p>
+        <div class="lg-row"><span class="lg-line" style="background:#cfd4da"></span> 0: under 40 percent of the ground prone</div>
+        <div class="lg-row"><span class="lg-line" style="background:#E0C68A"></span> 1: 40 to 60 percent prone</div>
+        <div class="lg-row"><span class="lg-line" style="background:#B47E00"></span> 2: 60 to 80 percent prone</div>
+        <div class="lg-row"><span class="lg-line" style="background:#9C3E27"></span> 3: over 80 percent prone, or a recorded landslide</div>
+        <p class="note">The highest class touching the road, within 25 m of the bridge, or anywhere in the culvert's drainage area.<i class="i" tabindex="0" data-tip="E1 for LS-R, LS-B, and LS-C: the share of each 90 m cell that the USGS 2024 susceptibility model calls landslide-prone (over 80 percent = 3, over 60 = 2, over 40 = 1; decision 24), with every recorded landslide in the USGS inventory as 3. Roads sample along the segment, bridges within 25 m, culverts as the maximum over the contributing watershed with a 25 m buffer where no watershed exists.">i</i></p>
         <p class="note">The exposure score is 0.5 x this class divided by 0.7, so it tops out at 2.1 until the climate term is scored.<i class="i" tabindex="0" data-tip="E = (0.50 x E1 + 0.20 x E2) / 0.70. E2 is the Cal-Adapt precipitation change, which scores 0 at the historical horizon by definition; the 2050 and 2080 columns are added in December. Scores shown: 0, 0.71, 1.43, 2.14.">i</i></p>
         <div class="grp">
           <h3>Layers</h3>
@@ -184,7 +184,7 @@
 
     <calcite-block heading="How the numbers are made" collapsible scale="s" style="margin-top:1.2rem">
       <ul class="notes">
-        <li><b>Susceptibility (E1).</b> The USGS Landslide Susceptibility Index, classed on the draft's mapping: very high (5) is 3, high (4) is 2, moderate (3) is 1, low and very low are 0.</li>
+        <li><b>Susceptibility (E1).</b> The USGS 2024 susceptibility model (Mirus and others) gives, for each 90 m cell, the share of the ground that is landslide-prone from slope and relief. Over 80 percent scores 3, over 60 scores 2, over 40 scores 1. The draft rubric names five classes the product does not have, so these equal intervals stand in for its classes 5, 4, and 3 (decision 24).</li>
         <li><b>Recorded landslides.</b> Every mapped landslide in the USGS inventory (California Geological Survey and Nevada Bureau of Mines and Geology in the basin) counts as class 3. Polygons over 10 km2 are mapping units, not slides, and are left out; a landslide point counts within 50 m. Both are TRPA choices the rubric leaves open.</li>
         <li><b>Climate term (E2).</b> Cal-Adapt precipitation change at weight 0.2 scores 0 at the historical horizon by definition, so the score is 0.5 x E1 / 0.7 and tops out at 2.1 until the 2050 and 2080 columns are added.</li>
         <li><b>Sampling.</b> Roads take the highest class touching the segment, with the share of length in each class in the table. Bridges take the highest class within 25 m. Culverts take the highest class anywhere in their drainage area, which is why a culvert in town can score 3 when the slope above it does.</li>
@@ -207,7 +207,7 @@
     const MI = 1609.344;
     const CLS = [0, 1, 2, 3];
     const CLS_COL = {0:COL.gray, 1:COL.tan, 2:COL.earth, 3:COL.brick};
-    const CLS_LABEL = {0:"0: very low or low", 1:"1: moderate", 2:"2: high", 3:"3: very high or recorded"};
+    const CLS_LABEL = {0:"0: under 40 percent prone", 1:"1: 40 to 60 percent", 2:"2: 60 to 80 percent", 3:"3: over 80 percent or recorded"};
     const clsOf = v => (v == null || isNaN(v)) ? null : Math.max(0, Math.min(3, Math.round(v)));
 
     // ---------- KPIs ----------

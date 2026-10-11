@@ -22,7 +22,7 @@ scripts, data paths, and references moved to the appendix of `docs/WORKSHOP1_BUI
 tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
 (incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Scoring
 Rubrics page** (`html/scoring-rubrics.html`, v0.3: interactive per-pair scoring for all 15 pairs
-on the consultant's half-point scale, rubric tables, framework, 23 decisions, and the list of
+on the consultant's half-point scale, rubric tables, framework, 24 decisions, and the list of
 TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
 model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
 every page; never describe a flood model as purchased or pending. The **Phase 1
