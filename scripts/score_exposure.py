@@ -252,10 +252,11 @@ def dissolve_classes(allp: gpd.GeoDataFrame, crs) -> gpd.GeoDataFrame:
     return surf[~surf.geometry.is_empty].explode(index_parts=False).reset_index(drop=True)
 
 
-def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scratch_gdb: str, name: str) -> gpd.GeoDataFrame:
-    """Reclassify a continuous raster to 0 to 3 on two upper breaks (class 1 over 0, class 2
-    over breaks[0], class 3 over breaks[1]) inside the basin's bounding box, and return the
-    class polygons (hz_class) in the target CRS."""
+def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scratch_gdb: str, name: str,
+                      zero_below: float = 0.0) -> gpd.GeoDataFrame:
+    """Reclassify a continuous raster to 0 to 3 on two upper breaks (class 1 over zero_below,
+    class 2 over breaks[0], class 3 over breaks[1]) inside the basin's bounding box, and return
+    the class polygons (hz_class) in the target CRS."""
     import arcpy
     import pyogrio
     from arcpy.sa import Con, Raster
@@ -265,7 +266,7 @@ def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scr
     basin = fetch_basin(cfg, log)
     sr = arcpy.Describe(raster).spatialReference
     b = basin.to_crs(f"EPSG:{sr.factoryCode}" if sr.factoryCode else sr.exportToString()).total_bounds
-    pad = 500.0
+    pad = 0.005 if sr.type == "Geographic" else 500.0   # about 500 m either way
     clip = f"{scratch_gdb}\\{name}_clip"
     arcpy.management.Clip(raster, f"{b[0] - pad} {b[1] - pad} {b[2] + pad} {b[3] + pad}", clip,
                           clipping_geometry="NONE", maintain_clipping_extent="NO_MAINTAIN_EXTENT")
@@ -277,8 +278,8 @@ def raster_to_classes(raster: str, breaks: list, units: str, cfg: dict, log, scr
         log.info(f"{Path(raster).name}: maximum {vmax:g} inside the basin box; read as {units}")
     if units == "fraction":
         scale = 100.0
-    b1, b2 = float(breaks[0]) / scale, float(breaks[1]) / scale
-    cls = Con(r > b2, 3, Con(r > b1, 2, Con(r > 0, 1, 0)))
+    b0, b1, b2 = float(zero_below) / scale, float(breaks[0]) / scale, float(breaks[1]) / scale
+    cls = Con(r > b2, 3, Con(r > b1, 2, Con(r > b0, 1, 0)))
     cls_path = f"{scratch_gdb}\\{name}_cls"
     cls.save(cls_path)
     poly = f"{scratch_gdb}\\{name}_poly"
@@ -304,7 +305,7 @@ def raster_classes_mapped(raster: str, mapping: dict, cfg: dict, log, scratch_gd
     sr = arcpy.Describe(raster).spatialReference
     cell = arcpy.Describe(raster).meanCellWidth
     b = basin.to_crs(f"EPSG:{sr.factoryCode}" if sr.factoryCode else sr.exportToString()).total_bounds
-    pad = 500.0
+    pad = 0.005 if sr.type == "Geographic" else 500.0   # about 500 m either way
     clip = f"{scratch_gdb}\\{name}_clip"
     arcpy.management.Clip(raster, f"{b[0] - pad} {b[1] - pad} {b[2] + pad} {b[3] + pad}", clip,
                           clipping_geometry="NONE", maintain_clipping_extent="NO_MAINTAIN_EXTENT")
@@ -348,7 +349,19 @@ def build_landslide_surface(cfg: dict, log, overwrite: bool) -> dict:
     raster = resolve_raster(str(ls["lsi_raster"]))
     if not arcpy.Exists(raster):
         raise SystemExit(f"exposure.landslide.lsi_raster not found: {raster}")
-    lsi = raster_classes_mapped(raster, ls["lsi_classes"], cfg, log, gdb, "ls_lsi")
+    if ls.get("lsi_mode", "concentration") == "classes":
+        lsi = raster_classes_mapped(raster, ls["lsi_classes"], cfg, log, gdb, "ls_lsi")
+    else:
+        # USGS 2024 release (Mirus et al.; doi 10.5066/P13KAGU3): each 90 m cell holds the count of
+        # landslide-prone 10 m cells, 0 to 81. Scored on the share of the cell that is prone
+        # (exposure.landslide.lsi_share_pct): class 1 over the first share, 2 over the second,
+        # 3 over the third; below the first share scores 0.
+        pct = [float(v) for v in ls["lsi_share_pct"]]
+        full = float(ls.get("lsi_cell_max", 81))
+        counts = [p / 100.0 * full for p in pct]
+        log.info(f"Susceptibility classed on the share of each cell that is landslide-prone: class 1 over {pct[0]:g}, "
+                 f"2 over {pct[1]:g}, 3 over {pct[2]:g} percent ({counts[0]:.1f}, {counts[1]:.1f}, {counts[2]:.1f} of {full:g} cells)")
+        lsi = raster_to_classes(raster, counts[1:], "percent", cfg, log, gdb, "ls_lsi", zero_below=counts[0])
     log.info("Susceptibility classes, area by class (km2):\n"
              + (lsi.groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6)).round(1).to_string())
     parts = [lsi]

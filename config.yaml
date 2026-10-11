@@ -72,7 +72,13 @@ exposure:
     e2_fc: Hazard_Wildfire_Severity      # the E2 surface (severity classes, or flame length when that raster is set)
   landslide:               # LS-C, LS-B, LS-R (rubric 2, 3, 6.3): E1 susceptibility or recorded landslide 0.50, E2 precipitation change 0.20
     lsi_raster: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\usgs_landslide_risk.tif   # USGS Landslide Susceptibility Index
-    lsi_classes: {5: 3, 4: 2, 3: 1}      # raster class -> score; classes 1 and 2 (very low, low) and anything else score 0
+    # usgs_landslide_risk.tif is the USGS 2024 release (Mirus et al., doi 10.5066/P13KAGU3): 90 m cells holding the
+    # count of landslide-prone 10 m cells, 0 to 81, not the five classes the draft rubric names. TRPA proposal: score
+    # the share of each cell that is prone, equal intervals, so the draft's class 3 / 4 / 5 become over 40 / 60 / 80 percent.
+    lsi_mode: concentration              # concentration (share of the cell, below) | classes (a 1 to 5 class raster, lsi_classes)
+    lsi_share_pct: [40, 60, 80]          # class 1 over 40, 2 over 60, 3 over 80 percent of the cell prone; under 40 = 0
+    lsi_cell_max: 81                     # 10 m cells per 90 m cell
+    lsi_classes: {5: 3, 4: 2, 3: 1}      # used only in classes mode: raster class -> score
     recorded_polys: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12   # USGS inventory (CGS and NBMG in the basin)
     recorded_points: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_point_v2/FeatureServer/11
     recorded_point_buffer_m: 50          # a mapped landslide point counts within this distance (TRPA choice; the rubric says any recorded landslide)
