@@ -68,6 +68,17 @@ exposure:
     weights: {e1: 0.70, e2: 0.30}
     bp_fc: Hazard_Wildfire_BurnProb
     e2_fc: Hazard_Wildfire_FlameLength   # name the E2 surface for what it holds
+  landslide:               # LS-C, LS-B, LS-R (rubric 2, 3, 6.3): E1 susceptibility or recorded landslide 0.50, E2 precipitation change 0.20
+    lsi_raster: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\usgs_landslide_risk.tif   # USGS Landslide Susceptibility Index
+    lsi_classes: {5: 3, 4: 2, 3: 1}      # raster class -> score; classes 1 and 2 (very low, low) and anything else score 0
+    recorded_polys: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12   # USGS inventory (CGS and NBMG in the basin)
+    recorded_points: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_point_v2/FeatureServer/11
+    recorded_point_buffer_m: 50          # a mapped landslide point counts within this distance (TRPA choice; the rubric says any recorded landslide)
+    recorded_where: "1=1"
+    recorded_max_area_km2: 10            # inventory polygons larger than this are mapping units, not slides (one 202 km2 polygon touches the basin)
+    precip_change_hist: 0                # E2 scores 0 at the historical horizon by definition; 2050 and 2080 columns come in December
+    weights: {e1: 0.50, e2: 0.20}        # E_LS*_hist = (0.50 E1 + 0.20 x 0) / 0.70
+    class_fc: Hazard_Landslide_Class
   # line and point assets scored by the lane's other pairs (roads come from assets.streets_*)
   active_transport_layer: https://maps.trpa.org/server/rest/services/Transportation/MapServer/3   # existing facilities
   active_transport_key: OBJECTID
