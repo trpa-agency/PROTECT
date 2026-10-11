@@ -25,29 +25,7 @@ Rubrics page** (`html/scoring-rubrics.html`, v0.3: interactive per-pair scoring 
 on the consultant's half-point scale, rubric tables, framework, 24 decisions, and the list of
 TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
 model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
-every page; never describe a flood model as purchased or pending. The **Phase 1
-MVP map tool** (`html/risk-index-tool.html`) - live TRPA layers plus a per-component Status view,
-no placeholder data; the **Criticality Index app** (`html/criticality-index.html`, live, 18,253
-segments, linked site-wide) and the **OD Services Index** (`html/od-services-index.html`, the
-access-to-critical-locations criticality factor); the historic hazards map
-(`html/historic-hazards.html`); the climate inputs page (`html/climate-data.html`); and the storm
-events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culvert layer and
-WRF 1-hr intensity grid). The **Workshop Feedback app** (`html/workshop-feedback.html`, Oct. 10,
-2026) replaces the paper sticky notes in the Workshop 1 results activity: five hazard stations, click
-an asset (roads, bridges, culverts, transit, paths) or drop a pin, concern 1 to 3, hazards, why,
-missing-from-results flag; sends to the hosted table "PROTECT Workshop Feedback notes" on TRPA's
-ArcGIS Online (public Create-only submit view and public read view, made by
-`scripts/create_workshop_feedback_layer.py`; the email address is never sent, only its hash), CSV
-export and import as the fallback; the Report out tab and the printable master list tally
-everyone's notes by hazard and asset. The **results pages** share a tab strip under the header, one page per hazard:
-`html/culvert-results.html` (flooding: culverts and bridges), `html/wildfire-results.html`
-(Oct. 10, 2026: WF-R, WF-AT, WF-TC from the Regional Resource Kit burn probability, Pyrologix
-2022, and TRPA most-likely fire severity; roads colored by score, likelihood, or severity; paths dashed; the eight transit
-hubs; both surfaces; road miles by score and by road type; road table), and
-`html/landslide-results.html` (Oct. 10, 2026: LS-R, LS-C, LS-B from the USGS susceptibility
-index plus recorded landslides; the climate term is 0 at the historical horizon so scores top
-out at 2.14; culverts by watershed maximum). All read
-`data/processed/results/` written by `scripts/publish_results.py`. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
+every page; never describe a flood model as purchased or pending. The **Results page** (`html/results.html`, Oct. 10, 2026) is the front door for the assessment: one data-driven page with an Overview tab (every asset's V_max class, vulnerability by criticality, hotspots) and one tab per hazard (flooding with the drainage area on click, wildfire with the 300 ft sampling footprint layers and a segment-buffer click, landslide, debris flow, avalanche), each a config block in the page (`MODES`) that swaps data files, legends, renderers, charts, and table columns in one map, one grid, and two chart divs. It reads `data/processed/results/` written by `scripts/publish_results.py`; a hazard whose files are not published shows an empty state. The standalone hazard pages and the Phase 1 MVP map are archived. Every page carries the shared five-group site nav (Results; Components: the **Criticality Index app** (`html/criticality-index.html`, live, 18,253 segments) and the **OD Services Index** (`html/od-services-index.html`); Method and data: rubrics, reference hub, climate inputs; Evidence: historic hazards, storm events; Workshop: punch list, feedback). The landing page groups its cards the same way. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
 Jekyll skips underscore directories, so nothing in it is served by Pages.
 
 ## Project context
@@ -114,10 +92,7 @@ PROTECT/
 ├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
 ├── html/workshop-feedback.html      # Workshop 1 digital sticky notes: hazard stations, click an asset or drop a pin, concern 1-3, why, missing flag; sends to the AGOL table (SURVEY block), CSV fallback; Report out tab + printable master list
 ├── scripts/create_workshop_feedback_layer.py  # makes/checks the AGOL table + submit/read views for the feedback page (--smoke-test)
-├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
-├── html/culvert-results.html        # flooding results: culverts and bridges (tab strip with the wildfire page)
-├── html/wildfire-results.html       # wildfire results: roads, paths, transit hubs, the two surfaces
-├── html/landslide-results.html      # landslide results: roads, culverts, bridges, the susceptibility surface
+├── html/results.html                # the Results page: Overview + one tab per hazard (data-driven MODES config)
 ├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
 ├── html/od-services-index.html      # OD access-to-services index (RA2CE routed trips; criticality factor 4)
 ├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)
@@ -156,7 +131,7 @@ PROTECT/
   how Mason edits this data (export, edit in a spreadsheet, hand the CSV back to apply). Keep one on
   every new grid/table: AG Grids use `api.exportDataAsCsv`; static tables use the `tableToCsv` helper.
 - **ArcGIS + UMD load order.** On any page that loads the ArcGIS Maps SDK alongside Plotly/AG Grid
-  (e.g., `risk-index-tool.html`), load Plotly and AG Grid *before* the ArcGIS `<script>`. ArcGIS's
+  (e.g., `results.html`), load Plotly and AG Grid *before* the ArcGIS `<script>`. ArcGIS's
   Dojo/AMD loader otherwise makes those UMD bundles register as AMD modules (`Error: multipleDefine`;
   `window.Plotly` / `window.agGrid` end up undefined and the map fails). Pages without ArcGIS (the hub,
   the inventory) are unaffected.

@@ -199,7 +199,7 @@ symbology is the same in every layout.
 
 ## 3. Website work (html/, TRPA dashboard stack)
 
-### 3.1 risk-index-tool.html: Workshop 1 release (Oct. 19 to Nov. 4)
+### 3.1 results.html (was risk-index-tool.html): Workshop 1 release (Oct. 19 to Nov. 4)
 
 The page that answers "what data or features would be most helpful". It should mirror the
 activity so participants recognize what they just did at the posters.

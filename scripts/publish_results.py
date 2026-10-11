@@ -28,14 +28,18 @@ CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "pare
                 "q_event_25_cfs", "q_event_100_cfs", "q_cap_crossing_cfs", "load_ratio_25", "load_ratio_100",
                 "cond_class", "cond_source", "cond_stale", "blockage_pct", "tailwater_flag", "on_stream",
                 "size_suspect", "ratio_review", "profile_completeness", "E_FLC_hist", "E_FLC_pt", "E_FLC_src",
-                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_source",
-                "S_FLC", "V_FLC_hist", "S_LSC", "V_LSC_hist", "V_max", "V_max_pair", "V_class", "S_source"]
+                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_DFC_hist", "E_DFC_e1", "E_DFC_e2", "E_DFC_e3", "DF_option", "E_source",
+                "S_FLC", "V_FLC_hist", "S_LSC", "V_LSC_hist", "S_DFC", "V_DFC_hist", "V_max", "V_max_pair", "V_class", "S_source"]
 BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_crossed", "year_built",
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
                "channel_cond", "lowest_rating", "bridge_condition_label", "water_crossing", "parent_segment_id",
-               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_source"]
-ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e2", "len_pct_c1", "len_pct_c2",
-             "len_pct_c3", "seg_len_m"]
+               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_DFB_hist", "DF_option", "E_source",
+               "S_FLB", "V_FLB_hist", "S_LSB", "V_LSB_hist", "S_DFB", "V_DFB_hist", "V_max", "V_max_pair", "V_class", "S_source"]
+ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e2", "E_{p}_e3", "len_pct_c1", "len_pct_c2",
+             "len_pct_c3", "av_tier", "av_record", "uphill_ha", "seg_len_m"]
+V_ROAD_COLS = ["src_objectid", "name", "class", "V_FLR_hist", "V_LSR_hist", "V_WFR_hist", "V_DFR_hist", "V_AVR_hist",
+               "V_max", "V_max_pair", "V_class", "C_class", "criticality_score", "criticality_pctl", "seg_len_m"]
+CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")
 WF_ROAD_COLS = [c.format(p="WFR") for c in ROAD_COLS]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
          "q_cap_crossing_cfs": 1, "load_ratio_25": 2, "load_ratio_100": 2, "max_span_m": 1, "span_in": 1, "d_eq_in": 1}
@@ -174,13 +178,18 @@ def write_hazard_roads(cfg: dict, out_dir: Path, log, hazard: str, pair: str):
     st = read_streets(cfg, log, columns=extra).drop_duplicates(key)
     roads[key] = roads[key].astype(str)
     r = st.merge(roads, on=key, how="inner")
+    # the pair's vulnerability score rides along when the roads have been scored
+    vr = _table(gdb, "Vulnerability_roads", log) if f"V_{pair}_hist" not in r.columns else None
+    if vr is not None and f"V_{pair}_hist" in vr.columns:
+        vr[key] = vr[key].astype(str)
+        r = r.merge(vr[[key, f"V_{pair}_hist", "V_class", "C_class"]], on=key, how="left")
     r["geometry"] = r.geometry.simplify(5, preserve_topology=True)
     for c in ("name", "class"):
         if c not in r.columns:
             r[c] = None
-    cols = [c.format(p=pair) for c in ROAD_COLS]
+    cols = [c.format(p=pair) for c in ROAD_COLS] + [f"V_{pair}_hist", "V_class", "C_class"]
     r = r[[c for c in cols if c in r.columns] + ["geometry"]]
-    ecols = [c for c in (f"E_{pair}_hist", f"E_{pair}_e1", f"E_{pair}_e2") if c in r.columns]
+    ecols = [c for c in (f"E_{pair}_hist", f"E_{pair}_e1", f"E_{pair}_e2", f"E_{pair}_e3", f"V_{pair}_hist") if c in r.columns]
     for c in ecols:
         r[c] = pd.to_numeric(r[c], errors="coerce").round(2)
     r["seg_len_m"] = pd.to_numeric(r["seg_len_m"], errors="coerce").round(1)
@@ -236,6 +245,69 @@ def write_landslide(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br: gp
     return summary
 
 
+def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br: gpd.GeoDataFrame) -> dict | None:
+    """The overview page's data: roads with every pair's V, V_max, class, and the provisional
+    criticality class joined to the street geometry (roads_vulnerability.geojson and .csv), and
+    a summary block for roads, culverts, bridges, paths, and hubs."""
+    import pyogrio
+    gdb = cfg["paths"]["analysis_gdb"]
+    crs = target_crs(cfg)
+    key = cfg["assets"]["streets_key"]
+    vr = _table(gdb, "Vulnerability_roads", log)
+    if vr is None:
+        return None
+    info = pyogrio.read_info(cfg["assets"]["streets_gdb"], layer=cfg["assets"]["streets_fc"])
+    extra = [c for c in ("name", "class") if c in list(info["fields"])]
+    st = read_streets(cfg, log, columns=extra).drop_duplicates(key)
+    vr[key] = vr[key].astype(str)
+    r = st.merge(vr.drop(columns=[c for c in ("name",) if c in vr.columns]), on=key, how="inner")
+    r["geometry"] = r.geometry.simplify(5, preserve_topology=True)
+    for c in ("name", "class"):
+        if c not in r.columns:
+            r[c] = None
+    r = r[[c for c in V_ROAD_COLS if c in r.columns] + ["geometry"]]
+    for c in r.columns:
+        if c.startswith(("V_", "criticality")) and c not in ("V_max_pair", "V_class"):
+            r[c] = pd.to_numeric(r[c], errors="coerce").round(2)
+    _geojson(gpd.GeoDataFrame(r, geometry="geometry", crs=crs), out_dir / "roads_vulnerability.geojson", log)
+    pd.DataFrame(r.drop(columns="geometry")).to_csv(out_dir / "roads_vulnerability.csv", index=False)
+    mi = r["seg_len_m"] / 1609.344
+    cc = r["C_class"]
+    matrix = {}
+    for vc in ("Low", "Medium", "High"):
+        for c in (0, 1, 2, 3):
+            m = (r["V_class"] == vc) & (cc == c)
+            matrix[f"{vc}|{c}"] = {"segments": int(m.sum()), "miles": round(float(mi[m].sum()), 1)}
+    hot = r[(r["V_class"] == "High") & (cc == 3)]
+    summary = {
+        "roads": {"segments": int(len(r)), "miles": round(float(mi.sum()), 1),
+                  "V_class": {str(k): int(v) for k, v in r["V_class"].value_counts().items()},
+                  "miles_by_class": {str(k): round(float(v), 1) for k, v in mi.groupby(r["V_class"]).sum().items()},
+                  "V_max_pair": {str(k): int(v) for k, v in r["V_max_pair"].value_counts().items()},
+                  "pair_class": {p: {str(k): int(v) for k, v in r[f"V_{p}_hist"].map(CLASS_OF).value_counts().items()}
+                                 for p in ("FLR", "LSR", "WFR", "DFR", "AVR") if f"V_{p}_hist" in r.columns},
+                  "C_class": {str(int(k)): int(v) for k, v in cc.dropna().value_counts().sort_index().items()},
+                  "matrix": matrix,
+                  "hotspots": {"segments": int(len(hot)), "miles": round(float(mi[hot.index].sum()), 1),
+                               "by_pair": {str(k): int(v) for k, v in hot["V_max_pair"].value_counts().items()}}},
+        "culverts": {"V_class": {str(k): int(v) for k, v in cul["V_class"].value_counts().items()},
+                     "V_max_pair": {str(k): int(v) for k, v in cul["V_max_pair"].value_counts().items()},
+                     "pair_class": {p: {str(k): int(v) for k, v in cul[f"V_{p}_hist"].map(CLASS_OF).value_counts().items()}
+                                    for p in ("FLC", "LSC", "DFC") if f"V_{p}_hist" in cul.columns}} if "V_class" in cul.columns else None,
+        "bridges": {"V_class": {str(k): int(v) for k, v in br["V_class"].value_counts().items()},
+                    "V_max_pair": {str(k): int(v) for k, v in br["V_max_pair"].value_counts().items()},
+                    "pair_class": {p: {str(k): int(v) for k, v in br[f"V_{p}_hist"].map(CLASS_OF).value_counts().items()}
+                                   for p in ("FLB", "LSB", "DFB") if f"V_{p}_hist" in br.columns}} if "V_class" in br.columns else None,
+        "breaks": cfg["scoring"]["v_breaks"], "c_class_pctl_breaks": cfg["scoring"].get("c_class_pctl_breaks"),
+    }
+    for stem, lab in (("active_transport", "paths"), ("transit_centers", "transit")):
+        t = _table(gdb, f"Vulnerability_{stem}", log)
+        if t is not None:
+            summary[lab] = {"count": int(len(t)), "V_class": {str(k): int(v) for k, v in t["V_class"].value_counts().items()},
+                            "V_max_pair": {str(k): int(v) for k, v in t["V_max_pair"].value_counts().items()}}
+    return summary
+
+
 def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
     """Wildfire exposure (WF-R, WF-AT, WF-TC) for the results page: roads with their scores
     joined to the street geometry, the paths and transit hubs, the burn probability and E2
@@ -265,6 +337,11 @@ def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
         a = g.merge(at.drop(columns=[c for c in ("name",) if c in at.columns]), on="at_id", how="inner")
         a = a.rename(columns={"NAME": "name", "CLASS": "class"})
         a = a[["at_id", "name", "class", "E_WFAT_hist", "E_WFAT_e1", "E_WFAT_e2", "seg_len_m", "geometry"]]
+        va = _table(gdb, "Vulnerability_active_transport", log)
+        if va is not None:
+            va["at_id"] = va["at_id"].astype(str)
+            keep = ["at_id"] + [c for c in va.columns if c.startswith(("V_", "E_FLAT")) or c in ("V_class", "V_max_pair")]
+            a = a.merge(va[keep], on="at_id", how="left")
         a["geometry"] = a.geometry.simplify(5, preserve_topology=True)
         _geojson(gpd.GeoDataFrame(a, geometry="geometry", crs=crs), out_dir / "paths_wildfire.geojson", log)
         summary["paths"] = {"count": int(len(a)), "miles": round(float(a["seg_len_m"].sum() / 1609.344), 1),
@@ -278,6 +355,11 @@ def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
         g["tc_id"] = g[k].astype(str)
         tc["tc_id"] = tc["tc_id"].astype(str)
         t = g.merge(tc, on="tc_id", how="inner")[["tc_id", "E_WFTC_hist", "E_WFTC_e1", "E_WFTC_e2", "geometry"]]
+        vt = _table(gdb, "Vulnerability_transit_centers", log)
+        if vt is not None:
+            vt["tc_id"] = vt["tc_id"].astype(str)
+            keep = ["tc_id"] + [c for c in vt.columns if c.startswith(("V_", "E_FLTC")) or c in ("V_class", "V_max_pair")]
+            t = t.merge(vt[keep], on="tc_id", how="left")
         _geojson(gpd.GeoDataFrame(t, geometry="geometry", crs=crs), out_dir / "transit_wildfire.geojson", log)
         summary["transit"] = {"count": int(len(t)), "E": _e_counts(t["E_WFTC_hist"]),
                               "n_e_ge_1_6": int((t["E_WFTC_hist"] >= 1.6).sum())}
@@ -290,6 +372,17 @@ def write_wildfire(cfg: dict, out_dir: Path, log) -> dict | None:
                        surf.to_crs(crs).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
         surf = slim_surface(surf, crs, log, stem)
         _geojson(surf[["hz_class", "label", "geometry"]], out_dir / f"{stem}.geojson", log)
+        # the sampling footprint: the same classes within 300 ft of a road, so the page can show
+        # what each segment was scored against
+        if r is not None:
+            surf_m = surf.to_crs(crs)
+            if "_road_buffer" not in locals():
+                dist = float(wf.get("buffer_ft", 300)) * 0.3048
+                _road_buffer = gpd.GeoDataFrame(geometry=[r.geometry.buffer(dist).union_all()], crs=crs)
+                log.info(f"Road buffer union at {dist:.0f} m built for the footprint layers")
+            foot = gpd.overlay(surf_m[["hz_class", "label", "geometry"]], _road_buffer, how="intersection", keep_geom_type=True)
+            foot = foot[~foot.geometry.is_empty]
+            _geojson(foot[["hz_class", "label", "geometry"]], out_dir / f"{stem}_300ft.geojson", log)
     summary["surfaces_km2"] = areas
     summary["inputs"] = {"e1": "Regional Resource Kit annual burn probability (Pyrologix 2022, 30 m), breaks 0.5 and 1 percent",
                          "e2": "contracted flame length, breaks 4 and 8 ft" if wf.get("flame_length_raster")
@@ -377,6 +470,15 @@ def main() -> None:
         ls_summary = write_landslide(cfg, out_dir, log, cul, br)
         if ls_summary:
             summary["landslide"] = ls_summary
+    for hz, pair in (("debris_flow", "DFR"), ("avalanche", "AVR")):
+        rr, ss = write_hazard_roads(cfg, out_dir, log, hz, pair)
+        if rr is not None:
+            summary[hz] = {"roads": ss}
+            if hz == "avalanche":
+                summary[hz]["roads"]["records"] = int((rr["av_record"] == 1).sum()) if "av_record" in rr.columns else None
+    v_summary = write_vulnerability(cfg, out_dir, log, cul, br)
+    if v_summary:
+        summary["vulnerability"] = v_summary
     cul.to_file(out_dir / "culverts_results.geojson", driver="GeoJSON")
     br.to_file(out_dir / "bridges_results.geojson", driver="GeoJSON")
     flood.to_file(out_dir / "flood_surface.geojson", driver="GeoJSON")
