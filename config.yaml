@@ -55,7 +55,7 @@ exposure:
     # Sierra Nevada Regional Resource Kit (caregionalresourcekits.org/sierra.html, Fire Dynamics): Pyrologix 2022
     # annual burn probability, 30 m (AnnualBurnProbability_202308.zip). The 2018 FSim set
     # (Download\BurnProbability_2018.gdb: iBP, iCFL, iMFI, iCBP_FIL1-6) is the older generation of the same products.
-    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\SNV_RRK_Data.gdb\AnnualBurnProbability_202308_tif
+    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\AnnualBurnProbability_202308\AnnualBurnProbability_202308.tif   # the unzipped RRK download (a folder also resolves to the .tif inside it)
     bp_units: auto           # percent | fraction | auto (fraction when the raster maximum is 1 or less)
     bp_breaks_pct: [0.5, 1.0]   # E1 annual burn probability: over 0 to 0.5 = 1, over 0.5 to 1 = 2, over 1 percent = 3
     severity_layer: https://maps.trpa.org/server/rest/services/Fire/MapServer/3   # E2 until the contracted package lands

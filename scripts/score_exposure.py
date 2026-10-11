@@ -345,7 +345,7 @@ def build_landslide_surface(cfg: dict, log, overwrite: bool) -> dict:
     if arcpy.Exists(f"{gdb}\\{fc}") and not overwrite:
         log.info(f"{fc} exists; reading it (use --build to rebuild)")
         return {"e1": (float(w["e1"]), pyogrio.read_dataframe(gdb, layer=fc).to_crs(crs)), "e2": (float(w["e2"]), None)}
-    raster = str(ls["lsi_raster"])
+    raster = resolve_raster(str(ls["lsi_raster"]))
     if not arcpy.Exists(raster):
         raise SystemExit(f"exposure.landslide.lsi_raster not found: {raster}")
     lsi = raster_classes_mapped(raster, ls["lsi_classes"], cfg, log, gdb, "ls_lsi")
@@ -383,6 +383,22 @@ def build_landslide_surface(cfg: dict, log, overwrite: bool) -> dict:
     return {"e1": (float(w["e1"]), surf), "e2": (float(w["e2"]), None)}
 
 
+def resolve_raster(path: str) -> str:
+    """A raster path as given, or the single .tif inside a folder (an unzipped download), or
+    the path with .tif added. Returns the input unchanged when nothing resolves."""
+    import os
+    p = str(path or "")
+    if not p or "<" in p:
+        return p
+    if os.path.isdir(p):
+        tifs = sorted(f for f in os.listdir(p) if f.lower().endswith((".tif", ".tiff", ".img")))
+        if tifs:
+            return os.path.join(p, tifs[0])
+    if not os.path.exists(p) and os.path.exists(p + ".tif"):
+        return p + ".tif"
+    return p
+
+
 def build_wildfire_surface(cfg: dict, log, overwrite: bool) -> dict:
     """Two classed surfaces for WF-R, WF-AT, and WF-TC (rubric 6.4, decision 22): E1 the annual
     burn probability raster on the draft's breaks and E2 the TRPA most-likely fire severity
@@ -404,9 +420,10 @@ def build_wildfire_surface(cfg: dict, log, overwrite: bool) -> dict:
                 "e2": (float(w["e2"]), pyogrio.read_dataframe(gdb, layer=e2_fc).to_crs(crs))}
 
     # E1: burn probability
-    bp_raster = str(wf["bp_raster"])
+    bp_raster = resolve_raster(str(wf["bp_raster"]))
     if not bp_raster or "<" in bp_raster or not arcpy.Exists(bp_raster):
         raise SystemExit(f"exposure.wildfire.bp_raster is not set or not found: {bp_raster}")
+    log.info(f"E1 raster: {bp_raster}")
     bp = raster_to_classes(bp_raster, wf["bp_breaks_pct"], str(wf.get("bp_units", "auto")), cfg, log, gdb, "wf_bp")
     bp = dissolve_classes(bp, crs)
     log.info("Burn probability surface, area by class (km2):\n"
@@ -417,7 +434,7 @@ def build_wildfire_surface(cfg: dict, log, overwrite: bool) -> dict:
                                                 1: f"burn probability over 0 to {bk[0]:g} percent"}, cfg, log)
 
     # E2: flame length when the contracted raster is set, else the TRPA severity polygons
-    fl_raster = str(wf.get("flame_length_raster") or "")
+    fl_raster = resolve_raster(str(wf.get("flame_length_raster") or ""))
     if fl_raster:
         fb = wf["flame_breaks_ft"]
         e2 = dissolve_classes(raster_to_classes(fl_raster, fb, "ft", cfg, log, gdb, "wf_fl"), crs)
