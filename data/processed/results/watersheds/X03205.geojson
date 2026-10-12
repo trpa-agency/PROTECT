@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "X03205",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "part": "direct", "crossing_id": "X03205", "area_ac": 0.0, "n_upstream": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -119.95063786614304, 39.256659594614099 ], [ -119.950680260499524, 39.256750789628718 ], [ -119.95063474483554, 39.256731579970257 ], [ -119.95063786614304, 39.256659594614099 ] ] ] } },
+{ "type": "Feature", "properties": { "part": "upstream", "crossing_id": "X03205", "area_ac": 0.0, "n_upstream": 1.0 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -119.950674017939789, 39.256894760343506 ], [ -119.950608475503898, 39.256802958657545 ], [ -119.950657112502881, 39.256750182971217 ], [ -119.950680260499524, 39.256750789628718 ], [ -119.950674017939789, 39.256894760343506 ] ] ] } }
+]
+}

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Historic Hazards | PROTECT | TRPA</title>
+  <meta name="description" content="The observed hazard record for the Lake Tahoe Region: fire perimeters, mapped landslides, and earthquake epicenters against the TRPA boundary." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -47,6 +48,7 @@
     header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
     header.app-header a:hover{color:#fff;}
     main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
     .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
     /* Map layout */
@@ -106,11 +108,28 @@
     .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
       background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
       font-style:normal;line-height:1.45;width:max-content;max-width:min(300px,calc(100vw - 2rem));text-align:left;white-space:normal;
-      opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
-    .i:hover::after,.i:focus::after{opacity:1;visibility:visible;}
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
     .i.tip-right::after{left:auto;right:0;transform:none;}
     .i.tip-left::after{left:0;right:auto;transform:none;}
-  </style>
+    /* Phone and tablet widths: nav wraps under the title, the layer panel stacks above the map */
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;}
+      .panel-rail{display:none;}
+      #map-view{height:420px;}
+      .toolbar .qf{min-width:0;flex-basis:100%;}
+    }
+      /* site nav: five groups */
+    .sitenav{background:#fff;border-bottom:1px solid #DDDDDD;}
+    .sitenav .inner{max-width:1320px;margin:0 auto;padding:.35rem 1.6rem;display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.78rem;font-family:'Open Sans',system-ui,sans-serif;}
+    .sitenav .g{display:flex;gap:.5rem;align-items:baseline;}
+    .sitenav .g b{color:#5a6577;font-weight:600;text-transform:uppercase;font-size:.66rem;letter-spacing:.06em;}
+    .sitenav a{color:#003B71;text-decoration:none;font-weight:600;}
+    .sitenav a:hover{color:#0072CE;}
+    .sitenav a.on{color:#0072CE;}
+</style>
 </head>
 <body>
 
@@ -125,45 +144,44 @@
       <div class="right">
         <span class="chip">v0.1</span>
         <a href="index.html">Home</a>
-        <a href="risk-index-tool.html">Risk Index Tool</a>
-        <a href="criticality-index.html">Criticality Index</a>
-        <a href="reference-hub.html">Reference Hub</a>
-        <a href="tahoe-precip-events.html">Storm Events</a>
       </div>
     </div>
   </header>
+  <nav class="sitenav" aria-label="Site"><div class="inner"><span class="g"><b>Results</b><a href="results.html">Results</a></span><span class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></span><span class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></span><span class="g"><b>Evidence</b><a href="historic-hazards.html" class="on">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></span><span class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></span></div></nav>
+
 
   <main>
+    <div class="banner">Internal review draft. The fire record is California only.</div>
+
     <p class="lead">
-      The observed hazard record for the Lake Tahoe Region: fire perimeters, mapped landslides, and
-      earthquake epicenters against the TRPA boundary and member jurisdictions. Historical hazards are
-      the ground truth the predictive exposure models are checked
-      against.<i class="i" tabindex="0" data-tip="Historical Hazards is a Step 2 Exposure element in the data inventory. Its use is to ground-truth predictive models: a burn-probability or debris-flow surface that disagrees with where fires actually burned is a surface to re-examine before it feeds the vulnerability screening.">i</i>
-      The fire record is queried live from CAL FIRE and clipped to the TRPA boundary polygon;
-      <strong>it is California only</strong>, so fires on the Nevada side are missing.<i class="i" tabindex="0" data-tip="CAL FIRE FRAP covers California. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area. The landslide and earthquake layers do cover both states.">i</i>
-      The landslide and earthquake layers cover both states.
+      Where fires, landslides, and earthquakes have been recorded in the Lake Tahoe Region, shown
+      against the TRPA boundary and member jurisdictions. The record is the check on the predictive
+      hazard maps<i class="i" tabindex="0" data-tip="Historical hazards are a component 2 exposure element in the data inventory. They check the predictive models: a burn-probability or debris-flow surface that disagrees with where fires burned is re-examined before it feeds the vulnerability screening.">i</i>,
+      and the fire layer is <strong>California only</strong>, so fires on the Nevada side are
+      missing.<i class="i" tabindex="0" data-tip="CAL FIRE FRAP covers California. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area. The landslide and earthquake layers cover both states.">i</i>
     </p>
 
     <div class="map-wrap" id="map-wrap">
       <div class="layer-panel" id="layer-panel">
         <h3>Landslides</h3>
-        <label class="lyr"><calcite-switch id="tg-lspoly" class="sw"></calcite-switch> Mapped deposits<i class="i" tabindex="0" data-tip="USGS US Landslide Inventory v3, a compilation of state inventories. Only 2 mapped deposits fall inside the TRPA boundary, both from the Nevada Bureau of Mines and Geology. The 57 CA Geological Survey polygons nearby (Spittler and Wagner 1997) all sit outside the Region.">i</i></label>
+        <label class="lyr"><calcite-switch id="tg-lspoly" class="sw"></calcite-switch> Mapped deposits<i class="i" tabindex="0" data-tip="USGS US Landslide Inventory v3, a compilation of state inventories. Only two mapped deposits fall inside the TRPA boundary, both from the Nevada Bureau of Mines and Geology. The 57 California Geological Survey polygons nearby (Spittler and Wagner 1997) all sit outside the Region.">i</i></label>
         <label class="lyr"><calcite-switch id="tg-lspoint" class="sw"></calcite-switch> Landslide points<i class="i" tabindex="0" data-tip="Three point records inside the TRPA boundary, used where the source inventory located a slide but did not map its extent.">i</i></label>
-        <div class="note"><strong>Sparse inside the Region:</strong> 2 deposits and 3 points. Mapped features, not dated events, so they do not respond to the year filter. The basin has effectively no systematic landslide inventory.</div>
+        <div class="note"><strong>Sparse inside the Region:</strong> two deposits and three points, mapped features rather than dated events, so the year filter does not apply to them.<i class="i" tabindex="0" data-tip="The basin has no systematic landslide inventory.">i</i></div>
 
         <h3 style="margin-top:1rem;">Earthquakes</h3>
-        <label class="lyr"><calcite-switch id="tg-eq" class="sw"></calcite-switch> USGS epicenters M2.5+<i class="i" tabindex="0" data-tip="USGS ComCat, magnitude 2.5 and above since 1900, within the basin bounding box. Circles are sized and shaded by magnitude. Earthquake pairs (EQ-B, EQ-R) are TRIP-discussion rather than VA-scored, so this is context for the plan.">i</i></label>
+        <label class="lyr"><calcite-switch id="tg-eq" class="sw"></calcite-switch> USGS epicenters M2.5+<i class="i" tabindex="0" data-tip="USGS ComCat, magnitude 2.5 and above since 1900, within the basin bounding box. Circles are sized and shaded by magnitude. The earthquake pairs (EQ-B, EQ-R) are discussed in the TRIP rather than scored in the vulnerability assessment, so this layer is context for the plan.">i</i></label>
 
         <h3 style="margin-top:1rem;">Fire history</h3>
-        <label class="lyr"><calcite-switch id="tg-fire" class="sw" checked></calcite-switch> CAL FIRE perimeters<i class="i" tabindex="0" data-tip="California Historic Fire Perimeters, CAL FIRE FRAP. Shaded by year: paler for older fires, deep brick for recent. Overlapping polygons mean repeat burns.">i</i></label>
+        <label class="lyr"><calcite-switch id="tg-fire" class="sw" checked></calcite-switch> CAL FIRE perimeters<i class="i" tabindex="0" data-tip="California Historic Fire Perimeters, CAL FIRE FRAP. Shaded by year: paler for older fires, deep brick for recent fires. Overlapping polygons are repeat burns.">i</i></label>
         <div class="yr-read" id="yr-read">All years</div>
         <calcite-slider id="yr-slider" min="1910" max="2025" min-value="1910" max-value="2025" step="1" label-handles></calcite-slider>
-        <div class="note">Drag either handle to filter the record by year. The table below follows the map.</div>
+        <div class="note">The year range filters the map and the table.</div>
 
         <div class="grp">
           <h3>Boundaries</h3>
           <label class="lyr"><calcite-switch id="tg-bound" class="sw" checked></calcite-switch> TRPA boundary</label>
           <label class="lyr"><calcite-switch id="tg-juris" class="sw"></calcite-switch> Jurisdictions<i class="i" tabindex="0" data-tip="Jurisdictions Combined: El Dorado, Placer, Alpine, Washoe, Douglas, Carson City, and the City of South Lake Tahoe.">i</i></label>
+          <label class="lyr"><calcite-switch id="tg-hill" class="sw"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading drainages and road fills.">i</i></label>
           <div class="note">TRPA <code>Boundaries</code> FeatureServer, layers 4 and 10.</div>
         </div>
       </div>
@@ -187,19 +205,26 @@
     </div>
 
     <h2 class="sec">Fire record</h2>
-    <p class="lead">Every perimeter intersecting the TRPA boundary, newest first. Follows the year filter on the map.</p>
+    <p class="lead">Every fire perimeter that touches the TRPA boundary, newest first. The table follows the year filter on the map.</p>
     <div class="toolbar">
-      <input id="fire-qf" class="qf" type="text" placeholder="Quick search by fire name, cause, or agency..." aria-label="Quick search fires" />
+      <input id="fire-qf" class="qf" type="text" placeholder="Search by fire name, cause, or agency" aria-label="Quick search fires" />
       <calcite-button id="fire-export" icon-start="download" appearance="outline" scale="s">Export CSV</calcite-button>
     </div>
     <div id="fire-grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <calcite-block heading="Sources and coverage" collapsible scale="s" style="margin-top:1.2rem">
+      <ul style="padding-left:1.1rem;font-size:.84rem;color:var(--gray-text);line-height:1.5;">
+        <li style="margin-bottom:.35rem"><b>Fire perimeters.</b> <a href="https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0" target="_blank" rel="noopener">CAL FIRE California Historic Fire Perimeters</a> (FRAP), queried live and clipped to the TRPA boundary polygon. California only, so fires on the Nevada side are missing. The Interagency Fire Perimeter History (NIFC) would add the Nevada third of the basin: it returns roughly 40 percent more perimeters over the same area.</li>
+        <li style="margin-bottom:.35rem"><b>Landslides.</b> <a href="https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12" target="_blank" rel="noopener">USGS US Landslide Inventory v3</a>, a compilation of state inventories (California Geological Survey and Nevada Bureau of Mines and Geology). Only two mapped deposits fall inside the TRPA boundary, both from the Nevada Bureau of Mines and Geology; the 57 California Geological Survey polygons nearby (Spittler and Wagner 1997) all sit outside the Region. Three point records mark slides the source located but did not map. These are mapped features, not dated events, so the year filter does not apply to them. The basin has no systematic landslide inventory. Covers both states.</li>
+        <li style="margin-bottom:.35rem"><b>Earthquakes.</b> <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noopener">USGS ComCat</a>, magnitude 2.5 and above since 1900, within the basin bounding box. Covers both states. The earthquake pairs (EQ-B, EQ-R) are discussed in the TRIP rather than scored in the vulnerability assessment, so this layer is context for the plan.</li>
+        <li style="margin-bottom:.35rem"><b>Boundaries.</b> TRPA <code>Boundaries</code> FeatureServer: <code>TRPA Boundary</code> (layer 4) and <code>Jurisdictions Combined</code> (layer 10: El Dorado, Placer, Alpine, Washoe, Douglas, Carson City, and the City of South Lake Tahoe).</li>
+        <li><b>Role in the assessment.</b> Historical hazards are a component 2 exposure element in the data inventory. They check the predictive models: a burn-probability or debris-flow surface that disagrees with where fires burned is re-examined before it feeds the vulnerability screening.</li>
+      </ul>
+    </calcite-block>
   </main>
 
   <footer class="app-footer">
-    <p>Historic Hazards v0.1. Fire perimeters: <a href="https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0" target="_blank" rel="noopener">CAL FIRE California Historic Fire Perimeters</a> (FRAP), California only.
-    Landslides: <a href="https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12" target="_blank" rel="noopener">USGS US Landslide Inventory v3</a> (CA Geological Survey and Nevada Bureau of Mines and Geology compilations).
-    Earthquakes: <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noopener">USGS ComCat</a>, M2.5+ since 1900.
-    Boundaries: TRPA <code>Boundaries</code> FeatureServer (<code>TRPA Boundary</code> /4, <code>Jurisdictions Combined</code> /10). Internal review draft.</p>
+    <p>Historic Hazards v0.1. Fire perimeters from CAL FIRE (California only), landslides from the USGS inventory, earthquakes from USGS ComCat, boundaries from TRPA. Internal review draft.</p>
   </footer>
 
   <script>
@@ -258,8 +283,12 @@
 
     require([
       "esri/Map","esri/views/MapView","esri/layers/FeatureLayer",
-      "esri/layers/GeoJSONLayer","esri/widgets/Home","esri/widgets/BasemapToggle","esri/rest/support/Query"
-    ], function(Map, MapView, FeatureLayer, GeoJSONLayer, Home, BasemapToggle, Query){
+      "esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/widgets/Home","esri/widgets/BasemapToggle","esri/rest/support/Query"
+    ], function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, Home, BasemapToggle, Query){
+
+      // Esri World Hillshade, free tiles, as an optional terrain overlay under the data layers
+      const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+        title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
 
       // Year ramp: pale ice for the oldest fires through brick for the most recent.
       const fires = new FeatureLayer({
@@ -340,7 +369,7 @@
         title:"Mapped landslide",
         content:[{type:"fields", fieldInfos:[
           {fieldName:"LS_Type",    label:"Type"},
-          {fieldName:"Confidence", label:"Confidence (1 low - 3 high)"},
+          {fieldName:"Confidence", label:"Confidence (1 low to 3 high)"},
           {fieldName:"Inventory",  label:"Source inventory"},
           {fieldName:"Info_Sourc", label:"Reference"},
           {fieldName:"USGS_ID",    label:"USGS ID"}
@@ -359,7 +388,7 @@
         popupTemplate: lsPolyPopup
       });
 
-      const map = new Map({ basemap:"gray-vector", layers:[fires, slidePoly, juris, bound, slidePoint, quakes] });
+      const map = new Map({ basemap:"gray-vector", layers:[hillshade, fires, slidePoly, juris, bound, slidePoint, quakes] });
       const view = new MapView({ container:"map-view", map:map, center:[-120.02, 39.09], zoom:9 });
 
       view.when(function(){
@@ -441,6 +470,7 @@
       bindToggle("tg-fire", fires);
       bindToggle("tg-juris", juris);
       bindToggle("tg-bound", bound);
+      bindToggle("tg-hill", hillshade);
       bindToggle("tg-eq", quakes);
       bindToggle("tg-lspoly", slidePoly);
       bindToggle("tg-lspoint", slidePoint);

@@ -86,9 +86,9 @@ Resilience Improvement Plan instead; **Proposed** = added after the 6/25 decisio
 | DF-B | Debris Flow | Bridges | PC | Include in VA | Option 1: StreamStats mean basin slope + drainage area + contracted predicted soil burn severity. Option 2: Wildcat debris-flow likelihood + combined hazard class + soil burn severity | Span type (NBI 45), bridge condition (NBI 58-60), span length (NBI 48) | Added at the 6/25 VA review. Exposure option 1 or 2 undecided (section 7) |
 | DF-C | Debris Flow | Culverts | PC | Include in VA | Same as DF-B (option 1 or 2) | Debris potential of the basin: StreamStats mean basin slope x majority NLCD landcover (option 1) or CULVERT tool WDBFM debris-flow score, 0-5 (option 2) | Split from landslide per 5/20. The purchased pre-fire severity surface makes this predictive rather than post-hoc, and is the primary Wildcat input |
 | DF-R | Debris Flow | Roads | PC | Include in VA | Same as DF-B (option 1 or 2) | Pavement condition, paved vs. unpaved | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
-| FL-B | Flooding | Bridges | PC | Include in VA | NBI water adequacy (Item 71) + change in 100-yr flood depth vs. historical (contracted flood model, max of fluvial and pluvial) | Channel condition (NBI 61), scour criticality (NBI 113, 40 percent), span type (NBI 45), bridge condition (NBI 58-60) | Exposure 0.3 / sensitivity 0.7. Large culverts score with bridges. NBI fields from the FHWA National Bridge Inventory; 2022 lidar asset elevation optional to refine depth |
-| FL-C | Flooding | Culverts | PC | Include in VA | 100-yr flood depth over the road (contracted flood model, max of fluvial and pluvial) | Debris potential of the basin (StreamStats slope x landcover, or CULVERT tool score) + 100-yr capacity loading ratio Qevent/Qdesign (StreamStats flows; Qdesign from asset data or the CULVERT tool) | Exposure 0.3 / sensitivity 0.7 (small culverts). TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall |
-| FL-R | Flooding | Roads | PC | Include in VA | Floodplain extent, 10- to 1,000-yr (35 percent) + 100-yr flood depth (35 percent); contracted flood model, max of fluvial and pluvial | Pavement condition, paved vs. unpaved, truck AADT (10 percent each) | Lowland and valley segments most exposed. Defaults: fair, paved, truck AADT TBD |
+| FL-B | Flooding | Bridges | PC | Include in VA | NBI water adequacy (Item 71) + FEMA flood zone at the structure (TRPA proposal in place of the draft's change in 100-yr flood depth; no flood depth model is being acquired, Oct. 8) | Channel condition (NBI 61), scour criticality (NBI 113, 40 percent), span type (NBI 45), bridge condition (NBI 58-60) | Exposure 0.3 / sensitivity 0.7. Large culverts score with bridges. NBI fields from the FHWA National Bridge Inventory |
+| FL-C | Flooding | Culverts | PC | Include in VA | FEMA flood zone and stream crossing (TRPA proposal in place of the draft's 100-yr flood depth over the road; no flood depth model is being acquired, Oct. 8) | Debris potential of the basin (slope x landcover matrix, computed locally) + 100-yr capacity loading ratio Qevent/Qdesign (local rational-method flows; Qcap from HDS-5 where asset data has none) | Exposure 0.3 / sensitivity 0.7 (small culverts). TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall (tailwater modifier) |
+| FL-R | Flooding | Roads | PC | Include in VA | FEMA flood zone and stream crossing at the full exposure weight (TRPA proposal in place of the draft's floodplain extent and 100-yr depth at 35 percent each; no flood depth model, and FEMA maps only the 100-yr and 500-yr floodplains) | Pavement condition, paved vs. unpaved, truck AADT (10 percent each) | Lowland and valley segments most exposed. Defaults: fair, paved, truck AADT TBD |
 | FL-AT | Flooding | Active Transport | PC | Include in VA | Same as FL-R | Paved vs. unpaved, trail slope (15 percent each) | Moved into the VA after 6/25: all flooding pairs are scored. Defaults: unpaved, slope TBD |
 | FL-TC | Flooding | Transit Centers | PC | Include in VA | Same as FL-R, with lower depth thresholds (3 at more than 8 ft) | None (exposure x 1.0) | Added at the 6/25 VA review; moved into the VA so all flooding pairs are scored |
 | LS-B | Landslide | Bridges | PC | Include in VA | USGS Landslide Susceptibility Index or recorded landslide (CA Landslides Database), 50 percent + Cal-Adapt annual precipitation change, 20 percent | Span type (NBI 45), bridge condition (NBI 58-60), span length (NBI 48) | Large culverts score with bridges |
@@ -142,8 +142,9 @@ and capacity loading drive failure more than inundation depth does. The draft sc
 with bridges (NBI fields) and small culverts on their own rubric (debris potential and capacity
 loading ratio).
 
-Exposure datasets by hazard: flooding from the contracted flood model (max of fluvial and pluvial
-depth; SSP2-4.5 and SSP5-8.5; 5- to 1,000-yr events; 2020, 2030, 2050, 2100); landslide from the
+Exposure datasets by hazard: flooding from FEMA flood zones and stream crossings (TRPA is not
+acquiring a flood depth model, decided Oct. 8, 2026; the draft's depth-based indicators do not
+apply, and the culvert loading ratio carries the hydraulic signal); landslide from the
 USGS Landslide Susceptibility Index, the California Landslides Database, and Cal-Adapt annual
 precipitation projections (RCP4.5/SSP2-4.5 and RCP8.5/SSP5-8.5; 2050, 2080); wildfire from the
 contracted fire-behavior package (burn probability from FSim, flame length from WildEST; current
@@ -192,19 +193,13 @@ flood by average annual loss, wildfire by a federal valued-resource framework, a
 TRPA criticality, leaving the pairs incomparable. The wildfire package also models critical access
 roads, overlapping the Criticality Index.
 
-**Contracted flood licence expires July 2027**, roughly two months after the final plan. The wildfire
-package is perpetual. Establish the renewal cost, whether derived scores survive expiry (a licensing
-question), and whether flood should be architected so the contracted model is swappable back to FEMA,
-StreamStats, and HEC-RAS without a rebuild.
-
-**Scenario mismatch.** The contracted flood data offers SSP1-2.6, SSP2-4.5, and SSP5-8.5; this
-pipeline runs SSP2-4.5 and SSP3-7.0. Only SSP2-4.5 overlaps, which forces the headline-scenario
-decision (climate page, decision 1). Horizons differ too: snapshot years 2030 / 2050 / 2100 against
-30-year climatologies, where 2050 maps onto 2040-2069 but 2100 does not map onto 2070-2099.
-
-**Do not double-count the climate adjustment.** The contracted flood model already applies Atlas 14
-curves and delivers climate-adjusted depths; scaling Atlas 14 again by LOCA2 change factors would
-apply the adjustment twice for flood.
+**No flood depth model (decided Oct. 8, 2026).** TRPA is not purchasing the commercial flood model
+that the draft methodology assumed. The licence-expiry, scenario-mismatch, and Atlas 14
+double-counting items that came with it are closed. Flood exposure is scored from FEMA flood zones
+and stream crossings; the culvert loading ratio (local rational-method flows scaled by the climate
+pipeline's DDF change factors, HDS-5 capacity) carries the hydraulic and future-horizon signal. The
+public depth options (USGS StreamStats peak flows, HEC-RAS at selected crossings) remain available if
+the consultant still wants a depth indicator (scoring rubrics decision 19).
 
 **Fuelscape consistency.** The contracted fire-behavior runs need a fuelscape, and a separate 2026
 fuels package is also being delivered. Confirm both run on the same fuelscape or document the
@@ -244,7 +239,6 @@ assets. Set defaults so far: pavement condition fair, roads paved, trails unpave
 guardrails.
 
 Other headline items: scenario definitions, assets, and hazards for step 3 (after screening),
-analysis grain (segment vs. parcel), climate-data sourcing for commercial flood data (TRPA
-purchase vs. add to ICF contract), data hand-off contract, hosting domain, and public visibility.
+analysis grain (segment vs. parcel), data hand-off contract, hosting domain, and public visibility.
 Climate-specific decisions live on the [climate data page](html/climate-data.html) Open Decisions
 tab.

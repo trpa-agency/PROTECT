@@ -7,7 +7,9 @@ project:
   task: "3.3 Interactive Risk Index Mapping Tool - Assets (culverts)"
 
 paths:
-  raw_root: C:\GIS\Culvert      # jurisdiction deliveries (outside the repo; not committed)
+  raw_root: F:\GIS\PROJECTS\Transportation\Protect\Data\Culvert   # jurisdiction deliveries on TRPA storage
+                                                                   # (one folder per jurisdiction; the notebook
+                                                                   # runs on the server from here)
   # Prior TRPA basin-wide culvert compilation (READ-ONLY - includes USFS forest roads)
   legacy_culverts: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Assets.gdb\Tahoe_Culvert
   # Working analysis geodatabase for the VA (shared with the street network and criticality work)
@@ -31,15 +33,134 @@ output:
   # Tahoe Basin working CRS: NAD 1983 UTM Zone 10N.
   target_epsg: 26910
 
+# scripts/score_exposure.py - classed hazard surfaces and E_<pair>_hist per asset (SCORING_RUBRICS 1.7, 2.3, 3.2, 6)
+exposure:
+  hazards_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_hazards.gdb   # classed surfaces, one fc per hazard
+  horizon: hist            # field suffix; 2050 / 2080 columns are added in December
+  point_buffer_m: 25       # bridges and transit centers: maximum within this distance
+  flood:                   # FL-C E1 values (decision 19): 1 pct zone 3, 0.2 pct zone or mapped stream 2, NHD flowline 1
+    zones_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/0
+    zone_field: FLOOD_ZONE
+    year_field: FLOOD_YEAR   # "100-year flood" / "500-year flood"
+    streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
+    stream_buffer_m: 10
+    exclude_water_over_km2: 1   # the lake and large water bodies are not "a mapped stream"
+    include_lake_zone: false    # FEMA maps the lake's 1 pct stillwater elevation as AE (478 km2): lake-stage
+                                # flooding is the high-lake-level pair, not adopted; false drops FEMA polygons
+                                # over exclude_water_over_km2 from the flood surface
+    nhd_flowlines: ""        # optional NHD flowline layer url for the class-1 value; blank = class 1 unused
+    class_fc: Hazard_Flood_Class
+    bridge_weights: {e1: 0.20, e2: 0.10}   # FL-B: waterway adequacy (NBI 71) and the flood class
+  wildfire:                # WF-R, WF-AT, WF-TC (rubric 6.4, decision 22): E = 0.70 E1 + 0.30 E2, each the maximum within 300 ft
+    # Sierra Nevada Regional Resource Kit (caregionalresourcekits.org/sierra.html, Fire Dynamics): Pyrologix 2022
+    # annual burn probability, 30 m (AnnualBurnProbability_202308.zip). The 2018 FSim set
+    # (Download\BurnProbability_2018.gdb: iBP, iCFL, iMFI, iCBP_FIL1-6) is the older generation of the same products.
+    bp_raster: F:\GIS\PROJECTS\ForestHealth_Intiative\ThresholdUpdate\Data\AnnualBurnProbability_202308\AnnualBurnProbability_202308.tif   # the unzipped RRK download (a folder also resolves to the .tif inside it)
+    bp_units: auto           # percent | fraction | auto (fraction when the raster maximum is 1 or less)
+    bp_breaks_pct: [0.5, 1.0]   # E1 annual burn probability: over 0 to 0.5 = 1, over 0.5 to 1 = 2, over 1 percent = 3
+    severity_layer: https://maps.trpa.org/server/rest/services/Fire/MapServer/3   # E2 until the contracted package lands
+    severity_field: MostLikelyFireSeverity
+    severity_classes: {Low Severity: 1, Moderate Severity: 2, High Severity: 3}   # outside the layer = 0
+    # E2 is the TRPA most-likely fire severity (decision 22): the RRK 2023 severity probabilities stacked into one class,
+    # the same vintage as the burn probability. Set this to the contracted flame-length raster when delivered
+    # (feet, breaks below); the 2018 FSim iCFL is available but mixes vintages.
+    flame_length_raster: ""
+    flame_breaks_ft: [4.0, 8.0]  # over 0 to 4 = 1, over 4 to 8 = 2, over 8 ft = 3 (the draft's breaks)
+    buffer_ft: 300           # sampling distance for every wildfire pair (lines and points)
+    weights: {e1: 0.70, e2: 0.30}
+    bp_fc: Hazard_Wildfire_BurnProb
+    e2_fc: Hazard_Wildfire_Severity      # the E2 surface (severity classes, or flame length when that raster is set)
+  landslide:               # LS-C, LS-B, LS-R (rubric 2, 3, 6.3): E1 susceptibility or recorded landslide 0.50, E2 precipitation change 0.20
+    lsi_raster: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\usgs_landslide_risk.tif   # USGS Landslide Susceptibility Index
+    # usgs_landslide_risk.tif is the USGS 2024 release (Mirus et al., doi 10.5066/P13KAGU3): 90 m cells holding the
+    # count of landslide-prone 10 m cells, 0 to 81, not the five classes the draft rubric names. TRPA proposal: score
+    # the share of each cell that is prone, equal intervals, so the draft's class 3 / 4 / 5 become over 40 / 60 / 80 percent.
+    lsi_mode: concentration              # concentration (share of the cell, below) | classes (a 1 to 5 class raster, lsi_classes)
+    lsi_share_pct: [40, 60, 80]          # class 1 over 40, 2 over 60, 3 over 80 percent of the cell prone; under 40 = 0
+    lsi_cell_max: 81                     # 10 m cells per 90 m cell
+    lsi_classes: {5: 3, 4: 2, 3: 1}      # used only in classes mode: raster class -> score
+    recorded_polys: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_poly_v2/FeatureServer/12   # USGS inventory (CGS and NBMG in the basin)
+    recorded_points: https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/US_Landslide_point_v2/FeatureServer/11
+    recorded_point_buffer_m: 50          # a mapped landslide point counts within this distance (TRPA choice; the rubric says any recorded landslide)
+    recorded_where: "1=1"
+    recorded_max_area_km2: 10            # inventory polygons larger than this are mapping units, not slides (one 202 km2 polygon touches the basin)
+    precip_change_hist: 0                # E2 scores 0 at the historical horizon by definition; 2050 and 2080 columns come in December
+    weights: {e1: 0.50, e2: 0.20}        # E_LS*_hist = (0.50 E1 + 0.20 x 0) / 0.70
+    class_fc: Hazard_Landslide_Class
+  debris_flow:             # DF-C, DF-B, DF-R, option 1 with a burn-severity stand-in (rubric 4.2; DF_option = proxy)
+    cell_m: 30             # the 2 m terrain rasters are aggregated to this for the E1 and E2 surfaces
+    weights: {e1: 0.20, e2: 0.20, e3: 0.30}   # E1 mean upslope slope, E2 contributing area, E3 severity stand-in
+    slope_fc: Hazard_DebrisFlow_Slope
+    area_fc: Hazard_DebrisFlow_Area
+  avalanche:               # AV-R (rubric 5): dominant uphill slope tier within 1,000 ft x a zone record within 1,000 ft
+    zones_layer: https://maps.trpa.org/server/rest/services/Avalanche_Zones/MapServer/0   # the record (decision 18); accident databases not used
+    buffer_ft: 1000
+    cell_m: 10             # DEM aggregated to this for the slope tiers (decision 17)
+    band_m: 20             # elevation bands; cells at least one band above the segment midpoint count as uphill
+    cells_fc: Hazard_Avalanche_Cells
+  # line and point assets scored by the lane's other pairs (roads come from assets.streets_*)
+  active_transport_layer: https://maps.trpa.org/server/rest/services/Transportation/MapServer/3   # existing facilities
+  active_transport_key: OBJECTID
+  transit_centers_layer: https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/Transit_Hubs/FeatureServer/0   # eight hubs (AGOL)
+  transit_centers_key: FID
+
+# scripts/score_vulnerability.py - sensitivity and vulnerability (docs/SCORING_RUBRICS.md 1.1, 1.2, 1.4, 2.3)
+scoring:
+  v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
+  # Pairs scored on a stand-in input stay out of the combined class (V_max, V_class) until the input is real:
+  # debris flow uses the fire severity surface for soil burn severity and the draft's drainage-size break puts
+  # nearly every asset at 3, so it set V_max on 87 percent of culverts and 69 percent of roads (Oct. 11).
+  # V_max_all / V_class_all always carry the every-pair reading alongside. Empty the list to include them.
+  v_max_exclude: [DFC, DFB, DFR]
+  flc:                            # flooding x small culverts
+    s3: true                      # TRPA proposal: condition and blockage as S3 (weights_s3); false = the draft's S1 / S2 only
+    weights_s3: {e: 0.30, s1: 0.25, s2: 0.30, s3: 0.15}
+    weights_draft: {e: 0.30, s1: 0.35, s2: 0.35}
+    s1_default: 1                 # no watershed: debris potential 1, S_source partial
+    s2_default: 1                 # loading ratio withheld (size_suspect) or no size: 1, S_source partial
+    landcover_columns:            # profile basin_landcover group -> draft matrix column (TRPA choice for grass, barren, wetland)
+      forest: trees
+      shrub: shrubs
+      grass: shrubs
+      barren: shrubs
+      developed: urban
+      water: water and snow
+      wetland: water and snow
+  lsc:                            # landslide x small culverts
+    weights: {e: 0.70, s1: 0.15, s2: 0.15}
+    s1_default: 2                 # no size: 2, S_source partial
+  dfc:                            # debris flow x small culverts: decision 7, opening size and condition (the LS-C set)
+    weights: {e: 0.70, s1: 0.15, s2: 0.15}
+    s1_default: 2
+  dfb:                            # debris flow x bridges: the LS-B sensitivity set
+    weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}
+  flb:                            # flooding x bridges: S1 channel (NBI 61), S2 scour (113), S3 span type (45), S4 condition
+    weights: {e: 0.30, s1: 0.10, s2: 0.40, s3: 0.10, s4: 0.10}
+  lsb:                            # landslide x bridges: S1 span type, S2 condition, S3 span length (draft direction; decision 12)
+    weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}
+  roads:                          # the street layer carries no sensitivity attributes today: draft defaults, S_source default
+    flr: {weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}, pavement_default: 2, paved_default: 1, truck_default: 1}
+    lsr: {weights: {e: 0.70, s1: 0.30}, pavement_default: 2}
+    wfr: {weights: {e: 0.70, s1: 0.30}, guardrail_default: 1}
+    dfr: {weights: {e: 0.70, s1: 0.15, s2: 0.15}, pavement_default: 2, paved_default: 1}
+    # avr: exposure only (E 1.0), V = E
+  active_transport:
+    flat: {weights: {e: 0.70, s1: 0.15, s2: 0.15}, paved_default: 3, slope_default: 1}   # the draft's unpaved default; slope unknown
+  c_class_pctl_breaks: [25, 50, 75]   # provisional C_class 0 to 3 from the street layer's criticality_pctl, until the other lane sets its rule
+
 run:
+  crossing_rule:        # notebook: pipes delivered without a culvert type become culverts when
+    jurisdictions: [El Dorado County, Washoe County]   # their line crosses a street centerline
+    max_length_m: 60    # longer crossings are storm-drain trunk runs (stands in for NDOT's manhole-run rule)
   build_gdb: true       # set false to skip the arcpy File GDB write
   line_to_point: midpoint   # how pipe centerlines collapse to a point: midpoint | start | end
   legacy_match_m: 25    # legacy points within this many metres of a new asset count as matched
 
 # scripts/load_culverts_gdb.py - load the engineered culvert layer into the analysis geodatabase
 assets:
-  streets_fc: Streets_Network_Tahoe   # road segments in analysis_gdb; key = segment_id
-  streets_key: segment_id
+  streets_gdb: F:\GIS\PROJECTS\Transportation\Protect\Data\Streets_Network\streets_network_tahoe_clean.gdb
+  streets_fc: Streets_Network_Tahoe_Clean   # the network lane's cleaned street layer (Oct. 9, 2026)
+  streets_key: src_objectid         # unique per link (segment_id is the Overture id, shared by split links)
   segment_snap_m: 50                  # max distance from a culvert to its parent road segment
   culverts_fc: Culverts
   condition_table: CulvertCondition
@@ -54,17 +175,53 @@ assets:
 # same on the server, so this file works unchanged from a clone there.
 profile:
   work_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_terrain.gdb  # terrain rasters
-  nlcd: ""                 # NLCD 2021 land cover raster (optional). Blank = no landcover terms
+  nlcd: F:\GIS\PROJECTS\Transportation\Protect\Data\NLCD\NLCD_Tahoe.tif   # NLCD 2021 land cover clip (MRLC viewer, Oct. 9); blank = no landcover terms
+  fill_z_limit_m: 3        # fill sinks shallower than this before flow direction; null = no Fill.
+                           # The enforced DEM still has sinks at unbreached crossings (Oct. 8 QA:
+                           # two-cell flow loops at the pour cells, accumulation split, flow
+                           # truncated at the road fill). Deeper sinks (lakes, basins) are kept.
   cell_m: 2                # delineation cell size. 2 = native. Larger values aggregate the DEM
                            # with MINIMUM (keeps breach channels) for test runs only
   flow_length: true        # compute the longest upstream flow path (needed for Kirpich tc)
   parallel: "75%"          # arcpy parallelProcessingFactor for the raster tools
-  pour_snap_m: 20          # max-accumulation cell within this distance of the culvert point
+  breach:                  # cut the road fill through every inventoried culvert before Fill
+    enabled: true          # (Oct. 8 QA: the enforcement missed crossings; unbreached creeks spilled
+    length_m: 40           #  along ditches and 292 pipes of 24 in or less inherited 100+ ac basins)
+    drop_m: 0.3            # breach floor = lowest ground sampled at either end, minus this
+    sample_from_m: 8       # ground sampled from this distance out to the line end, both sides
+    bridges: false         # NBI bridges sit on channels the enforcement already carries through
+    streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
+    stream_exclude_m: 10   # no breach within this distance of the lidar-derived streams and lakes:
+                           # a breach floor set from a creek bed pulls the creek into a ditch pipe
+  size_suspect:            # recorded size cannot be the crossing for the basin that arrives: reviewed,
+    max_d_eq_in: 24        # not scored (loading ratio withheld, S1 default). Pipes this small ...
+    min_area_ac: 100       # ... on a mapped stream with a basin this large (Oct. 9: 73 records), or
+    min_area_ac_any: 500   # ... with a basin this large anywhere (an 18 in Caltrans pipe at 3,952 ac,
+                           # a chain of 12 in Washoe pipes at 1,200 ac, on drainages the stream layer
+                           # does not show but the enforcement carries), or
+    min_d_eq_in: 8         # any size below a cross-drain (6 in underdrains, data-entry defaults)
+    ratio_review_above: 20 # flag only (score kept): a pipe this far under its 100-yr flow is overtopped
+                           # by small storms; the owner confirms the record (12 in Washoe pipes at 100-400 ac)
+  pour_snap_m: 4           # max-accumulation cell within this distance of the culvert point (the
+                           # breach runs through the culvert's own cell; 20 m captured creeks)
+  prism_ppt: F:\GIS\PROJECTS\Transportation\Protect\Data\PRISM\prism_ppt_us_30s_2020_avg_30y.tif
+  prism_url: https://data.prism.oregonstate.edu/normals/us/800m/ppt/monthly/prism_ppt_us_30s_2020_avg_30y.zip
+                           # PRISM 1991-2020 annual precipitation normal, 800 m, mm (scripts/fetch_prism.py)
+  regression:              # USGS regional regression for basins over rational_max_sqmi
+    nv_jurisdictions: [NDOT, Washoe County, Douglas County]
+    ca_jurisdictions: [Caltrans, Placer County, El Dorado County, City of South Lake Tahoe]
+    nv_uses: NV            # NV = Thomas 1997 region 1 for Nevada-side culverts (the state's own
+                           # equation); CA = Gotvald 2012 Lahontan basin-wide. On the same basin
+                           # region 1 gives about one third of Lahontan; the log prints the ratio.
+    applicability:         # published ranges (CA Lahontan table 9; NV region 1 table 3)
+      area_sqmi: [0.45, 1060]
+      precip_in: [11, 85]
   crossing_group_m: 10     # culverts this close on one segment are one crossing (multi-barrel)
   large_culvert_m: 25      # a culvert this close to an NBI culvert-type structure scores with bridges
   tailwater_ft: 6230       # outlet below this elevation is flagged (legal maximum lake level 6229.1)
   dem_vintage_year: 2011   # install_year at or after this postdates the 2010 lidar DEM
   size_breaks_in: [18, 36, 72]   # small / medium / large / major on equivalent diameter
+  load_ratio_breaks: [0.5, 1.0, 2.0]  # FL-C S1 classes 0/1/2/3 on load_ratio (SCORING_RUBRICS 2.3); used by the Pro maps
   max_span_in: 144         # larger circular spans are treated as data errors
   cond_stale_year: 2015    # latest inspection before this year is flagged stale
   # Hydrology (SCORING_RUBRICS 2.4). Atlas 14 DDF from the climate pipeline; nearest PFDS point.

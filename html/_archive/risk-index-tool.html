@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT Risk Index Tool (MVP) | TRPA</title>
+  <meta name="description" content="Phase 1 of the PROTECT Risk Index Tool: live TRPA hazard and asset layers for the Lake Tahoe Region transportation network, with the status of each assessment component." />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Calcite -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/5.0"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/5.0/calcite.css" />
+
+  <!-- ArcGIS Maps SDK. This page no longer loads Plotly or AG Grid; if UMD libraries return,
+       they must load BEFORE this script (ArcGIS's AMD loader breaks UMD globals otherwise). -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    header.app-header .right{flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;}
+    header.app-header .badge{background:var(--trpa-orange);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
+    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem;}
+    .kpi-card{background:#fff;border-radius:8px;padding:.8rem 1.1rem;flex:1;min-width:160px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
+    .kpi-card .kpi-value{font-size:1.7rem;font-weight:700;color:var(--trpa-navy);line-height:1;}
+    .kpi-card .kpi-label{font-size:.74rem;color:var(--gray-text);margin-top:.3rem;}
+    .kpi-cap{font-size:.72rem;color:var(--gray-text);margin:.1rem 0 1rem;font-style:italic;}
+    calcite-tabs{--calcite-color-brand:var(--trpa-blue);}
+    .tab-body{padding:1rem 0 .5rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    /* Map layout */
+    .map-wrap{display:flex;gap:0;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;}
+    .layer-panel{width:270px;flex-shrink:0;background:#fff;border-right:1px solid var(--gray-border);padding:.9rem 1rem;overflow-y:auto;}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
+    .layer-panel .lyr .sw{flex-shrink:0;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .coming{color:#aab2bd;font-size:.78rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .5rem;}
+    .layer-panel .note a{color:var(--trpa-blue);font-weight:600;}
+    #map-view{flex:1;height:600px;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.3rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    h2.sec:first-child{margin-top:0;}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;}
+    .card{background:#fff;border-radius:8px;padding:1rem 1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--c,var(--trpa-blue));}
+    .card h3{font-size:.95rem;font-weight:700;margin-bottom:.5rem;}
+    .card ul{margin-left:1.05rem;} .card li{font-size:.84rem;margin-bottom:.25rem;}
+    .card p{font-size:.84rem;margin-bottom:.4rem;}
+    .card .pill{display:inline-block;font-size:.66rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;margin-left:.35rem;vertical-align:1px;}
+    .pill.live{background:#4A611814;color:var(--trpa-forest);}
+    .pill.building{background:#B47E0014;color:var(--trpa-earth);}
+    .pill.pending{background:#7B6A8A14;color:var(--trpa-purple);}
+    .formula{background:#f0f4f9;border:1px solid #dbe5f0;border-radius:6px;padding:.5rem .75rem;font-size:.84rem;margin:.35rem 0;}
+    footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+
+    /* Hover/focus info affordance: detail lives here instead of on the page */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(280px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
+    /* Phone and tablet widths: nav wraps under the title, the layer panel stacks above the map */
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;flex-wrap:wrap;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;border-right:none;border-bottom:1px solid var(--gray-border);}
+      #map-view{height:420px;}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Risk Index Tool</h1>
+        <div class="header-sub">PROTECT Task 3.3 &middot; Interactive Risk Index</div>
+      </div>
+      <div class="right">
+        <span class="badge">MVP &middot; Phase 1</span>
+        <a href="#" id="methods-link">Methods</a>
+        <a href="index.html">Home</a>
+        <a href="workshop-feedback.html">Workshop Feedback</a>
+        <a href="criticality-index.html">Criticality Index</a>
+        <a href="scoring-rubrics.html">Scoring Rubrics</a>
+        <a href="reference-hub.html">Reference Hub</a>
+        <a href="climate-data.html">Climate Data</a>
+        <a href="historic-hazards.html">Historic Hazards</a>
+        <a href="tahoe-precip-events.html">Storm Events</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpi-row">
+      <div class="kpi-card"><div class="kpi-value">18,253</div><div class="kpi-label">Street segments scored for how much they matter to the network<i class="i" tabindex="0" data-tip="The criticality network: in-basin street segments from the Overture-derived network, scored in the Criticality Index app.">i</i></div></div>
+      <div class="kpi-card"><div class="kpi-value">40</div><div class="kpi-label">Bridges and large culverts (National Bridge Inventory)</div></div>
+      <div class="kpi-card"><div class="kpi-value">7,858</div><div class="kpi-label">Culverts compiled from six jurisdictions, with condition</div></div>
+      <div class="kpi-card"><div class="kpi-value">15</div><div class="kpi-label">Hazard and asset combinations being scored<i class="i" tabindex="0" data-tip="15 hazard-asset pairs are scored in the vulnerability assessment. Seven more are discussed in the plan without scoring, and four are proposed pending Steering Committee review.">i</i></div></div>
+    </section>
+    <p class="kpi-cap">Counts from the working layers: the street network, the bridge layer, and the compiled culvert layer.<i class="i" tabindex="0" data-tip="The Overture-derived criticality network; the Bridges layer built from the National Bridge Inventory clipped to the basin; the compiled TRPA culvert layer.">i</i></p>
+
+    <calcite-tabs scale="m">
+      <calcite-tab-nav slot="title-group">
+        <calcite-tab-title selected>Map</calcite-tab-title>
+        <calcite-tab-title>Status</calcite-tab-title>
+        <calcite-tab-title>Methods</calcite-tab-title>
+        <calcite-tab-title>About</calcite-tab-title>
+      </calcite-tab-nav>
+
+      <!-- MAP -->
+      <calcite-tab selected>
+        <div class="tab-body">
+          <calcite-notice icon="information" scale="s" open>
+            <span slot="message">Every layer on this map is live TRPA data; scored layers are added as results arrive (first results Oct. 16, 2026), and which roads matter most is already scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.<i class="i" tabindex="0" data-tip="Phase 1 MVP, internal review draft. Scored screening layers are added as the vulnerability scoring runs; interactive criticality scoring is live in the Criticality Index app.">i</i></span>
+          </calcite-notice>
+          <div class="map-wrap" style="margin-top:.8rem;">
+            <div class="layer-panel">
+              <h3>Hazards</h3>
+              <div class="note">Each hazard is shown as published today and is graded 0 to 3 for how exposed an asset is.<i class="i" tabindex="0" data-tip="Exposure scoring: each surface is classed 0 to 3, with class breaks held in configuration.">i</i></div>
+              <label class="lyr"><calcite-switch id="tg-flood" class="sw"></calcite-switch> Flood zones</label>
+              <label class="lyr"><calcite-switch id="tg-avy" class="sw"></calcite-switch> Avalanche zones</label>
+              <label class="lyr"><calcite-switch id="tg-fire" class="sw"></calcite-switch> Fire severity probability</label>
+              <div class="grp">
+                <h3>Assets</h3>
+                <div class="note">Roads are colored by how much they matter to the network, from the <a href="criticality-index.html">Criticality Index</a>; bridges and culverts take the score of the road they sit on.<i class="i" tabindex="0" data-tip="Assets carry the criticality score from component 1; bridges and culverts inherit the road segment's score.">i</i></div>
+                <label class="lyr"><calcite-switch id="tg-roads" class="sw" checked></calcite-switch> Roads by criticality<i class="i" tabindex="0" data-tip="18,253 in-basin street segments from the Overture-derived network, colored by criticality at equal weights across the three sub-indices: equity, detour length, and traffic. Weights are adjustable in the Criticality Index app.">i</i></label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Bridges<i class="i" tabindex="0" data-tip="The Bridges layer holds the 40 National Bridge Inventory structures inside the TRPA boundary with condition, scour, channel, and waterway items. It publishes with the PROTECT_VA v2 service (Oct. 23, 2026).">i</i></label>
+                <label class="lyr coming"><calcite-switch class="sw" disabled></calcite-switch> Culverts<i class="i" tabindex="0" data-tip="7,858 culverts compiled from six jurisdictions with a condition table. Publishes with the PROTECT_VA v2 service (Oct. 23, 2026); NDOT assets are excluded from publication pending NDOT review.">i</i></label>
+              </div>
+              <div class="grp">
+                <h3>Base</h3>
+                <label class="lyr"><calcite-switch id="tg-hill" class="sw"></calcite-switch> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the data layers, for reading drainages and road fills.">i</i></label>
+              </div>
+            </div>
+            <div id="map-view"></div>
+          </div>
+        </div>
+      </calcite-tab>
+
+      <!-- STATUS -->
+      <calcite-tab>
+        <div class="tab-body">
+          <p class="lead">Where each part of the assessment stands as of Oct. 8, 2026. The full readiness tracker is in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>.</p>
+          <div class="card-grid">
+            <div class="card" style="--c:#003B71"><h3>1. Which roads matter most<span class="pill live">Live</span></h3><p>18,253 road segments scored in the <a href="criticality-index.html" style="color:var(--trpa-blue);font-weight:600;">Criticality Index app</a>.<i class="i" tabindex="0" data-tip="Component 1, the criticality assessment: equity, traffic, detour length, and access to critical locations, with adjustable weights and hazard filters. Bridges and culverts inherit the road segment's score. Final weights and the 0 to 3 class are written to the road layer in October.">i</i></p></div>
+            <div class="card" style="--c:#E87722"><h3>2a. How exposed each asset is<span class="pill building">Building</span></h3><p>Each hazard map is graded 0 to 3 from data in hand for the workshop; a purchased fire model may replace the wildfire inputs in December.<i class="i" tabindex="0" data-tip="Exposure scoring. Workshop surfaces: FEMA flood zones and stream crossings, USGS landslide susceptibility, the Regional Resource Kit burn probability and TRPA fire severity, DEM dominant slope with avalanche records, and a debris-flow proxy raster. Contracted fire-behavior modeling and predicted soil burn severity are purchased with an Oct. 12 delivery cutoff; if reviewed in time they replace the wildfire inputs for December on the same breaks. No flood depth model is being acquired; flood exposure is the FEMA zone and stream-crossing class. Runout modeling is out of scope.">i</i></p></div>
+            <div class="card" style="--c:#B47E00"><h3>2b. How sensitive each asset is<span class="pill building">Building</span></h3><p>Bridge and culvert condition data are in hand; pavement condition has no source yet.<i class="i" tabindex="0" data-tip="Sensitivity scoring. Bridge condition, scour, channel, and waterway items from the National Bridge Inventory (40 structures). Culvert size, capacity loading ratio, and condition from the compiled layer (7,858 assets). Pavement condition has no source; roads default to fair with the source flagged as partial.">i</i></p></div>
+            <div class="card" style="--c:#9C3E27"><h3>2. Vulnerability score<span class="pill pending">Pending</span></h3><p>How exposed an asset is plus how sensitive it is, weighted for each hazard and asset combination.<i class="i" tabindex="0" data-tip="Vulnerability = (Exposure Score &times; wE) + (Sensitivity Score &times; wS), weights per pair. Per the consultant's Aug. 20, 2026 draft methodology: scored 0 to 3 per asset and classed High, Medium, and Low. Criticality is assessed separately and read alongside. Rubrics v0.2 are on the Scoring Rubrics page; first results are due Oct. 16. The score colors the map and fills the segment table once the screening runs.">i</i></p></div>
+            <div class="card" style="--c:#4A6118"><h3>3. What happens when a road closes<span class="pill building">Building</span></h3><p>Closure scenarios modeled on the street network.<i class="i" tabindex="0" data-tip="Component 3, scenario-based disruption analyses: RA2CE on the Overture street network. Outputs are detours, travel-time change, blocked assets, and populations affected. Two scenarios are selected from the high-criticality and high-vulnerability results on Oct. 21 and run by Oct. 30.">i</i></p></div>
+            <div class="card" style="--c:#0072CE"><h3>Supporting layers<span class="pill live">Live</span></h3><p>Emergency services, transit, priority zones, and the equity grid.<i class="i" tabindex="0" data-tip="Live TRPA REST services feeding the criticality assessment, including the equity tessellation.">i</i></p></div>
+          </div>
+        </div>
+      </calcite-tab>
+
+      <!-- METHODS -->
+      <calcite-tab>
+        <div class="tab-body">
+          <h2 class="sec">How the assessment is built</h2>
+          <p class="lead">The assessment has three parts: which roads matter most, how vulnerable each asset is to each hazard, and what happens when a key road closes. The approach was adopted at the June 25, 2026 vulnerability assessment discussion and is detailed in the consultant's Aug. 20, 2026 draft methodology.<i class="i" tabindex="0" data-tip="Component 1: the criticality assessment, live in the Criticality Index app. Component 2: the system-wide, indicator-based vulnerability assessment of the 15 hazard-asset pairs. Component 3: scenario-based disruption analyses in RA2CE for high-criticality and high-vulnerability locations.">i</i></p>
+          <calcite-block heading="How the vulnerability score is made" collapsible scale="s">
+            <div class="formula"><strong>Indicator screening:</strong> Vulnerability = (Exposure Score &times; w<sub>E</sub>) + (Sensitivity Score &times; w<sub>S</sub>)</div>
+            <ul style="margin-left:1.05rem;font-size:.84rem;">
+              <li><b>Weights.</b> Set per pair: 0.7 exposure and 0.3 sensitivity for most pairs; 0.3 and 0.7 for bridges and culverts under flooding; exposure only for transit centers, active transport under wildfire, and avalanche.</li>
+              <li><b>Scale.</b> Asset-level scores on a 0 to 3 scale are classed High, Medium, and Low.</li>
+              <li><b>Criticality.</b> Assessed separately in component 1 and read with vulnerability to select scenario locations and TRIP priorities.</li>
+            </ul>
+          </calcite-block>
+          <calcite-block heading="Live layers and services" collapsible scale="s">
+            <ul style="margin-left:1.05rem;font-size:.84rem;">
+              <li><b>On the map today.</b> <code>Streams_and_Flood_Zone</code>, <code>Avalanche_Zones</code>, <code>Fire</code>, and the criticality network <code>PROTECT_VA</code> (<code>Streets_Network_Tahoe</code>).</li>
+              <li><b>Coming in v2.</b> The v2 service adds bridges, culverts, active transport, and transit centers with exposure, sensitivity, criticality, and vulnerability per pair.</li>
+            </ul>
+          </calcite-block>
+          <p class="lead" style="margin-top:1rem;">The scoring rules for each hazard and asset combination are on the <a href="scoring-rubrics.html" style="color:var(--trpa-blue);font-weight:600;">Scoring Rubrics</a> page, and the full methodology record is in the <a href="reference-hub.html" style="color:var(--trpa-blue);font-weight:600;">Reference Hub</a>. Climate inputs are on the <a href="climate-data.html" style="color:var(--trpa-blue);font-weight:600;">Climate Data</a> page, and storm and debris-flow methods are on the <a href="tahoe-precip-events.html" style="color:var(--trpa-blue);font-weight:600;">Storm Events</a> page.</p>
+        </div>
+      </calcite-tab>
+
+      <!-- ABOUT -->
+      <calcite-tab>
+        <div class="tab-body">
+          <h2 class="sec">About this tool</h2>
+          <p class="lead">This tool maps the risk index across the Lake Tahoe Region's transportation network for technical partners. It is the Task 3.3 deliverable of TRPA's PROTECT grant.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; Task 3.2 is the vulnerability assessment and Task 3.3 is this tool.">i</i></p>
+          <p class="lead">Built by the TRPA Science and Data and Transportation teams, with ICF as the climate resilience consultant.<i class="i" tabindex="0" data-tip="Standard TRPA dashboard stack: Calcite Design System and the ArcGIS Maps SDK. Live spatial data from maps.trpa.org. Criticality scoring runs in the companion Criticality Index app.">i</i></p>
+          <p class="lead"><strong>Internal review draft</strong>, not for public distribution; the Workshop 1 release is Nov. 9, 2026.</p>
+        </div>
+      </calcite-tab>
+    </calcite-tabs>
+  </main>
+
+  <footer class="app-footer">
+    <p>PROTECT Risk Index Tool (MVP, Phase 1). Live TRPA layers; service names are listed under Methods. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const SVC = "https://maps.trpa.org/server/rest/services";
+    const FLOOD_URL   = SVC + "/Streams_and_Flood_Zone/MapServer/0";
+    const AVY_URL     = SVC + "/Avalanche_Zones/MapServer/0";
+    const FIRE_URL    = SVC + "/Fire/MapServer/3";
+    // Criticality network - same service the Criticality Index app scores.
+    const ROADS_URL   = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0";
+
+    // Criticality at the app's default equal weights: the two Jenks scores (1-10) rescaled to
+    // 0-1 and averaged with the already-normalized equity score.
+    const CRIT_EXPR =
+      "var traffic = ($feature.AADT_Jenks_Score - 1) / 9;" +
+      "var detour  = ($feature.SLR_Diff_Length_Jenks_Score - 1) / 9;" +
+      "var equity  = $feature.Equity_Score_Normalized;" +
+      "return (equity + detour + traffic) / 3;";
+    // Criticality Index ramp, low to high.
+    const CRIT_RAMP = ["#2c7bb6","#ffffbf","#d7191c"];
+
+    require([
+      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/TileLayer",
+      "esri/widgets/Legend","esri/widgets/Home","esri/widgets/BasemapToggle",
+      "esri/smartMapping/statistics/histogram"
+    ], function(Map, MapView, FeatureLayer, TileLayer, Legend, Home, BasemapToggle, histogram){
+
+      // Percentile off a histogram, interpolated inside the straddling bin.
+      function pct(h, p){
+        const total = h.bins.reduce(function(s,b){ return s + b.count; }, 0);
+        const target = p * total;
+        let cum = 0;
+        for(let i = 0; i < h.bins.length; i++){
+          const b = h.bins[i];
+          if(cum + b.count >= target){
+            const frac = b.count ? (target - cum) / b.count : 0;
+            return b.minValue + frac * (b.maxValue - b.minValue);
+          }
+          cum += b.count;
+        }
+        return h.maxValue;
+      }
+
+      // Esri World Hillshade, free tiles, as an optional terrain overlay under the data layers
+      const hillshade = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+        title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
+
+      const flood = new FeatureLayer({
+        url: FLOOD_URL, title: "Flood zones", visible:false, opacity:0.55,
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,114,206,0.35], outline:{color:[0,114,206,0.8], width:0.4}}}
+      });
+      const avy = new FeatureLayer({
+        url: AVY_URL, title: "Avalanche zones", visible:false, opacity:0.6,
+        renderer:{type:"simple", symbol:{type:"simple-fill", color:[123,106,138,0.4], outline:{color:[123,106,138,0.9], width:0.5}}}
+      });
+      const fire = new FeatureLayer({
+        url: FIRE_URL, title: "Fire severity probability", visible:false, opacity:0.5
+      });
+      // Roads carry criticality as an attribute. The 32 segments with no equity score are
+      // dropped, which is what brings the network to the 18,253 the Criticality Index reports.
+      const roads = new FeatureLayer({
+        url: ROADS_URL, title: "Roads by criticality",
+        definitionExpression: "Equity_Score_Normalized IS NOT NULL",
+        renderer: {type:"simple", symbol:{type:"simple-line", color:[0,59,113,0.85], width:1.3}},
+        popupTemplate: {
+          title: "{name}",
+          expressionInfos: [{name:"crit", title:"Criticality (equal weights)", expression:CRIT_EXPR}],
+          content: [{type:"fields", fieldInfos:[
+            {fieldName:"expression/crit", label:"Criticality score", format:{places:3}},
+            {fieldName:"class", label:"Road class"},
+            {fieldName:"Equity_Score_Normalized", label:"Equity sub-index", format:{places:3}},
+            {fieldName:"SLR_Diff_Length_Jenks_Score", label:"Detour length sub-index (1-10)"},
+            {fieldName:"AADT_Jenks_Score", label:"Traffic sub-index (1-10)"},
+            {fieldName:"Estimated_2024_AADT_Filled", label:"Estimated 2024 AADT", format:{digitSeparator:true, places:0}},
+            {fieldName:"segment_id", label:"Segment ID"}
+          ]}]
+        }
+      });
+
+      const map = new Map({ basemap:"gray-vector", layers:[hillshade, fire, flood, avy, roads] });
+      const view = new MapView({ container:"map-view", map:map, center:[-120.04, 39.09], zoom:10 });
+
+      view.when(function(){
+        view.ui.add(new Home({view:view}), "top-left");
+        view.ui.add(new BasemapToggle({view:view, nextBasemap:"topo-vector"}), "bottom-right");
+        view.ui.add(new Legend({view:view}), "bottom-left");
+        // Color roads by criticality, color only and uniform line weight as in the Criticality
+        // Index app. Scores are strongly right-skewed (median ~0.05, max ~0.60), so the ramp is
+        // stretched on percentiles rather than mean +/- sd, which would spend half its range
+        // below the zero floor. Computed at run time so it tracks a republished network.
+        histogram({ layer: roads, view: view, valueExpression: CRIT_EXPR, numBins: 100 })
+          .then(function(h){
+            roads.renderer = {
+              type: "simple",
+              symbol: {type:"simple-line", width:2, cap:"round", join:"round"},
+              visualVariables: [{
+                type: "color", valueExpression: CRIT_EXPR,
+                legendOptions: {title: "Criticality (equal weights)"},
+                stops: [
+                  {value: pct(h, 0.10), color: CRIT_RAMP[0], label: "Lower"},
+                  {value: pct(h, 0.50), color: CRIT_RAMP[1], label: "Median"},
+                  {value: pct(h, 0.95), color: CRIT_RAMP[2], label: "Higher"}
+                ]
+              }]
+            };
+          })
+          .catch(function(err){
+            console.warn("Criticality renderer unavailable, keeping the flat navy line:", err);
+          });
+      }).catch(function(){ /* view failed (e.g., CORS) - basemap still shows */ });
+
+      function bindToggle(id, layer){
+        const el = document.getElementById(id);
+        if(el) el.addEventListener("calciteSwitchChange", function(){ layer.visible = el.checked; });
+      }
+      bindToggle("tg-flood", flood);
+      bindToggle("tg-avy", avy);
+      bindToggle("tg-fire", fire);
+      bindToggle("tg-roads", roads);
+      bindToggle("tg-hill", hillshade);
+    });
+
+    // Flip tooltips that would otherwise extend past a viewport edge.
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 150;
+      document.querySelectorAll(".i").forEach(el => {
+        const x = el.getBoundingClientRect().left;
+        el.classList.toggle("tip-right", x > w - pad);
+        el.classList.toggle("tip-left", x < pad);
+      });
+    }
+    placeTips();
+    window.addEventListener("resize", placeTips);
+    const tabs = document.querySelector("calcite-tabs");
+    if(tabs) tabs.addEventListener("calciteTabChange", function(){ setTimeout(placeTips, 60); });
+
+    const ml = document.getElementById("methods-link");
+    if(ml) ml.addEventListener("click", function(e){ e.preventDefault(); const t=document.querySelectorAll("calcite-tab-title")[2]; if(t) t.click(); });
+  })();
+  </script>
+</body>
+</html>

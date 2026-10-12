@@ -14,15 +14,19 @@ system-wide indicator screening of 15 hazard-asset pairs scored as
 **Vulnerability = (Exposure x wE) + (Sensitivity x wS)** on 0-3 indicator scores with weights set
 per pair (ICF draft VA Methodology, Aug. 20, 2026; rubrics in `docs/SCORING_RUBRICS.md`), with
 criticality carried separately rather than as a multiplier, and (3) RA2CE disruption scenarios.
-Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.6,
-links every page with status and phasing); a reference hub (`html/reference-hub.html`, v0.5) with
+Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.8,
+links every page with status, a Workshop 1 banner, and phasing); the **Workshop 1 punch list**
+(`html/workshop-punchlist.html`: one dated task table with status in the page data, decisions
+open, the print-map spec; it replaced `docs/WORKSHOP1_PUNCHLIST.md` on Oct. 8, 2026, and the
+scripts, data paths, and references moved to the appendix of `docs/WORKSHOP1_BUILD_PLAN.md`); a reference hub (`html/reference-hub.html`, v0.6) with
 tabs for the hazard-asset pairs, the source-of-record data and model inventory, framework/methods
-(incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Phase 1
-MVP map tool** (`html/risk-index-tool.html`) - live TRPA layers plus a per-component Status view,
-no placeholder data; the **Criticality Index app** (`html/criticality-index.html`, live, 18,253
-segments, linked site-wide); the climate inputs page (`html/climate-data.html`); and the storm
-events explorer (`html/tahoe-precip-events.html`, CDN libraries, embedded culvert layer and
-WRF 1-hr intensity grid).
+(incl. a hazard impact & sensitivity matrix), and the exposure dataset evaluation; the **Scoring
+Rubrics page** (`html/scoring-rubrics.html`, v0.4: interactive per-pair scoring for all 15 pairs
+on the consultant's half-point scale, rubric tables, framework, 24 decisions, and the list of
+TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
+model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
+every page; never describe a flood model as purchased or pending. The **Results page** (`html/results.html`, Oct. 10, 2026) is the front door for the assessment: one data-driven page with an Overview tab (every asset's V_max class, vulnerability by criticality, hotspots) and one tab per hazard (flooding with the drainage area on click, wildfire with the 300 ft sampling footprint layers and a segment-buffer click, landslide, debris flow, avalanche), each a config block in the page (`MODES`) that swaps data files, legends, renderers, charts, and table columns in one map, one grid, and two chart divs. It reads `data/processed/results/` written by `scripts/publish_results.py`; a hazard whose files are not published shows an empty state. The standalone hazard pages and the Phase 1 MVP map are archived. Every page carries the shared five-group site nav (Results; Components: the **Criticality Index app** (`html/criticality-index.html`, live, 18,253 segments) and the **OD Services Index** (`html/od-services-index.html`); Method and data: rubrics, reference hub, climate inputs; Evidence: historic hazards, storm events; Workshop: punch list, feedback). The landing page groups its cards the same way. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
+Jekyll skips underscore directories, so nothing in it is served by Pages.
 
 ## Project context
 
@@ -82,12 +86,19 @@ The live readiness tracker is the Data and Model Inventory tab of `html/referenc
 PROTECT/
 ├── data/                            # input data, intermediate files
 ├── docs/                            # methodology, build notes, scoping archive
-├── html/index.html                  # v0.6 landing page (page cards, phasing, workstream status; no CDN libs)
-├── html/reference-hub.html          # v0.5 reference hub incl. data + model inventory (Calcite + AG Grid)
-├── html/risk-index-tool.html        # Phase 1 MVP map tool (Calcite + ArcGIS SDK; live layers only)
+├── html/index.html                  # v0.7 landing page (page cards, Workshop 1 banner, phasing, workstream status; no CDN libs)
+├── html/reference-hub.html          # v0.6 reference hub incl. data + model inventory (Calcite + AG Grid)
+├── html/scoring-rubrics.html        # v0.4 interactive rubrics (score an asset, rubric tables, framework, decisions, departures)
+├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
+├── html/workshop-feedback.html      # Workshop 1 digital sticky notes: hazard stations, click an asset or drop a pin, concern 1-3, why, missing flag; sends to the AGOL table (SURVEY block), CSV fallback; Report out tab + printable master list
+├── scripts/create_workshop_feedback_layer.py  # makes/checks the AGOL table + submit/read views for the feedback page (--smoke-test)
+├── html/results.html                # the Results page: Overview + one tab per hazard (data-driven MODES config)
 ├── html/criticality-index.html      # live criticality scoring app (18,253 segments, adjustable weights)
+├── html/od-services-index.html      # OD access-to-services index (RA2CE routed trips; criticality factor 4)
+├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)
 ├── html/climate-data.html           # v0.2 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
 ├── html/tahoe-precip-events.html    # storm events + debris-flow explorer (CDN libs, embedded culverts + WRF I1h grid)
+├── html/_archive/                   # retired pages, not served by Pages (ARCHIVED.md lists why)
 ├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
 ├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
 ├── scripts/                         # analysis scripts and notebooks (incl. ra2ce/)
@@ -102,7 +113,7 @@ PROTECT/
 - **Headers = navy / Dark Blue (`#003B71`), white text.** Standardize the page header bar and all
   table headers on navy: AG Grid (`--ag-header-background-color: var(--trpa-navy)`) and static tables
   (`table.ref`, `table.matrix`). TRPA Blue (`#0072CE`) is the accent against navy (the version chip,
-  the "Open Risk Index Tool" button) and for KPI card top-borders / links.
+  no header call-to-action buttons: Mason dropped the "Open Risk Index Tool" button Oct. 8) and for KPI card top-borders / links.
 - **Page header treatment matches the `regional-plan-tracking` dashboard suite** (in the
   `data-visualization` repo): a single clean navy band, no accent stripe. Inside, a centered
   `.header-content` (max-width = the page's `main`) holds, left to right: the TRPA color logo
@@ -120,14 +131,35 @@ PROTECT/
   how Mason edits this data (export, edit in a spreadsheet, hand the CSV back to apply). Keep one on
   every new grid/table: AG Grids use `api.exportDataAsCsv`; static tables use the `tableToCsv` helper.
 - **ArcGIS + UMD load order.** On any page that loads the ArcGIS Maps SDK alongside Plotly/AG Grid
-  (e.g., `risk-index-tool.html`), load Plotly and AG Grid *before* the ArcGIS `<script>`. ArcGIS's
+  (e.g., `results.html`), load Plotly and AG Grid *before* the ArcGIS `<script>`. ArcGIS's
   Dojo/AMD loader otherwise makes those UMD bundles register as AMD modules (`Error: multipleDefine`;
   `window.Plotly` / `window.agGrid` end up undefined and the map fails). Pages without ArcGIS (the hub,
   the inventory) are unaffected.
+- **Calcite components created after load do not register on ArcGIS pages.** The ArcGIS SDK 4.31 registers its own Calcite build for its widgets (button, icon, loader, scrim); a second Calcite include then never defines the rest, so `calcite-switch`, `calcite-block`, or a segmented control inserted by script after load stays an empty tag. Static Calcite markup present at parse time upgrades by luck of order. On `results.html` (Oct. 11, 2026) every page-owned control is native: `input.sw` switches, a `details.block` collapsible, `.cb` and `.btn` buttons. Do the same on any page that both loads the SDK and builds its panel in script.
 - **`html/reference-hub.html` and `Hazard_Asset_Pairs.md` mirror the pair list.** When pairs change, update
   the grid's `pairs` array in the HTML and the markdown table. The 32-element data inventory lives in
   the HTML and `PROTECT_DataModel_Inventory.xlsx`, not in the markdown.
 - **Punctuation**: no em-dashes (use a hyphen or colon), following the Reporting house style.
+- **Copy register (all pages, revised Oct. 9, 2026)**: readers are workshop attendees first,
+  the consultant and the data team second. Plain, direct, third person: everyday words in the
+  page body ("drainage area", "cannot pass the 100-year storm", "which roads matter most"),
+  with the methodology's terms in tooltips or collapsed blocks and glossed the first time they
+  appear. Leads are two sentences at most, banners one, footers one line. Anything over about
+  three sentences of method, framework, or sources goes into a collapsed
+  `<calcite-block collapsible>` or a tooltip; nothing is deleted, every fact stays reachable.
+  House style still applies: Oxford commas, "percent" and "to" not symbols, one to nine spelled
+  out, abbreviated months with dates. Framework vocabulary, where it appears, follows the draft
+  VA Methodology: "component 1, 2, 3", "vulnerability score" and "vulnerability class (High,
+  Medium, Low)", "Vulnerability = (Exposure Score x wE) + (Sensitivity Score x wS)", "Tahoe
+  Resilience Improvement Plan (TRIP)". When copy depends on something not in the repo, ask
+  Mason rather than guess.
+- **`html/scoring-rubrics.html` mirrors `docs/SCORING_RUBRICS.md`.** When a rubric changes, update
+  the `PAIRS` and `DECISIONS` arrays in the HTML and the markdown together. Indicator values and
+  scores are the consultant's Aug. 20 draft tables (half-point scale, the draft's breaks and
+  directions); anything TRPA adds or changes is tagged TRPA proposal and numbered in the
+  decisions. The page's departures table lists every such item.
+- **Archiving a page**: `git mv` it into `html/_archive/`, add a row to `ARCHIVED.md` there, and
+  remove its links and landing-page card. Do not delete history.
 - **No staff names** in committed files. Neutral attribution ("the analyst", "the agency"); naming
   the orgs ("TRPA", "ICF") is fine.
 
