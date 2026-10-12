@@ -20,17 +20,21 @@ Talking points for the data team sync. Numbers are from the published results of
 
 ## 2. Headline numbers
 
+Combined class with the debris-flow stand-in pairs held out (decision carried to ICF; one config
+line puts them back).
+
 | Asset | High | Medium | Low | Set mostly by |
 |---|---|---|---|---|
-| Roads (18,285) | 3,788 | 14,497 | 0 | debris flow (12,700), wildfire (2,935) |
-| Culverts (5,096) | 2,921 | 2,171 | 4 | debris flow (4,451) |
-| Bridges (40) | 13 | 27 | 0 | debris flow (27) |
-| Paths (216) | 115 | 101 | 0 | wildfire and flooding |
+| Roads (18,285) | 2,161 | 16,124 | 0 | wildfire (14,188), landslide (2,314), flooding (1,762) |
+| Culverts (5,096) | 1,864 | 1,850 | 1,382 | landslide (2,970), flooding (2,126) |
+| Bridges (40) | 3 | 35 | 2 | flooding (30), landslide (10) |
+| Paths (216) | 115 | 101 | 0 | wildfire (121), flooding (95) |
 | Transit hubs (8) | 2 | 6 | 0 | wildfire |
 
-Hotspots: 707 road segments (119 miles) are High vulnerability on the top criticality quarter.
-Flooding alone: 594 High culverts, 1,896 culverts cannot pass the 100-year storm, 93 records
-withheld for owner confirmation.
+Hotspots: 497 road segments (95 miles) are High vulnerability on the top criticality quarter,
+337 of them set by landslide. Flooding alone: 594 High culverts, 1,896 culverts cannot pass the
+100-year storm, 93 records withheld for owner confirmation. With debris flow back in, the
+stand-in pair would set 2,745 culverts and 2,408 road segments to High on its own.
 
 ## 3. Two things the numbers say that we have to decide
 
