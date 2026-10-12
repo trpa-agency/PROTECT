@@ -204,6 +204,20 @@
     const BASE = "../data/processed/results/";
     const BOUND_URL = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4";
     const AVZ_URL = "https://maps.trpa.org/server/rest/services/Avalanche_Zones/MapServer/0";
+    const WSHED_URL = "https://maps.trpa.org/server/rest/services/DataDownloader_SoilsandHydro/MapServer/5";
+    const POD_URL = "https://services1.arcgis.com/gGHDlz6USftL5Pau/arcgis/rest/services/TMU_PreAttack/FeatureServer/37";
+    // context layers: read from the source services, not part of any score
+    const watershedLayer = () => new M.FeatureLayer({url:WSHED_URL, title:"Watersheds", outFields:["NAME","WTRSHD_ACRES"],
+      renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.6], width:1}}},
+      labelingInfo:[{labelExpressionInfo:{expression:"$feature.NAME"}, maxScale:0, minScale:200000, symbol:{type:"text", color:[0,59,113,1], haloColor:[255,255,255,0.9], haloSize:1.2, font:{family:"Open Sans", size:9, weight:"bold"}}}],
+      popupTemplate:{title:"{NAME} watershed", content:[{type:"fields", fieldInfos:[{fieldName:"WTRSHD_ACRES", label:"Acres", format:{places:0, digitSeparator:true}}]}]}});
+    const POD_GROUP = `When($feature.PCL_Type == "Paved_Road" || $feature.PCL_Type == "Dirt_Road", "road", $feature.PCL_Type == "Ridge" || $feature.PCL_Type == "River" || $feature.PCL_Type == "Lake" || $feature.PCL_Type == "Fuel_Transition", "natural", "other")`;
+    const podLayer = () => new M.FeatureLayer({url:POD_URL, title:"POD boundaries", outFields:["Name","PCL_Type","Probabilit","Status"],
+      renderer:{type:"unique-value", valueExpression:POD_GROUP, uniqueValueInfos:[
+        {value:"road", label:"Road", symbol:{type:"simple-line", color:[0,59,113,1], width:2, style:"dash"}},
+        {value:"natural", label:"Ridge, water, or fuel change", symbol:{type:"simple-line", color:[74,97,24,1], width:2, style:"dash"}},
+        {value:"other", label:"Trail or other", symbol:{type:"simple-line", color:[123,106,138,1], width:1.6, style:"dot"}}]},
+      popupTemplate:{title:"POD boundary: {Name}", content:[{type:"fields", fieldInfos:[{fieldName:"PCL_Type", label:"Line follows"}, {fieldName:"Probabilit", label:"Recorded control probability"}, {fieldName:"Status", label:"Status"}]}]}});
     const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
     const COL = {ice:"#B4CBE8", blue:"#0072CE", navy:"#003B71", peach:"#E8A05A", orange:"#E87722", brick:"#9C3E27", gray:"#cfd4da",
                  forest:"#4A6118", sand:"#E8C77A", tan:"#E0C68A", earth:"#B47E00", purple:"#7B6A8A"};
@@ -399,7 +413,9 @@
               {fieldName:"bridge_condition_label", label:"Condition"}, {fieldName:"E_FLB_hist", label:"Flood exposure E", format:{places:2}}, {fieldName:"S_FLB", label:"Flood sensitivity S", format:{places:2}}, {fieldName:"V_FLB_hist", label:"Flood vulnerability V", format:{places:2}}, {fieldName:"V_class", label:"Class (highest pair)"}]}]}})},
         {id:"flood", label:"Classed flood surface", checked:false, tip:"FEMA 1 percent zones (3), the 0.2 percent zone and a 10 m buffer on the lidar-derived streams (2). The lake's own stillwater zone is excluded.",
           legend:`<span class="lg-sw" style="background:rgba(0,59,113,.45)"></span> class 3 &nbsp; <span class="lg-sw" style="background:rgba(0,114,206,.35)"></span> class 2`,
-          make:() => new M.GeoJSONLayer({url:BASE + "flood_surface.geojson", title:"Classed flood surface", visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([0,59,113],0.45)},{value:2, symbol:fill([0,114,206],0.35)},{value:1, symbol:fill([180,203,232],0.5)}]}, popupTemplate:{title:"Flood class {hz_class}", content:"{label}"}})}];
+          make:() => new M.GeoJSONLayer({url:BASE + "flood_surface.geojson", title:"Classed flood surface", visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([0,59,113],0.45)},{value:2, symbol:fill([0,114,206],0.35)},{value:1, symbol:fill([180,203,232],0.5)}]}, popupTemplate:{title:"Flood class {hz_class}", content:"{label}"}})},
+        {id:"wshed", label:"Watersheds", checked:false, tip:"TRPA's watershed boundaries for context, named when zoomed in. Not part of the score; each culvert's own drainage area draws when you click it.",
+          legend:`<span class="lg-sw" style="background:transparent;border:1.5px solid #003B71"></span> watershed boundary`, make:() => watershedLayer()}];
       },
       extra(L, ctx){ // drainage area on click
         const drain = new M.GraphicsLayer({title:"Drainage area", listMode:"hide"}); ctx.view.map.add(drain, 1);
@@ -487,7 +503,9 @@
           make:() => fireSurface("wildfire_burnprob", "Burn probability")},
         {id:"fl", label:"Fire severity surface", checked:false, tip:"E2 surface: TRPA most-likely fire severity classed 1 to 3 (low, moderate, high).", make:() => fireSurface("wildfire_e2", "Fire severity")},
         {id:"bp300", label:"Likelihood within 300 ft of roads", checked:false, tip:"The burn probability classes clipped to 300 ft of every road segment: the ground each segment was scored against. Click a segment to outline its own buffer.", make:() => fireSurface("wildfire_burnprob_300ft", "Burn probability within 300 ft of roads")},
-        {id:"fl300", label:"Severity within 300 ft of roads", checked:false, tip:"The most-likely fire severity classes clipped to 300 ft of every road segment.", make:() => fireSurface("wildfire_e2_300ft", "Fire severity within 300 ft of roads")}];
+        {id:"fl300", label:"Severity within 300 ft of roads", checked:false, tip:"The most-likely fire severity classes clipped to 300 ft of every road segment.", make:() => fireSurface("wildfire_e2_300ft", "Fire severity within 300 ft of roads")},
+        {id:"pods", label:"POD boundaries", checked:false, tip:"Potential operational delineations (PODs): the lines fire managers plan to hold a fire on, from the Forest Service Lake Tahoe Basin pre-attack plan. Draft lines shown for context; not part of the score. About half follow roads; natural edges are ridges, water, and fuel changes.",
+          legend:legendRows([[COL.navy,"road"],["#4A6118","natural edge"],[COL.purple,"trail, other"]], "lg-line"), make:() => podLayer()}];
       },
       extra(L, ctx){ // the segment's own 300 ft buffer on click
         const bufLayer = new M.GraphicsLayer({title:"Selected buffer", listMode:"hide"}); ctx.view.map.add(bufLayer, 1); ctx.extraLayers.push(bufLayer);
