@@ -1,14 +1,15 @@
 # Walkthrough outline: data team sync, Oct. 12, 2026
 
-Twenty minutes, screen by screen, on the live site (trpa-agency.github.io/PROTECT/html/results.html).
-Numbers are the Oct. 11 publish with the debris-flow stand-in pairs held out of the combined
-class. The longer brief with the same dates is `BRIEF_2026-10-12_results_and_next_steps.md`.
+Lunch agenda, screen by screen, on the live site (trpa-agency.github.io/PROTECT/html/results.html).
+The pre-read sent in the morning is `BRIEF_2026-10-12_results_and_next_steps.md`; this is the
+talk track for it. Numbers are the Oct. 11 publish with the debris-flow stand-in pairs held out
+of the combined class. Nothing has gone to ICF yet.
 
 ## 1. What changed since you last looked (2 min, landing page)
 
 - One Results page is the front door; the hazard pages and the Phase 1 map are archived.
 - Every one of the 15 pairs has an exposure score, and every asset class has a vulnerability score.
-- Rubrics v0.4 and the method note went to ICF today. The Oct. 15 meeting settles the open calls.
+- Rubrics v0.4 and the method note are ready for ICF. They go out after we agree on the open calls today.
 
 ## 2. Overview tab (6 min)
 
@@ -38,9 +39,9 @@ Show in this order: combined class map, the priority view, the vulnerability-by-
 
 ## 6. What I carry (1 min)
 
-- Oct. 15 decisions with ICF: debris-flow floor and the exclusion, landslide watershed versus point, Nevada regression, span-length direction, legacy points.
+- ICF package and the consultant meeting: debris-flow floor and the exclusion, landslide watershed versus point, Nevada regression, span-length direction, legacy points. Agree today which of these TRPA recommends before they go out.
 - Known-failure check in Pro, the culvert owner review list, the wildcat run if the environment is approved, print maps and layer files Nov. 2 to 4.
 
 ## Dates
 
-Oct. 15 ICF meeting. Oct. 21 scenarios picked. Oct. 30 results final. Nov. 4 tool and print maps freeze. Nov. 9 Workshop 1.
+ICF package this week, consultant meeting to schedule. Oct. 21 scenarios picked. Oct. 30 results final. Nov. 4 tool and print maps freeze. Nov. 9 Workshop 1.
