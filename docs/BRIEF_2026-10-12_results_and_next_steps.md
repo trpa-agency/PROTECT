@@ -1,7 +1,9 @@
-# Brief: where the vulnerability assessment stands (Oct. 12, 2026)
+# Pre-read: where the vulnerability assessment stands (Oct. 12, 2026)
 
-Talking points for the data team sync. Numbers are from the published results of Oct. 11
-(trpa-agency.github.io/PROTECT/html/results.html). Internal draft.
+Five-minute read before the lunch sync. Numbers are from the published results of Oct. 11.
+If you open one thing first, make it the Overview tab of the Results page
+(trpa-agency.github.io/PROTECT/html/results.html). Nothing has gone to ICF yet; the package
+goes out after we align on the asks in section 4. Internal draft.
 
 ## 1. What landed this week
 
@@ -15,22 +17,26 @@ Talking points for the data team sync. Numbers are from the published results of
 - **One Results page** replaced the hazard pages and the Phase 1 map: an Overview tab (combined
   class, vulnerability by criticality, hotspots) and a tab per hazard. Five-group navigation on
   every page; the landing page is grouped the same way.
-- **Rubrics v0.4** with 24 numbered decisions; the method note for the consultant is refreshed.
-  Both go to ICF today.
+- **Rubrics v0.4** with 24 numbered decisions and a refreshed method note are ready for ICF.
+  They go out after lunch once we agree on the open calls.
 
 ## 2. Headline numbers
 
+Combined class with the debris-flow stand-in pairs held out (decision carried to ICF; one config
+line puts them back).
+
 | Asset | High | Medium | Low | Set mostly by |
 |---|---|---|---|---|
-| Roads (18,285) | 3,788 | 14,497 | 0 | debris flow (12,700), wildfire (2,935) |
-| Culverts (5,096) | 2,921 | 2,171 | 4 | debris flow (4,451) |
-| Bridges (40) | 13 | 27 | 0 | debris flow (27) |
-| Paths (216) | 115 | 101 | 0 | wildfire and flooding |
+| Roads (18,285) | 2,161 | 16,124 | 0 | wildfire (14,188), landslide (2,314), flooding (1,762) |
+| Culverts (5,096) | 1,864 | 1,850 | 1,382 | landslide (2,970), flooding (2,126) |
+| Bridges (40) | 3 | 35 | 2 | flooding (30), landslide (10) |
+| Paths (216) | 115 | 101 | 0 | wildfire (121), flooding (95) |
 | Transit hubs (8) | 2 | 6 | 0 | wildfire |
 
-Hotspots: 707 road segments (119 miles) are High vulnerability on the top criticality quarter.
-Flooding alone: 594 High culverts, 1,896 culverts cannot pass the 100-year storm, 93 records
-withheld for owner confirmation.
+Hotspots: 497 road segments (95 miles) are High vulnerability on the top criticality quarter,
+337 of them set by landslide. Flooding alone: 594 High culverts, 1,896 culverts cannot pass the
+100-year storm, 93 records withheld for owner confirmation. With debris flow back in, the
+stand-in pair would set 2,745 culverts and 2,408 road segments to High on its own.
 
 ## 3. Two things the numbers say that we have to decide
 
@@ -59,8 +65,9 @@ withheld for owner confirmation.
 
 ## 5. What the surfaces lane owns next
 
-- ICF package today; the Oct. 15 meeting settles the debris-flow question, the Nevada regression
-  choice, the span-length direction, and legacy culvert points in the rating.
+- ICF package after lunch, then a consultant meeting to settle the debris-flow question, the
+  landslide sampling choice, the Nevada regression, the span-length direction, and legacy
+  culvert points in the rating.
 - Known-failure check in Pro (Northwood Blvd, the Washoe flash flood, Meeks Creek) and the
   culvert owner review list to the jurisdictions.
 - Wildcat debris-flow run if the environment is approved; compare with the stand-in.
@@ -69,5 +76,5 @@ withheld for owner confirmation.
 
 ## 6. Dates
 
-Oct. 12 ICF package. Oct. 15 consultant VA meeting. Oct. 21 scenarios picked. Oct. 30 all
+ICF package this week, consultant meeting to schedule. Oct. 21 scenarios picked. Oct. 30 all
 results final. Nov. 4 tool and print maps freeze. Nov. 9 Workshop 1.
