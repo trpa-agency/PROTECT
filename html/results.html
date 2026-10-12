@@ -263,6 +263,22 @@
     const legendRows = (items, kind) => items.map(([c, l]) => `<div class="lg-row"><span class="${kind}" style="background:${c}"></span> ${l}</div>`).join("");
     const BAND_LEG = [[RAMP[0],"0"],[RAMP[1],"over 0 to 1"],[RAMP[2],"over 1 to 1.4"],[RAMP[3],"over 1.4 to 1.9"],[RAMP[4],"over 1.9 to 3"]];
     const VC_LEG = [[COL.ice,"Low (under 1)"],[COL.orange,"Medium (1 to under 2)"],[COL.brick,"High (2 and over)"],[COL.gray,"not scored"]];
+    const EC_LEG = [[COL.gray,"None (0)"],[COL.ice,"Low (under 1)"],[COL.orange,"Medium (1 to under 2)"],[COL.brick,"High (2 and over)"]];
+    const eClassOf = v => (v == null || isNaN(v)) ? null : v < 0.1 ? "None" : v < 1 ? "Low" : v < 2 ? "Medium" : "High";
+    const EC_COL = {None:COL.gray, Low:COL.ice, Medium:COL.orange, High:COL.brick};
+    const E_CLASSES = ["None", "Low", "Medium", "High"];
+    // exposure class renderer: 0 gray, under 1 ice, 1 to under 2 orange, 2 and over brick
+    const eClassRenderer = (field, symOf) => ({type:"class-breaks", field, classBreakInfos:[
+      {minValue:-0.01, maxValue:0.1, symbol:symOf(COL.gray, 0)}, {minValue:0.1, maxValue:0.999, symbol:symOf(COL.ice, 1)},
+      {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
+    // priority: color by vulnerability class, line weight by criticality quarter
+    const priorityRenderer = (field, dash) => Object.assign(vClassRenderer(field, (c,k) => line(c, 2, dash)), {
+      visualVariables:[{type:"size", field:"C_class", stops:[{value:0, size:0.9}, {value:1, size:1.6}, {value:2, size:2.6}, {value:3, size:4.2}], legendOptions:{title:"criticality quarter"}}]});
+    function milesByClass(div, rows, field, classOf, classes, colors, yTitle){
+      const miles = {}, counts = {}; classes.forEach(c => { miles[c] = 0; counts[c] = 0; });
+      rows.forEach(r => { const c = classOf(r[field]); if (c != null && c in miles) { miles[c] += r.miles; counts[c] += 1; } });
+      barBands(div, classes, miles, counts, colors, "", yTitle);
+    }
 
     // ---------- modes ----------
     let M; // ArcGIS modules
@@ -281,6 +297,8 @@
       note(s){ return "Generated " + (s.generated || "") + ". Class breaks: Low under 1, Medium 1 to under 2, High 2 and over. Criticality class from percentile breaks 25, 50, 75 (provisional)."; },
       emptyText:"Vulnerability results have not been published yet. The hazard tabs show exposure.",
       colorBy:[
+        {value:"prio", label:"Priority", renderer:{roads:priorityRenderer("V_max", false), paths:priorityRenderer("V_max", true)}, legend:legendRows(VC_LEG.slice(0,3), "lg-line") + `<div class="lg-row"><span class="lg-line" style="background:#5a6577;height:1px"></span> thin: lowest criticality quarter</div><div class="lg-row"><span class="lg-line" style="background:#5a6577;height:5px"></span> thick: top criticality quarter</div>`,
+          note:"Color is the vulnerability class; line weight is how much the road matters to the network. Thick red is the workshop's short list.", noteTip:"Vulnerability class from the highest scored pair (stand-in pairs left out). Criticality from component 1, cut into quarters by percentile until the network lane sets its class rule. Priority is read on the two axes, never multiplied (rubric 1.3)."},
         {value:"vmax", label:"Combined", field:{roads:"V_max", paths:"V_max"}, legend:legendRows(VC_LEG, "lg-line"), note:"The highest pair score on each asset, leaving out pairs scored on a stand-in input (debris flow, until the contracted burn severity arrives); the popup says which hazard set it."},
         {value:"vall", label:"With stand-ins", field:{roads:"V_max_all", paths:"V_max_all"}, legend:legendRows(VC_LEG, "lg-line"), note:"The same reading with the stand-in pairs included. Debris flow sets most of it, because the draft's drainage-size break scores nearly every basin 3."},
         {value:"crit", label:"Criticality", field:{roads:"C_class"}, legend:legendRows([[COL.gray,"0: lowest quarter"],[COL.ice,"1"],[COL.blue,"2"],[COL.navy,"3: top quarter"]], "lg-line"), note:"Component 1 from the street network lane, cut into quarters by percentile (provisional)."},
@@ -308,7 +326,8 @@
         {id:"paths", label:"Paths and bike routes", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "paths_wildfire.geojson", title:"Paths", outFields:["*"], renderer:vClassRenderer("V_max", (c,k) => line(c, [1.2,1.8,2.4,3][k], true)),
           popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Facility class"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}]}]}})},
         {id:"hubs", label:"Transit hubs", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"], renderer:vClassRenderer("V_max", (c,k) => sq(c)),
-          popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[{fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}]}]}})}];
+          popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[{fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}]}]}})},
+        {id:"notes", label:"Workshop notes", checked:true, tip:"Notes partners have sent from the feedback page, colored by concern (1 greatest). Open any asset's popup and choose Add a workshop note to add one.", legend:legendRows([[COL.brick,"1: greatest concern"],[COL.orange,"2: concern"],[COL.earth,"3: worth noting"]], "lg-dot"), make:() => notesLayer()}];
       },
       filters:[{id:"hot", label:"Hotspots only", tip:"High vulnerability on top-quarter criticality (roads), or High vulnerability (other assets).",
         apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "V_max >= 1.999 AND C_class = 3" : null; ["culverts","bridges","paths","hubs"].forEach(k => { if (L[k]) L[k].definitionExpression = on ? "V_max >= 1.999" : null; }); }}],
@@ -443,9 +462,9 @@
       emptyText:"Wildfire results have not been published yet.",
       colorHeading:"Roads, colored by",
       colorBy:[
-        {value:"e", label:"Score", renderer:{roads:breaksRenderer("E_WFR_hist", bandInfos((c,k) => line(c, lineW(k)))), paths:breaksRenderer("E_WFAT_hist", bandInfos((c,k) => line(c, lineW(k), true)))},
-          legend:legendRows([[RAMP[1],"1: fire unlikely, low severity most likely"],[RAMP[2],"1.3: moderate severity most likely nearby"],[RAMP[3],"1.6 to 1.7: high severity most likely nearby"],[RAMP[4],"2 and over: fire more likely and intense"]], "lg-line"),
-          note:"Likelihood at 0.7 plus severity at 0.3, each the highest within 300 ft.", noteTip:"WF-R exposure: E = 0.70 x E1 (annual burn probability class) + 0.30 x E2 (most-likely fire severity class, in place of the draft's flame length), each sampled as the maximum within a 300 ft buffer of the segment."},
+        {value:"e", label:"Exposure", renderer:{roads:eClassRenderer("E_WFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), paths:eClassRenderer("E_WFAT_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k], true))},
+          legend:legendRows(EC_LEG, "lg-line"),
+          note:"How exposed each road is to fire: likelihood at 0.7 plus severity at 0.3, each the highest within 300 ft.", noteTip:"WF-R exposure score 0 to 3: E = 0.70 x E1 (annual burn probability class) + 0.30 x E2 (most-likely fire severity class, in place of the draft's flame length), each the maximum within a 300 ft buffer. Scores that occur: 1.0 (low likelihood, low severity), 1.3 (moderate severity nearby), 1.6 to 1.7 (high severity nearby), 2.0 to 2.3 (likelihood over 0.5 percent a year), 2.7 to 3.0 (over 1 percent with high severity). Class breaks are the same 1.0 and 2.0 as vulnerability."},
         {value:"e1", label:"Likelihood", renderer:{roads:breaksRenderer("E_WFR_e1", cls4Infos((c,k) => line(c, [1.2,1.8,2.4,3][k]))), paths:breaksRenderer("E_WFAT_e1", cls4Infos((c,k) => line(c, [1.2,1.8,2.4,3][k], true)))},
           legend:legendRows([[COL.gray,"0: no burn probability"],[COL.ice,"1: under 0.5 percent a year"],[COL.orange,"2: 0.5 to 1 percent a year"],[COL.brick,"3: over 1 percent a year"]], "lg-line"),
           note:"How often fire reaches the ground within 300 ft of the road.", noteTip:"E1, annual burn probability from the Sierra Nevada Regional Resource Kit (Pyrologix 2022, 30 m), classed on the draft's breaks of 0.5 and 1 percent."},
@@ -461,8 +480,8 @@
             {fieldName:"len_pct_c1", label:"Length in likelihood class 1 (percent)", format:{places:0}}, {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}}, {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}}, {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}})},
         {id:"paths", label:"Paths and bike routes", checked:true, tip:"WF-AT: existing active transportation facilities, scored with the same two indicators and no sensitivity term. Drawn dashed.",
           make:() => new M.GeoJSONLayer({url:BASE + "paths_wildfire.geojson", title:"Paths", outFields:["*"], popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Facility class"}, {fieldName:"E_WFAT_hist", label:"Wildfire exposure score", format:{places:1}}, {fieldName:"E_WFAT_e1", label:"E1 burn probability class"}, {fieldName:"E_WFAT_e2", label:"E2 fire severity class"}, {fieldName:"V_class", label:"Vulnerability class (highest pair)"}]}]}})},
-        {id:"hubs", label:"Transit hubs", checked:true, tip:"WF-TC: the eight transit hubs, scored as the maximum within 300 ft of the point.", legend:legendRows([[COL.gray,"0"],[COL.ice,"1"],[COL.orange,"1.3 to 1.7"],[COL.brick,"2 and over"]], "lg-dot"),
-          make:() => new M.GeoJSONLayer({url:BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"], renderer:breaksRenderer("E_WFTC_hist", [{minValue:-0.01, maxValue:0.1, symbol:sq(COL.gray)}, {minValue:0.1, maxValue:1.15, symbol:sq(COL.ice)}, {minValue:1.15, maxValue:1.9, symbol:sq(COL.orange)}, {minValue:1.9, maxValue:3.1, symbol:sq(COL.brick)}]),
+        {id:"hubs", label:"Transit hubs", checked:true, tip:"WF-TC: the eight transit hubs, scored as the maximum within 300 ft of the point.", legend:legendRows(EC_LEG, "lg-dot"),
+          make:() => new M.GeoJSONLayer({url:BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"], renderer:eClassRenderer("E_WFTC_hist", (c,k) => sq(c)),
             popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[{fieldName:"E_WFTC_hist", label:"Wildfire exposure score", format:{places:1}}, {fieldName:"E_WFTC_e1", label:"E1 burn probability class"}, {fieldName:"E_WFTC_e2", label:"E2 fire severity class"}]}]}})},
         {id:"bp", label:"Burn probability surface", checked:false, tip:"E1 surface: the Resource Kit burn probability classed 1 to 3 (under 0.5, 0.5 to 1, over 1 percent a year). Zero and non-burnable cells are blank.", legend:`<span class="lg-sw" style="background:rgba(180,203,232,.6)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3`,
           make:() => fireSurface("wildfire_burnprob", "Burn probability")},
@@ -481,17 +500,14 @@
           note.textContent = (a.name || "Unnamed segment") + ": score " + fmt(e,1) + " from likelihood class " + fmt(e1,0) + " and severity class " + fmt(e2,0) + " within this buffer.";
         });
       },
-      filters:[{id:"top", label:"Score 1.6 and over only", tip:"Segments, paths, and hubs with high-severity fire most likely within 300 ft, or a burn probability over 0.5 percent with moderate severity.",
-        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_WFR_hist >= 1.55" : null; if (L.paths) L.paths.definitionExpression = on ? "E_WFAT_hist >= 1.55" : null; if (L.hubs) L.hubs.definitionExpression = on ? "E_WFTC_hist >= 1.55" : null; }}],
+      filters:[{id:"top", label:"High exposure only", tip:"Exposure 2 and over: burn probability over 0.5 percent a year with moderate or high severity most likely within 300 ft.",
+        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_WFR_hist >= 1.999" : null; if (L.paths) L.paths.definitionExpression = on ? "E_WFAT_hist >= 1.999" : null; if (L.hubs) L.hubs.definitionExpression = on ? "E_WFTC_hist >= 1.999" : null; }}],
       charts:[
-        {title:"Road miles by score", sub:"Where the network sits on the 0 to 3 scale", async draw(div){ const rows = await roadRows("wildfire"); const bandOf = e => e < 0.1 ? "0" : e < 1.15 ? "1" : e < 1.45 ? "1.3" : e < 1.9 ? "1.6 to 1.7" : "2 and over";
-          const bands = ["0","1","1.3","1.6 to 1.7","2 and over"], colors = {"0":RAMP[0],"1":RAMP[1],"1.3":RAMP[2],"1.6 to 1.7":RAMP[3],"2 and over":RAMP[4]}, miles = {}, counts = {};
-          rows.forEach(r => { const b = bandOf(r.E_WFR_hist || 0); miles[b] = (miles[b]||0) + r.miles; counts[b] = (counts[b]||0) + 1; }); barBands(div, bands, miles, counts, colors, "score", "road miles"); }},
-        {title:"Score by road type", sub:"Share of each road type's miles in each score band", async draw(div){ const rows = await roadRows("wildfire"); const bandOf = e => e < 0.1 ? "0" : e < 1.15 ? "1" : e < 1.45 ? "1.3" : e < 1.9 ? "1.6 to 1.7" : "2 and over";
-          const types = topTypes(rows); stackedShare(div, types, ["0","1","1.3","1.6 to 1.7","2 and over"], {"0":RAMP[0],"1":RAMP[1],"1.3":RAMP[2],"1.6 to 1.7":RAMP[3],"2 and over":RAMP[4]}, rows, r => r.class || "unknown", r => bandOf(r.E_WFR_hist || 0), r => r.miles, "percent of miles", "miles"); }}],
+        {title:"Road miles by exposure class", sub:"Low under 1, Medium 1 to under 2, High 2 and over", async draw(div){ milesByClass(div, await roadRows("wildfire"), "E_WFR_hist", eClassOf, E_CLASSES, EC_COL, "road miles"); }},
+        {title:"Exposure class by road type", sub:"Share of each road type's miles in each class", async draw(div){ const rows = await roadRows("wildfire"); stackedShare(div, topTypes(rows), E_CLASSES, EC_COL, rows, r => r.class || "unknown", r => eClassOf(r.E_WFR_hist || 0), r => r.miles, "percent of miles", "miles"); }}],
       table:{title:"Road table", lead:"One row per scored road segment.", exportName:"PROTECT_wildfire_roads.csv", rows:() => roadRows("wildfire"),
         cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"}, {field:"src_objectid", headerName:"Segment", width:100},
-          {field:"E_WFR_hist", headerName:"Score", width:95, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,1), cellStyle:p=>({background:scoreCol(p.value), color:(p.value>=1.45)?"#fff":"#003B71", fontWeight:600})},
+          {field:"E_WFR_hist", headerName:"Exposure", width:100, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,1), cellStyle:p=>{const c=eClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
           {field:"E_WFR_e1", headerName:"Likelihood", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:p=>({background:clsCol4(p.value), color:Math.round(p.value)>=2?"#fff":"#003B71", fontWeight:600})},
           {field:"E_WFR_e2", headerName:"Severity", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:p=>({background:clsCol4(p.value), color:Math.round(p.value)>=2?"#fff":"#003B71", fontWeight:600})},
           {field:"V_WFR_hist", headerName:"Vulnerability", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}},
@@ -517,7 +533,7 @@
       emptyText:"Landslide results have not been published yet.",
       colorHeading:"Colored by",
       colorBy:[
-        {value:"cls", label:"Susceptibility class", renderer:{roads:breaksRenderer("E_LSR_e1", cls4Infos((c,k) => line(lsCol(k), [1.2,1.8,2.4,3][k]))), culverts:breaksRenderer("E_LSC_e1", cls4Infos((c,k) => dot(lsCol(k), [4,5,6,7][k]))), bridges:breaksRenderer("E_LSB_e1", cls4Infos((c,k) => sq(lsCol(k))))},
+        {value:"cls", label:"Exposure", renderer:{roads:breaksRenderer("E_LSR_e1", cls4Infos((c,k) => line(lsCol(k), [1.2,1.8,2.4,3][k]))), culverts:breaksRenderer("E_LSC_e1", cls4Infos((c,k) => dot(lsCol(k), [4,5,6,7][k]))), bridges:breaksRenderer("E_LSB_e1", cls4Infos((c,k) => sq(lsCol(k))))},
           legend:legendRows([[COL.gray,"0: under 40 percent of the ground prone"],[COL.ice,"1: 40 to 60 percent prone"],[COL.orange,"2: 60 to 80 percent prone"],[COL.brick,"3: over 80 percent prone, or a recorded landslide"]], "lg-line"),
           note:"The highest class touching the road, within 25 m of the bridge, or anywhere in the culvert's drainage area.", noteTip:"E1: the share of each 90 m cell that the USGS 2024 susceptibility model calls landslide-prone (over 80 percent = 3, over 60 = 2, over 40 = 1; decision 24), with every recorded landslide in the USGS inventory as 3."},
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_LSR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:vClassRenderer("V_LSC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_LSB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
@@ -565,24 +581,23 @@
       emptyText:"Debris flow results have not been published yet.",
       colorHeading:"Colored by",
       colorBy:[
-        {value:"e", label:"Exposure", renderer:{roads:breaksRenderer("E_DFR_hist", bandInfos((c,k) => line(c, lineW(k)))), culverts:breaksRenderer("E_DFC_hist", bandInfos((c,k) => dot(c, dotS(k)))), bridges:breaksRenderer("E_DFB_hist", bandInfos((c,k) => sq(c)))}, legend:legendRows(BAND_LEG, "lg-line"),
+        {value:"e", label:"Exposure", renderer:{roads:eClassRenderer("E_DFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:eClassRenderer("E_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:eClassRenderer("E_DFB_hist", (c,k) => sq(c))}, legend:legendRows(EC_LEG, "lg-line"),
           note:"Slope, drainage size, and burn severity, each 0 to 3, weighted 0.2, 0.2, 0.3.", noteTip:"E1 mean slope of the contributing area (over 30 percent = 3), E2 contributing area (under 0.25 sq mi = 3, over 5 sq mi = 0), E3 most-likely fire severity standing in for soil burn severity; E = (0.2 E1 + 0.2 E2 + 0.3 E3) / 0.7."},
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_DFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:vClassRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
           note:"Exposure at 0.7 plus sensitivity at 0.3.", noteTip:"Roads: pavement and surface defaults. Culverts: opening width and condition with blockage (decision 7). Bridges: span type, condition, span length."}],
       layers(){ return [
         {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_DFR_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFR_e1", label:"E1 slope class", format:{places:1}}, {fieldName:"E_DFR_e2", label:"E2 drainage size class", format:{places:1}}, {fieldName:"E_DFR_e3", label:"E3 burn severity class"}, {fieldName:"V_DFR_hist", label:"Vulnerability V", format:{places:2}}]}]}})},
-        {id:"culverts", label:"Culverts", checked:true, legend:legendRows(BAND_LEG, "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_DFC_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFC_e1", label:"E1 basin slope class", format:{places:1}}, {fieldName:"E_DFC_e2", label:"E2 basin size class", format:{places:1}}, {fieldName:"E_DFC_e3", label:"E3 burn severity in the drainage"}, {fieldName:"V_DFC_hist", label:"Vulnerability V", format:{places:2}}, {fieldName:"DF_option", label:"Option"}]}]}})},
-        {id:"bridges", label:"Bridges", checked:true, legend:legendRows(BAND_LEG, "lg-sq"), make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"owner", label:"Owner"}, {fieldName:"E_DFB_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"V_DFB_hist", label:"Vulnerability V", format:{places:2}}]}]}})}];
+        {id:"culverts", label:"Culverts", checked:true, legend:legendRows(EC_LEG, "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_DFC_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFC_e1", label:"E1 basin slope class", format:{places:1}}, {fieldName:"E_DFC_e2", label:"E2 basin size class", format:{places:1}}, {fieldName:"E_DFC_e3", label:"E3 burn severity in the drainage"}, {fieldName:"V_DFC_hist", label:"Vulnerability V", format:{places:2}}, {fieldName:"DF_option", label:"Option"}]}]}})},
+        {id:"bridges", label:"Bridges", checked:true, legend:legendRows(EC_LEG, "lg-sq"), make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"owner", label:"Owner"}, {fieldName:"E_DFB_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"V_DFB_hist", label:"Vulnerability V", format:{places:2}}]}]}})}];
       },
-      filters:[{id:"top", label:"Exposure 2 and over only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_DFR_hist >= 1.9" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.9" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.9" : null; }}],
+      filters:[{id:"top", label:"High exposure only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_DFR_hist >= 1.999" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.999" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.999" : null; }}],
       charts:[
-        {title:"Road miles by exposure band", sub:"Where the network sits on the 0 to 3 scale", async draw(div){ const rows = await roadRows("debris_flow"); const bands = BAND_LEG.map(b => b[1]), colors = Object.fromEntries(BAND_LEG.map(b => [b[1], b[0]])); const bandOf = e => bands[e < 0.1 ? 0 : e < 1.15 ? 1 : e < 1.45 ? 2 : e < 1.9 ? 3 : 4]; const miles = {}, counts = {};
-          rows.forEach(r => { const b = bandOf(r.E_DFR_hist || 0); miles[b] = (miles[b]||0) + r.miles; counts[b] = (counts[b]||0) + 1; }); barBands(div, bands, miles, counts, colors, "exposure", "road miles"); }},
-        {title:"Culverts by jurisdiction", sub:"Share of each jurisdiction's culverts in each exposure band", async draw(div){ const rows = (await rowsOf(BASE + "culverts_results.geojson")).filter(p => p.E_DFC_hist != null); if (!rows.length) return; const bands = BAND_LEG.map(b => b[1]); const bandOf = e => bands[e < 0.1 ? 0 : e < 1.15 ? 1 : e < 1.45 ? 2 : e < 1.9 ? 3 : 4];
-          stackedShare(div, [...new Set(rows.map(r => r.jurisdiction))].sort(), bands, Object.fromEntries(BAND_LEG.map(b => [b[1], b[0]])), rows, r => r.jurisdiction, r => bandOf(r.E_DFC_hist || 0), r => 1, "percent of culverts", "culverts"); }}],
+        {title:"Road miles by exposure class", sub:"Low under 1, Medium 1 to under 2, High 2 and over", async draw(div){ milesByClass(div, await roadRows("debris_flow"), "E_DFR_hist", eClassOf, E_CLASSES, EC_COL, "road miles"); }},
+        {title:"Culverts by jurisdiction", sub:"Share of each jurisdiction's culverts in each exposure class", async draw(div){ const rows = (await rowsOf(BASE + "culverts_results.geojson")).filter(p => p.E_DFC_hist != null); if (!rows.length) return;
+          stackedShare(div, [...new Set(rows.map(r => r.jurisdiction))].sort(), E_CLASSES, EC_COL, rows, r => r.jurisdiction, r => eClassOf(r.E_DFC_hist || 0), r => 1, "percent of culverts", "culverts"); }}],
       table:{title:"Road table", lead:"One row per scored road segment.", exportName:"PROTECT_debris_flow_roads.csv", rows:() => roadRows("debris_flow"),
         cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120}, {field:"src_objectid", headerName:"Segment", width:100},
-          {field:"E_DFR_hist", headerName:"Exposure", width:95, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>({background:scoreCol(p.value), color:(p.value>=1.45)?"#fff":"#003B71", fontWeight:600})},
+          {field:"E_DFR_hist", headerName:"Exposure", width:95, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=eClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
           {field:"E_DFR_e1", headerName:"Slope", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"E_DFR_e2", headerName:"Drainage size", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"E_DFR_e3", headerName:"Burn severity", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
           {field:"V_DFR_hist", headerName:"Vulnerability", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}},
           {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}]},
@@ -605,23 +620,22 @@
       emptyText:"Avalanche results have not been published yet.",
       colorHeading:"Roads, colored by",
       colorBy:[
-        {value:"e", label:"Score", renderer:{roads:breaksRenderer("E_AVR_hist", bandInfos((c,k) => line(c, lineW(k))))}, legend:legendRows([[RAMP[0],"0: no steep ground above"],[RAMP[1],"1: some release-prone slope"],[RAMP[2],"1.5 to 2: 30 to 50 degree slopes dominate"],[RAMP[3],"2 to 2.5: record, or 35 to 45 degrees"],[RAMP[4],"3: record and 35 to 45 degrees"]], "lg-line"),
-          note:"The slope tier that covers the most ground above the road within 1,000 ft, raised one step where a mapped zone is within 1,000 ft.", noteTip:"Tiers: under 25 degrees 0; 25 to 30 or over 50 is 1; 30 to 35 or 45 to 50 is 2; 35 to 45 is 3. Scores: no record 0 / 1 / 1.5 / 2, with a record 1 / 2 / 2.5 / 3."},
+        {value:"e", label:"Exposure", renderer:{roads:eClassRenderer("E_AVR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k]))}, legend:legendRows(EC_LEG, "lg-line"),
+          note:"The slope tier that covers the most ground above the road within 1,000 ft, raised one step where a mapped zone is within 1,000 ft.", noteTip:"Scores: no record 0 / 1 / 1.5 / 2 by slope tier, with a mapped zone 1 / 2 / 2.5 / 3. Tiers: under 25 degrees 0; 25 to 30 or over 50 is 1; 30 to 35 or 45 to 50 is 2; 35 to 45 is 3. Class breaks are the same 1.0 and 2.0 as vulnerability, so High means a record with 35 to 45 degree ground or any record on 30 to 50 degree ground."},
         {value:"tier", label:"Slope tier", renderer:{roads:breaksRenderer("av_tier", cls4Infos((c,k) => line(c, [1.2,1.8,2.4,3][k])))}, legend:legendRows([[COL.gray,"0: under 25 degrees"],[COL.ice,"1: 25 to 30 or over 50"],[COL.orange,"2: 30 to 35 or 45 to 50"],[COL.brick,"3: 35 to 45 degrees"]], "lg-line"), note:"The dominant slope tier on the uphill side, before the record."}],
       layers(){ return [
         {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("avalanche", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_AVR_hist", label:"Avalanche score", format:{places:1}}, {fieldName:"av_tier", label:"Dominant uphill slope tier"}, {fieldName:"av_record", label:"Mapped zone within 1,000 ft (1 = yes)"}, {fieldName:"uphill_ha", label:"Uphill ground within 1,000 ft (ha)", format:{places:1}}]}]}})},
         {id:"zones", label:"TRPA avalanche zones", checked:true, legend:`<span class="lg-sw" style="background:rgba(123,106,138,.45)"></span> mapped zone`, make:() => new M.FeatureLayer({url:AVZ_URL, title:"Avalanche zones", opacity:0.8, renderer:{type:"simple", symbol:fill([123,106,138], 0.45)}, popupTemplate:{title:"{Name}", content:"Frequency: {Frequency}"}})}];
       },
-      filters:[{id:"top", label:"Score 2 and over only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_AVR_hist >= 1.9" : null; }}],
+      filters:[{id:"top", label:"High exposure only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_AVR_hist >= 1.999" : null; }}],
       charts:[
-        {title:"Road miles by score", sub:"Where the network sits on the 0 to 3 scale", async draw(div){ const rows = await roadRows("avalanche"); const bands = ["0","1","1.5","2","2.5","3"], colors = {"0":RAMP[0],"1":RAMP[1],"1.5":RAMP[2],"2":RAMP[3],"2.5":RAMP[3],"3":RAMP[4]}; const miles = {}, counts = {};
-          rows.forEach(r => { const b = String(Number(r.E_AVR_hist || 0)); miles[b] = (miles[b]||0) + r.miles; counts[b] = (counts[b]||0) + 1; }); barBands(div, bands, miles, counts, colors, "score", "road miles"); }},
+        {title:"Road miles by exposure class", sub:"Low under 1, Medium 1 to under 2, High 2 and over", async draw(div){ milesByClass(div, await roadRows("avalanche"), "E_AVR_hist", eClassOf, E_CLASSES, EC_COL, "road miles"); }},
         {title:"Slope tier by record", sub:"Miles in each dominant slope tier, with and without a mapped zone nearby", async draw(div){ const rows = await roadRows("avalanche"); const tiers = ["0","1","2","3"];
           const traces = [["no mapped zone", 0, COL.ice], ["mapped zone within 1,000 ft", 1, COL.purple]].map(([n, rec, c]) => ({type:"bar", name:n, x:tiers.map(t => "tier " + t), marker:{color:c}, y:tiers.map(t => rows.filter(r => String(r.av_tier ?? 0) === t && (r.av_record||0) === rec).reduce((s, r) => s + r.miles, 0)), hovertemplate:"%{y:.1f} miles<extra>" + n + "</extra>"}));
           Plotly.newPlot(div, traces, Object.assign({}, LAYOUT, {barmode:"group", margin:{l:50,r:10,t:10,b:50}, legend:{orientation:"h", y:1.14}, yaxis:{title:"road miles", gridcolor:"#eef0f3"}}), {displayModeBar:false, responsive:true}); }}],
       table:{title:"Road table", lead:"One row per scored road segment. Every segment is scored; a High score off US-50, SR-89, SR-28, SR-207, or SR-431 is a finding to review with the state DOTs.", exportName:"PROTECT_avalanche_roads.csv", rows:() => roadRows("avalanche"),
         cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120}, {field:"src_objectid", headerName:"Segment", width:100},
-          {field:"E_AVR_hist", headerName:"Score", width:90, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,1), cellStyle:p=>({background:scoreCol(p.value), color:(p.value>=1.45)?"#fff":"#003B71", fontWeight:600})},
+          {field:"E_AVR_hist", headerName:"Exposure", width:100, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,1), cellStyle:p=>{const c=eClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
           {field:"av_tier", headerName:"Slope tier", width:100, type:"numericColumn"}, {field:"av_record", headerName:"Mapped zone", width:110, valueFormatter:p=>p.value==1?"yes":"no"}, {field:"uphill_ha", headerName:"Uphill ground (ha)", width:140, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
           {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}]},
       notes:["<b>Slope.</b> Slope in degrees from the lidar DEM at 10 m, in four tiers: under 25 degrees rarely releases, 35 to 45 is the prime release band, and over 50 sheds snow before it builds up. The segment takes the tier that covers the most ground above it within 1,000 ft (decision 17).",
@@ -664,6 +678,38 @@
       return new M.GeoJSONLayer(Object.assign({url, title:"Roads", outFields:["*"]}, opts));
     }
 
+    // ---------- workshop notes: link out and read back ----------
+    const FEEDBACK_URL = "workshop-feedback.html";
+    const STATION_OF = {overview:"any", flood:"flood", wildfire:"fire", landslide:"slide", debris_flow:"debris", avalanche:"avy"};
+    const NOTE_TYPES = {roads:"road", culverts:"culvert", bridges:"bridge", paths:"trail", hubs:"transit"};
+    function noteLink(layerId, a, loc){
+      const type = NOTE_TYPES[layerId];
+      const id = type === "road" ? "src:" + a.src_objectid : type === "culvert" ? a.culvert_id : type === "bridge" ? a.bridge_id : type === "trail" ? "at:" + a.at_id : "tc:" + a.tc_id;
+      const name = type === "road" ? (a.name || "Unnamed road") : type === "culvert" ? ("Culvert at " + (a.road_name || "unnamed road")) : type === "bridge" ? ((a.facility_carried || "Bridge") + " over " + (a.feature_crossed || "")) : type === "trail" ? (a.name || "Path") : ("Transit hub " + a.tc_id);
+      const sub = type === "road" ? [a.class, a.V_class ? "vulnerability " + a.V_class : ""].filter(Boolean).join(", ") : type === "culvert" ? [a.jurisdiction, a.V_class ? "vulnerability " + a.V_class : ""].filter(Boolean).join(", ") : (a.V_class ? "vulnerability " + a.V_class : "");
+      const q = new URLSearchParams({station:STATION_OF[current] || "any", type, id:String(id), name, sub});
+      if (loc) { q.set("lon", loc.longitude.toFixed(6)); q.set("lat", loc.latitude.toFixed(6)); }
+      return FEEDBACK_URL + "?" + q.toString();
+    }
+    // notes already sent by partners, read from the public view and drawn by concern
+    const NOTES_VIEW = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_notes_read/FeatureServer/0";
+    const CONCERN_COL = {1:COL.brick, 2:COL.orange, 3:COL.earth};
+    async function notesLayer(){
+      const layer = new M.GraphicsLayer({title:"Workshop notes", listMode:"hide"});
+      try {
+        const q = new URLSearchParams({where:"round='Workshop 1'", outFields:"*", f:"json", resultRecordCount:"2000", _:String(Date.now())});
+        const res = await fetch(NOTES_VIEW + "/query?" + q.toString()).then(r => r.json());
+        const seen = {};
+        (res.features || []).forEach(f => { let parsed = {}; try { parsed = JSON.parse(f.attributes.notes_json || "{}"); } catch (e) {}
+          (parsed.notes || []).forEach(n => { if (n.lon == null || n.lat == null) return; const k = (f.attributes.reviewer_key || "") + "|" + n.key; if (seen[k]) return; seen[k] = 1;
+            layer.add(new M.Graphic({geometry:{type:"point", longitude:n.lon, latitude:n.lat}, attributes:{name:n.name || "", type:n.type || "", concern:n.concern || null, why:n.why || "", hazards:(n.hazards || []).join(", "), agency:f.attributes.agency || "", missing:n.missing ? "yes" : "no"},
+              symbol:{type:"simple-marker", style:"circle", size:13, color:CONCERN_COL[n.concern] || "#8a93a2", outline:{color:[255,255,255,1], width:1.2}},
+              popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"concern", label:"Concern (1 = greatest)"}, {fieldName:"hazards", label:"Hazards"}, {fieldName:"why", label:"Why"}, {fieldName:"agency", label:"From"}, {fieldName:"missing", label:"Missing from the draft results"}]}]}})); }); });
+        layer.noteCount = layer.graphics.length;
+      } catch (e) { console.warn("workshop notes", e); layer.noteCount = null; }
+      return layer;
+    }
+
     // ---------- page state ----------
     let view, gridApi, current = null, ctx = null;
     const BASE_LAYERS = {};
@@ -671,15 +717,19 @@
     $("qf").addEventListener("input", e => { if (gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
     $("export").addEventListener("click", () => { if (gridApi && current) gridApi.exportDataAsCsv({fileName:MODES[current].table.exportName}); });
 
-    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/geometryEngine","esri/widgets/Home","esri/widgets/BasemapToggle"],
-      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, Graphic, geometryEngine, Home, BasemapToggle){
-      M = {Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, Graphic, geometryEngine};
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/geometryEngine","esri/core/reactiveUtils","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, Graphic, geometryEngine, reactiveUtils, Home, BasemapToggle){
+      M = {Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, Graphic, geometryEngine, reactiveUtils};
       BASE_LAYERS.hill = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer", title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
       BASE_LAYERS.bound = new FeatureLayer({url:BOUND_URL, title:"TRPA boundary", renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
       const map = new Map({basemap:"gray-vector", layers:[BASE_LAYERS.hill, BASE_LAYERS.bound]});
       view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}, popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
       view.ui.add(new Home({view}), "top-left");
       view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+      // the popup widget is created lazily; listen through reactiveUtils so the handler attaches when it exists
+      reactiveUtils.on(() => view.popup, "trigger-action", e => { if (e.action.id !== "note") return; const g = view.popup.selectedFeature; if (!g) return;
+        const layerId = Object.keys(ctx.L).find(k => ctx.L[k] === g.layer); if (!layerId) return;
+        window.open(noteLink(layerId, g.attributes || {}, view.popup.location || (g.geometry && g.geometry.type === "point" ? g.geometry : null)), "_blank"); });
       switchMode(modeFromHash());
       window.addEventListener("hashchange", () => switchMode(modeFromHash()));
     });
@@ -709,6 +759,7 @@
       $("empty").textContent = mode.emptyText || "Not published yet.";
       $("kpis").innerHTML = (items || []).map(([v,l]) => `<div class="kpi" style="border-top-color:${mode.kpiBorder || COL.blue}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
       $("gen-note").textContent = items ? mode.note(s) : "";
+      if (name === "overview") setTimeout(() => { const nl = ctx && ctx.L.notes; if (nl && nl.noteCount != null && items) $("kpis").insertAdjacentHTML("beforeend", `<div class="kpi" style="border-top-color:${COL.purple}"><div class="v">${fmt(nl.noteCount)}</div><div class="l">workshop notes sent so far</div></div>`); }, 1500);
 
       // map: drop the previous mode's layers, add this one's
       if (ctx) { ctx.layers.forEach(l => view.map.remove(l)); ctx.extraLayers.forEach(l => view.map.remove(l)); if (ctx.clickHandle) ctx.clickHandle.remove(); }
@@ -716,7 +767,8 @@
       const defs = mode.layers();
       const made = await Promise.all(defs.map(d => Promise.resolve(d.make()).catch(e => { console.warn("layer", d.id, e); return null; })));
       if (current !== name) return;
-      defs.forEach((d, i) => { const l = made[i]; if (!l) return; l.visible = d.checked; ctx.L[d.id] = l; ctx.layers.push(l); });
+      defs.forEach((d, i) => { const l = made[i]; if (!l) return; l.visible = d.checked; ctx.L[d.id] = l; ctx.layers.push(l);
+        if (l.popupTemplate && NOTE_TYPES[d.id]) l.popupTemplate.actions = [{id:"note", title:"Add a workshop note", className:"esri-icon-comment"}]; });
       // operational layers above hillshade (index 0) and below the boundary: insert after hillshade, keep polygons under points
       ctx.layers.slice().reverse().forEach(l => view.map.add(l, 1));
       view.map.reorder(BASE_LAYERS.bound, 1);

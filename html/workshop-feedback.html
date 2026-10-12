@@ -412,7 +412,16 @@
     state.notes = state.notes || {}; state.station = state.station || {}; state.reviewer = state.reviewer || { name: "", agency: "", email: "" };
     let imports = loadLS(LS_IMPORTS, {});      // { who: { agency, notes:{}, station:{}, when } }
     let remote = {}, remoteLoadedAt = 0;        // { key: { who, agency, notes, station, when } }
+    // ?station=fire&type=road&id=...&name=...&sub=...&lon=...&lat=...  (links from the Results page)
+    const URLQ = new URLSearchParams(location.search);
+    if (HZ[URLQ.get("station") || ""]) state.current = URLQ.get("station");
     let station = HZ[state.current] ? state.current : "flood";
+    function applyUrlAsset() {
+      if (!(URLQ.get("type") && URLQ.get("id"))) return;
+      const lon = URLQ.get("lon") ? +URLQ.get("lon") : null, lat = URLQ.get("lat") ? +URLQ.get("lat") : null;
+      select(newNote(URLQ.get("type"), URLQ.get("id"), URLQ.get("name") || ASSET_TYPES[URLQ.get("type")] || "Asset", URLQ.get("sub") || "", lon, lat));
+      history.replaceState(null, "", location.pathname);
+    }
     let selected = null;                        // the note being edited (saved or not)
     let pinMode = false, activeTab = "mine", gridApi = null;
     let map, view, layers = {}, noteLayer, othersLayer, hl = null, Graphic, Point;
@@ -757,6 +766,7 @@
           view.ui.add(new BasemapToggle({ view, nextBasemap: "topo-vector" }), "bottom-right");
           window.PF = { view, layers };   // for debugging in the console
           setStation(station); renderMarkers();
+          if (selected && selected.lon != null) zoomTo(selected);   // an asset handed over in the URL
           view.on("click", async (e) => {
             const pt = e.mapPoint, lon = +pt.longitude.toFixed(6), lat = +pt.latitude.toFixed(6);
             if (pinMode) { setPinMode(false); select(newNote("pin", `${lon},${lat}`, "Pinned place", `${lat}, ${lon}`, lon, lat)); return; }
@@ -882,6 +892,7 @@ ${summary}${sections}${stationHtml}
     // ───────────────────────── Boot ─────────────────────────
     renderStations(); renderNoteCard(); renderReviewers(); renderAll();
     if (SURVEY.viewUrl) loadRemote(false);
+    applyUrlAsset();
   })();
   </script>
 </body>
