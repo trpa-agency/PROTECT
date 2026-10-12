@@ -29,16 +29,19 @@ CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "pare
                 "cond_class", "cond_source", "cond_stale", "blockage_pct", "tailwater_flag", "on_stream",
                 "size_suspect", "ratio_review", "profile_completeness", "E_FLC_hist", "E_FLC_pt", "E_FLC_src",
                 "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_DFC_hist", "E_DFC_e1", "E_DFC_e2", "E_DFC_e3", "DF_option", "E_source",
-                "S_FLC", "V_FLC_hist", "S_LSC", "V_LSC_hist", "S_DFC", "V_DFC_hist", "V_max", "V_max_pair", "V_class", "S_source"]
+                "S_FLC", "V_FLC_hist", "S_LSC", "V_LSC_hist", "S_DFC", "V_DFC_hist", "V_max", "V_max_pair", "V_class",
+                "V_max_all", "V_max_all_pair", "V_class_all", "S_source"]
 BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_crossed", "year_built",
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
                "channel_cond", "lowest_rating", "bridge_condition_label", "water_crossing", "parent_segment_id",
                "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_DFB_hist", "DF_option", "E_source",
-               "S_FLB", "V_FLB_hist", "S_LSB", "V_LSB_hist", "S_DFB", "V_DFB_hist", "V_max", "V_max_pair", "V_class", "S_source"]
+               "S_FLB", "V_FLB_hist", "S_LSB", "V_LSB_hist", "S_DFB", "V_DFB_hist", "V_max", "V_max_pair", "V_class",
+               "V_max_all", "V_max_all_pair", "V_class_all", "S_source"]
 ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e2", "E_{p}_e3", "len_pct_c1", "len_pct_c2",
              "len_pct_c3", "av_tier", "av_record", "uphill_ha", "seg_len_m"]
 V_ROAD_COLS = ["src_objectid", "name", "class", "V_FLR_hist", "V_LSR_hist", "V_WFR_hist", "V_DFR_hist", "V_AVR_hist",
-               "V_max", "V_max_pair", "V_class", "C_class", "criticality_score", "criticality_pctl", "seg_len_m"]
+               "V_max", "V_max_pair", "V_class", "V_max_all", "V_max_all_pair", "V_class_all", "C_class", "criticality_score",
+               "criticality_pctl", "seg_len_m"]
 CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")
 WF_ROAD_COLS = [c.format(p="WFR") for c in ROAD_COLS]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
@@ -158,6 +161,32 @@ def slim_surface(surf: gpd.GeoDataFrame, crs, log, stem: str, simplify_m: float 
     return surf
 
 
+def write_road_geometry(st: gpd.GeoDataFrame, key: str, out_dir: Path, log) -> None:
+    """One road geometry file for every tab (key, name, class, length), written once per publish;
+    the hazard and vulnerability scores travel as small JSON tables the page joins in the browser."""
+    p = out_dir / "roads_geometry.geojson"
+    if getattr(write_road_geometry, "done", False):
+        return
+    g = st[[key] + [c for c in ("name", "class") if c in st.columns] + ["geometry"]].copy()
+    g["seg_len_m"] = st.geometry.length.round(1).values
+    g["geometry"] = g.geometry.simplify(5, preserve_topology=True)
+    _geojson(gpd.GeoDataFrame(g, geometry="geometry", crs=st.crs), p, log)
+    write_road_geometry.done = True
+
+
+def _json_rows(df: pd.DataFrame, path: Path, log) -> None:
+    """Score rows without geometry: a JSON array of objects, NaN -> null, numbers rounded."""
+    import json
+    d = df.drop(columns=[c for c in ("geometry",) if c in df.columns]).copy()
+    for c in d.columns:
+        if pd.api.types.is_float_dtype(d[c]):
+            d[c] = d[c].round(2)
+    # columnar: {"columns": [...], "rows": [[...], ...]} is about the size of the CSV; records would be triple
+    rows = json.loads(d.to_json(orient="values"))
+    path.write_text(json.dumps({"columns": list(d.columns), "rows": rows}, separators=(",", ":")), encoding="utf-8")
+    log.info(f"{len(rows)} rows -> {path.name} ({path.stat().st_size / 1e6:.2f} MB)")
+
+
 def _e_counts(series: pd.Series) -> dict:
     return {str(k): int(v) for k, v in series.round(1).value_counts().sort_index().items()}
 
@@ -193,8 +222,11 @@ def write_hazard_roads(cfg: dict, out_dir: Path, log, hazard: str, pair: str):
     for c in ecols:
         r[c] = pd.to_numeric(r[c], errors="coerce").round(2)
     r["seg_len_m"] = pd.to_numeric(r["seg_len_m"], errors="coerce").round(1)
-    _geojson(gpd.GeoDataFrame(r, geometry="geometry", crs=crs), out_dir / f"roads_{hazard}.geojson", log)
+    write_road_geometry(st, key, out_dir, log)
+    scores = pd.DataFrame(r.drop(columns=["geometry"] + [c for c in ("name", "class", "seg_len_m") if c in r.columns]))
+    _json_rows(scores, out_dir / f"roads_{hazard}.json", log)
     pd.DataFrame(r.drop(columns="geometry")).to_csv(out_dir / f"roads_{hazard}.csv", index=False)
+    (out_dir / f"roads_{hazard}.geojson").unlink(missing_ok=True)
     mi = r["seg_len_m"] / 1609.344
     e = r[f"E_{pair}_hist"]
     summ = {"segments": int(len(r)), "miles": round(float(mi.sum()), 1), "E": _e_counts(e),
@@ -269,8 +301,10 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
     for c in r.columns:
         if c.startswith(("V_", "criticality")) and c not in ("V_max_pair", "V_class"):
             r[c] = pd.to_numeric(r[c], errors="coerce").round(2)
-    _geojson(gpd.GeoDataFrame(r, geometry="geometry", crs=crs), out_dir / "roads_vulnerability.geojson", log)
+    write_road_geometry(st, key, out_dir, log)
+    _json_rows(pd.DataFrame(r.drop(columns=["geometry"] + [c for c in ("name", "class", "seg_len_m") if c in r.columns])), out_dir / "roads_vulnerability.json", log)
     pd.DataFrame(r.drop(columns="geometry")).to_csv(out_dir / "roads_vulnerability.csv", index=False)
+    (out_dir / "roads_vulnerability.geojson").unlink(missing_ok=True)
     mi = r["seg_len_m"] / 1609.344
     cc = r["C_class"]
     matrix = {}
@@ -284,6 +318,8 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
                   "V_class": {str(k): int(v) for k, v in r["V_class"].value_counts().items()},
                   "miles_by_class": {str(k): round(float(v), 1) for k, v in mi.groupby(r["V_class"]).sum().items()},
                   "V_max_pair": {str(k): int(v) for k, v in r["V_max_pair"].value_counts().items()},
+                  "V_class_all": {str(k): int(v) for k, v in r["V_class_all"].value_counts().items()} if "V_class_all" in r.columns else None,
+                  "V_max_all_pair": {str(k): int(v) for k, v in r["V_max_all_pair"].value_counts().items()} if "V_max_all_pair" in r.columns else None,
                   "pair_class": {p: {str(k): int(v) for k, v in r[f"V_{p}_hist"].map(CLASS_OF).value_counts().items()}
                                  for p in ("FLR", "LSR", "WFR", "DFR", "AVR") if f"V_{p}_hist" in r.columns},
                   "C_class": {str(int(k)): int(v) for k, v in cc.dropna().value_counts().sort_index().items()},
@@ -299,6 +335,7 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
                     "pair_class": {p: {str(k): int(v) for k, v in br[f"V_{p}_hist"].map(CLASS_OF).value_counts().items()}
                                    for p in ("FLB", "LSB", "DFB") if f"V_{p}_hist" in br.columns}} if "V_class" in br.columns else None,
         "breaks": cfg["scoring"]["v_breaks"], "c_class_pctl_breaks": cfg["scoring"].get("c_class_pctl_breaks"),
+        "v_max_exclude": list(cfg["scoring"].get("v_max_exclude") or []),
     }
     for stem, lab in (("active_transport", "paths"), ("transit_centers", "transit")):
         t = _table(gdb, f"Vulnerability_{stem}", log)

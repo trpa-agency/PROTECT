@@ -34,14 +34,13 @@
     "High": 594
    },
    "V_class": {
-    "High": 2921,
-    "Medium": 2171,
-    "Low": 4
+    "High": 1864,
+    "Medium": 1850,
+    "Low": 1382
    },
    "V_max_pair": {
-    "DFC": 4451,
-    "LSC": 403,
-    "FLC": 242
+    "LSC": 2970,
+    "FLC": 2126
    },
    "S_source": {
     "partial": 4219,
@@ -701,20 +700,21 @@
    "segments": 18285,
    "miles": 984.1,
    "V_class": {
-    "Medium": 14497,
-    "High": 3788
+    "Medium": 16124,
+    "High": 2161
    },
    "miles_by_class": {
-    "High": 390.1,
-    "Medium": 594.1
+    "High": 256.3,
+    "Medium": 727.8
    },
    "V_max_pair": {
-    "DFR": 12700,
-    "WFR": 2935,
-    "FLR": 1525,
-    "LSR": 1115,
-    "AVR": 10
+    "WFR": 14188,
+    "LSR": 2314,
+    "FLR": 1762,
+    "AVR": 21
    },
+   "V_class_all": {},
+   "V_max_all_pair": {},
    "pair_class": {
     "FLR": {
      "Low": 15617,
@@ -765,60 +765,58 @@
      "miles": 0.0
     },
     "Medium|0": {
-     "segments": 3365,
-     "miles": 118.7
+     "segments": 3949,
+     "miles": 154.4
     },
     "Medium|1": {
-     "segments": 3284,
-     "miles": 145.0
+     "segments": 3813,
+     "miles": 194.0
     },
     "Medium|2": {
-     "segments": 3976,
-     "miles": 158.6
+     "segments": 4280,
+     "miles": 183.7
     },
     "Medium|3": {
-     "segments": 3872,
-     "miles": 171.8
+     "segments": 4082,
+     "miles": 195.7
     },
     "High|0": {
-     "segments": 1349,
-     "miles": 104.5
+     "segments": 765,
+     "miles": 68.7
     },
     "High|1": {
-     "segments": 1111,
-     "miles": 114.2
+     "segments": 582,
+     "miles": 65.1
     },
     "High|2": {
-     "segments": 621,
-     "miles": 52.8
+     "segments": 317,
+     "miles": 27.7
     },
     "High|3": {
-     "segments": 707,
-     "miles": 118.6
+     "segments": 497,
+     "miles": 94.7
     }
    },
    "hotspots": {
-    "segments": 707,
-    "miles": 118.6,
+    "segments": 497,
+    "miles": 94.7,
     "by_pair": {
-     "DFR": 323,
-     "LSR": 243,
+     "LSR": 337,
      "FLR": 87,
-     "WFR": 53,
+     "WFR": 72,
      "AVR": 1
     }
    }
   },
   "culverts": {
    "V_class": {
-    "High": 2921,
-    "Medium": 2171,
-    "Low": 4
+    "High": 1864,
+    "Medium": 1850,
+    "Low": 1382
    },
    "V_max_pair": {
-    "DFC": 4451,
-    "LSC": 403,
-    "FLC": 242
+    "LSC": 2970,
+    "FLC": 2126
    },
    "pair_class": {
     "FLC": {
@@ -840,13 +838,13 @@
   },
   "bridges": {
    "V_class": {
-    "Medium": 27,
-    "High": 13
+    "Medium": 35,
+    "High": 3,
+    "Low": 2
    },
    "V_max_pair": {
-    "DFB": 27,
-    "FLB": 8,
-    "LSB": 5
+    "FLB": 30,
+    "LSB": 10
    },
    "pair_class": {
     "FLB": {
@@ -874,6 +872,11 @@
    25,
    50,
    75
+  ],
+  "v_max_exclude": [
+   "DFC",
+   "DFB",
+   "DFR"
   ],
   "paths": {
    "count": 216,
