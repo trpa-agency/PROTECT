@@ -141,8 +141,33 @@ def _table(gdb: str, name: str, log):
 
 
 def _geojson(gdf: gpd.GeoDataFrame, path: Path, log, precision: int = 5) -> None:
-    gdf.to_crs("EPSG:4326").to_file(path, driver="GeoJSON", COORDINATE_PRECISION=precision)
-    log.info(f"{len(gdf)} features -> {path.name} ({path.stat().st_size / 1e6:.2f} MB)")
+    """Write WGS84 GeoJSON at `precision` decimals. Slivers that collapse to nothing at that
+    precision are dropped first, and the written file is scrubbed of any feature left with empty
+    coordinates: the ArcGIS GeoJSONLayer rejects a whole file over one such feature."""
+    import json
+    g = gdf[~gdf.geometry.is_empty & gdf.geometry.notna()].copy()
+    if len(g) and g.geom_type.isin(["Polygon", "MultiPolygon"]).all():
+        area = g.to_crs("EPSG:26910").area if g.crs and g.crs.to_epsg() != 26910 else g.area
+        tiny = area < 2.0
+        if tiny.any():
+            log.info(f"{path.name}: {int(tiny.sum())} polygon(s) under 2 m2 dropped before writing")
+            g = g[~tiny]
+    g.to_crs("EPSG:4326").to_file(path, driver="GeoJSON", COORDINATE_PRECISION=precision)
+    gj = json.loads(path.read_text(encoding="utf-8"))
+    def ok(geom):
+        if not geom or not geom.get("coordinates"):
+            return False
+        if geom["type"] == "Polygon":
+            return all(len(r) >= 4 for r in geom["coordinates"])
+        if geom["type"] == "MultiPolygon":
+            return all(len(r) >= 4 for poly in geom["coordinates"] for r in poly) and len(geom["coordinates"]) > 0
+        return True
+    keep = [f for f in gj["features"] if ok(f.get("geometry"))]
+    if len(keep) != len(gj["features"]):
+        log.warning(f"{path.name}: {len(gj['features']) - len(keep)} feature(s) with empty coordinates after rounding removed")
+        gj["features"] = keep
+        path.write_text(json.dumps(gj, separators=(",", ":")), encoding="utf-8")
+    log.info(f"{len(keep)} features -> {path.name} ({path.stat().st_size / 1e6:.2f} MB)")
 
 
 def slim_surface(surf: gpd.GeoDataFrame, crs, log, stem: str, simplify_m: float = 20.0,
