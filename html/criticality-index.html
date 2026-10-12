@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Criticality | PROTECT | TRPA</title>
+  <meta name="description" content="Component 1 of the PROTECT vulnerability assessment: how much each street segment in the Lake Tahoe Basin matters to the network, with adjustable weights." />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- No Calcite include: the ArcGIS SDK registers its own Calcite build for its widgets. The page's controls are native elements. -->
+  <!-- Plotly and AG Grid load BEFORE the ArcGIS SDK (its AMD loader otherwise captures these UMD bundles) -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <!-- ArcGIS Maps SDK -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script>
+    // Full screen map button. The panel beside the map rides along as a floating, collapsible legend:
+    // the same DOM nodes, so every control keeps working; opts.adopt borrows controls from outside the map. Falls back to a fixed overlay where the
+    // Fullscreen API is unavailable; Esc exits either way.
+    function addFullscreen(view, wrap, mapEl, opts){
+      opts = opts || {};
+      if (!view || !wrap || !mapEl) return;
+      mapEl.classList.add("fs-map"); (opts.hide || []).forEach(el => el && el.classList.add("fs-hide"));
+      // controls that live outside the map (opts.adopt) move into a floating panel while full screen
+      let panel = opts.panel;
+      const adopt = (opts.adopt || []).filter(Boolean).map(el => ({el, mark:document.createComment("fs")}));
+      if (!panel && adopt.length) { panel = document.createElement("div"); panel.className = "fs-adopt"; wrap.appendChild(panel); }
+      if (panel) { panel.classList.add("fs-panel");
+        const head = document.createElement("div"); head.className = "fs-head";
+        head.innerHTML = '<span></span><button type="button" title="Collapse" aria-expanded="true">&#8211;</button>';
+        head.firstChild.textContent = opts.label || "Legend";
+        const b = head.querySelector("button");
+        b.onclick = () => { const min = panel.classList.toggle("fs-min"); b.innerHTML = min ? "+" : "&#8211;";
+          b.title = min ? "Expand" : "Collapse"; b.setAttribute("aria-expanded", String(!min)); };
+        panel.prepend(head); }
+      const btn = document.createElement("div"); btn.className = "esri-widget--button esri-widget"; btn.setAttribute("role", "button"); btn.tabIndex = 0;
+      const icon = document.createElement("span"); icon.setAttribute("aria-hidden", "true"); btn.appendChild(icon);
+      const isFs = () => document.fullscreenElement === wrap;
+      const set = on => { if (on !== wrap.classList.contains("fs-on"))
+          adopt.forEach(a => { if (on) { a.el.before(a.mark); panel.appendChild(a.el); } else if (a.mark.parentNode) { a.mark.replaceWith(a.el); } });
+        wrap.classList.toggle("fs-on", on); icon.className = "esri-icon " + (on ? "esri-icon-zoom-in-fixed" : "esri-icon-zoom-out-fixed");
+        btn.title = on ? "Exit full screen" : "Full screen"; btn.setAttribute("aria-label", btn.title); };
+      const toggle = () => { if (wrap.classList.contains("fs-on")) { if (isFs()) document.exitFullscreen(); else set(false); }
+        else if (wrap.requestFullscreen) wrap.requestFullscreen().catch(() => set(true)); else set(true); };
+      document.addEventListener("fullscreenchange", () => set(isFs()));
+      document.addEventListener("keydown", e => { if (e.key === "Escape" && wrap.classList.contains("fs-on") && !isFs()) set(false); });
+      btn.addEventListener("click", toggle);
+      btn.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+      set(false); view.ui.add(btn, "top-left");
+    }
+  </script>
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;flex-wrap:wrap;}
+    header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
+    .sitenav{background:#fff;border-bottom:1px solid var(--gray-border);}
+    .sitenav .inner{max-width:1320px;margin:0 auto;padding:.35rem 1.6rem;display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.78rem;}
+    .sitenav .g{display:flex;gap:.5rem;align-items:baseline;}
+    .sitenav .g b{color:var(--gray-text);font-weight:600;text-transform:uppercase;font-size:.66rem;letter-spacing:.06em;}
+    .sitenav a{color:var(--trpa-navy);text-decoration:none;font-weight:600;}
+    .sitenav a:hover{color:var(--trpa-blue);}
+    .sitenav a.on{color:var(--trpa-blue);}
+    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:.4rem;}
+    .kpi{background:#fff;border:1px solid var(--gray-border);border-top:3px solid var(--trpa-navy);border-radius:6px;padding:.6rem .8rem;}
+    .kpi .v{font-size:1.45rem;font-weight:700;line-height:1.1;}
+    .kpi .l{font-size:.72rem;color:var(--gray-text);margin-top:.15rem;}
+    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
+    .layer-panel{width:310px;flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;height:680px;border-right:1px solid var(--gray-border);}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;display:flex;align-items:center;justify-content:space-between;}
+    .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.3rem 0 .6rem;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--trpa-navy);margin-top:.35rem;}
+    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;}
+    .sw{appearance:none;-webkit-appearance:none;width:30px;height:16px;border-radius:999px;background:#c9d1da;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s;outline:none;}
+    .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+    .sw:checked{background:var(--trpa-blue);} .sw:checked::after{left:16px;}
+    .sw:focus-visible{box-shadow:0 0 0 2px var(--trpa-ice);}
+    .btn{font:600 .8rem 'Open Sans',sans-serif;color:var(--trpa-blue);background:#fff;border:1px solid var(--trpa-blue);border-radius:6px;padding:.4rem .8rem;cursor:pointer;}
+    .btn:hover{background:var(--trpa-blue);color:#fff;}
+    .btn.sm{font-size:.7rem;padding:.15rem .5rem;text-transform:none;letter-spacing:0;}
+    details.block{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.5rem .9rem;margin-top:1.2rem;}
+    details.block summary{font-size:.9rem;font-weight:700;cursor:pointer;padding:.3rem 0;list-style:none;display:flex;align-items:center;gap:.5rem;}
+    details.block summary::before{content:"";width:0;height:0;border-left:6px solid var(--trpa-blue);border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .15s;}
+    details.block[open] summary::before{transform:rotate(90deg);}
+    details.block .notes{margin:.4rem 0 .5rem;}
+    .cb{display:flex;flex-wrap:wrap;gap:.3rem;margin:.1rem 0 .5rem;}
+    .cb button{font:600 .74rem 'Open Sans',sans-serif;color:var(--trpa-navy);background:#fff;border:1px solid var(--gray-border);border-radius:999px;padding:.22rem .6rem;cursor:pointer;}
+    .cb button:hover{border-color:var(--trpa-blue);}
+    .cb button.on{background:var(--trpa-navy);border-color:var(--trpa-navy);color:#fff;}
+    /* weight controls */
+    .wgrp{border:1px solid #eef0f3;border-left:3px solid var(--si);border-radius:6px;padding:.45rem .6rem .35rem;margin-bottom:.55rem;}
+    .wrow{display:flex;align-items:center;gap:.45rem;font-size:.82rem;}
+    .wrow b{flex:1;font-weight:700;}
+    .wval{font-weight:700;font-variant-numeric:tabular-nums;min-width:2.6rem;text-align:right;}
+    input[type=range]{width:100%;accent-color:var(--trpa-blue);margin:.15rem 0 .1rem;}
+    details.vars summary{font-size:.72rem;color:var(--gray-text);cursor:pointer;margin-top:.1rem;}
+    .vrow{margin:.35rem 0 .2rem .2rem;}
+    .vtop{display:flex;align-items:center;gap:.4rem;font-size:.74rem;}
+    .vtop span.lbl{flex:1;}
+    .vtop label{display:flex;align-items:center;gap:.25rem;color:var(--gray-text);font-size:.68rem;}
+    .vtop .sw{width:24px;height:13px;} .vtop .sw::after{width:9px;height:9px;} .vtop .sw:checked::after{left:13px;}
+    .wsum{font-size:.7rem;color:var(--gray-text);margin-top:.2rem;}
+    #map-view{flex:1;height:680px;}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+    .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
+    .chart h3{font-size:.85rem;font-weight:700;margin:.2rem .4rem .1rem;}
+    .chart .sub{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .3rem;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
+    .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
+    .grid-wrap{width:100%;height:480px;}
+    .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
+      --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
+    .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
+    .notes li{margin:.25rem 0 .25rem 1.1rem;}
+    .empty{background:#fff;border:1px dashed var(--gray-border);border-radius:8px;padding:1.2rem;font-size:.86rem;color:var(--gray-text);margin:.6rem 0;}
+    footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(300px,calc(100vw - 2rem));text-align:left;white-space:normal;text-transform:none;letter-spacing:0;
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;height:auto;max-height:none;border-right:none;border-bottom:1px solid var(--gray-border);}
+      #map-view{height:420px;}
+      .charts{grid-template-columns:1fr;}
+      .toolbar .qf{min-width:0;flex-basis:100%;}
+    }
+      /* full screen map: the panel beside the map floats over it as a collapsible legend (same controls) */
+    .fs-on{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;background:#fff;display:block!important;z-index:1000;}
+    .fs-on .fs-map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;border-radius:0!important;}
+    .fs-on .fs-panel{position:absolute!important;top:12px;left:60px;z-index:20;display:block!important;flex:none!important;width:320px!important;max-width:calc(100% - 76px);height:auto!important;max-height:calc(100% - 120px)!important;overflow-y:auto!important;padding:0 .9rem .9rem!important;background:#fff;border:1px solid #DDDDDD!important;border-radius:8px;box-shadow:0 4px 18px rgba(0,43,85,.25);}
+    .fs-on .fs-hide{display:none!important;}
+    .fs-head{display:none;}
+    .fs-adopt{display:none;}
+    .fs-on .fs-head{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:2;margin:0 -.9rem .7rem;padding:.45rem .6rem .45rem .9rem;background:#003B71;color:#fff;font:600 .82rem 'Open Sans',sans-serif;letter-spacing:.03em;}
+    .fs-head button{border:0;background:transparent;color:#fff;font-size:1.05rem;line-height:1;cursor:pointer;padding:0 .3rem;}
+    .fs-on .fs-panel.fs-min{padding-bottom:0!important;overflow:hidden!important;}
+    .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
+    .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Criticality</h1>
+        <div class="header-sub">PROTECT Task 3.2 &middot; Component 1: how much each street segment matters to the network</div>
+      </div>
+      <div class="right">
+        <span class="chip">v0.3 draft</span>
+        <a href="index.html">Home</a>
+      </div>
+    </div>
+  </header>
+  <nav class="sitenav" aria-label="Site"><div class="inner">
+    <span class="g"><b>Results</b><a href="results.html">Results</a></span>
+    <span class="g"><b>Components</b><a href="criticality-index.html" class="on">Criticality</a><a href="od-services-index.html">Access to services</a></span>
+    <span class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></span>
+    <span class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></span>
+    <span class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></span>
+  </div></nav>
+
+  <main>
+    <div class="banner" id="banner">Draft for review. The default weights are the current method (traffic 0.3, detour length 0.3, access to critical services 0.3, equity 0.1); move a slider to test another weighting.<i class="i" tabindex="0" data-tip="Each input is converted to a z-score across all 18,285 street segments, then combined. With the default weights and z-score normalization the page reproduces criticality_score on the clean street layer (Streets_Network_Tahoe_Clean). Scores are relative to the basin: a higher score means the segment matters more than most others.">i</i></div>
+    <p class="lead">Which street segments matter most to the basin's transportation system: how much traffic they carry, how far drivers would have to detour if they closed, how many residents depend on them to reach exits, emergency services, schools and food, and the needs of the neighborhoods around them.</p>
+    <div class="empty" id="empty" style="display:none"></div>
+
+    <h2 class="sec">Map</h2>
+    <div class="map-wrap" id="map-wrap">
+      <div class="layer-panel">
+        <h3>Weights <button type="button" class="btn sm" id="reset">Reset to default</button></h3>
+        <div id="panel-weights"></div>
+        <div class="grp"><h3>Normalization</h3>
+          <div class="cb" id="norm"><button type="button" data-v="zscore" class="on">Z-score</button><button type="button" data-v="minmax">Min-max 0 to 1</button></div>
+        </div>
+        <div class="grp"><h3>Streets, colored by</h3>
+          <div class="cb" id="color-by"></div>
+          <div id="legend"></div>
+        </div>
+        <div class="grp"><h3>Filter by hazard</h3>
+          <div class="cb" id="hazard"></div>
+          <div id="ls-wrap" style="display:none">
+            <div class="wrow" style="font-size:.76rem"><span style="flex:1">Landslide susceptibility mean at least</span><span class="wval" id="ls-val">22</span></div>
+            <input type="range" id="ls" min="0" max="81" step="1" value="22" aria-label="Landslide threshold" />
+          </div>
+          <p class="note" id="haz-note">Showing all segments.</p>
+        </div>
+        <div class="grp"><h3>Layers</h3>
+          <label class="lyr"><input type="checkbox" class="sw" id="tg-bound" checked /> TRPA boundary</label>
+          <label class="lyr"><input type="checkbox" class="sw" id="tg-hill" /> Terrain (hillshade)<i class="i" tabindex="0" data-tip="Esri World Hillshade under the street segments.">i</i></label>
+        </div>
+      </div>
+      <div id="map-view"></div>
+    </div>
+
+    <h2 class="sec">Distributions</h2>
+    <div class="charts">
+      <div class="chart"><h3 id="ch-a-title">Miles by class</h3><div class="sub" id="ch-a-sub"></div><div id="ch-a" style="height:290px"></div></div>
+      <div class="chart"><h3 id="ch-b-title">Class by road type</h3><div class="sub" id="ch-b-sub"></div><div id="ch-b" style="height:290px"></div></div>
+    </div>
+
+    <h2 class="sec">Table</h2>
+    <p class="lead">Every segment shown on the map with its score under the current weights, the four sub-indices, and the inputs behind them. The export carries the weights used, so a weighting can be reproduced.</p>
+    <div class="toolbar">
+      <input id="qf" class="qf" type="text" placeholder="Search the table" aria-label="Quick search" />
+      <button type="button" id="export" class="btn">Export CSV</button>
+    </div>
+    <div id="grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <details class="block"><summary>How the numbers are made</summary>
+      <ul class="notes">
+        <li><b>Traffic:</b> modeled 2024 average annual daily traffic, grouped into 10 natural-break (Jenks) classes. Major roads with no modeled value take the value of the connecting major road; local and service streets without one count as low traffic. Only the class is published here.</li>
+        <li><b>Detour length:</b> the extra distance of the shortest detour when the segment is removed from the network (single link redundancy in RA2CE, on the corrected network), in 10 Jenks classes. Streets with no alternative at all, mostly dead ends and driveways, take the lowest class.</li>
+        <li><b>Access to critical services:</b> residents of 2,201 hexagons routed by travel time to basin exits, law enforcement, medical facilities, emergency shelters, schools and fresh food locations, averaged over 100 routing runs with small random variation in travel time so near-equal routes share the trips. The mean across the six destination types is grouped into 10 Jenks classes.</li>
+        <li><b>Equity:</b> for each segment, the highest count among the census block groups it crosses of households below the poverty line, residents who speak English less than well, households with no vehicle, and residents with a disability; the four are weighted equally by default.</li>
+        <li><b>Combining:</b> each variable is normalized across all segments (z-score: distance from the mean in standard deviations; or min-max: scaled 0 to 1). A sub-index is the weighted sum of its variables, and the score is the weighted sum of the sub-indices. Weights are rebalanced to total 1 as a slider moves. Invert flips a variable so that lower values score higher.</li>
+        <li><b>Classes and colors:</b> each segment is ranked against all 18,285 under the current weights and cut into quarters at the 25th, 50th and 75th percentiles: criticality class 0 (lowest quarter) to 3 (top quarter), the same rule the Results page uses. Segments with the same score share the average rank of their group and stay in one class, so when one sub-index carries all the weight (its 1 to 10 classes tie on many segments) the tied majority lands in the class its rank puts it in, not at the top. Colors run navy (least critical) to gold (most critical); there is no red, because these are relative ranks, not hazard. A hazard filter changes what is shown, never the scores or the classes.</li>
+        <li><b>Hazards:</b> FEMA flood zones (100- and 500-year), areas with a higher probability of high-severity wildfire, and the USGS landslide susceptibility mean along the segment. Hazard exposure is kept separate from criticality; the Results page reads the two together.</li>
+      </ul>
+    </details>
+
+    <h2 class="sec">Key numbers</h2>
+    <div class="kpis" id="kpis"></div>
+    <p class="note" style="font-size:.72rem;color:var(--gray-text);margin:.2rem 0 .4rem;" id="gen-note"></p>
+  </main>
+
+  <footer class="app-footer">
+    <p id="foot">Draft v0.3. Data: <code>data/processed/results/roads_criticality.json</code> (from <code>scripts/Streets_Network_Clean.ipynb</code>, the clean street layer <code>Streets_Network_Tahoe_Clean</code>) joined to <code>roads_geometry.geojson</code>. Method: <code>docs/METHODS_streets_network_clean.md</code>. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    const BASE = "../data/processed/results/";
+    const BOUND_URL = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4";
+    const MI = 1609.344;
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const tip = t => `<i class="i" tabindex="0" data-tip="${esc(t)}">i</i>`;
+    const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
+
+    // ---------- the score: four sub-indices of weighted, normalized variables ----------
+    const SUBS = [
+      {key:"traffic", label:"Traffic", color:"#E87722", tip:"Modeled 2024 daily traffic, in 10 natural-break classes.",
+       vars:[{field:"AADT_Jenks_Score", label:"Daily traffic class (1 to 10)"}]},
+      {key:"detour", label:"Detour Length", color:"#4A6118", tip:"Extra distance of the shortest detour if the segment closed, in 10 natural-break classes.",
+       vars:[{field:"SLR_Diff_Length_Jenks_Score", label:"Detour length class (1 to 10)"}]},
+      {key:"od", label:"Access to Critical Services", color:"#7B6A8A", tip:"Residents routed over the segment to exits, emergency services, schools and food (mean of six destination types), in 10 natural-break classes.",
+       vars:[{field:"OD_Traffic_Jenks_Score", label:"Access class (1 to 10)"}]},
+      {key:"equity", label:"Equity", color:"#0072CE", tip:"Needs of the surrounding block groups: four household and resident counts.",
+       vars:[{field:"Below_Poverty_Household_max", label:"Households below poverty"},
+             {field:"Speak_English_Not_Well_Not_at_A_max", label:"Limited English"},
+             {field:"Vehicle_Available_0_max", label:"Zero-vehicle households"},
+             {field:"With_Disability_max", label:"Residents with a disability"}]}];
+    const ALL_VARS = SUBS.flatMap(s => s.vars.map(v => v.field));
+    const FALLBACK_WEIGHTS = {traffic:0.3, detour:0.3, od:0.3, equity:0.1};
+    let DEFAULT = {sub:{...FALLBACK_WEIGHTS}};
+    const state = {sub:{}, vars:{}, inv:{}, norm:"zscore", color:"crit", hazard:"none", ls:22};
+    function setDefaults(){
+      state.sub = {...DEFAULT.sub};
+      SUBS.forEach(s => { state.vars[s.key] = {}; state.inv[s.key] = {};
+        s.vars.forEach(v => { state.vars[s.key][v.field] = 1 / s.vars.length; state.inv[s.key][v.field] = false; }); });
+      state.norm = "zscore";
+    }
+
+    // classes: 20/40/60/80th percentiles of all segments, one blue hue light to dark
+    // diverging, no reds, by criticality quarter 0 to 3: navy least critical, gold most critical
+    const RAMP = ["#003B71", "#6FA3DA", "#E2BF6E", "#A86F00"];
+    const COLOR_BY = [{v:"crit", label:"Criticality"}, ...SUBS.map(s => ({v:s.key, label:s.label}))];
+    const HAZARDS = [
+      {v:"none", label:"All", where:null, test:() => true},
+      {v:"flood", label:"Flood zone", where:"in_flood_zone = 1", test:a => a.in_flood_zone === 1, what:"in a FEMA flood zone (100- or 500-year)"},
+      {v:"flood100", label:"100-year flood", where:"in_flood_zone_100 = 1", test:a => a.in_flood_zone_100 === 1, what:"in a FEMA 100-year flood zone"},
+      {v:"fire", label:"High-severity fire", where:"high_sev_fire = 1", test:a => a.high_sev_fire === 1, what:"in an area of probable high-severity fire"},
+      {v:"landslide", label:"Landslide", where:() => `landslide_mean >= ${state.ls}`, test:a => a.landslide_mean != null && a.landslide_mean >= state.ls, what:null}];
+
+    // ---------- normalization statistics (full network; nulls score the mean) ----------
+    let rows = [], stats = {};
+    function computeStats(){
+      ALL_VARS.forEach(f => { const v = rows.map(r => r[f]).filter(x => x != null && !isNaN(x));
+        const n = v.length || 1, mean = v.reduce((a,b) => a+b, 0) / n;
+        const sd = Math.sqrt(v.reduce((a,b) => a + (b-mean)**2, 0) / n) || 1;
+        let mn = Infinity, mx = -Infinity; v.forEach(x => { if (x < mn) mn = x; if (x > mx) mx = x; });
+        stats[f] = {mean, sd, min:mn, max:mx}; });
+    }
+    const normP = f => { const s = stats[f]; return state.norm === "minmax" ? {o:s.min, k:(s.max - s.min) || 1} : {o:s.mean, k:s.sd}; };
+    const normV = (f, raw) => { const p = normP(f); const s = stats[f]; const x = (raw == null || isNaN(raw)) ? (state.norm === "minmax" ? s.min : s.mean) : raw; return (x - p.o) / p.k; };
+    const subScore = (key, r) => SUBS.find(s => s.key === key).vars.reduce((t, v) => t + (state.inv[key][v.field] ? -1 : 1) * normV(v.field, r[v.field]) * state.vars[key][v.field], 0);
+    const critScore = r => SUBS.reduce((t, s) => t + state.sub[s.key] * subScore(s.key, r), 0);
+    const valueOf = (r) => state.color === "crit" ? r._score : r._sub[state.color];
+
+    // the same arithmetic as Arcade, for the renderer (numbers in fixed notation, never 1e-17)
+    const num = x => Number(x).toFixed(10);
+    function arcTerm(key, v){ const p = normP(v.field); const fill = state.norm === "minmax" ? stats[v.field].min : stats[v.field].mean;
+      const n = `((IIf(IsEmpty($feature.${v.field}), ${num(fill)}, $feature.${v.field}) - ${num(p.o)}) / ${num(p.k)})`;
+      return `(${state.inv[key][v.field] ? -1 : 1} * ${n} * ${num(state.vars[key][v.field])})`; }
+    const arcSub = key => SUBS.find(s => s.key === key).vars.map(v => arcTerm(key, v)).join(" + ");
+    const arcade = () => state.color === "crit"
+      ? SUBS.map(s => `var s_${s.key} = ${arcSub(s.key)};`).join("\n") + `\nreturn ${SUBS.map(s => `${num(state.sub[s.key])} * s_${s.key}`).join(" + ")};`
+      : `return ${arcSub(state.color)};`;
+
+    // ---------- classes and legend ----------
+    // Criticality quarters 0 to 3, the Results page rule (C_class): percentile rank cut at 25, 50 and
+    // 75. Tied segments share the average rank of their group (as criticality_pctl does on the clean
+    // layer), so a classed input that ties on most segments (one sub-index at full weight) lands in
+    // one class by its rank, not in the top class. Map breaks sit halfway between distinct
+    // score values, never on a tied value, so the renderer's arithmetic cannot straddle a break.
+    let cuts = [];   // ascending [{cls, hi}]: scores below hi (and above the previous hi) take cls
+    function computeBreaks(){
+      const v = rows.map(valueOf).sort((a, b) => a - b), n = v.length, groups = [];
+      for (let i = 0; i < n; ) { let j = i; while (j + 1 < n && v[j + 1] - v[i] <= 1e-9) j++;
+        groups.push({lo:v[i], hi:v[j], mid:(i + j + 2) / 2 / n}); i = j + 1; }
+      cuts = [];
+      groups.forEach((g, gi) => { const pct = 100 * g.mid, cls = pct < 25 ? 0 : pct < 50 ? 1 : pct < 75 ? 2 : 3, next = groups[gi + 1];
+        const hi = next ? (g.hi + next.lo) / 2 : Infinity;
+        if (cuts.length && cuts[cuts.length - 1].cls === cls) cuts[cuts.length - 1].hi = hi; else cuts.push({cls, hi}); });
+    }
+    const classOf = x => { for (const c of cuts) if (x < c.hi) return c.cls; return cuts[cuts.length - 1].cls; };
+    const nClasses = () => 4;
+    const classColor = k => RAMP[k];
+    const CLASS_NAMES = ["0: lowest quarter (least critical)", "1", "2", "3: top quarter (most critical)"];
+    const classLabel = k => CLASS_NAMES[k];
+    function legendHTML(){
+      const n = nClasses(), counts = Array(n).fill(0); rows.forEach(r => counts[r._cls]++);
+      const name = state.color === "crit" ? "Criticality score" : SUBS.find(s => s.key === state.color).label + " sub-index";
+      let h = "";
+      for (let k = n - 1; k >= 0; k--) h += `<div class="lg-row"><span class="lg-line" style="background:${classColor(k)}"></span> ${classLabel(k)} <span style="color:var(--gray-text)">(${fmt(100 * counts[k] / rows.length)}% of segments)</span></div>`;
+      return h + `<p class="note">${esc(name)} under the current weights, ranked against every segment and cut into quarters at the 25th, 50th and 75th percentiles (the Results page's criticality class). Segments that tie share a rank and stay in one class, so a class can hold more or less than a quarter. Gold is more critical, navy less.</p>`;
+    }
+
+    // ---------- charts ----------
+    const LAYOUT = {font:{family:"Open Sans",size:11,color:"#003B71"}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"};
+    function drawCharts(shown){
+      const n = nClasses(), labs = [...Array(n).keys()].map(classLabel);
+      const miles = Array(n).fill(0), segs = Array(n).fill(0);
+      shown.forEach(r => { miles[r._cls] += r.miles; segs[r._cls]++; });
+      $("ch-a-sub").textContent = "Street miles in each class" + (state.hazard === "none" ? "" : " (segments in the hazard filter)") + ". Classes are criticality quarters 0 to 3 by rank; tied segments stay together.";
+      Plotly.react("ch-a", [{type:"bar", x:labs, y:miles, marker:{color:labs.map((_, k) => classColor(k))}, customdata:segs,
+        hovertemplate:"%{y:.1f} miles (%{customdata} segments)<extra></extra>"}],
+        Object.assign({}, LAYOUT, {margin:{l:50,r:10,t:10,b:70}, xaxis:{tickangle:-20}, yaxis:{title:"miles", gridcolor:"#eef0f3"}}), {displayModeBar:false, responsive:true});
+      const types = [...new Set(shown.map(r => r.class || "unknown"))];
+      const mi = t => shown.filter(r => (r.class || "unknown") === t).reduce((s, r) => s + r.miles, 0);
+      const groups = types.sort((a, b) => mi(b) - mi(a)).slice(0, 8);
+      $("ch-b-sub").textContent = "Share of each road type's miles in each class (the eight longest road types shown).";
+      const traces = [...Array(n).keys()].map(k => ({type:"bar", name:labs[k], x:groups, marker:{color:classColor(k)},
+        y:groups.map(g => { const sub = shown.filter(r => (r.class || "unknown") === g); const tot = sub.reduce((s, r) => s + r.miles, 0) || 1;
+          return 100 * sub.filter(r => r._cls === k).reduce((s, r) => s + r.miles, 0) / tot; }),
+        hovertemplate:"%{y:.1f} percent of miles<extra>" + labs[k] + "</extra>"}));
+      Plotly.react("ch-b", traces, Object.assign({}, LAYOUT, {barmode:"stack", margin:{l:45,r:10,t:10,b:70}, showlegend:false,
+        yaxis:{title:"percent of miles", gridcolor:"#eef0f3", range:[0,100]}, xaxis:{tickangle:-25}}), {displayModeBar:false, responsive:true});
+    }
+
+    // ---------- table ----------
+    const r2 = x => (x == null || isNaN(x)) ? null : Math.round(x * 1000) / 1000;
+    const COLS = [
+      {field:"name", headerName:"Street", minWidth:170, pinned:"left"}, {field:"class", headerName:"Road type", width:110},
+      {field:"miles", headerName:"Miles", width:85, valueFormatter:p => fmt(p.value, 2)},
+      {field:"score", headerName:"Score", width:90, sort:"desc"}, {field:"pctl", headerName:"Percentile", width:105},
+      {field:"cls", headerName:"Criticality class (0 to 3)", width:165},
+      {field:"traffic", headerName:"Traffic sub-index", width:135}, {field:"detour", headerName:"Detour length sub-index", width:170},
+      {field:"od", headerName:"Access sub-index", width:135}, {field:"equity", headerName:"Equity sub-index", width:135},
+      {field:"AADT_Jenks_Score", headerName:"Traffic class", width:110}, {field:"SLR_Diff_Length_Jenks_Score", headerName:"Detour class", width:110},
+      {field:"slr_diff_length_max", headerName:"Detour length (m)", width:140, valueFormatter:p => fmt(p.value)},
+      {field:"OD_Traffic_Jenks_Score", headerName:"Access class", width:110}, {field:"OD_Traffic_Avg", headerName:"Residents routed, mean of six", width:200, valueFormatter:p => fmt(p.value)},
+      {field:"traffic_evacuation", headerName:"Routed to exits", width:110, valueFormatter:p => fmt(p.value)},
+      {field:"traffic_law_enforcement", headerName:"Routed to law enforcement", width:165, valueFormatter:p => fmt(p.value)},
+      {field:"traffic_medical_facilities", headerName:"Routed to medical", width:120, valueFormatter:p => fmt(p.value)},
+      {field:"traffic_emergency_shelters", headerName:"Routed to shelters", width:125, valueFormatter:p => fmt(p.value)},
+      {field:"traffic_schools", headerName:"Routed to schools", width:120, valueFormatter:p => fmt(p.value)},
+      {field:"traffic_fresh_food", headerName:"Routed to fresh food", width:135, valueFormatter:p => fmt(p.value)},
+      {field:"Below_Poverty_Household_max", headerName:"Households below poverty", width:185},
+      {field:"Speak_English_Not_Well_Not_at_A_max", headerName:"Limited English", width:125},
+      {field:"Vehicle_Available_0_max", headerName:"Zero-vehicle households", width:180},
+      {field:"With_Disability_max", headerName:"Residents with a disability", width:190},
+      {field:"in_flood_zone", headerName:"Flood zone", width:100}, {field:"in_flood_zone_100", headerName:"100-yr flood", width:110},
+      {field:"high_sev_fire", headerName:"High-sev. fire", width:115}, {field:"landslide_mean", headerName:"Landslide mean", width:125},
+      {field:"criticality_score", headerName:"Published score", width:130}, {field:"src_objectid", headerName:"src_objectid", width:110},
+      // weights ride along hidden so an export records the weighting
+      {field:"normalization", hide:true}, ...SUBS.map(s => ({field:"wt_" + s.key, hide:true})),
+      ...SUBS.flatMap(s => s.vars.length > 1 ? s.vars.map(v => ({field:"wt_" + v.field, hide:true})) : []),
+      ...ALL_VARS.map(f => ({field:"inv_" + f, hide:true}))];
+    let gridApi = null;
+    agGrid.createGrid($("grid"), {columnDefs:COLS, rowData:[], defaultColDef:{sortable:true, resizable:true, filter:true}, onGridReady:e => { gridApi = e.api; }});
+    $("qf").addEventListener("input", e => { if (gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
+    $("export").addEventListener("click", () => { if (gridApi) gridApi.exportDataAsCsv({allColumns:true, fileName:`PROTECT_criticality_${new Date().toISOString().slice(0,10)}.csv`}); });
+    function tableRows(shown){
+      const w = {normalization:state.norm}; SUBS.forEach(s => { w["wt_" + s.key] = r2(state.sub[s.key]); if (s.vars.length > 1) s.vars.forEach(v => { w["wt_" + v.field] = r2(state.vars[s.key][v.field]); }); s.vars.forEach(v => { w["inv_" + v.field] = state.inv[s.key][v.field] ? 1 : 0; }); });
+      return shown.map(r => Object.assign({}, r, {score:r2(r._score), pctl:r._pctl, cls:r._cls, traffic:r2(r._sub.traffic), detour:r2(r._sub.detour), od:r2(r._sub.od), equity:r2(r._sub.equity)}, w));
+    }
+
+    // ---------- weight controls ----------
+    function buildWeights(){
+      $("panel-weights").innerHTML = SUBS.map(s => {
+        const vars = s.vars.map(v => `<div class="vrow"><div class="vtop"><span class="lbl">${esc(v.label)}</span>
+            <label><input type="checkbox" class="sw" id="inv-${v.field}" /> invert</label>
+            ${s.vars.length > 1 ? `<span class="wval" id="vwv-${v.field}"></span>` : ""}</div>
+            ${s.vars.length > 1 ? `<input type="range" min="0" max="1" step="0.01" id="vw-${v.field}" aria-label="${esc(v.label)} weight" />` : ""}</div>`).join("");
+        return `<div class="wgrp" style="--si:${s.color}"><div class="wrow"><b>${esc(s.label)}</b>${tip(s.tip)}<span class="wval" id="wv-${s.key}"></span></div>
+          <input type="range" min="0" max="1" step="0.01" id="w-${s.key}" aria-label="${esc(s.label)} weight" />
+          <details class="vars"><summary>${s.vars.length > 1 ? "Variables, weights and invert" : "Variable and invert"}</summary>${vars}
+          ${s.vars.length > 1 ? `<div class="wsum">Variable weights total 1.</div>` : ""}</details></div>`; }).join("")
+        + `<div class="wsum">Sub-index weights total 1; moving one rebalances the others.</div>`;
+      SUBS.forEach(s => {
+        $("w-" + s.key).addEventListener("input", e => { rebalance(state.sub, s.key, +e.target.value); syncControls(); schedule(); });
+        s.vars.forEach(v => {
+          $("inv-" + v.field).addEventListener("change", e => { state.inv[s.key][v.field] = e.target.checked; schedule(); });
+          if (s.vars.length > 1) $("vw-" + v.field).addEventListener("input", e => { rebalance(state.vars[s.key], v.field, +e.target.value); syncControls(); schedule(); });
+        });
+      });
+    }
+    function rebalance(obj, key, val){            // keep the group's weights summing to 1
+      const others = Object.keys(obj).filter(k => k !== key), rest = others.reduce((t, k) => t + obj[k], 0);
+      others.forEach(k => { obj[k] = rest > 0 ? obj[k] * (1 - val) / rest : (1 - val) / others.length; });
+      obj[key] = val;
+    }
+    function syncControls(){
+      SUBS.forEach(s => { $("w-" + s.key).value = state.sub[s.key]; $("wv-" + s.key).textContent = state.sub[s.key].toFixed(2);
+        s.vars.forEach(v => { $("inv-" + v.field).checked = state.inv[s.key][v.field];
+          if (s.vars.length > 1) { $("vw-" + v.field).value = state.vars[s.key][v.field]; $("vwv-" + v.field).textContent = state.vars[s.key][v.field].toFixed(2); } }); });
+      document.querySelectorAll("#norm button").forEach(b => b.classList.toggle("on", b.dataset.v === state.norm));
+    }
+    function buttons(id, opts, key){
+      $(id).innerHTML = opts.map(o => `<button type="button" data-v="${o.v}"${o.v === state[key] ? ' class="on"' : ""}>${esc(o.label)}</button>`).join("");
+      $(id).querySelectorAll("button").forEach(b => b.addEventListener("click", () => { state[key] = b.dataset.v;
+        $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); schedule(); }));
+    }
+
+    // ---------- map ----------
+    let view, layer, M, CustomContent, bound, hill;
+    function popupHTML(a){
+      const r = byId[String(a.src_objectid)] || a;
+      const hz = []; if (r.in_flood_zone === 1) hz.push(r.in_flood_zone_100 === 1 ? "100-year flood zone" : "500-year flood zone");
+      if (r.high_sev_fire === 1) hz.push("probable high-severity fire"); if (r.landslide_mean != null) hz.push("landslide mean " + fmt(r.landslide_mean));
+      let h = `<div style="font-size:12px;line-height:1.55;color:#003B71">`
+        + `<div style="color:#5a6577">${esc(r.class || "street")} &middot; ${fmt(r.miles, 2)} mi</div>`
+        + `<div style="margin:.3rem 0">Criticality score <b style="font-size:15px;color:#0072CE">${critScore(r).toFixed(2)}</b> &middot; percentile ${fmt(r._pctl, 1)}</div>`;
+      SUBS.forEach(s => { h += `<div style="margin-top:.25rem"><b style="color:${s.color}">${s.label}</b> <span style="color:#5a6577">(weight ${state.sub[s.key].toFixed(2)})</span>: ${subScore(s.key, r).toFixed(2)}</div>`;
+        s.vars.forEach(v => { h += `<div style="padding-left:.7rem;color:#3a5278">${esc(v.label)}${state.inv[s.key][v.field] ? " (inverted)" : ""}: ${r[v.field] == null ? "no data" : fmt(r[v.field], 1)}</div>`; }); });
+      h += `<div style="margin-top:.35rem;color:#5a6577">Residents routed to: exits ${fmt(r.traffic_evacuation)}, law enforcement ${fmt(r.traffic_law_enforcement)}, medical ${fmt(r.traffic_medical_facilities)}, shelters ${fmt(r.traffic_emergency_shelters)}, schools ${fmt(r.traffic_schools)}, fresh food ${fmt(r.traffic_fresh_food)}</div>`;
+      if (hz.length) h += `<div style="margin-top:.3rem;color:#5a6577">Hazards: ${hz.join("; ")}</div>`;
+      return h + `</div>`;
+    }
+    function setRenderer(){
+      const infos = cuts.map((c, i) => ({minValue:i === 0 ? -1e9 : cuts[i - 1].hi, maxValue:c.hi === Infinity ? 1e9 : c.hi,
+        symbol:{type:"simple-line", color:classColor(c.cls), width:1.5, cap:"round"}, label:classLabel(c.cls)}));
+      layer.renderer = {type:"class-breaks", valueExpression:arcade(), classBreakInfos:infos};
+    }
+
+    // ---------- recompute everything after a control changes ----------
+    let timer = null;
+    const schedule = () => { clearTimeout(timer); timer = setTimeout(applyAll, 150); };
+    function applyAll(){
+      if (!rows.length) return;
+      rows.forEach(r => { r._sub = {}; SUBS.forEach(s => { r._sub[s.key] = subScore(s.key, r); });
+        r._score = SUBS.reduce((t, s) => t + state.sub[s.key] * r._sub[s.key], 0); });
+      const order = rows.map((r, i) => [r._score, i]).sort((a, b) => a[0] - b[0]);
+      order.forEach(([, i], j) => { rows[i]._pctl = Math.round(10000 * (j + 1) / rows.length) / 100; });
+      computeBreaks(); rows.forEach(r => { r._cls = classOf(valueOf(r)); });
+      const hz = HAZARDS.find(h => h.v === state.hazard);
+      const shown = rows.filter(r => hz.test(r));
+      $("ls-wrap").style.display = state.hazard === "landslide" ? "" : "none";
+      $("haz-note").innerHTML = state.hazard === "none" ? "Showing all segments."
+        : `Showing <b>${fmt(shown.length)}</b> of ${fmt(rows.length)} segments ${hz.what || `with a landslide susceptibility mean of ${state.ls} or more`} (${fmt(100 * shown.length / rows.length, 1)} percent). Scores and classes still come from the whole network.`;
+      $("legend").innerHTML = legendHTML();
+      const top = shown.filter(r => r._cls === nClasses() - 1);
+      $("kpis").innerHTML = [[fmt(shown.length), state.hazard === "none" ? "street segments" : "segments in the filter"],
+        [fmt(shown.reduce((s, r) => s + r.miles, 0)), "street miles"],
+        [fmt(top.length), "segments in the top quarter"], [fmt(top.reduce((s, r) => s + r.miles, 0)), "miles in the top quarter"],
+        [fmt(shown.filter(r => r.in_flood_zone === 1 || r.high_sev_fire === 1).reduce((s, r) => s + (r._cls === nClasses() - 1 ? r.miles : 0), 0)), "of those miles in a flood zone or high-severity fire area"]]
+        .map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      if (layer) { setRenderer(); layer.definitionExpression = hz.where ? (typeof hz.where === "function" ? hz.where() : hz.where) : null; }
+      drawCharts(shown);
+      if (gridApi) gridApi.setGridOption("rowData", tableRows(shown));
+    }
+
+    // ---------- load: geometry once, the score table, joined on src_objectid ----------
+    const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(url.split("/").pop() + ": " + r.status); return r.json(); });
+    let byId = {}, meta = {};
+    const data = Promise.all([getJSON(BASE + "roads_geometry.geojson"), getJSON(BASE + "roads_criticality.json")]).then(([gj, t]) => {
+      meta = t.meta || {};
+      const tab = {}; t.rows.forEach(a => { const o = {}; t.columns.forEach((c, i) => { o[c] = a[i]; }); tab[String(o.src_objectid)] = o; });
+      const feats = [];
+      gj.features.forEach(f => { const id = String(f.properties.src_objectid); const sc = tab[id]; if (!sc) return;
+        const p = Object.assign({}, f.properties, sc); p.miles = (p.seg_len_m || 0) / MI; rows.push(p); byId[id] = p;
+        const props = Object.assign({}, p); delete props.miles; feats.push({type:"Feature", geometry:f.geometry, properties:props}); });
+      if (meta.weights) DEFAULT.sub = Object.assign({}, FALLBACK_WEIGHTS, meta.weights);
+      return {type:"FeatureCollection", features:feats};
+    });
+
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/popup/content/CustomContent","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, CC, Home, BasemapToggle){
+      CustomContent = CC;
+      hill = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer", title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
+      bound = new FeatureLayer({url:BOUND_URL, title:"TRPA boundary", renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
+      const map = new Map({basemap:"gray-vector", layers:[hill, bound]});
+      view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}, popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
+      view.ui.add(new Home({view}), "top-left");
+      view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+      addFullscreen(view, document.getElementById("map-wrap"), document.getElementById("map-view"), {panel:document.querySelector("#map-wrap .layer-panel")});
+      $("tg-bound").addEventListener("change", e => { bound.visible = e.target.checked; });
+      $("tg-hill").addEventListener("change", e => { hill.visible = e.target.checked; });
+
+      data.then(fc => {
+        setDefaults(); buildWeights(); syncControls();
+        buttons("color-by", COLOR_BY, "color"); buttons("hazard", HAZARDS, "hazard");
+        $("norm").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { state.norm = b.dataset.v; syncControls(); schedule(); }));
+        $("ls").addEventListener("input", e => { state.ls = +e.target.value; $("ls-val").textContent = state.ls; schedule(); });
+        $("reset").addEventListener("click", () => { setDefaults(); state.ls = 22; $("ls").value = 22; $("ls-val").textContent = 22; syncControls(); schedule(); });
+        computeStats();
+        // check: default weights + z-score reproduce the published criticality_score
+        const dev = rows.reduce((m, r) => r.criticality_score == null ? m : Math.max(m, Math.abs(critScore(r) - r.criticality_score)), 0);
+        $("gen-note").textContent = `Data generated ${meta.generated || "-"} from ${meta.source || "the clean street layer"}; ${fmt(rows.length)} segments. `
+          + `Default weights reproduce the published criticality score (largest difference ${dev.toFixed(4)}).`;
+        const url = URL.createObjectURL(new Blob([JSON.stringify(fc)], {type:"application/geo+json"}));
+        layer = new GeoJSONLayer({url, title:"Street segments", outFields:["*"],
+          popupTemplate:{title:"{name}", outFields:["*"], content:[new CustomContent({outFields:["*"], creator:e => { const d = document.createElement("div"); d.innerHTML = popupHTML(e.graphic.attributes); return d; }})]}});
+        map.add(layer, 1); map.reorder(bound, 2);
+        applyAll();
+      }).catch(err => { $("empty").style.display = ""; $("empty").textContent = "The street data did not load (" + err.message + "). Serve the repository root, for example python -m http.server, and open html/criticality-index.html."; });
+    });
+  })();
+  </script>
+</body>
+</html>

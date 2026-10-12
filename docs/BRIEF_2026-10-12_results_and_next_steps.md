@@ -27,16 +27,16 @@ line puts them back).
 
 | Asset | High | Medium | Low | Set mostly by |
 |---|---|---|---|---|
-| Roads (18,285) | 2,161 | 16,124 | 0 | wildfire (14,188), landslide (2,314), flooding (1,762) |
+| Roads (18,285) | 3,937 | 2,075 | 12,273 | wildfire (14,476), flooding (1,982), landslide (1,808) |
 | Culverts (5,096) | 1,864 | 1,850 | 1,382 | landslide (2,970), flooding (2,126) |
 | Bridges (40) | 3 | 35 | 2 | flooding (30), landslide (10) |
-| Paths (216) | 115 | 101 | 0 | wildfire (121), flooding (95) |
-| Transit hubs (8) | 2 | 6 | 0 | wildfire |
+| Paths (216) | 108 | 2 | 106 | wildfire (111), flooding (105) |
+| Transit hubs (8) | 0 | 1 | 7 | wildfire |
 
-Hotspots: 497 road segments (95 miles) are High vulnerability on the top criticality quarter,
-337 of them set by landslide. Flooding alone: 594 High culverts, 1,896 culverts cannot pass the
+Hotspots: 1,032 road segments (142 miles) are High vulnerability on the top criticality quarter,
+629 of them set by flooding, 310 by landslide, 92 by wildfire, and 1 by avalanche. Wildfire pairs are classed on their own breaks (Low under 2, Medium 2 to 2.5, High over 2.5), and fire severity is the highest class covering at least 25 percent of the 300 ft buffer. Flooding alone: 594 High culverts, 1,896 culverts cannot pass the
 100-year storm, 93 records withheld for owner confirmation. With debris flow back in, the
-stand-in pair would set 2,745 culverts and 2,408 road segments to High on its own.
+stand-in pair would set 2,745 culverts and 4,149 road segments to High on its own.
 
 ## 3. Two things the numbers say that we have to decide
 
@@ -46,9 +46,9 @@ stand-in pair would set 2,745 culverts and 2,408 road segments to High on its ow
   assets clear 2.0 on it. Options: keep the arithmetic and show pairs separately (the Overview
   does), or keep the stand-in pair out of the combined class until the contracted burn severity
   arrives (one config line). The drainage-size breaks go on the ICF list either way.
-- **Roads are never Low.** Wildfire likelihood is at least 1 everywhere in the Resource Kit data
-  and the draft's sensitivity floors are 1, so every segment is Medium or High. The map reads as
-  two colors until sensitivity data exists or the floors change.
+- **Roads are never Low.** Roads carry no sensitivity (decision 25), so a road pair's score is its
+  exposure. Wildfire likelihood is at least 1 everywhere in the Resource Kit data, so every segment's
+  wildfire score, and with it its highest pair, is at least 1: every segment is Medium or High.
 
 ## 4. What the network lane owns next
 
@@ -60,8 +60,6 @@ stand-in pair would set 2,745 culverts and 2,408 road segments to High on its ow
   RA2CE runs and fact sheets (Oct. 30).
 - **Hosted service.** PROTECT_VA v2 with E, S, C, V per pair only if the workshop tool needs more
   than the published GeoJSON; the Results page reads the GeoJSON today.
-- **Sensitivity attributes on the street layer.** Pavement condition, surface, truck traffic, and
-  guardrails are all defaults. Any source the lane has, even partial, moves roads off the floor.
 
 ## 5. What the surfaces lane owns next
 

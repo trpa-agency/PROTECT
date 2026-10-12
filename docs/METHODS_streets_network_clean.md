@@ -23,6 +23,7 @@ defects. The clean build recomputes every field from source in one pass and writ
 | Field dictionary (type, alias, group, source, method, null count for every field) | `scripts/outputs/streets_network_clean/streets_network_tahoe_clean_fields.csv` |
 | Before/after comparison with the published layer | `scripts/outputs/streets_network_clean/streets_network_tahoe_clean_qa.csv` |
 | Dated copy of each run (file geodatabase, field dictionary, QA CSV) | `F:\GIS\PROJECTS\Transportation\Protect\Data\Streets_Network\<YYYY-MM-DD_HHMMSS>\` |
+| Web table for `html/criticality-index.html` (scoring inputs, trips, hazards, score; current weights in `meta`) | `data/processed/results/roads_criticality.json` |
 
 The `scripts/outputs/` folder is gitignored. OBJECTIDs in the new feature class equal the source
 OBJECTIDs, which are also kept in `src_objectid`. That field is the join key to `Streets_Network_Tahoe`

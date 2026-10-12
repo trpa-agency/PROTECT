@@ -15,15 +15,15 @@ of the combined class. Nothing has gone to ICF yet.
 
 Show in this order: combined class map, the priority view, the vulnerability-by-criticality chart, the hotspot table.
 
-- Combined class is the highest pair per asset, without debris flow. Roads: 2,161 High and 16,124 Medium, no Low. Culverts: 1,864 High, 1,850 Medium, 1,382 Low. Bridges: 3, 35, 2.
-- What sets the road class: wildfire on 14,188 segments, landslide 2,314, flooding 1,762, avalanche 21.
-- Hotspots, High vulnerability on the top criticality quarter: 497 segments, 95 miles. Landslide sets 337 of them.
+- Combined class is the highest pair per asset, without debris flow. Roads: 3,937 High, 2,075 Medium, 12,273 Low (wildfire pairs classed Low under 2, Medium 2 to 2.5, High over 2.5; fire severity by 25 percent area share). Culverts: 1,864 High, 1,850 Medium, 1,382 Low. Bridges: 3, 35, 2.
+- What sets the road class: wildfire on 14,476 segments, flooding 1,982, landslide 1,808, avalanche 19.
+- Hotspots, High vulnerability on the top criticality quarter: 1,032 segments, 142 miles. Flooding sets 629 of them, landslide 310, wildfire 92, avalanche 1.
 - The priority view sizes segments by criticality class. That class is still the percentile quarters, which is the first ask below.
 
 ## 3. One hazard tab, wildfire (4 min)
 
 - Toggle the two "within 300 ft of roads" layers and click a segment to outline its buffer. This is the ground each score came from.
-- Say plainly: wildfire likelihood is at least 1 everywhere in the Resource Kit data and the draft's sensitivity floors are 1, so no road can be Low. The map is two colors until sensitivity data exists.
+- Say plainly: roads carry no sensitivity, so a road's score is its exposure. Wildfire likelihood is at least 1 everywhere in the Resource Kit data, so no road can be Low.
 
 ## 4. Workshop notes (2 min)
 
@@ -34,8 +34,7 @@ Show in this order: combined class map, the priority view, the vulnerability-by-
 
 1. **Criticality class rule.** Replace the percentile quarters with the lane's own 0 to 3 class on the road layer. Bridges, culverts, paths, and hubs inherit it. This decides the hotspot list. I can run Jenks and fixed-break options on the current scores for comparison if that helps.
 2. **Scenario picks by Oct. 21.** Two scenarios from the hotspot list. The closure set of failing culverts and bridges is ready as the link-failure input once the scenarios are named.
-3. **Any sensitivity attribute on the streets.** Pavement, surface, truck route, guardrail, even partial. Anything moves roads off the floor.
-4. **Hosted service, yes or no.** The page reads the published GeoJSON today. PROTECT_VA v2 only if the workshop tool or RA2CE needs more.
+3. **Hosted service, yes or no.** The page reads the published GeoJSON today. PROTECT_VA v2 only if the workshop tool or RA2CE needs more.
 
 ## 6. What I carry (1 min)
 

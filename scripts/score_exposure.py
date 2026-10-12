@@ -10,8 +10,9 @@ Two jobs, both config-driven (config.yaml `exposure:`):
      raster classed on the draft's breaks (over 1 percent 3, over 0.5 to 1 percent 2, over 0 to
      0.5 percent 1) and E2 the TRPA most-likely fire severity polygons (Low 1, Moderate 2,
      High 3; the contracted flame-length raster replaces it on 4 and 8 ft breaks when set),
-     combined per asset as 0.70 E1 + 0.30 E2 after each is sampled as the maximum within
-     300 ft. Landslide (rubric 2, 3, 6.3): E1 the USGS landslide susceptibility raster classed
+     combined per asset as 0.70 E1 + 0.30 E2. E1 is the maximum within 300 ft; E2 is the
+     highest severity class covering at least 25 percent of the 300 ft buffer
+     (exposure.wildfire.e2_min_share), so isolated 30 m cells near a road do not set it. Landslide (rubric 2, 3, 6.3): E1 the USGS landslide susceptibility raster classed
      5 = 3, 4 = 2, 3 = 1, else 0, with every recorded landslide (USGS inventory polygons, and
      points within a set distance) as class 3; E2 the Cal-Adapt precipitation change, which
      scores 0 at the historical horizon by definition, so E_LS*_hist = 0.50 E1 / 0.70.
@@ -579,25 +580,71 @@ def sample_distance_m(cfg: dict, hazard: str) -> float:
 # ----------------------------------------------------------------------------------------
 # sampling
 
-def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float, agg: str = "max") -> pd.Series:
-    """Maximum (or minimum) hz_class within buffer_m of each point (0 where none). Index = pts.index."""
+def min_share(cfg: dict, hazard: str, name: str) -> float:
+    """exposure.<hazard>.<indicator>_min_share: the indicator scores the highest class covering at
+    least this share of the sampling buffer, instead of the highest class touching it (0 = off)."""
+    return float((cfg["exposure"].get(hazard) or {}).get(f"{name}_min_share", 0) or 0)
+
+
+def _tiled(surf: gpd.GeoDataFrame, size: float = 1000.0) -> gpd.GeoDataFrame:
+    """Class polygons cut into size-metre tiles, so intersecting thousands of small buffers does
+    not clip one basin-wide polygon (millions of vertices) each time."""
+    import shapely
+    parts = surf[["hz_class", "geometry"]].explode(index_parts=False).reset_index(drop=True)
+    rows_c, rows_g = [], []
+    for c, g in zip(parts["hz_class"].values, parts.geometry.values):
+        x0, y0, x1, y1 = g.bounds
+        if x1 - x0 <= size and y1 - y0 <= size:
+            rows_c.append(c); rows_g.append(g); continue
+        for x in np.arange(np.floor(x0 / size) * size, x1, size):
+            for y in np.arange(np.floor(y0 / size) * size, y1, size):
+                piece = shapely.clip_by_rect(g, x, y, x + size, y + size)
+                if not piece.is_empty and piece.area > 0:
+                    rows_c.append(c); rows_g.append(piece)
+    return gpd.GeoDataFrame({"hz_class": rows_c}, geometry=rows_g, crs=surf.crs)
+
+
+def share_class(probe: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, share: float) -> pd.Series:
+    """Highest hz_class covering at least `share` of each probe polygon's area (0 where none).
+    Index = probe.index."""
+    P = gpd.GeoDataFrame({"_pid": probe.index}, geometry=probe.geometry.values, crs=probe.crs)
+    cut = gpd.overlay(P, _tiled(surf), how="intersection", keep_geom_type=True)
+    cut["_a"] = cut.geometry.area
+    frac = cut.groupby(["_pid", "hz_class"])["_a"].sum().unstack(fill_value=0.0)
+    frac = frac.div(pd.Series(probe.geometry.area.values, index=probe.index).reindex(frac.index), axis=0)
+    hit = frac.ge(share - 1e-9)
+    best = hit.mul(np.array(frac.columns, dtype=float), axis=1).max(axis=1)
+    return best.reindex(probe.index).fillna(0.0)
+
+
+def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float, agg: str = "max",
+                  share: float = 0.0) -> pd.Series:
+    """Maximum (or minimum) hz_class within buffer_m of each point (0 where none), or with share > 0
+    the highest class covering that share of the buffer. Index = pts.index."""
     if surf is None:
         return pd.Series(0.0, index=pts.index)
     buf = gpd.GeoDataFrame(geometry=pts.geometry.buffer(buffer_m), crs=pts.crs)
+    if share > 0 and buffer_m > 0:
+        return share_class(buf, surf, share)
     sj = gpd.sjoin(buf, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
     g = sj.groupby(level=0)["hz_class"]
     return (g.min() if agg == "min" else g.max()).reindex(pts.index).fillna(0)
 
 
-def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float = 0.0, agg: str = "max") -> pd.DataFrame:
-    """Maximum (or minimum) hz_class within buffer_m of each line (touching it when 0) and the
-    share of the line's own length inside each class."""
+def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float = 0.0, agg: str = "max",
+                 share: float = 0.0) -> pd.DataFrame:
+    """Maximum (or minimum) hz_class within buffer_m of each line (touching it when 0), or with
+    share > 0 the highest class covering that share of the buffer, and the share of the line's own
+    length inside each class."""
     if surf is None:
         return pd.DataFrame({"hz_max": pd.Series(0.0, index=lines.index)})
     probe = lines[["geometry"]] if buffer_m <= 0 else gpd.GeoDataFrame(geometry=lines.geometry.buffer(buffer_m), crs=lines.crs)
-    sj = gpd.sjoin(probe, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
-    g = sj.groupby(level=0)["hz_class"]
-    out = pd.DataFrame({"hz_max": (g.min() if agg == "min" else g.max()).reindex(lines.index).fillna(0)})
+    if share > 0 and buffer_m > 0:
+        out = pd.DataFrame({"hz_max": share_class(probe, surf, share)})
+    else:
+        sj = gpd.sjoin(probe, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
+        g = sj.groupby(level=0)["hz_class"]
+        out = pd.DataFrame({"hz_max": (g.min() if agg == "min" else g.max()).reindex(lines.index).fillna(0)})
     total = lines.geometry.length.replace(0, np.nan)
     # length in each class through the spatial index: overlay against the (many, small) class
     # polygons rather than intersecting every line with one basin-wide union
@@ -787,7 +834,7 @@ def score_line_assets(lines: gpd.GeoDataFrame, key: str, cfg: dict, hazard: str,
     out = pd.DataFrame({key: lines[key].values})
     parts = {}
     for i, (name, w, g, hint) in enumerate(inds):
-        res = sample_lines(lines, g, dist, hint_agg(hint))
+        res = sample_lines(lines, g, dist, hint_agg(hint), share=min_share(cfg, hazard, name))
         parts[name] = res["hz_max"].values
         if len(inds) > 1:
             out[f"E_{name}"] = res["hz_max"].values
@@ -862,7 +909,7 @@ def score_transit_centers(cfg: dict, hazard: str, surf, log, dry_run: bool, over
     tc[key] = tc[src_key].astype(str)
     dist = sample_distance_m(cfg, hazard) or float(ex["point_buffer_m"])
     inds = indicators(surf)
-    parts = {name: sample_points(tc, g, dist, hint_agg(hint)).values for name, _, g, hint in inds}
+    parts = {name: sample_points(tc, g, dist, hint_agg(hint), share=min_share(cfg, hazard, name)).values for name, _, g, hint in inds}
     weights = {name: w for name, w, _, _ in inds}
     out = pd.DataFrame({key: tc[key].values})
     for name in parts:

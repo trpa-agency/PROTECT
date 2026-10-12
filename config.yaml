@@ -67,6 +67,8 @@ exposure:
     flame_length_raster: ""
     flame_breaks_ft: [4.0, 8.0]  # over 0 to 4 = 1, over 4 to 8 = 2, over 8 ft = 3 (the draft's breaks)
     buffer_ft: 300           # sampling distance for every wildfire pair (lines and points)
+    e2_min_share: 0.25       # E2 = highest severity class covering at least 25 percent of the 300 ft buffer (Oct. 12);
+                             # the maximum-touching rule let single 30 m High cells set E2 = 3 on roads inside Low severity
     weights: {e1: 0.70, e2: 0.30}
     bp_fc: Hazard_Wildfire_BurnProb
     e2_fc: Hazard_Wildfire_Severity      # the E2 surface (severity classes, or flame length when that raster is set)
@@ -107,6 +109,7 @@ exposure:
 # scripts/score_vulnerability.py - sensitivity and vulnerability (docs/SCORING_RUBRICS.md 1.1, 1.2, 1.4, 2.3)
 scoring:
   v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
+  v_breaks_wildfire: [2.0, 2.5]   # wildfire pairs (WF-R, WF-AT, WF-TC): Low under 2.0, Medium 2.0 to 2.5, High over 2.5 (Oct. 12)
   # Pairs scored on a stand-in input stay out of the combined class (V_max, V_class) until the input is real:
   # debris flow uses the fire severity surface for soil burn severity and the draft's drainage-size break puts
   # nearly every asset at 3, so it set V_max on 87 percent of culverts and 69 percent of roads (Oct. 11).
@@ -138,12 +141,8 @@ scoring:
     weights: {e: 0.30, s1: 0.10, s2: 0.40, s3: 0.10, s4: 0.10}
   lsb:                            # landslide x bridges: S1 span type, S2 condition, S3 span length (draft direction; decision 12)
     weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}
-  roads:                          # the street layer carries no sensitivity attributes today: draft defaults, S_source default
-    flr: {weights: {e: 0.70, s1: 0.10, s2: 0.10, s3: 0.10}, pavement_default: 2, paved_default: 1, truck_default: 1}
-    lsr: {weights: {e: 0.70, s1: 0.30}, pavement_default: 2}
-    wfr: {weights: {e: 0.70, s1: 0.30}, guardrail_default: 1}
-    dfr: {weights: {e: 0.70, s1: 0.15, s2: 0.15}, pavement_default: 2, paved_default: 1}
-    # avr: exposure only (E 1.0), V = E
+  # roads: no sensitivity terms. Every road pair (FL-R, LS-R, WF-R, DF-R, AV-R) is exposure only,
+  # V = E (rubrics decision 25, Oct. 12, 2026).
   active_transport:
     flat: {weights: {e: 0.70, s1: 0.15, s2: 0.15}, paved_default: 3, slope_default: 1}   # the draft's unpaved default; slope unknown
   c_class_pctl_breaks: [25, 50, 75]   # provisional C_class 0 to 3 from the street layer's criticality_pctl, until the other lane sets its rule

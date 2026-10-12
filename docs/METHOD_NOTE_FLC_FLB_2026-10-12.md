@@ -175,7 +175,7 @@ The rational method is a screening estimate; slopes, roughness, and inlet condit
 assumed; inverts are not surveyed; the ratio ranks crossings and is not a design number. The
 future-horizon factor scales rainfall intensity only, so rain-on-snow winter peaks are not
 captured. Condition exists for about a third of the scored culverts, and none for El Dorado
-County. Sensitivity for roads is entirely the draft's defaults until pavement, surface, truck,
-and guardrail attributes exist. The 2050 and 2080 columns are December work. Cross-checks
+County. Roads carry no sensitivity (decision 25): each road pair's vulnerability is its
+exposure. The 2050 and 2080 columns are December work. Cross-checks
 against the documented failures in the literature review (the Incline Village blocked culvert,
 the Washoe County flash flood, the SR 89 Meeks Creek culvert) are reported with the delivery.

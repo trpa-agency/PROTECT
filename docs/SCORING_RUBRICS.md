@@ -1,6 +1,6 @@
 # PROTECT scoring rubrics
 
-**Version 0.4, Oct. 11, 2026.** Draft for consultant review (ICF checkpoint Oct. 12).
+**Version 0.5, Oct. 12, 2026.** Draft for consultant review (ICF checkpoint Oct. 12).
 **Scope of this version:** the shared framework (section 1) and all 15 pairs: FL-C, LS-C, DF-C
 (section 2), FL-B, LS-B, DF-B (section 3), DF-R (section 4), AV-R (section 5), and FL-R, FL-AT,
 FL-TC, LS-R, WF-R, WF-AT, and WF-TC (section 6). Sections 2 to 5 were drafted first; section 6
@@ -11,11 +11,18 @@ inventory away from mapped streams, basins over 1 sq mi use the USGS regional re
 PRISM precipitation, suspect size records are withheld from the loading ratio (section 2.2),
 and the headwater criterion's conservatism is stated.
 
+**What changed in v0.5.** Roads carry no sensitivity (decision 25, TRPA). FL-R, LS-R, WF-R, and
+DF-R are scored on exposure alone, V = E, as AV-R already was; the draft's road sensitivity
+indicators (pavement condition, paved surface, truck AADT, wooden guardrails) are kept in the
+tables below for the record and marked not scored. Exposure keeps the draft's proportions
+between its indicators, scaled to the full weight. Road vulnerability is therefore the road
+exposure class, and the Low/Medium/High breaks apply to it unchanged.
+
 **What changed in v0.4.** First results are scored for every pair except the future horizons:
 exposure for all 15 pairs on the historical horizon, and vulnerability (exposure plus
 sensitivity) for culverts, bridges, roads, active transport, and transit centers, with the
-draft's sensitivity defaults where no attribute exists yet (road pavement, surface, truck
-traffic, and guardrails; S_source records it). Three input decisions were taken from data in
+draft's sensitivity defaults where no attribute exists yet (S_source records it); roads are
+exposure only (v0.5, decision 25). Three input decisions were taken from data in
 hand and are numbered: wildfire exposure from the Sierra Nevada Regional Resource Kit burn
 probability (Pyrologix 2022) with TRPA most-likely fire severity in place of flame length
 (decision 22, revised); landslide susceptibility read from the USGS 2024 release as the share
@@ -60,25 +67,25 @@ sensitivity indicator weights, so the draft's "Vulnerability = (Exposure Score x
 written as the weight-normalized component scores (each 0 to 3) so the tool can show them
 separately. The draft writes weights as percentages; this document writes them as decimals.
 
-Several of the draft's sensitivity rubrics have a floor of 1 rather than 0 (bridge condition,
-pavement condition, culvert condition, paved surface, scour codes 5 to 9). A sensitivity
+Several of the draft's sensitivity rubrics have a floor of 1 rather than 0 (bridge condition, culvert condition, scour codes 5 to 9; roads carry no sensitivity, decision 25). A sensitivity
 component is therefore rarely 0. This is the draft's design and is kept.
 
-Per-pair weights, from the draft:
+Per-pair weights, from the draft; roads are exposure only (decision 25):
 
 | Hazard | Roads | Bridges and large culverts | Small culverts | Active transport | Transit centers |
 |---|---|---|---|---|---|
-| Flooding | E 0.7 / S 0.3 | E 0.3 / S 0.7 | E 0.3 / S 0.7 | E 0.7 / S 0.3 | E 1.0 |
-| Landslide | E 0.7 / S 0.3 | E 0.7 / S 0.3 | E 0.7 / S 0.3 | not scored | not scored |
-| Wildfire | E 0.7 / S 0.3 | not scored | not scored | E 1.0 | E 1.0 |
-| Debris flow | E 0.7 / S 0.3 | E 0.7 / S 0.3 | E 0.7 / S 0.3 | not scored | not scored |
+| Flooding | E 1.0 (decision 25) | E 0.3 / S 0.7 | E 0.3 / S 0.7 | E 0.7 / S 0.3 | E 1.0 |
+| Landslide | E 1.0 (decision 25) | E 0.7 / S 0.3 | E 0.7 / S 0.3 | not scored | not scored |
+| Wildfire | E 1.0 (decision 25) | not scored | not scored | E 1.0 | E 1.0 |
+| Debris flow | E 1.0 (decision 25) | E 0.7 / S 0.3 | E 0.7 / S 0.3 | not scored | not scored |
 | Avalanche | E 1.0 | not scored | not scored | not scored | not scored |
 
 ### 1.2 Buckets
 
 `V_<pair>` is kept to two decimals and bucketed for the map and posters. **TRPA proposal:**
 Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and above. Breaks live in `config.yaml`
-(`scoring.v_breaks`) so one change moves every page and layout.
+(`scoring.v_breaks`) so one change moves every page and layout. **Wildfire pairs (WF-R, WF-AT,
+WF-TC; decision 26):** Low under 2.0, Medium 2.0 to 2.5, High over 2.5 (`scoring.v_breaks_wildfire`).
 
 ### 1.3 Criticality
 
@@ -92,7 +99,10 @@ read on two axes, vulnerability class by criticality class, and the hotspot list
 
 One asset appears in several pairs (a culvert carries FL-C, LS-C, DF-C). **TRPA proposal:** the
 asset-level rating is the maximum pair score, written as `V_max` with `V_max_pair` recording
-which hazard set it. Summing would double-count one physical failure at one location.
+which hazard set it. Summing would double-count one physical failure at one location. Because
+wildfire pairs carry their own breaks (section 1.2), `V_class` is the highest of the per-pair
+classes, so an asset whose `V_max` comes from wildfire can sit a class below the class of that
+number on the other breaks.
 
 ### 1.5 Horizons
 
@@ -108,8 +118,8 @@ change modifier on FEMA exposure for the 2050 and 2080 columns is a December que
 ### 1.6 Missing data
 
 The draft leaves most defaults TBD. Every indicator below carries a default (stated in its
-rubric row); where the draft states one (pavement condition fair, surface paved, bridge
-condition none scores 1, scour other scores 1) that value is used, and the rest are **TRPA
+rubric row); where the draft states one (bridge condition none scores 1,
+scour other scores 1) that value is used, and the rest are **TRPA
 proposals** listed in section 2.8. An asset scored on any default carries `S_source` (or
 `E_source`) = `partial`; an asset with every sensitivity indicator defaulted carries `default`.
 Defaults are shown on the map and in popups as such.
@@ -544,7 +554,11 @@ rasters below. The segment set, IDs, and `C_class` come from the criticality ass
 debris-flow surface is built once so that DF-R, DF-B, and DF-C share one surface and one set of
 class breaks.
 
-### 4.2 Indicator rubrics (E 0.7 / S 0.3)
+### 4.2 Indicator rubrics (E 1.0, exposure only; decision 25)
+
+The exposure weights below are the draft's; on roads they are scaled to the full weight in the
+same proportions (option 1: 0.29, 0.29, 0.43; option 2: 0.50, 0.25, 0.25; proxy: 1.00). The
+S rows are the draft's and are not scored for roads.
 
 Exposure is option 1 or option 2, undecided in the draft. Both are built as rasters so that
 roads (length-weighted maximum), bridges (25 m or watershed), and culverts (watershed) sample the
@@ -586,10 +600,10 @@ same surfaces. The draft's tables apply to roads, bridges, and culverts alike.
 | | | | class 2 | 2 | | |
 | | | | class 1 | 1 | | |
 | | | | class 0 | 0 | | |
-| S1 | Pavement condition | 0.15 | poor | 3 | 2 (fair, per the draft), `S_source` partial | Jurisdiction outreach; unavailable today |
+| S1 (draft; not scored for roads (decision 25)) | Pavement condition | 0.15 | poor | 3 | | |
 | | | | fair | 2 | | |
 | | | | good or none | 1 | | |
-| S2 | Paved versus unpaved | 0.15 | unpaved | 3 | 1 (paved, per the draft) | Street network surface attribute where present |
+| S2 (draft; not scored for roads (decision 25)) | Paved versus unpaved | 0.15 | unpaved | 3 | | |
 | | | | paved | 1 | | |
 
 Workshop fallback (either option not ready by Oct. 16): the proxy raster, same sampling, with
@@ -606,8 +620,8 @@ Workshop fallback (either option not ready by Oct. 16): the proxy raster, same s
 - Roads are hit by debris flows at the crossing (the culvert or bridge) and along the toe of
   slope. Length-weighted maximum catches both; a segment with a High culvert and a Low roadway
   score will read High on the segment, which is the intended behavior.
-- Pavement condition is the open sensitivity gap for every road pair. The default of fair with
-  `S_source` partial makes the gap visible on the map rather than hiding it.
+- Roads carry no sensitivity (decision 25), so DF-R is exposure only and pavement condition is
+  not a gap for roads.
 
 ### 4.4 Decisions requested from the consultant
 
@@ -693,18 +707,18 @@ proposal** (decisions 19 and 21): one exposure indicator, the FEMA flood zone an
 crossing on the FL-C E1 values, at the full exposure weight, so every flood pair samples the
 same classed surface.
 
-**FL-R, flooding x roads** (E 0.7 / S 0.3)
+**FL-R, flooding x roads** (E 1.0, exposure only; decision 25)
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | **TRPA proposal:** FEMA flood zone and stream crossing, the FL-C E1 values, in place of the draft's extent and depth indicators | 0.70 | as FL-C E1 | | 0 | Length-weighted maximum along the segment |
+| E1 | **TRPA proposal:** FEMA flood zone and stream crossing, the FL-C E1 values, in place of the draft's extent and depth indicators | 1.00 (draft 0.70; decision 25) | as FL-C E1 | | 0 | Length-weighted maximum along the segment |
 | E1 (draft, not applicable) | Floodplain extent, lowest intersecting floodplain: 10-yr 3, 50-yr 2.5, 100-yr 2, 200-yr 1.5, 500-yr 1, 1,000-yr 0.5, none 0; and 100-yr flood depth on the FL-C depth scale (over 20 ft scores 3) | 0.35 each | | | | |
-| S1 | Pavement condition | 0.10 | poor | 3 | 2 (fair, per the draft), `S_source` partial | Jurisdiction outreach; unavailable today |
+| S1 (draft; not scored for roads (decision 25)) | Pavement condition | 0.10 | poor | 3 | | |
 | | | | fair | 2 | | |
 | | | | good or none | 1 | | |
-| S2 | Paved versus unpaved | 0.10 | unpaved | 3 | 1 (paved, per the draft) | Street network surface attribute where present |
+| S2 (draft; not scored for roads (decision 25)) | Paved versus unpaved | 0.10 | unpaved | 3 | | |
 | | | | paved | 1 | | |
-| S3 | Truck AADT | 0.10 | over 1,000 | 3 | **TRPA proposal:** 1 when unknown (the draft says TBD), `S_source` partial | Street network traffic attribute where present |
+| S3 (draft; not scored for roads (decision 25)) | Truck AADT | 0.10 | over 1,000 | 3 | | |
 | | | | over 500 to 1,000 | 2.5 | | |
 | | | | over 250 to 500 | 2 | | |
 | | | | over 100 to 250 | 1.5 | | |
@@ -730,13 +744,13 @@ same classed surface.
 
 ### 6.3 Landslide: LS-R
 
-**LS-R, landslide x roads** (E 0.7 / S 0.3)
+**LS-R, landslide x roads** (E 1.0, exposure only; decision 25; E1 and E2 scaled to 0.71 and 0.29)
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
 | E1 | USGS Landslide Susceptibility Index class, or a recorded landslide | 0.50 | as LS-C E1 | | 0 | Length-weighted maximum along the segment |
 | E2 | Cal-Adapt annual precipitation change versus historical | 0.20 | as LS-C E2 | | 0; historical horizon scores 0 | Segment mean |
-| S1 | Pavement condition. The draft prefers embankment condition or stabilization measures where available; pavement condition is the stand-in | 0.30 | poor | 3 | 2 (fair, per the draft), `S_source` partial | Jurisdiction outreach; unavailable today |
+| S1 (draft; not scored for roads (decision 25)) | Pavement condition. The draft prefers embankment condition or stabilization measures where available; pavement condition is the stand-in | 0.30 | poor | 3 | | |
 | | | | fair | 2 | | |
 | | | | good or none | 1 | | |
 
@@ -754,7 +768,7 @@ reviewed in time, on the same breaks, so the scores change in value but not in f
 2018 FSim set (burn probability and conditional flame length at 180 m) is on hand but mixes
 vintages and predates the 2021 Caldor Fire, so it is not used.
 
-**WF-R, wildfire x roads** (E 0.7 / S 0.3)
+**WF-R, wildfire x roads** (E 1.0, exposure only; decision 25)
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
@@ -762,7 +776,7 @@ vintages and predates the 2021 Caldor Fire, so it is not used.
 | | | | over 0.5 to 1 percent | 2 | | |
 | | | | over 0 to 0.5 percent | 1 | | |
 | | | | 0 percent | 0 | | |
-| E2 | **TRPA proposal** (decision 22): TRPA most-likely fire severity (RRK 2023 severity probabilities, stacked) in place of flame length | 0.30 | High | 3 | 0 | Maximum within a 300 ft buffer |
+| E2 | **TRPA proposal** (decision 22): TRPA most-likely fire severity (RRK 2023 severity probabilities, stacked) in place of flame length | 0.30 | High | 3 | 0 | Highest class covering at least 25 percent of the 300 ft buffer (decision 27) |
 | | | | Moderate | 2 | | |
 | | | | Low | 1 | | |
 | | | | outside the layer (non-burnable) | 0 | | |
@@ -770,14 +784,15 @@ vintages and predates the 2021 Caldor Fire, so it is not used.
 | | | | over 4 to 8 ft | 2 | | |
 | | | | over 0 to 4 ft | 1 | | |
 | | | | 0 ft | 0 | | |
-| S1 | Wooden guardrails present | 0.30 | present | 3 | 1 (the draft's default) | Street network or jurisdiction attribute where present |
+| S1 (draft; not scored for roads (decision 25)) | Wooden guardrails present | 0.30 | present | 3 | | |
 | | | | not present | 1 | | |
 
 **WF-AT, wildfire x active transport, and WF-TC, wildfire x transit centers** (E 1.0)
 
 Exposure is the WF-R set at E1 0.70 and E2 0.30 (the same TRPA inputs); there is no sensitivity
-indicator. Active transport samples the length-weighted maximum within a 300 ft
-buffer; transit centers the maximum within 300 ft.
+indicator. Active transport samples E1 as the length-weighted maximum within a 300 ft
+buffer; transit centers the maximum within 300 ft. E2 is the highest severity class covering at
+least 25 percent of the 300 ft buffer on both (decision 27).
 
 ### 6.5 Decisions requested from the consultant
 
@@ -791,7 +806,8 @@ buffer; transit centers the maximum within 300 ft.
     severity (the RRK severity probabilities stacked) classed Low 1, Moderate 2, High 3 in place
     of flame length. The contracted fire-behavior package replaces them for December if delivered
     and reviewed in time, on the same breaks.
-23. Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1
+23. Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100; no longer used, decision
+    25) and trail slope 1
     (5 to under 10 percent), both flagged `S_source` partial.
 24. Landslide susceptibility read from the USGS 2024 release (Mirus and others, doi
     10.5066/P13KAGU3), which gives the share of each 90 m cell that is landslide-prone rather
@@ -801,3 +817,24 @@ buffer; transit centers the maximum within 300 ft.
     units and are dropped, and a landslide point counts within 50 m. The precipitation-change
     term scores 0 at the historical horizon and keeps its weight, so landslide exposure tops out
     at 2.14 until the 2050 and 2080 columns are added.
+25. **TRPA decision (Oct. 12, 2026): roads carry no sensitivity.** FL-R, LS-R, WF-R, and DF-R are
+    scored on exposure alone, V = E, as AV-R already is. The street network carries none of the
+    draft's road sensitivity attributes (pavement condition, paved surface, truck AADT, wooden
+    guardrails), and scoring every road on the same default added a constant that moved roads
+    between classes without telling them apart. Exposure keeps the draft's proportions between
+    its indicators, scaled to the full weight. Roads are read alongside criticality, never
+    multiplied by it (section 1.3).
+26. **TRPA decision (Oct. 12, 2026): wildfire class breaks.** WF-R, WF-AT, and WF-TC are classed
+    Low under 2.0, Medium 2.0 to 2.5, and High over 2.5 (`scoring.v_breaks_wildfire`); every
+    other pair keeps the section 1.2 breaks. Wildfire scores run 1.0 to 3.0, so the shared breaks
+    put nearly every road in Medium or High on wildfire alone. `V_class` is now the highest
+    per-pair class (section 1.4). Effect on roads: High 6,191 to 4,031 segments; hotspots (High
+    on top-quarter criticality) 1,323 to 1,060.
+27. **TRPA decision (Oct. 12, 2026): wildfire severity sampled by area share.** E2 on WF-R,
+    WF-AT, and WF-TC is the highest most-likely severity class covering at least 25 percent of
+    the 300 ft buffer (`exposure.wildfire.e2_min_share`), 0 when no class reaches that share.
+    The severity layer is a 30 m raster turned into polygons, and the maximum-touching rule let
+    single isolated High cells set E2 = 3 on roads that lie wholly inside Low severity (El
+    Dorado Avenue, segment 17899, had six one-cell High patches 30 to 80 m away). E1 burn
+    probability keeps the maximum within 300 ft. Effect on roads: 7,549 of the 9,813 segments at
+    E2 = 3 drop to 1; High vulnerability 4,031 to 3,937; hotspots 1,060 to 1,032.
