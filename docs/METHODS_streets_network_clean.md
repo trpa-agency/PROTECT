@@ -18,10 +18,12 @@ defects. The clean build recomputes every field from source in one pass and writ
 
 | Output | Location |
 |---|---|
-| Feature class `Streets_Network_Tahoe_Clean` (18,285 segments, 69 fields) | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis.gdb` |
+| Feature class `Streets_Network_Tahoe_Clean` (18,285 segments, 79 fields) | `F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis.gdb` |
 | GeoPackage copy | `scripts/outputs/streets_network_clean/streets_network_tahoe_clean.gpkg` |
 | Field dictionary (type, alias, group, source, method, null count for every field) | `scripts/outputs/streets_network_clean/streets_network_tahoe_clean_fields.csv` |
 | Before/after comparison with the published layer | `scripts/outputs/streets_network_clean/streets_network_tahoe_clean_qa.csv` |
+| Dated copy of each run (file geodatabase, field dictionary, QA CSV) | `F:\GIS\PROJECTS\Transportation\Protect\Data\Streets_Network\<YYYY-MM-DD_HHMMSS>\` |
+| Web table for `html/criticality-index.html` (scoring inputs, trips, hazards, score; current weights in `meta`) | `data/processed/results/roads_criticality.json` |
 
 The `scripts/outputs/` folder is gitignored. OBJECTIDs in the new feature class equal the source
 OBJECTIDs, which are also kept in `src_objectid`. That field is the join key to `Streets_Network_Tahoe`
@@ -30,7 +32,7 @@ split at every connector) and cannot be used as a key.
 
 ![Criticality percentile](img/streets_network_clean/fig1_criticality_pctl.png)
 
-*Figure 1. `criticality_pctl` for all 18,285 segments. Darker and thicker lines score higher.*
+*Figure 1. `criticality_pctl` for all 18,285 segments, in five percentile classes. Darker lines score higher.*
 
 ## Pipeline overview
 
@@ -38,7 +40,7 @@ split at every connector) and cannot be used as a key.
 flowchart LR
   A[Overture drive network] --> B[ra2ce_v2 pipeline<br/>split colliding links,<br/>repair edge geometry]
   B --> C[Single link redundancy<br/>pipeline.py --stages slr]
-  B --> D[OD graphs per destination set<br/>pipeline.py --stages route]
+  B --> D[OD graphs per destination set<br/>pipeline.py --stages route / odgraph]
   D --> E[od_stochastic_assignment.ipynb<br/>travel time + 100 draws]
   C --> F[export_slr.py<br/>update table]
   E --> G[export_protect_va.build_update<br/>update table]
@@ -51,7 +53,8 @@ flowchart LR
 Run order for a full rebuild:
 
 1. `scripts/ra2ce_v2/pipeline.py --stages prepare basegraph repair` (about 4 minutes). Builds the corrected routing graph.
-2. `scripts/ra2ce_v2/pipeline.py --stages route` (about 4.5 hours). Builds the OD graph for each destination set. The routing results from this stage are kept as the RA2CE baseline; the OD traffic in the clean layer is re-routed in step 5.
+2. `scripts/ra2ce_v2/pipeline.py --stages route` (about 4.5 hours). Builds the OD graph for each of the four emergency destination sets and routes them by shortest distance. The routing results from this stage are kept as the RA2CE baseline; the OD traffic in the clean layer is re-routed in step 5.
+   `scripts/ra2ce_v2/pipeline.py --stages odgraph` (about 8 minutes) builds the OD graphs for schools and fresh food locations without any RA2CE routing.
 3. `scripts/ra2ce_v2/pipeline.py --stages slr` (about 2.5 minutes), then `scripts/ra2ce_v2/export_slr.py`.
 4. `scripts/ra2ce_v2/export_combined.py` and `export_protect_va.py` (only needed for the RA2CE baseline table).
 5. `scripts/ra2ce_v2/od_stochastic_assignment.ipynb` (about 4 minutes).
@@ -78,6 +81,8 @@ RA2CE outputs before step 2, since RA2CE deletes and rewrites its GeoPackages.
 | Law enforcement | 7 stations and substations | `PROTECT_analysis.gdb\LocalLawEnforcement` | TRPA | Law-enforcement destinations |
 | Medical facilities | 5 hospitals, health centers and urgent care clinics | `PROTECT_analysis.gdb\MedicalFacilities` | TRPA | Medical destinations |
 | Emergency shelters | 9 community centers, recreation centers and schools | `PROTECT_analysis.gdb\EvacuationShelters` | TRPA | Shelter destinations |
+| Schools | 21 public and private schools, including Lake Tahoe Community College and Sierra Nevada College | `PROTECT_data.gdb\Destinations\Schools` | TRPA | School destinations |
+| Fresh food locations | 33 grocery stores, markets and farmers' markets | `PROTECT_data.gdb\Destinations\FreshFoodLocations` | TRPA | Fresh food destinations |
 
 ## Method
 
@@ -184,24 +189,33 @@ are now included; most of them are dead-end service and residential streets.
 ### 6. OD traffic to critical services
 
 OD traffic counts how many residents travel over each street when every origin travels to a set of
-destinations. Four destination sets are routed:
+destinations. Six destination sets are routed:
 
-| Analysis | Destinations | How each origin's trips are split |
-|---|---|---|
-| Evacuation | 7 basin highway exits | All trips to the nearest exit |
-| Law enforcement | 7 stations | All trips to the nearest station |
-| Medical facilities | 5 facilities | Gravity: shares proportional to 1 / travel cost², across all facilities |
-| Emergency shelters | 9 shelters | Gravity, as for medical |
+| Analysis | Destinations | How each origin's trips are split | Field suffix |
+|---|---|---|---|
+| Evacuation | 7 basin highway exits | All trips to the nearest exit | `_evacuation` |
+| Law enforcement | 7 stations | All trips to the nearest station | `_law_enforcement` |
+| Medical facilities | 5 facilities | Gravity: shares proportional to 1 / travel cost², across all facilities | `_medical_facilities` |
+| Emergency shelters | 9 shelters | Gravity, as for medical | `_emergency_shelters` |
+| Schools | 21 schools | Gravity, as for medical | `_schools` |
+| Fresh food locations | 33 stores and markets | Gravity, as for medical | `_fresh_food` |
 
-Medical and shelter trips use gravity splitting because several facilities sit close together (Barton
-Memorial Hospital and Tahoe Urgent Care are 600 m apart), so assigning every trip to the single nearest
-one would leave the other facility's access roads empty.
+Medical, shelter, school and fresh food trips use gravity splitting because several destinations sit close
+together (Barton Memorial Hospital and Tahoe Urgent Care are 600 m apart; South Tahoe High School and
+Mount Tallac High School share an address), so assigning every trip to the single nearest one would leave
+the other destination's access roads empty.
+
+The first four sets were also routed by RA2CE (pipeline `route` stage), which gives the baseline used in
+the checks below. Schools and fresh food were added later and never routed by RA2CE: the `odgraph` stage
+prepares their destinations exactly as the route stage does, snaps the same 2,201 origins and the new
+destinations into the corrected network with RA2CE, and archives the OD graph with a node table
+(`od_nodes.csv`) in place of RA2CE's route table.
 
 **Routing.** RA2CE's own router uses shortest distance and has no road hierarchy: every edge in its
 routing graph carries the same default speed, because the road class field was never passed to it.
 In street grids, dozens of staircase paths have almost the same length, and the router sends every
-trip from a neighborhood along one of them. `od_stochastic_assignment.ipynb` re-routes the four
-analyses on the same RA2CE graphs with two changes:
+trip from a neighborhood along one of them. `od_stochastic_assignment.ipynb` routes all six analyses
+on the RA2CE OD graphs with two changes:
 
 1. **Travel time by road class.** Each segment gets a free-flow speed from its Overture class, and each
    edge's time is the sum over the segments it covers. These speeds are starting assumptions and should be
@@ -229,11 +243,13 @@ lengths (`export_protect_va.build_update`).
 **Checks.**
 
 * With distance cost and no random variation, the new router reproduces RA2CE's person-kilometres
-  exactly in all four analyses, and segment traffic correlates with RA2CE's at 0.9996 or higher.
-* In all 404 routing runs (101 per analysis), the trips arriving at each destination equal the trips sent
+  exactly in the four analyses RA2CE routed, and segment traffic correlates with RA2CE's at 0.9996 or
+  higher. Schools and fresh food use the same router and graph-building steps, but have no RA2CE run to
+  compare against.
+* In all 606 routing runs (101 per analysis), the trips arriving at each destination equal the trips sent
   there, and the trips sent equal the 53,933 residents whose origins can reach a destination.
 * Splitting the 100 runs into two halves of 50 gives segment results that correlate at 0.999 and differ
-  by a median of 2 to 3%.
+  by a median of 1.6 to 2.9%.
 
 Summed street traffic counts segment crossings: a trip adds its residents to every segment it crosses,
 so the sum grows with the number of segments on the routes. Compare methods on individual streets or on
@@ -276,14 +292,15 @@ and the four sub-indices are combined with fixed weights (`CRIT_WEIGHTS`):
 | `od_subindex` | `OD_Traffic_Jenks_Score` | 0.3 |
 | `equity_subindex` | 0.25 times the z-score of each of the four `*_max` equity counts | 0.1 |
 
-`OD_Traffic_Avg` is the mean of the four `traffic_*` OD fields. It is placed into 10 Jenks classes
+`OD_Traffic_Avg` is the mean of the six `traffic_*` OD fields (basin exits, law enforcement, medical
+facilities, emergency shelters, schools and fresh food locations; set in `OD_AVG_ANALYSES`). The mean is placed into 10 Jenks classes
 (`OD_Traffic_Jenks_Score`) like AADT and detour length, which keeps a few very heavy corridors from
 pushing every other street toward zero. The equity-weighted `prioritarian_*` fields are left out of this
 average because equity has its own sub-index.
 
 `criticality_score` is the weighted sum and `criticality_pctl` its percentile rank (0 to 100). The
 highest-scoring streets are US 50 (Trooper Gary Gifford Highway and Route 50), Lake Tahoe Boulevard,
-Tahoe Boulevard and Kingsbury Grade, which rank high on all three traffic-type inputs. Adding OD traffic
+Tahoe Boulevard, West Lake Boulevard and Kingsbury Grade, which rank high on all three traffic-type inputs. Adding OD traffic
 moved the top 10% of streets toward primary roads (38% to 47%) and away from residential streets (10% to
 1%).
 
@@ -317,6 +334,7 @@ operation; individual schema operations on the F: drive take about 30 seconds ea
 | `in_flood_zone_100` computed but never added | Added |
 | `diff_length_max` and `detour_max` held one constant value (broken code) | Dropped, along with empty editor-tracking, `surface` and `speed_limit_kmh` fields |
 | Criticality score had no OD component | OD traffic added at weight 0.3 |
+| No access measures for daily needs | Schools and fresh food locations routed and added to the OD score |
 
 ## Limitations and open items
 
@@ -331,5 +349,9 @@ operation; individual schema operations on the F: drive take about 30 seconds ea
   the most disruptive case, but these are mostly driveways and cul-de-sacs serving few trips.
 * **Criticality Index app.** The app's default score uses three sub-indices at equal weight and no OD
   term, so it does not match `criticality_score` until the app is updated.
+* **School and fresh food trips** send every resident to these destinations, weighted by distance. They
+  ignore enrollment, attendance boundaries, the age of residents, store size and the limited hours of
+  farmers' markets, so they measure how much each street matters for reaching these places, without
+  modeling actual school or shopping trips.
 * **Multi-segment streets.** Where a street joins several criticality segments that disagree, OD values
   are length-weighted means. Check `od_row_spread_pct` before quoting one figure for such a street.

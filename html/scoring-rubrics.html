@@ -232,14 +232,14 @@
         scored for flooding, landslide, wildfire, debris flow, and avalanche: a vulnerability score from 0 to 3
         that combines exposure (how much of the hazard reaches the asset) and sensitivity (how badly the asset
         would fare). Every indicator value and score follows the consultant's draft methodology (Aug. 20, 2026);
-        anything TRPA adds or changes is tagged as a proposal.<i class="i" tabindex="0" data-tip="Interactive version of the v0.4 scoring rubrics (Oct. 8, 2026) for the system-wide, indicator-based vulnerability assessment. Source of record is docs/SCORING_RUBRICS.md in the repo. Version 0.3 adopts the draft's half-point score scale, its class breaks, and its direction for span type, span length, and drainage area. TRPA is not acquiring a flood depth model, so flood exposure is scored from FEMA flood zones and stream crossings (decision 19). No pair is scored until its rubric is agreed.">i</i>
+        anything TRPA adds or changes is tagged as a proposal.<i class="i" tabindex="0" data-tip="Interactive version of the v0.5 scoring rubrics (Oct. 12, 2026) for the system-wide, indicator-based vulnerability assessment. Source of record is docs/SCORING_RUBRICS.md in the repo. Version 0.3 adopts the draft's half-point score scale, its class breaks, and its direction for span type, span length, and drainage area. TRPA is not acquiring a flood depth model, so flood exposure is scored from FEMA flood zones and stream crossings (decision 19). No pair is scored until its rubric is agreed.">i</i>
       </p>
     </section>
 
     <section class="kpi-row">
       <div class="kpi-card"><div class="kpi-value">15</div><div class="kpi-label">Hazard-asset pairs with a rubric in v0.3: five hazards, five asset types<i class="i" tabindex="0" data-tip="Culverts and bridges under flooding, landslide, and debris flow; roads under all five hazards; active transport and transit centers under flooding and wildfire. All 15 pairs are covered on one scale, so every pair samples the same classed hazard surfaces.">i</i></div></div>
       <div class="kpi-card"><div class="kpi-value">0 to 3</div><div class="kpi-label">Score scale in half-point steps; indicator weights sum to 1.0 within each pair</div></div>
-      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Vulnerability classes: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over<i class="i" tabindex="0" data-tip="TRPA proposal (decision 9). Class breaks are held in config.yaml so that one change carries to every page and map layout.">i</i></div></div>
+      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Vulnerability classes: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (wildfire: under 2.0, 2.0 to 2.5, over 2.5)<i class="i" tabindex="0" data-tip="TRPA proposal (decision 9). Class breaks are held in config.yaml so that one change carries to every page and map layout.">i</i></div></div>
       <div class="kpi-card"><div class="kpi-value">23</div><div class="kpi-label">Numbered items for the consultant: 20 open, 3 resolved by the draft's tables</div></div>
     </section>
 
@@ -316,8 +316,7 @@
               Indicator weights sum to 1.0 within a pair, so the pair score is on the same 0 to 3 scale. The exposure weight w<sub>E</sub>
               is the sum of the exposure indicator weights and w<sub>S</sub> the sum of the sensitivity weights. E<sub>pair</sub> and
               S<sub>pair</sub> are the weight-normalized component scores (each 0 to 3) so the tool can show them separately.</p>
-            <div class="note">Several of the draft's sensitivity rubrics have a floor of 1 rather than 0 (bridge condition, pavement
-              condition, culvert condition, paved surface, scour codes 5 to 9), so a sensitivity component is rarely 0. This is the
+            <div class="note">Several of the draft's sensitivity rubrics have a floor of 1 rather than 0 (bridge condition, culvert condition, scour codes 5 to 9; roads carry no sensitivity, decision 25), so a sensitivity component is rarely 0. This is the
               draft's design and is kept.</div>
           </calcite-block>
 
@@ -328,21 +327,21 @@
           <table class="ref" id="w-table">
             <thead><tr><th>Hazard</th><th>Roads</th><th>Bridges and large culverts</th><th>Small culverts</th><th>Active transport</th><th>Transit centers</th></tr></thead>
             <tbody>
-              <tr><td>Flooding</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.3 / S 0.7</td><td class="num">E 0.3 / S 0.7</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 1.0</td></tr>
-              <tr><td>Landslide</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td></tr>
-              <tr><td>Wildfire</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td><td class="num">E 1.0</td><td class="num">E 1.0</td></tr>
-              <tr><td>Debris flow</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td></tr>
+              <tr><td>Flooding</td><td class="num">E 1.0 (decision 25)</td><td class="num">E 0.3 / S 0.7</td><td class="num">E 0.3 / S 0.7</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 1.0</td></tr>
+              <tr><td>Landslide</td><td class="num">E 1.0 (decision 25)</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td></tr>
+              <tr><td>Wildfire</td><td class="num">E 1.0 (decision 25)</td><td class="num">not scored</td><td class="num">not scored</td><td class="num">E 1.0</td><td class="num">E 1.0</td></tr>
+              <tr><td>Debris flow</td><td class="num">E 1.0 (decision 25)</td><td class="num">E 0.7 / S 0.3</td><td class="num">E 0.7 / S 0.3</td><td class="num">not scored</td><td class="num">not scored</td></tr>
               <tr><td>Avalanche</td><td class="num">E 1.0</td><td class="num">not scored</td><td class="num">not scored</td><td class="num">not scored</td><td class="num">not scored</td></tr>
             </tbody>
           </table>
 
           <div class="card-grid">
             <div class="card" style="--c:#0072CE"><h3>Flood exposure source <span class="tag proposal">TRPA proposal</span></h3><p>No flood depth model is being acquired, so flood exposure is scored from FEMA flood zones and stream crossings on a four-value scale (1 percent zone 3; 0.2 percent zone or mapped TRPA stream 2; NHD flowline outside a zone 1; none 0). Decision 19.</p></div>
-            <div class="card" style="--c:#0072CE"><h3>Vulnerability classes <span class="tag proposal">TRPA proposal</span></h3><p>V is kept to two decimals and classed for the map and posters: <strong>Low</strong> under 1.0, <strong>Medium</strong> 1.0 to under 2.0, <strong>High</strong> 2.0 and over. Breaks live in <code>config.yaml</code> (<code>scoring.v_breaks</code>). Decision 9.</p></div>
+            <div class="card" style="--c:#0072CE"><h3>Vulnerability classes <span class="tag proposal">TRPA proposal</span></h3><p>V is kept to two decimals and classed for the map and posters: <strong>Low</strong> under 1.0, <strong>Medium</strong> 1.0 to under 2.0, <strong>High</strong> 2.0 and over. Breaks live in <code>config.yaml</code> (<code>scoring.v_breaks</code>). Decision 9. Wildfire pairs (WF-R, WF-AT, WF-TC) use <strong>Low</strong> under 2.0, <strong>Medium</strong> 2.0 to 2.5, <strong>High</strong> over 2.5 (<code>scoring.v_breaks_wildfire</code>), and the asset class is the highest pair class. Decision 26.</p></div>
             <div class="card" style="--c:#003B71"><h3>Criticality</h3><p>Criticality (how much the transportation system depends on an asset) is component 1 of the assessment: scored separately, not a multiplier. Road segments carry a 0 to 3 class (<code>C_class</code>); bridges and culverts inherit it through <code>parent_segment_id</code>. Priority is read on two axes, vulnerability class by criticality class, and the hotspot lists rank assets by V within the High criticality class first.</p></div>
             <div class="card" style="--c:#E87722"><h3>Aggregation across pairs <span class="tag proposal">TRPA proposal</span></h3><p>One asset appears in several pairs: a culvert carries FL-C, LS-C, and DF-C (pair codes read hazard then asset: FL flooding, LS landslide, WF wildfire, DF debris flow, AV avalanche; C culverts, B bridges, R roads, AT active transport, TC transit centers). The asset-level rating is the maximum pair score, <code>V_max</code>, with <code>V_max_pair</code> recording which hazard set it. Decision 9.</p></div>
             <div class="card" style="--c:#4A6118"><h3>Horizons</h3><p>Three time horizons: historical, mid-century (2050), and late-century (2080). The Nov. 9 workshop uses the historical horizon only.</p></div>
-            <div class="card" style="--c:#B47E00"><h3>Missing data</h3><p>The draft leaves most defaults TBD. Where it states one (pavement fair, surface paved, bridge condition none scores 1, scour other scores 1) that value is used; the rest are TRPA proposals (decision 8). Any asset scored on a default is flagged partial or default in the record.</p></div>
+            <div class="card" style="--c:#B47E00"><h3>Missing data</h3><p>The draft leaves most defaults TBD. Where it states one (bridge condition none scores 1, scour other scores 1) that value is used; the rest are TRPA proposals (decision 8). Any asset scored on a default is flagged partial or default in the record.</p></div>
             <div class="card" style="--c:#9C3E27"><h3>Sampling rule</h3><p>How each asset reads the hazard surface: line assets take the length-weighted maximum along the segment, and point assets (bridges, transit centers) take the maximum within a 25 m buffer. <strong>Small culverts are the exception:</strong> surfaces that describe what arrives at the crossing (flood, debris flow, landslide) are sampled over the culvert's contributing watershed, with the 25 m buffer as the fallback where no watershed could be delineated (decision 3).</p></div>
           </div>
           <calcite-block heading="More on these rules" collapsible scale="s">
@@ -430,12 +429,12 @@
   </main>
 
   <footer class="app-footer">
-    <p>Scoring rubrics v0.3 (Oct. 8, 2026). Source of record: <code>docs/SCORING_RUBRICS.md</code>; equation, weights, indicator values, and scores from the consultant's Aug. 20, 2026 draft Vulnerability Assessment Methodology (not committed); pair definitions from <code>Hazard_Asset_Pairs.md</code> (v0.8) and the <a href="reference-hub.html">Reference Hub</a>. Internal review draft.</p>
+    <p>Scoring rubrics v0.5 (Oct. 12, 2026); roads are exposure only (decision 25). Source of record: <code>docs/SCORING_RUBRICS.md</code>; equation, weights, indicator values, and scores from the consultant's Aug. 20, 2026 draft Vulnerability Assessment Methodology (not committed); pair definitions from <code>Hazard_Asset_Pairs.md</code> (v0.8) and the <a href="reference-hub.html">Reference Hub</a>. Internal review draft.</p>
   </footer>
 
   <script>
   (function () {
-    // ---------- RUBRIC DATA (mirror of docs/SCORING_RUBRICS.md v0.3) ----------
+    // ---------- RUBRIC DATA (mirror of docs/SCORING_RUBRICS.md v0.5) ----------
     // Each indicator lists its values as [score, indicator value], highest first, as the draft's
     // tables do. A matrix indicator (slope x landcover) carries rows, cols, and the score grid.
     // An indicator is active when its `when` test passes against the chosen options.
@@ -465,7 +464,7 @@
     function wfExposure(samp){
       return [
         {k:"wf_e1t", code:"E1", comp:"E", name:"Annual burn probability, Regional Resource Kit (Pyrologix 2022) on the draft's breaks", weight:0.70, values:BP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"Data in hand"},
-        {k:"wf_e2t", code:"E2", comp:"E", name:"TRPA most-likely fire severity (RRK severity probabilities, stacked), in place of flame length", weight:0.30, values:SEV_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="trpa", opt:"Data in hand", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 22)"}},
+        {k:"wf_e2t", code:"E2", comp:"E", name:"TRPA most-likely fire severity (RRK severity probabilities, stacked), in place of flame length", weight:0.30, values:SEV_VALUES, def:0, sampling:"Highest class covering at least 25 percent of the 300 ft buffer (decision 27); current conditions", when:o=>o.wfsrc==="trpa", opt:"Data in hand", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 22)"}},
         {k:"wf_e1m", code:"E1", comp:"E", name:"Annual burn probability, contracted fire-behavior modeling", weight:0.70, values:BP_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="model", opt:"Contracted package, when delivered", tags:["pending"], tagText:{pending:"contracted data pending delivery"}},
         {k:"wf_e2m", code:"E2", comp:"E", name:"Flame length, contracted fire-behavior modeling", weight:0.30, values:FLAME_VALUES, def:0, sampling:samp, when:o=>o.wfsrc==="model", opt:"Contracted package, when delivered", tags:["pending"], tagText:{pending:"contracted data pending delivery"}}
       ];
@@ -488,6 +487,14 @@
         {k:"df2_e2", code:"E2", comp:"E", name:"Wildcat combined hazard classification", weight:0.15, values:[[3,"high (3)"],[2,"moderate (2)"],[1,"low (1)"],[0,"none or no assessment"]], def:0, sampling:samp.pour, when:o=>o.dfopt==="opt2", opt:"Option 2"},
         {k:"df2_e3", code:"E3", comp:"E", name:"Contracted predicted soil burn severity", weight:0.15, values:BURN_VALUES, def:0, sampling:samp.wsmax, when:o=>o.dfopt==="opt2", opt:"Option 2", tags:["pending"], tagText:{pending:"contracted data pending delivery"}}
       ];
+    }
+    // Roads carry no sensitivity (decision 25): exposure takes the full weight, in the draft's
+    // proportions between its indicators (scaled per debris-flow option, since options differ).
+    function exposureOnly(inds){
+      const grp = i => i.opt || "", tot = {};
+      inds.filter(i => i.comp === "E").forEach(i => { tot[grp(i)] = (tot[grp(i)] || 0) + i.weight; });
+      return inds.filter(i => i.comp === "E").map(i => Object.assign({}, i, {weight: i.weight / tot[grp(i)],
+        tags: (i.tags || []).concat(["decision 25"])}));
     }
     const BRIDGE_S = [
       {k:"b_s1", code:"S1", comp:"S", name:"Span type, NBI item 45 (number of main spans)", weight:0.10, values:SPAN_VALUES, def:1, defNote:"1 when blank (TRPA proposal)", sampling:"Per structure", tags:["decision 11"]},
@@ -537,11 +544,8 @@
         ].concat(BRIDGE_S)},
       {id:"DF-B", hazard:"Debris flow", asset:"bridge", assetLabel:"Bridges and large culverts", wE:0.7, wS:0.3, section:"Rubrics sections 3.2 and 4.2", options:[DF_OPTION],
         indicators:dfExposure({proxy:"Contributing watershed where over a waterway, 25 m otherwise", ws:"Contributing watershed where over a waterway, 25 m otherwise", wsmax:"Watershed maximum", pour:"Pour point"}).concat(BRIDGE_S)},
-      {id:"DF-R", hazard:"Debris flow", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 4.2", options:[DF_OPTION],
-        indicators:dfExposure({proxy:"Length-weighted maximum along the segment", ws:"Length-weighted maximum along the segment (raster of the upslope contributing area at each cell)", wsmax:"Length-weighted maximum", pour:"Stream-segment results rasterized to the contributing area, length-weighted maximum"}).concat([
-          {k:"dfr_s1", code:"S1", comp:"S", name:"Pavement condition", weight:0.15, values:[[3,"poor"],[2,"fair"],[1,"good or none"]], def:2, defNote:"2 (fair, per the draft), S_source partial", sampling:"Jurisdiction outreach; unavailable today", tags:["pending"], tagText:{pending:"source TBD; the open sensitivity gap for every road pair"}},
-          {k:"dfr_s2", code:"S2", comp:"S", name:"Paved versus unpaved", weight:0.15, values:[[3,"unpaved"],[1,"paved"]], def:1, defNote:"1 (paved, per the draft)", sampling:"Street network surface attribute where present"}
-        ])},
+      {id:"DF-R", hazard:"Debris flow", asset:"road", assetLabel:"Road segments", wE:1.0, wS:0, section:"Rubrics section 4.2", options:[DF_OPTION],
+        indicators:exposureOnly(dfExposure({proxy:"Length-weighted maximum along the segment", ws:"Length-weighted maximum along the segment (raster of the upslope contributing area at each cell)", wsmax:"Length-weighted maximum", pour:"Stream-segment results rasterized to the contributing area, length-weighted maximum"}))},
       {id:"AV-R", hazard:"Avalanche", asset:"road", assetLabel:"Road segments", wE:1.0, wS:0, section:"Rubrics section 5.2", options:[], noHorizon:true,
         indicators:[
           {k:"avr_e1", code:"E1", comp:"E", name:"Historical avalanche record within 1,000 ft combined with the dominant slope angle within 1,000 ft (records: Sierra Avalanche Center accident map, National Avalanche Accident Database, and, as a TRPA proposal, the TRPA Avalanche_Zones layer and documented closures)", weight:1.00,
@@ -549,12 +553,9 @@
            def:0, sampling:"Length-weighted maximum per segment; current terrain conditions only, no climate horizon", tags:["decision 17","decision 18"]}
         ]},
       // Roads, active transport, and transit centers (rubrics section 6): the draft's tables, with flood on the FEMA scale.
-      {id:"FL-R", hazard:"Flooding", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 6.2", options:[],
+      {id:"FL-R", hazard:"Flooding", asset:"road", assetLabel:"Road segments", wE:1.0, wS:0, section:"Rubrics section 6.2", options:[],
         indicators:[
-          {k:"flr_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's floodplain extent (0.35) and 100-yr flood depth (0.35) indicators; FEMA maps only the 100-yr and 500-yr floodplains and no depth model is being acquired", weight:0.70, values:FEMA_VALUES, def:0, sampling:"Length-weighted maximum along the segment", tags:["proposal"], tagText:{proposal:"TRPA proposal (decisions 19 and 21)"}},
-          {k:"flr_s1", code:"S1", comp:"S", name:"Pavement condition", weight:0.10, values:PAVE_VALUES, def:2, defNote:"2 (fair, per the draft), S_source partial", sampling:"Jurisdiction outreach; unavailable today", tags:["pending"], tagText:{pending:"source TBD; the open sensitivity gap for every road pair"}},
-          {k:"flr_s2", code:"S2", comp:"S", name:"Paved versus unpaved", weight:0.10, values:PAVED_VALUES, def:1, defNote:"1 (paved, per the draft)", sampling:"Street network surface attribute where present"},
-          {k:"flr_s3", code:"S3", comp:"S", name:"Truck AADT", weight:0.10, values:[[3,"over 1,000"],[2.5,"over 500 to 1,000"],[2,"over 250 to 500"],[1.5,"over 100 to 250"],[1,"under 100"]], def:1, defNote:"1 when unknown (TRPA proposal; the draft says TBD)", sampling:"Street network traffic attribute where present", tags:["decision 23"]}
+          {k:"flr_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's floodplain extent (0.35) and 100-yr flood depth (0.35) indicators; FEMA maps only the 100-yr and 500-yr floodplains and no depth model is being acquired", weight:1.00, values:FEMA_VALUES, def:0, sampling:"Length-weighted maximum along the segment", tags:["proposal"], tagText:{proposal:"TRPA proposal (decisions 19 and 21)"}},
         ]},
       {id:"FL-AT", hazard:"Flooding", asset:"at", assetLabel:"Active transport", wE:0.7, wS:0.3, section:"Rubrics section 6.2", options:[],
         indicators:[
@@ -566,16 +567,13 @@
         indicators:[
           {k:"fltc_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's floodplain extent and 100-yr flood depth indicators (the draft's lower depth thresholds for transit centers have no dataset)", weight:1.00, values:FEMA_VALUES, def:0, sampling:"Maximum within 25 m", tags:["proposal"], tagText:{proposal:"TRPA proposal (decisions 19 and 21)"}}
         ]},
-      {id:"LS-R", hazard:"Landslide", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 6.3", options:[],
-        indicators:[
+      {id:"LS-R", hazard:"Landslide", asset:"road", assetLabel:"Road segments", wE:1.0, wS:0, section:"Rubrics section 6.3", options:[],
+        indicators:exposureOnly([
           {k:"lsr_e1", code:"E1", comp:"E", name:"USGS landslide susceptibility (share of the 90 m cell that is prone; decision 24), or a recorded landslide", weight:0.50, values:LSI_VALUES, def:0, sampling:"Length-weighted maximum along the segment"},
           {k:"lsr_e2", code:"E2", comp:"E", name:"Cal-Adapt annual precipitation change versus historical", weight:0.20, values:PPT_VALUES, def:0, sampling:"Segment mean", lock:{hist:0}},
-          {k:"lsr_s1", code:"S1", comp:"S", name:"Pavement condition (the draft prefers embankment condition or stabilization measures where available)", weight:0.30, values:PAVE_VALUES, def:2, defNote:"2 (fair, per the draft), S_source partial", sampling:"Jurisdiction outreach; unavailable today", tags:["pending"], tagText:{pending:"source TBD; the open sensitivity gap for every road pair"}}
-        ]},
-      {id:"WF-R", hazard:"Wildfire", asset:"road", assetLabel:"Road segments", wE:0.7, wS:0.3, section:"Rubrics section 6.4", options:[WF_OPTION], noHorizon:true,
-        indicators:wfExposure("Maximum within a 300 ft buffer, length-weighted along the segment; current conditions").concat([
-          {k:"wfr_s1", code:"S1", comp:"S", name:"Wooden guardrails present", weight:0.30, values:[[3,"present"],[1,"not present"]], def:1, defNote:"1 (the draft's default)", sampling:"Street network or jurisdiction attribute where present"}
         ])},
+      {id:"WF-R", hazard:"Wildfire", asset:"road", assetLabel:"Road segments", wE:1.0, wS:0, section:"Rubrics section 6.4", options:[WF_OPTION], noHorizon:true,
+        indicators:wfExposure("Maximum within a 300 ft buffer, length-weighted along the segment; current conditions")},
       {id:"WF-AT", hazard:"Wildfire", asset:"at", assetLabel:"Active transport", wE:1.0, wS:0, section:"Rubrics section 6.4", options:[WF_OPTION], noHorizon:true,
         indicators:wfExposure("Maximum within a 300 ft buffer, length-weighted along the trail; current conditions")},
       {id:"WF-TC", hazard:"Wildfire", asset:"tc", assetLabel:"Transit centers", wE:1.0, wS:0, section:"Rubrics section 6.4", options:[WF_OPTION], noHorizon:true,
@@ -619,8 +617,11 @@
       [18,"5.4 Avalanche","Whether the TRPA avalanche zone layer and documented closures count as records alongside the two accident databases.","Both count as records (confirmed Oct. 8)","Open"],
       [21,"6.5 Roads, trails, transit","FEMA flood zones as the flood exposure indicator for roads, active transport, and transit centers, with the 1 percent zone scoring 3 and the extent and depth indicators collapsed into one at the full exposure weight. The draft's extent scale would score the 100-year floodplain 2 and the 500-year 1, with 3 and 2.5 reserved for the 10- and 50-year floodplains that FEMA does not map.","FEMA four-value scale at 0.70 (1.0 for transit centers)","Open"],
       [22,"6.5 Roads, trails, transit","Wildfire exposure from the current data in hand: the Regional Resource Kit annual burn probability (Pyrologix 2022, 30 m) on the draft's breaks, and TRPA most-likely fire severity (the RRK severity probabilities stacked) classed Low 1, Moderate 2, High 3 in place of flame length. The contracted fire-behavior package replaces them for December if delivered and reviewed in time, on the same breaks.","TRPA data for the workshop","Open"],
-      [23,"6.5 Roads, trails, transit","Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100) and trail slope 1 (5 to under 10 percent), both flagged S_source partial.","As stated","Open"],
-      [24,"2, 3, 6.3 Landslide","Landslide susceptibility read from the USGS 2024 release (Mirus and others), which gives the share of each 90 m cell that is landslide-prone rather than five classes: over 80 percent scores 3, over 60 scores 2, over 40 scores 1, standing in for the draft's classes 5, 4, and 3. Recorded landslides from the USGS inventory; polygons over 10 km2 dropped as mapping units, points count within 50 m. The precipitation-change term scores 0 at the historical horizon and keeps its weight.","TRPA proposal","Open"]
+      [23,"6.5 Roads, trails, transit","Missing-data defaults the draft leaves TBD: truck AADT 1 (under 100; no longer used for roads, decision 25) and trail slope 1 (5 to under 10 percent), both flagged S_source partial.","As stated","Open"],
+      [24,"2, 3, 6.3 Landslide","Landslide susceptibility read from the USGS 2024 release (Mirus and others), which gives the share of each 90 m cell that is landslide-prone rather than five classes: over 80 percent scores 3, over 60 scores 2, over 40 scores 1, standing in for the draft's classes 5, 4, and 3. Recorded landslides from the USGS inventory; polygons over 10 km2 dropped as mapping units, points count within 50 m. The precipitation-change term scores 0 at the historical horizon and keeps its weight.","TRPA proposal","Open"],
+      [25,"1.1, 4, 6 Roads","Roads carry no sensitivity. FL-R, LS-R, WF-R, and DF-R are scored on exposure alone (V = E), as AV-R already is; the draft's road sensitivity indicators (pavement condition, paved surface, truck AADT, wooden guardrails) are not scored. Exposure keeps the draft's proportions between its indicators, scaled to the full weight. Roads are read alongside criticality, never multiplied by it.","TRPA decision","Decided"],
+      [26,"1.2, 1.4, 6 Wildfire","Wildfire class breaks. WF-R, WF-AT, and WF-TC are classed Low under 2.0, Medium 2.0 to 2.5, and High over 2.5; every other pair keeps the 1.0 and 2.0 breaks. The asset class (V_class) is the highest of its pair classes.","TRPA decision","Decided"],
+      [27,"6.4 Wildfire","Fire severity (E2) sampled by area share: the highest most-likely severity class covering at least 25 percent of the 300 ft buffer, 0 when no class reaches that share. The maximum-touching rule let single 30 m High cells set E2 to 3 on roads lying wholly inside Low severity. Burn probability (E1) keeps the maximum within 300 ft.","TRPA decision","Decided"]
     ];
 
     // ---------- STATE ----------
@@ -824,7 +825,7 @@
       });
       html += '</tbody></table>';
       html += '<div class="actions"><button type="button" id="btn-defaults">Apply defaults to unscored indicators</button><button type="button" class="alt" id="btn-clear">Clear scores</button></div>';
-      html += '<div class="note">Vulnerability is reported to two decimals and classed Low under 1.0, Medium 1.0 to under 2.0, and High 2.0 and over (TRPA proposal, decision 9).</div>';
+      html += '<div class="note">Vulnerability is reported to two decimals and classed Low under 1.0, Medium 1.0 to under 2.0, and High 2.0 and over (TRPA proposal, decision 9); wildfire pairs Low under 2.0, Medium 2.0 to 2.5, High over 2.5 (decision 26).</div>';
       el.innerHTML = html;
       seg($("crit-seg"), [0,1,2,3].map(c => ({id:String(c), label:String(c)})), String(state.cclass), v => { state.cclass = +v; renderAll(); });
       $("btn-defaults").onclick = () => { activeInds(pair).forEach(ind => { if(effScore(ind)==null) state.scores[ind.k] = {def:true, mods:(state.scores[ind.k]||{}).mods}; }); renderAll(); };

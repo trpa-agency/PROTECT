@@ -85,17 +85,17 @@ Resilience Improvement Plan instead; **Proposed** = added after the 6/25 decisio
 | AV-B | Avalanche | Bridges | PC | TRIP discussion | | | Moved out of the VA after 6/25: not being scored, impacts covered in the plan |
 | DF-B | Debris Flow | Bridges | PC | Include in VA | Option 1: StreamStats mean basin slope + drainage area + contracted predicted soil burn severity. Option 2: Wildcat debris-flow likelihood + combined hazard class + soil burn severity | Span type (NBI 45), bridge condition (NBI 58-60), span length (NBI 48) | Added at the 6/25 VA review. Exposure option 1 or 2 undecided (section 7) |
 | DF-C | Debris Flow | Culverts | PC | Include in VA | Same as DF-B (option 1 or 2) | Debris potential of the basin: StreamStats mean basin slope x majority NLCD landcover (option 1) or CULVERT tool WDBFM debris-flow score, 0-5 (option 2) | Split from landslide per 5/20. The purchased pre-fire severity surface makes this predictive rather than post-hoc, and is the primary Wildcat input |
-| DF-R | Debris Flow | Roads | PC | Include in VA | Same as DF-B (option 1 or 2) | Pavement condition, paved vs. unpaved | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
+| DF-R | Debris Flow | Roads | PC | Include in VA | Same as DF-B (option 1 or 2) | None, exposure only (decision 25). Draft: pavement condition, paved vs. unpaved | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
 | FL-B | Flooding | Bridges | PC | Include in VA | NBI water adequacy (Item 71) + FEMA flood zone at the structure (TRPA proposal in place of the draft's change in 100-yr flood depth; no flood depth model is being acquired, Oct. 8) | Channel condition (NBI 61), scour criticality (NBI 113, 40 percent), span type (NBI 45), bridge condition (NBI 58-60) | Exposure 0.3 / sensitivity 0.7. Large culverts score with bridges. NBI fields from the FHWA National Bridge Inventory |
 | FL-C | Flooding | Culverts | PC | Include in VA | FEMA flood zone and stream crossing (TRPA proposal in place of the draft's 100-yr flood depth over the road; no flood depth model is being acquired, Oct. 8) | Debris potential of the basin (slope x landcover matrix, computed locally) + 100-yr capacity loading ratio Qevent/Qdesign (local rational-method flows; Qcap from HDS-5 where asset data has none) | Exposure 0.3 / sensitivity 0.7 (small culverts). TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall (tailwater modifier) |
-| FL-R | Flooding | Roads | PC | Include in VA | FEMA flood zone and stream crossing at the full exposure weight (TRPA proposal in place of the draft's floodplain extent and 100-yr depth at 35 percent each; no flood depth model, and FEMA maps only the 100-yr and 500-yr floodplains) | Pavement condition, paved vs. unpaved, truck AADT (10 percent each) | Lowland and valley segments most exposed. Defaults: fair, paved, truck AADT TBD |
+| FL-R | Flooding | Roads | PC | Include in VA | FEMA flood zone and stream crossing at the full exposure weight (TRPA proposal in place of the draft's floodplain extent and 100-yr depth at 35 percent each; no flood depth model, and FEMA maps only the 100-yr and 500-yr floodplains) | None, exposure only (decision 25). Draft: pavement condition, paved vs. unpaved, truck AADT (10 percent each) | Lowland and valley segments most exposed. Defaults: fair, paved, truck AADT TBD |
 | FL-AT | Flooding | Active Transport | PC | Include in VA | Same as FL-R | Paved vs. unpaved, trail slope (15 percent each) | Moved into the VA after 6/25: all flooding pairs are scored. Defaults: unpaved, slope TBD |
 | FL-TC | Flooding | Transit Centers | PC | Include in VA | Same as FL-R, with lower depth thresholds (3 at more than 8 ft) | None (exposure x 1.0) | Added at the 6/25 VA review; moved into the VA so all flooding pairs are scored |
 | LS-B | Landslide | Bridges | PC | Include in VA | USGS Landslide Susceptibility Index or recorded landslide (CA Landslides Database), 50 percent + Cal-Adapt annual precipitation change, 20 percent | Span type (NBI 45), bridge condition (NBI 58-60), span length (NBI 48) | Large culverts score with bridges |
 | LS-C | Landslide | Culverts | PC | Include in VA | Same as LS-B | Culvert size (opening width), culvert condition if available | Post-fire compounding required per ICF |
-| LS-R | Landslide | Roads | PC | Include in VA | Same as LS-B | Embankment condition or stabilization measures if available; otherwise pavement condition | Scored on susceptibility; runout modeling is not being pursued |
+| LS-R | Landslide | Roads | PC | Include in VA | Same as LS-B | None, exposure only (decision 25). Draft: embankment condition or stabilization measures if available; otherwise pavement condition | Scored on susceptibility; runout modeling is not being pursued |
 | WF-AT | Wildfire | Active Transport | PC | Include in VA | Contracted wildfire risk: burn probability (70 percent) + flame length (30 percent), max within a 300-ft buffer; current conditions | None (exposure x 1.0) | |
-| WF-R | Wildfire | Roads | PC | Include in VA | Same as WF-AT | Wooden guardrails present (default: none) | Fire modeling is procured: burn probability, flame length, intensity classes, ember load, fire pathways, and firesheds. Crown fire potential available but not in the rubric |
+| WF-R | Wildfire | Roads | PC | Include in VA | Same as WF-AT | None, exposure only (decision 25). Draft: wooden guardrails present | Fire modeling is procured: burn probability, flame length, intensity classes, ember load, fire pathways, and firesheds. Crown fire potential available but not in the rubric |
 | WF-TC | Wildfire | Transit Centers | PC | Include in VA | Same as WF-AT | None (exposure x 1.0) | |
 | EQ-B | Earthquake | Bridges | PC | TRIP discussion | USGS Seismic Hazard Maps; ComCat; ShakeMaps | Seismic retrofit status, bridge condition, age | |
 | EQ-R | Earthquake | Roads | PC | TRIP discussion | USGS Seismic Hazard Maps; ComCat; ShakeMaps | | |
@@ -154,8 +154,8 @@ lidar slope plus avalanche accident records.
 
 Condition sources: **bridges** from the FHWA National Bridge Inventory (public annual dataset, no
 agency request needed); **culverts** from the compiled TRPA layer and condition table (7,858
-assets, six jurisdictions); **pavement** is TBD, with jurisdiction outreach planned - the
-remaining sensitivity gap for the road pairs. The TRPA Equity Study (vulnerable populations)
+assets, six jurisdictions); roads carry no
+sensitivity (decision 25), so pavement condition is not needed for scoring. The TRPA Equity Study (vulnerable populations)
 enters through criticality (step 1), not as a vulnerability multiplier.
 
 ## 4. Schedule (6/25 deck)
@@ -232,11 +232,11 @@ and landcover (option 1) or the CULVERT tool WDBFM score (option 2). The capacit
 needs Qdesign, which is missing for most culverts; the CULVERT tool can estimate it. The design
 event for the ratio is undecided (100-yr likely, above the design standard of most culverts).
 
-**Missing-data defaults.** The draft leaves most defaults "TBD": truck AADT, NBI water adequacy,
+**Missing-data defaults.** The draft leaves most defaults "TBD": NBI water adequacy,
 channel condition, scour criticality, span type, bridge condition, span length, culvert size and
 condition, trail slope, basin slope, and landcover. Set each one or the scoring will silently drop
-assets. Set defaults so far: pavement condition fair, roads paved, trails unpaved, no wooden
-guardrails.
+assets. Set defaults so far: trails unpaved. Roads carry no
+sensitivity (decision 25), so they need no defaults.
 
 Other headline items: scenario definitions, assets, and hazards for step 3 (after screening),
 analysis grain (segment vs. parcel), data hand-off contract, hosting domain, and public visibility.

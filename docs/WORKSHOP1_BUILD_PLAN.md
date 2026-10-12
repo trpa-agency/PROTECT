@@ -134,9 +134,9 @@ within a day.
 - New script `scripts/score_exposure.py`: for each pair, overlay the hazard surface on the asset
   layer and write `E_<pair>` (0-3) using the rubric. Roads use length-weighted max per segment;
   points use the value at the point with a 25 m buffer.
-- New script `scripts/score_sensitivity.py`: write `S_<pair>` (0-3) per asset from condition,
-  elevation, and material fields. Pavement condition is unavailable, so roads get a default
-  S of 1 with a `S_source` flag so the gap is visible on the map rather than hidden.
+- New script `scripts/score_sensitivity.py`: write `S_<pair>` (0-3) per bridge and culvert from
+  condition, elevation, and material fields. Roads carry no sensitivity (rubrics decision 25):
+  road pairs are exposure only, V = E.
 - Equity (Justice40) multiplier: keep the existing `Equity_Score_Normalized`, applied once at
   the criticality step, not again in sensitivity.
 

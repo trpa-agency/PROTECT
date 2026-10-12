@@ -18,6 +18,42 @@
 
   <!-- ArcGIS Maps SDK -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script>
+    // Full screen map button. The panel beside the map rides along as a floating, collapsible legend:
+    // the same DOM nodes, so every control keeps working; opts.adopt borrows controls from outside the map. Falls back to a fixed overlay where the
+    // Fullscreen API is unavailable; Esc exits either way.
+    function addFullscreen(view, wrap, mapEl, opts){
+      opts = opts || {};
+      if (!view || !wrap || !mapEl) return;
+      mapEl.classList.add("fs-map"); (opts.hide || []).forEach(el => el && el.classList.add("fs-hide"));
+      // controls that live outside the map (opts.adopt) move into a floating panel while full screen
+      let panel = opts.panel;
+      const adopt = (opts.adopt || []).filter(Boolean).map(el => ({el, mark:document.createComment("fs")}));
+      if (!panel && adopt.length) { panel = document.createElement("div"); panel.className = "fs-adopt"; wrap.appendChild(panel); }
+      if (panel) { panel.classList.add("fs-panel");
+        const head = document.createElement("div"); head.className = "fs-head";
+        head.innerHTML = '<span></span><button type="button" title="Collapse" aria-expanded="true">&#8211;</button>';
+        head.firstChild.textContent = opts.label || "Legend";
+        const b = head.querySelector("button");
+        b.onclick = () => { const min = panel.classList.toggle("fs-min"); b.innerHTML = min ? "+" : "&#8211;";
+          b.title = min ? "Expand" : "Collapse"; b.setAttribute("aria-expanded", String(!min)); };
+        panel.prepend(head); }
+      const btn = document.createElement("div"); btn.className = "esri-widget--button esri-widget"; btn.setAttribute("role", "button"); btn.tabIndex = 0;
+      const icon = document.createElement("span"); icon.setAttribute("aria-hidden", "true"); btn.appendChild(icon);
+      const isFs = () => document.fullscreenElement === wrap;
+      const set = on => { if (on !== wrap.classList.contains("fs-on"))
+          adopt.forEach(a => { if (on) { a.el.before(a.mark); panel.appendChild(a.el); } else if (a.mark.parentNode) { a.mark.replaceWith(a.el); } });
+        wrap.classList.toggle("fs-on", on); icon.className = "esri-icon " + (on ? "esri-icon-zoom-in-fixed" : "esri-icon-zoom-out-fixed");
+        btn.title = on ? "Exit full screen" : "Full screen"; btn.setAttribute("aria-label", btn.title); };
+      const toggle = () => { if (wrap.classList.contains("fs-on")) { if (isFs()) document.exitFullscreen(); else set(false); }
+        else if (wrap.requestFullscreen) wrap.requestFullscreen().catch(() => set(true)); else set(true); };
+      document.addEventListener("fullscreenchange", () => set(isFs()));
+      document.addEventListener("keydown", e => { if (e.key === "Escape" && wrap.classList.contains("fs-on") && !isFs()) set(false); });
+      btn.addEventListener("click", toggle);
+      btn.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+      set(false); view.ui.add(btn, "top-left");
+    }
+  </script>
   <script src="https://js.arcgis.com/4.31/"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -182,7 +218,19 @@
     .sitenav a{color:#003B71;text-decoration:none;font-weight:600;}
     .sitenav a:hover{color:#0072CE;}
     .sitenav a.on{color:#0072CE;}
-</style>
+    /* full screen map: the panel beside the map floats over it as a collapsible legend (same controls) */
+    .fs-on{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;background:#fff;display:block!important;z-index:1000;}
+    .fs-on .fs-map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;border-radius:0!important;}
+    .fs-on .fs-panel{position:absolute!important;top:12px;left:60px;z-index:20;display:block!important;flex:none!important;width:320px!important;max-width:calc(100% - 76px);height:auto!important;max-height:calc(100% - 120px)!important;overflow-y:auto!important;padding:0 .9rem .9rem!important;background:#fff;border:1px solid #DDDDDD!important;border-radius:8px;box-shadow:0 4px 18px rgba(0,43,85,.25);}
+    .fs-on .fs-hide{display:none!important;}
+    .fs-head{display:none;}
+    .fs-adopt{display:none;}
+    .fs-on .fs-head{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:2;margin:0 -.9rem .7rem;padding:.45rem .6rem .45rem .9rem;background:#003B71;color:#fff;font:600 .82rem 'Open Sans',sans-serif;letter-spacing:.03em;}
+    .fs-head button{border:0;background:transparent;color:#fff;font-size:1.05rem;line-height:1;cursor:pointer;padding:0 .3rem;}
+    .fs-on .fs-panel.fs-min{padding-bottom:0!important;overflow:hidden!important;}
+    .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
+    .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
+  </style>
 </head>
 <body>
 
@@ -761,6 +809,7 @@
         view = new MapView({ container: "viewDiv", map, center: [-120.04, 39.09], zoom: 10, popup: { autoOpenEnabled: false }, constraints: { snapToZoom: false } });
         view.when(() => {
           view.ui.add(new Home({ view }), "top-left");
+          addFullscreen(view, document.getElementById("appBody"), document.getElementById("mapWrap"), {panel:document.getElementById("sidePanel"), label:"Feedback", hide:[document.getElementById("panelToggle")]});
           view.ui.add(new Expand({ view, content: new LayerList({ view }), expandIcon: "layers", expandTooltip: "Layers", group: "top-right" }), "top-right");
           view.ui.add(new Expand({ view, content: new Legend({ view }), expandIcon: "legend", expandTooltip: "Legend", group: "top-right" }), "top-right");
           view.ui.add(new BasemapToggle({ view, nextBasemap: "topo-vector" }), "bottom-right");
