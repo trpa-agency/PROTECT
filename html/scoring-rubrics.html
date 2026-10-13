@@ -146,6 +146,8 @@
     .matrix thead th{background:var(--trpa-navy);color:#fff;font-weight:600;}
     .matrix th.rh{text-align:left;background:#f7f9fc;font-weight:600;}
     .matrix td.hit{background:var(--trpa-blue);color:#fff;font-weight:700;}
+    .matrix .mx-pct{font-size:.62rem;color:var(--gray-text,#5a6577);font-weight:400;}
+    .matrix td.hit .mx-pct{color:#fff;}
     .result .actions{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.8rem;}
     .result .actions button{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.45rem .75rem;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer;}
     .result .actions button.alt{background:#fff;color:var(--trpa-navy);border:1px solid var(--gray-border);}
@@ -666,7 +668,47 @@
       (ind.mods||[]).forEach(m => { if(rec.mods && rec.mods[m.id]) s = Math.min(3, Math.max(0, s + m.delta)); });
       return s;
     }
-    function bucketOf(v){ return BUCKETS.find(b => v < b.max); }
+    // wildfire pairs (decision 26): Low under 2.0, Medium 2.0 to 2.5, High over 2.5
+    function bucketOf(v, pair){
+      if(pair && pair.hazard==="Wildfire") return BUCKETS[v < 2 ? 0 : v <= 2.5 ? 1 : 2];
+      return BUCKETS.find(b => v < b.max);
+    }
+
+    // Published assets of the selected pair in each vulnerability x criticality cell, read from
+    // data/processed/results (written by scripts/publish_results.py). Culverts and bridges take the
+    // class of their parent road segment; paths and transit centers carry none ("No class").
+    const RES_BASE = "../data/processed/results/";
+    const MX_FILES = {culvert:"culverts_results.geojson", bridge:"bridges_results.geojson", at:"paths_wildfire.geojson", tc:"transit_wildfire.geojson",
+      road:{Flooding:"roads_flood.json", Landslide:"roads_landslide.json", Wildfire:"roads_wildfire.json", "Debris flow":"roads_debris_flow.json", Avalanche:"roads_avalanche.json"}};
+    const MX_UNIT = {culvert:"culverts", bridge:"bridges", road:"road segments", at:"paths", tc:"transit centers"};
+    const mxFetch = {}, mxCounts = {};
+    const getJSON = f => mxFetch[f] || (mxFetch[f] = fetch(RES_BASE + f).then(r => { if(!r.ok) throw new Error(f + " " + r.status); return r.json(); }));
+    async function roadCrit(){
+      const t = await getJSON("roads_flood.json"), ki = t.columns.indexOf("src_objectid"), ci = t.columns.indexOf("C_class"), m = {};
+      t.rows.forEach(r => { m[String(r[ki])] = r[ci]; });
+      return m;
+    }
+    async function loadMatrix(pair){
+      const field = "V_" + pair.id.replace("-", "") + "_hist", out = {n:0};
+      const add = (v, c) => { if(v == null || isNaN(v)) return; const k = bucketOf(+v, pair).name + "|" + (c == null ? "none" : c); out[k] = (out[k] || 0) + 1; out.n++; };
+      if(pair.asset === "road"){
+        const t = await getJSON(MX_FILES.road[pair.hazard]), vi = t.columns.indexOf(field), ci = t.columns.indexOf("C_class");
+        if(vi < 0) throw new Error(field + " not published");
+        t.rows.forEach(r => add(r[vi], r[ci]));
+      } else {
+        const g = await getJSON(MX_FILES[pair.asset]), crit = (pair.asset === "culvert" || pair.asset === "bridge") ? await roadCrit() : null;
+        if(!g.features.length || !(field in g.features[0].properties)) throw new Error(field + " not published");
+        g.features.forEach(f => { const pr = f.properties; add(pr[field], crit ? crit[String(pr.parent_segment_id)] : null); });
+      }
+      return out;
+    }
+    function matrixCounts(pair){
+      if(!(pair.id in mxCounts)){
+        mxCounts[pair.id] = "loading";
+        loadMatrix(pair).then(c => { mxCounts[pair.id] = c; }, e => { mxCounts[pair.id] = {error:String(e.message || e)}; }).then(() => { if(currentPair() === pair) renderAll(); });
+      }
+      return mxCounts[pair.id];
+    }
 
     function compute(pair){
       const inds = activeInds(pair);
@@ -795,7 +837,7 @@
       const el = $("result");
       if(!pair){ el.innerHTML = ""; return; }
       const r = compute(pair);
-      const b = r.V==null ? null : bucketOf(r.V);
+      const b = r.V==null ? null : bucketOf(r.V, pair);
       let html = '<h3>Vulnerability score</h3><div class="vbig">'
         + '<span class="v" style="color:'+(b?b.c:"#aab2bd")+'">'+(r.V==null ? "-" : fmt(r.V))+'</span>'
         + (b ? '<span class="bucket" style="background:'+b.c+'">'+b.name+'</span>' : '<span class="incomplete">'+r.missing.length+' indicator'+(r.missing.length===1?'':'s')+' not yet scored</span>')
@@ -817,13 +859,20 @@
       html += '<div class="src-row">Record: <b>E_source '+r.Esrc+'</b>, <b>S_source '+r.Ssrc+'</b>. Horizon: <b>'+(pair.noHorizon ? "current conditions" : HORIZONS.find(h=>h[0]===state.horizon)[1])+'</b>.</div>';
       html += '<h3 style="margin-top:.9rem;">Criticality (component 1)<i class="i" tabindex="0" data-tip="Criticality is assessed separately as component 1 and is not a multiplier in the vulnerability score. C_class is 0 to 3 on the road segment; bridges and culverts inherit the road segment\'s class. The hotspot lists rank assets by vulnerability within the High criticality class first.">i</i></h3>';
       html += '<div class="ctl"><div class="lbl">Criticality class of the road segment</div><div class="seg" id="crit-seg"></div></div>';
-      html += '<table class="matrix"><thead><tr><th></th><th>C 0</th><th>C 1</th><th>C 2</th><th>C 3</th></tr></thead><tbody>';
+      const mc = matrixCounts(pair), ok = mc && typeof mc === "object" && !mc.error;
+      const cols = [0,1,2,3].concat(ok && ["High","Medium","Low"].some(vb => mc[vb+"|none"]) ? ["none"] : []);
+      const cell = (vb, c) => { if(!ok) return mc === "loading" ? "&hellip;" : "-"; const n = mc[vb+"|"+c] || 0;
+        return n.toLocaleString() + '<div class="mx-pct">' + (mc.n ? (n / mc.n * 100).toFixed(1) : "0.0") + '%</div>'; };
+      html += '<table class="matrix"><thead><tr><th></th>' + cols.map(c => '<th>' + (c === "none" ? "No class" : "C " + c) + '</th>').join("") + '</tr></thead><tbody>';
       ["High","Medium","Low"].forEach(vb => {
         html += '<tr><th class="rh">V '+vb+'</th>';
-        for(let c=0;c<4;c++){ const hit = b && b.name===vb && state.cclass===c; html += '<td class="'+(hit?'hit':'')+'">'+(hit?'&#9679;':'')+'</td>'; }
+        cols.forEach(c => { const hit = b && b.name===vb && state.cclass===c; html += '<td class="'+(hit?'hit':'')+'"'+(hit?' title="The asset scored above"':'')+'>'+(hit?'&#9679; ':'')+cell(vb, c)+'</td>'; });
         html += '</tr>';
       });
       html += '</tbody></table>';
+      html += '<div class="note">' + (ok ? 'Published ' + esc(MX_UNIT[pair.asset]) + ' in each cell, ' + mc.n.toLocaleString() + ' in all, current conditions (count and percent of the total).'
+        + (cols.includes("none") ? ' No class: ' + (pair.asset === "at" || pair.asset === "tc" ? 'paths and transit centers are not assigned a criticality class.' : 'no parent road segment.') : '')
+        : mc === "loading" ? 'Loading the published counts&hellip;' : 'Published counts are not available for this pair' + (mc && mc.error ? ' (' + esc(mc.error) + ')' : '') + '.') + ' The dot marks the asset scored above.</div>';
       html += '<div class="actions"><button type="button" id="btn-defaults">Apply defaults to unscored indicators</button><button type="button" class="alt" id="btn-clear">Clear scores</button></div>';
       html += '<div class="note">Vulnerability is reported to two decimals and classed Low under 1.0, Medium 1.0 to under 2.0, and High 2.0 and over (TRPA proposal, decision 9); wildfire pairs Low under 2.0, Medium 2.0 to 2.5, High over 2.5 (decision 26).</div>';
       el.innerHTML = html;
@@ -838,7 +887,7 @@
       let html = r.rows.map(x => '<tr><td>'+esc(pair.id)+'</td><td>'+esc(x.ind.code)+'</td><td>'+x.ind.comp+'</td><td>'+esc(x.ind.name)+'</td><td>'+esc(valueLabel(x.ind))+'</td><td class="num">'+x.w.toFixed(2)+'</td><td class="num">'+fmtScore(x.s)+'</td><td>'+(isLocked(x.ind)?'locked by horizon':(isDefaulted(x.ind)?'default':(x.s==null?'unscored':'observed')))+'</td><td class="num">'+(x.contrib==null?'-':x.contrib.toFixed(2))+'</td></tr>').join("");
       html += '<tr><td>'+esc(pair.id)+'</td><td>E</td><td>E</td><td>Exposure component (weight-normalized)</td><td></td><td class="num">'+r.E.w.toFixed(2)+'</td><td class="num">'+(r.Ecomp==null?'-':fmt(r.Ecomp))+'</td><td>'+r.Esrc+'</td><td class="num">'+fmt(r.E.sum)+'</td></tr>';
       html += '<tr><td>'+esc(pair.id)+'</td><td>S</td><td>S</td><td>Sensitivity component (weight-normalized)</td><td></td><td class="num">'+r.S.w.toFixed(2)+'</td><td class="num">'+(r.S.n===0?'n/a':(r.Scomp==null?'-':fmt(r.Scomp)))+'</td><td>'+r.Ssrc+'</td><td class="num">'+fmt(r.S.sum)+'</td></tr>';
-      const b = r.V==null ? null : bucketOf(r.V);
+      const b = r.V==null ? null : bucketOf(r.V, pair);
       html += '<tr><td>'+esc(pair.id)+'</td><td>V</td><td>V</td><td>Vulnerability score, horizon '+esc(pair.noHorizon?'current conditions':state.horizon)+', criticality class '+state.cclass+'</td><td></td><td class="num">1.00</td><td class="num">'+(r.V==null?'-':fmt(r.V))+'</td><td>'+(b?b.name:'incomplete')+'</td><td class="num">'+(r.V==null?'-':fmt(r.V))+'</td></tr>';
       tb.innerHTML = html;
     }
