@@ -178,6 +178,22 @@
     .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
     .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
   </style>
+  <style>
+    /* Pages menu in the header (replaces the site nav row) */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+  </style>
 </head>
 <body>
 
@@ -191,11 +207,10 @@
       </div>
       <div class="right">
         <span class="chip">v0.1</span>
-        <a href="index.html">Home</a>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html">Home</a></div><div class="g"><b>Results</b><a href="results.html">Results</a></div><div class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></div><div class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></div><div class="g"><b>Evidence</b><a href="historic-hazards.html" class="on" aria-current="page">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div><div class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></div></nav></details>
       </div>
     </div>
   </header>
-  <nav class="sitenav" aria-label="Site"><div class="inner"><span class="g"><b>Results</b><a href="results.html">Results</a></span><span class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></span><span class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></span><span class="g"><b>Evidence</b><a href="historic-hazards.html" class="on">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></span><span class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></span></div></nav>
 
 
   <main>
@@ -556,6 +571,12 @@
     placeTips();
     window.addEventListener("resize", placeTips);
   })();
+  </script>
+  <script>
+    // Pages menu: close on an outside click or Escape
+    (function(){ const p = document.getElementById("pages"); if (!p) return;
+      document.addEventListener("click", e => { if (p.open && !p.contains(e.target)) p.open = false; });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") p.open = false; }); })();
   </script>
 </body>
 </html>

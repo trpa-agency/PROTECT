@@ -25,7 +25,7 @@ Rubrics page** (`html/scoring-rubrics.html`, v0.4: interactive per-pair scoring 
 on the consultant's half-point scale, rubric tables, framework, 24 decisions, and the list of
 TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
 model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
-every page; never describe a flood model as purchased or pending. The **Results page** (`html/results.html`, Oct. 10, 2026) is the front door for the assessment: one data-driven page with an Overview tab (every asset's V_max class, vulnerability by criticality, hotspots) and one tab per hazard (flooding with the drainage area on click, wildfire with the 300 ft sampling footprint layers and a segment-buffer click, landslide, debris flow, avalanche), each a config block in the page (`MODES`) that swaps data files, legends, renderers, charts, and table columns in one map, one grid, and two chart divs. It reads `data/processed/results/` written by `scripts/publish_results.py`; a hazard whose files are not published shows an empty state. The standalone hazard pages and the Phase 1 MVP map are archived. Every page carries the shared five-group site nav (Results; Components: the **Criticality Index app** (`html/criticality-index.html`, live, 18,253 segments) and the **OD Services Index** (`html/od-services-index.html`); Method and data: rubrics, reference hub, climate inputs; Evidence: historic hazards, storm events; Workshop: punch list, feedback). The landing page groups its cards the same way. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
+every page; never describe a flood model as purchased or pending. The **Results page** (`html/results.html`, Oct. 10, 2026) is the front door for the assessment: one data-driven page with an Overview tab (every asset's V_max class, vulnerability by criticality, hotspots) and one tab per hazard (flooding with the drainage area on click, wildfire with the 300 ft sampling footprint layers and a segment-buffer click, landslide, debris flow, avalanche), each a config block in the page (`MODES`) that swaps data files, legends, renderers, charts, and table columns in one map, one grid, and two chart divs. It reads `data/processed/results/` written by `scripts/publish_results.py`; a hazard whose files are not published shows an empty state. The standalone hazard pages and the Phase 1 MVP map are archived. Every page carries a **Pages menu** at the right of its header (a native `details.pages` dropdown, Oct. 13, 2026; it replaced the separate site nav row) with five groups (Results; Components: the **Criticality Index app** (`html/criticality-index.html`, live, 18,253 segments) and the **OD Services Index** (`html/od-services-index.html`); Method and data: rubrics, reference hub, climate inputs; Evidence: historic hazards, storm events; Workshop: punch list, feedback). The landing page groups its cards the same way. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
 Jekyll skips underscore directories, so nothing in it is served by Pages.
 
 ## Project context
@@ -119,8 +119,17 @@ PROTECT/
   `.header-content` (max-width = the page's `main`) holds, left to right: the TRPA color logo
   (`html/trpa-logo-color.png`, the blue Lake Tahoe silhouette, 50-54px tall, links to `trpa.gov`),
   a `.header-text` block (`.agency` eyebrow + `h1` + `.header-sub` subtitle), and a right-aligned
-  meta cluster (version chip / nav links / MVP badge). Eyebrow and subtitle are TRPA Ice
+  meta cluster (version chip, the Pages menu, page-specific links; no separate Home link, Home is
+  the first item in Pages). Eyebrow and subtitle are TRPA Ice
   (`#B4CBE8`); the `h1` is white. The blue silhouette on navy is intentional - same as the suite.
+  **Exception, `results.html` (Oct. 13, 2026):** one sticky navy band about 56 px tall holding the
+  logo, title, hazard tabs, a Draft chip (the tab's banner text is its tooltip), a How to use button
+  (native `<dialog>`), and Pages. The map fills the first screen; the tab's lead sits at the top
+  of the map panel. The panel folds to a slim strip and resizes by dragging its edge (width and
+  fold state kept in localStorage); its navy head shows the tab name and is shared with the
+  full-screen floating panel. Culverts draw only at 1:120,000 and closer on Overview, Landslide,
+  and Debris flow (`CULVERT_MIN_SCALE`); Flooding shows them at every scale. A culvert click draws
+  its drainage area on every tab with culverts (`culvertDrainage`).
 - **AG Grid pinned to 31.3.2.** The v33+ Theming API drops the legacy `ag-theme-quartz` CSS this page
   uses; do not bump without migrating theming. Grids created inside hidden Calcite tabs are re-fit
   (`sizeColumnsToFit`) only when visible (guard on width > 0) to avoid zero-width warnings.

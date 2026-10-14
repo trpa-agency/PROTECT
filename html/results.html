@@ -65,33 +65,51 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
-    header.app-header{background:var(--trpa-navy);color:#fff;}
-    .header-content{max-width:1320px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
-    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
-    .header-logo img{height:50px;width:auto;display:block;}
-    .header-text{flex:1;min-width:0;}
-    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
-    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
-    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
-    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;flex-wrap:wrap;}
-    header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
-    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
-    header.app-header a:hover{color:#fff;}
-    /* site nav: five groups */
-    .sitenav{background:#fff;border-bottom:1px solid var(--gray-border);}
-    .sitenav .inner{max-width:1320px;margin:0 auto;padding:.35rem 1.6rem;display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.78rem;}
-    .sitenav .g{display:flex;gap:.5rem;align-items:baseline;}
-    .sitenav .g b{color:var(--gray-text);font-weight:600;text-transform:uppercase;font-size:.66rem;letter-spacing:.06em;}
-    .sitenav a{color:var(--trpa-navy);text-decoration:none;font-weight:600;}
-    .sitenav a:hover{color:var(--trpa-blue);}
-    .sitenav a.on{color:var(--trpa-blue);}
-    /* results tabs */
-    .tabs{background:#fff;border-bottom:1px solid var(--gray-border);}
-    .tabs .inner{max-width:1320px;margin:0 auto;padding:0 1.6rem;display:flex;gap:.2rem;flex-wrap:wrap;}
-    .tabs a{display:inline-block;padding:.6rem .9rem;font-size:.84rem;font-weight:600;color:var(--gray-text);text-decoration:none;border-bottom:3px solid transparent;}
-    .tabs a:hover{color:var(--trpa-navy);}
-    .tabs a.on{color:var(--trpa-navy);border-bottom-color:var(--trpa-blue);}
-    .tabs a.soon{opacity:.55;}
+    /* one sticky band: logo, title, hazard tabs, Draft chip, help, Pages menu */
+    :root{--band-h:58px;--panel-w:300px;}
+    header.band{position:sticky;top:0;z-index:40;background:var(--trpa-navy);color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.08);}
+    .band-in{max-width:1320px;margin:0 auto;padding:.45rem 1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .band-logo{flex-shrink:0;line-height:0;}
+    .band-logo img{height:40px;width:auto;display:block;}
+    .band-title{flex-shrink:0;}
+    .band-title .agency{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);}
+    .band-title h1{font-size:1.15rem;font-weight:700;line-height:1.15;color:#fff;}
+    header.band .tabs{flex:1;display:flex;gap:.15rem;flex-wrap:wrap;min-width:0;align-self:stretch;align-items:stretch;}
+    header.band .tabs a{display:flex;align-items:center;padding:0 .8rem;font-size:.84rem;font-weight:600;color:var(--trpa-ice);text-decoration:none;border-bottom:3px solid transparent;border-radius:4px 4px 0 0;white-space:nowrap;}
+    header.band .tabs a:hover{color:#fff;background:rgba(255,255,255,.07);}
+    header.band .tabs a.on{color:#fff;background:rgba(255,255,255,.12);border-bottom-color:var(--trpa-blue);}
+    .band-tools{display:flex;align-items:center;gap:.6rem;flex-shrink:0;margin-left:auto;}
+    .draft{position:relative;background:var(--trpa-blue);color:#fff;font-weight:700;font-size:.7rem;padding:.18rem .6rem;border-radius:999px;cursor:help;outline:none;}
+    .draft::after{content:attr(data-tip);position:absolute;top:calc(100% + 9px);right:0;background:#fff;color:var(--trpa-navy);padding:.6rem .75rem;border-radius:6px;font-size:.76rem;font-weight:400;line-height:1.45;width:max-content;max-width:min(340px,calc(100vw - 2rem));box-shadow:0 6px 18px rgba(0,43,85,.25);border:1px solid var(--gray-border);display:none;z-index:70;white-space:normal;}
+    .draft:hover::after,.draft:focus::after{display:block;}
+    .band-btn{display:inline-flex;align-items:center;gap:.4rem;background:transparent;border:1px solid rgba(180,203,232,.55);color:#fff;font:600 .78rem 'Open Sans',sans-serif;border-radius:999px;padding:.22rem .7rem .22rem .3rem;cursor:pointer;}
+    .band-btn:hover,.band-btn:focus-visible{background:rgba(255,255,255,.1);border-color:#fff;outline:none;}
+    .band-btn .ic{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--trpa-ice);color:var(--trpa-navy);font-size:.7rem;font-weight:700;font-style:italic;font-family:Georgia,serif;}
+    details.pages{position:relative;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--trpa-ice);}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:var(--trpa-navy);border:1px solid var(--gray-border);border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:70;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-text);margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:var(--trpa-navy);text-decoration:none;font-size:.84rem;font-weight:600;}
+    details.pages .menu a:hover{background:#eef4fb;color:var(--trpa-blue);}
+    details.pages .menu a.on{color:var(--trpa-blue);}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:var(--gray-text);}
+    .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+    /* help dialog */
+    dialog.help{border:0;border-radius:10px;padding:0;max-width:min(560px,calc(100vw - 2rem));width:100%;margin:auto;color:var(--trpa-navy);box-shadow:0 18px 50px rgba(0,43,85,.35);}
+    dialog.help::backdrop{background:rgba(0,30,60,.45);}
+    dialog.help .hd{background:var(--trpa-navy);color:#fff;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;}
+    dialog.help .hd h2{font-size:1rem;font-weight:700;}
+    dialog.help .hd button{background:transparent;border:0;color:#fff;font-size:1.3rem;line-height:1;cursor:pointer;padding:0 .2rem;}
+    dialog.help .bd{padding:.9rem 1.1rem 1rem;font-size:.86rem;line-height:1.5;}
+    dialog.help ol{margin:0 0 .7rem 1.2rem;}
+    dialog.help li{margin:.35rem 0;}
+    dialog.help .tabnote{background:#eef4fb;border-left:3px solid var(--trpa-blue);padding:.5rem .7rem;border-radius:4px;font-size:.82rem;}
+    dialog.help .ft{padding:0 1.1rem 1rem;text-align:right;}
     main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
     .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
@@ -100,8 +118,23 @@
     .kpi{background:#fff;border:1px solid var(--gray-border);border-top:3px solid var(--trpa-blue);border-radius:6px;padding:.6rem .8rem;}
     .kpi .v{font-size:1.45rem;font-weight:700;line-height:1.1;}
     .kpi .l{font-size:.72rem;color:var(--gray-text);margin-top:.15rem;}
-    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
-    .layer-panel{width:290px;flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;height:640px;border-right:1px solid var(--gray-border);}
+    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;height:calc(100vh - var(--band-h) - 1.6rem);min-height:480px;}
+    .layer-panel{width:var(--panel-w);flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;height:100%;transition:width .15s;}
+    .panel-lead{font-size:.8rem;line-height:1.45;margin:0 0 .4rem;}
+    .zin{font-size:.7rem;color:var(--gray-text);font-style:italic;margin-left:.2rem;}
+    .pane-resizer{flex:0 0 7px;cursor:col-resize;background:#fff;border-left:1px solid var(--gray-border);border-right:1px solid var(--gray-border);position:relative;touch-action:none;outline:none;}
+    .pane-resizer::after{content:"";position:absolute;top:50%;left:1px;width:3px;height:28px;margin-top:-14px;border-left:1px dotted #9aa5b1;border-right:1px dotted #9aa5b1;}
+    .pane-resizer:hover,.pane-resizer:focus-visible,body.resizing .pane-resizer{background:var(--trpa-ice);}
+    body.resizing{cursor:col-resize;user-select:none;}
+    body.resizing .layer-panel{transition:none;}
+    .layer-panel.fs-min + .pane-resizer,.fs-on .pane-resizer{display:none;}
+    /* the panel's navy head (shared with full screen): tab name and the fold button */
+    .map-wrap:not(.fs-on) #layer-panel .fs-head{display:flex;align-items:center;justify-content:space-between;position:sticky;top:-.9rem;z-index:2;margin:-.9rem -1rem .7rem;padding:.4rem .5rem .4rem 1rem;background:var(--trpa-navy);color:#fff;font:600 .82rem 'Open Sans',sans-serif;letter-spacing:.03em;}
+    #layer-panel .fs-head button{font-size:1.15rem;}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min{width:40px;padding:0;overflow:hidden;cursor:pointer;background:var(--trpa-navy);border-right:1px solid var(--gray-border);}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min > :not(.fs-head){display:none;}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head{margin:0;height:100%;flex-direction:column-reverse;justify-content:flex-end;gap:.8rem;padding:.55rem 0;}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head span{writing-mode:vertical-rl;transform:rotate(180deg);}
     .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
     .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
     .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
@@ -127,7 +160,7 @@
     .cb button{font:600 .74rem 'Open Sans',sans-serif;color:var(--trpa-navy);background:#fff;border:1px solid var(--gray-border);border-radius:999px;padding:.22rem .6rem;cursor:pointer;}
     .cb button:hover{border-color:var(--trpa-blue);}
     .cb button.on{background:var(--trpa-navy);border-color:var(--trpa-navy);color:#fff;}
-    #map-view{flex:1;height:640px;}
+    #map-view{flex:1;min-width:0;height:100%;}
     .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
     .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
     .chart h3{font-size:.85rem;font-weight:700;margin:.2rem .4rem .1rem;}
@@ -153,17 +186,29 @@
       display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
     .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
     @media (max-width:900px){
-      header.app-header .right{flex-basis:100%;flex-shrink:1;}
       .map-wrap{flex-direction:column;}
-      .layer-panel{width:100%;max-height:none;}
-      #map-view{height:420px;}
+      .map-wrap{height:auto;min-height:0;}
+      .layer-panel{width:100%;height:auto;max-height:none;}
+      .map-wrap:not(.fs-on) #layer-panel.fs-min{width:100%;height:auto;}
+      .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head{flex-direction:row;height:auto;padding:.4rem .5rem .4rem 1rem;}
+      .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head span{writing-mode:horizontal-tb;transform:none;}
+      .pane-resizer{display:none;}
+      #map-view{height:420px;flex:none;}
+      header.band{position:static;}
+      .band-in{padding:.4rem 1rem;gap:.6rem;}
+      .band-logo img{height:30px;}
+      .band-title .agency{display:none;}
+      header.band .tabs{order:5;flex-basis:100%;overflow-x:auto;flex-wrap:nowrap;}
+      header.band .tabs a{padding:.45rem .7rem;}
+      .band-btn .lbl{display:none;}
+      .band-btn{padding:.22rem;}
       .charts{grid-template-columns:1fr;}
       .toolbar .qf{min-width:0;flex-basis:100%;}
     }
       /* full screen map: the panel beside the map floats over it as a collapsible legend (same controls) */
     .fs-on{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;background:#fff;display:block!important;z-index:1000;}
     .fs-on .fs-map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;border-radius:0!important;}
-    .fs-on .fs-panel{position:absolute!important;top:12px;left:60px;z-index:20;display:block!important;flex:none!important;width:320px!important;max-width:calc(100% - 76px);height:auto!important;max-height:calc(100% - 120px)!important;overflow-y:auto!important;padding:0 .9rem .9rem!important;background:#fff;border:1px solid #DDDDDD!important;border-radius:8px;box-shadow:0 4px 18px rgba(0,43,85,.25);}
+    .fs-on .fs-panel{position:absolute!important;top:12px;left:60px;z-index:20;display:block!important;flex:none!important;width:var(--panel-w,320px)!important;max-width:calc(100% - 76px);height:auto!important;max-height:calc(100% - 120px)!important;overflow-y:auto!important;padding:0 .9rem .9rem!important;background:#fff;border:1px solid #DDDDDD!important;border-radius:8px;box-shadow:0 4px 18px rgba(0,43,85,.25);}
     .fs-on .fs-hide{display:none!important;}
     .fs-head{display:none;}
     .fs-adopt{display:none;}
@@ -176,49 +221,55 @@
 </head>
 <body>
 
-  <header class="app-header">
-    <div class="header-content">
-      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
-      <div class="header-text">
-        <div class="agency">Tahoe Regional Planning Agency</div>
-        <h1>Results</h1>
-        <div class="header-sub">PROTECT Task 3.2 &middot; Draft vulnerability assessment results for workshop review</div>
-      </div>
-      <div class="right">
-        <span class="chip">v0.2 draft</span>
-        <a href="index.html">Home</a>
+  <header class="band" id="band">
+    <div class="band-in">
+      <a class="band-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="band-title"><div class="agency">PROTECT &middot; Tahoe Resilience Improvement Plan</div><h1>Results</h1></div>
+      <nav class="tabs" aria-label="Results by hazard" id="tabs">
+        <a href="#overview" data-mode="overview">Overview</a>
+        <a href="#flood" data-mode="flood">Flooding</a>
+        <a href="#wildfire" data-mode="wildfire">Wildfire</a>
+        <a href="#landslide" data-mode="landslide">Landslide</a>
+        <a href="#debris_flow" data-mode="debris_flow">Debris flow</a>
+        <a href="#avalanche" data-mode="avalanche">Avalanche</a>
+      </nav>
+      <div class="band-tools">
+        <span class="draft" id="draft-chip" tabindex="0" data-tip="Draft results for workshop review.">Draft</span>
+        <button type="button" class="band-btn" id="help-btn" aria-haspopup="dialog"><span class="ic" aria-hidden="true">i</span><span class="lbl">How to use</span><span class="sr">How to use this page</span></button>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html">Home</a></div><div class="g"><b>Results</b><a href="results.html" class="on" aria-current="page">Results</a></div><div class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></div><div class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></div><div class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div><div class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></div></nav></details>
       </div>
     </div>
   </header>
-  <nav class="sitenav" aria-label="Site"><div class="inner">
-    <span class="g"><b>Results</b><a href="results.html" class="on">Results</a></span>
-    <span class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></span>
-    <span class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></span>
-    <span class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></span>
-    <span class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></span>
-  </div></nav>
-  <nav class="tabs" aria-label="Results by hazard"><div class="inner" id="tabs">
-    <a href="#overview" data-mode="overview">Overview</a>
-    <a href="#flood" data-mode="flood">Flooding</a>
-    <a href="#wildfire" data-mode="wildfire">Wildfire</a>
-    <a href="#landslide" data-mode="landslide">Landslide</a>
-    <a href="#debris_flow" data-mode="debris_flow">Debris flow</a>
-    <a href="#avalanche" data-mode="avalanche">Avalanche</a>
-  </div></nav>
+
+  <dialog class="help" id="help-dlg" aria-labelledby="help-h">
+    <div class="hd"><h2 id="help-h">How to use this page</h2><button type="button" data-close aria-label="Close">&times;</button></div>
+    <div class="bd">
+      <ol>
+        <li><b>Pick a hazard</b> from the tabs in the blue bar. Overview combines every hazard.</li>
+        <li><b>Use the panel beside the map.</b> The buttons at the top choose what the roads are colored by, with the legend under them. Switches turn layers on and off. Hover any small i for what a layer shows.</li>
+        <li><b>Click anything on the map</b> for its scores. Click a culvert to draw the land that drains to it.</li>
+        <li><b>Make room for the map.</b> Drag the panel's edge to resize it, or use the arrows in its blue header to fold it away. The full-screen button on the map hides everything else and floats the panel over the map.</li>
+        <li><b>Scroll down</b> for charts, a searchable table you can export to CSV, how the numbers are made, and key numbers.</li>
+        <li><b>Leave a comment</b> on any road, culvert, bridge, path, or hub: open its popup and choose Add a workshop note.</li>
+        <li><b>Other pages</b> are under Pages, at the right of the blue bar.</li>
+      </ol>
+      <p class="tabnote" id="help-tab"></p>
+    </div>
+    <div class="ft"><button type="button" class="btn" data-close>Got it</button></div>
+  </dialog>
 
   <main>
-    <div class="banner" id="banner"></div>
-    <p class="lead" id="lead"></p>
     <div class="empty" id="empty" style="display:none"></div>
 
-    <h2 class="sec">Map</h2>
     <div class="map-wrap" id="map-wrap">
-      <div class="layer-panel">
+      <div class="layer-panel" id="layer-panel">
+        <p class="lead panel-lead" id="lead"></p>
         <div id="panel-color"></div>
         <div class="grp"><h3>Layers</h3><div id="panel-layers"></div></div>
         <div id="panel-extra"></div>
         <div class="grp" id="panel-filter-wrap"><h3>Filter</h3><div id="panel-filter"></div></div>
       </div>
+      <div class="pane-resizer" id="pane-resizer" role="separator" aria-orientation="vertical" aria-label="Resize the map panel" tabindex="0" title="Drag to resize; double-click to reset"></div>
       <div id="map-view"></div>
     </div>
 
@@ -268,6 +319,8 @@
         {value:"natural", label:"Ridge, water, or fuel change", symbol:{type:"simple-line", color:[74,97,24,1], width:2, style:"dash"}},
         {value:"other", label:"Trail or other", symbol:{type:"simple-line", color:[123,106,138,1], width:1.6, style:"dot"}}]},
       popupTemplate:{title:"POD boundary: {Name}", content:[{type:"fields", fieldInfos:[{fieldName:"PCL_Type", label:"Line follows"}, {fieldName:"Probabilit", label:"Recorded control probability"}, {fieldName:"Status", label:"Status"}]}]}});
+    // culverts draw only at this scale and closer on tabs where roads are the subject (about zoom 12.3)
+    const CULVERT_MIN_SCALE = 120000;
     const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
     const COL = {ice:"#B4CBE8", blue:"#0072CE", navy:"#003B71", peach:"#E8A05A", orange:"#E87722", brick:"#9C3E27", gray:"#cfd4da",
                  forest:"#4A6118", sand:"#E8C77A", tan:"#E0C68A", earth:"#B47E00", purple:"#7B6A8A"};
@@ -384,6 +437,7 @@
         {value:"DFR", label:"Debris flow", field:{roads:"V_DFR_hist"}, legend:legendRows(VC_LEG, "lg-line")},
         {value:"AVR", label:"Avalanche", field:{roads:"V_AVR_hist"}, legend:legendRows(VC_LEG, "lg-line")}],
       colorHeading:"Roads, colored by",
+      extra(L, ctx){ culvertDrainage(L, ctx, "The culvert's landslide and debris-flow scores read this area."); },
       layers(){ return [
         {id:"roads", label:"Roads", checked:true, make:() => roadLayer(null, {renderer:vClassFieldRenderer("V_class", (c,k) => line(c, [1.2,1.8,2.4,3][k])),
           popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}},
@@ -391,7 +445,7 @@
             {fieldName:"V_FLR_hist", label:"Flooding V", format:{places:2}}, {fieldName:"V_WFR_hist", label:"Wildfire V", format:{places:2}},
             {fieldName:"V_LSR_hist", label:"Landslide V", format:{places:2}}, {fieldName:"V_DFR_hist", label:"Debris flow V", format:{places:2}}, {fieldName:"V_AVR_hist", label:"Avalanche V", format:{places:2}},
             {fieldName:"C_class", label:"Criticality class (provisional)"}, {fieldName:"criticality_pctl", label:"Criticality percentile", format:{places:0}}]}]}})},
-        {id:"culverts", label:"Culverts", checked:true, tip:"Highest pair among flooding, landslide, and debris flow; public jurisdictions only.", legend:legendRows(VC_LEG.slice(0,3), "lg-dot"),
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, tip:"Highest pair among flooding, landslide, and debris flow; public jurisdictions only.", legend:legendRows(VC_LEG.slice(0,3), "lg-dot"),
           make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => dot(c, [4,5,6,7][k])),
             popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}},
               {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}, {fieldName:"V_FLC_hist", label:"Flooding V", format:{places:2}}, {fieldName:"V_LSC_hist", label:"Landslide V", format:{places:2}}, {fieldName:"V_DFC_hist", label:"Debris flow V", format:{places:2}}, {fieldName:"S_source", label:"Sensitivity data"}]}]}})},
@@ -494,28 +548,7 @@
         {id:"wshed", label:"Watersheds", checked:false, tip:"TRPA's watershed boundaries for context, named when zoomed in. Not part of the score; each culvert's own drainage area draws when you click it.",
           legend:`<span class="lg-sw" style="background:transparent;border:1.5px solid #003B71"></span> watershed boundary`, make:() => watershedLayer()}];
       },
-      extra(L, ctx){ // drainage area on click
-        const drain = new M.GraphicsLayer({title:"Drainage area", listMode:"hide"}); ctx.view.map.add(drain, 1);
-        ctx.extraLayers.push(drain);
-        $("panel-extra").innerHTML = `<div class="grp"><h3>Selected culvert</h3>
-          <div class="lg-row"><span class="lg-sw" style="background:rgba(232,119,34,.38);border:1px solid #9C3E27"></span> drains straight to it</div>
-          <div class="lg-row"><span class="lg-sw" style="background:rgba(0,114,206,.22);border:1px dashed #003B71"></span> arrives through upstream culverts</div>
-          <p class="note" id="drain-note">Click a culvert to draw its drainage area.</p></div>`;
-        const SYM = {direct:{type:"simple-fill", color:[232,119,34,0.38], outline:{color:[156,62,39,0.95], width:1.4}}, upstream:{type:"simple-fill", color:[0,114,206,0.22], outline:{color:[0,59,113,0.9], width:1.1, style:"short-dash"}}};
-        const ringsOf = g => g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
-        ctx.onClick = evt => ctx.view.hitTest(evt, {include:[L.culverts]}).then(res => {
-          drain.removeAll(); const noteEl = $("drain-note"); const g = res.results.length ? res.results[0].graphic : null; const cid = g && g.attributes ? g.attributes.crossing_id : null;
-          if (!cid) { noteEl.textContent = "Click a culvert to draw its drainage area."; return; }
-          noteEl.textContent = "Loading drainage for " + cid + "...";
-          fetch(BASE + "watersheds/" + cid + ".geojson").then(r => r.ok ? r.json() : null).then(gj => {
-            if (!gj) { noteEl.textContent = cid + ": no drainage file (no watershed, or a restricted crossing)."; return; }
-            let direct = 0, upstream = 0, nUp = 0;
-            gj.features.forEach(f => { const part = f.properties.part; drain.add(new M.Graphic({geometry:{type:"polygon", rings:ringsOf(f.geometry), spatialReference:{wkid:4326}}, symbol:SYM[part] || SYM.direct, attributes:f.properties}));
-              if (part === "direct") direct = f.properties.area_ac; else { upstream = f.properties.area_ac; nUp = f.properties.n_upstream || 0; } });
-            noteEl.textContent = cid + ": " + fmt(direct + upstream, 1) + " acres in all; " + fmt(direct, 1) + " drain straight to this crossing" + (upstream ? ", " + fmt(upstream, 1) + " arrive through " + nUp + " upstream crossing" + (nUp === 1 ? "" : "s") : "") + ".";
-          }).catch(() => { noteEl.textContent = cid + ": drainage could not be loaded."; });
-        });
-      },
+      extra(L, ctx){ culvertDrainage(L, ctx, "Flood exposure is the highest flood class anywhere in this area."); },
       filters:[{id:"review", label:"Flagged for owner review only", tip:"size_suspect (the recorded size cannot be the crossing for the basin that arrives) and ratio_review (ratio above 20).", apply(on, L){ L.culverts.definitionExpression = on ? "size_suspect = 1 OR ratio_review = 1" : null; }}],
       charts:[
         {title:"Storm vs capacity, by pipe size", sub:"Above 1, the 100-year storm exceeds the pipe. Log scale.", async draw(div){
@@ -634,11 +667,12 @@
           note:"The highest class touching the road, within 25 m of the bridge, or anywhere in the culvert's drainage area.", noteTip:"E1: the share of each 90 m cell that the USGS 2024 susceptibility model calls landslide-prone (over 80 percent = 3, over 60 = 2, over 40 = 1; decision 24), with every recorded landslide in the USGS inventory as 3."},
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_LSR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:vClassRenderer("V_LSC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_LSB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
           note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3. Exposure tops out at 2.14 until the climate term is scored.", noteTip:"E = (0.50 x E1 + 0.20 x E2) / 0.70; E2 is the Cal-Adapt precipitation change, 0 at the historical horizon. Roads: no sensitivity (decision 25). Culverts: opening width and condition. Bridges: span type, condition, span length."}],
+      extra(L, ctx){ culvertDrainage(L, ctx, "The landslide class is the highest anywhere in this area."); },
       layers(){ return [
         {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("landslide", {
           popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"}, {fieldName:"E_LSR_e1", label:"Susceptibility class (E1)"}, {fieldName:"E_LSR_hist", label:"Landslide exposure score", format:{places:2}}, {fieldName:"V_LSR_hist", label:"Landslide vulnerability V", format:{places:2}},
             {fieldName:"len_pct_c1", label:"Length in class 1 (percent)", format:{places:0}}, {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}}, {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}}, {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}})},
-        {id:"culverts", label:"Culverts", checked:true, tip:"LS-C E1, the highest susceptibility class anywhere in the culvert's drainage area. Public jurisdictions only.", legend:legendRows([[COL.gray,"0"],[COL.ice,"1"],[COL.orange,"2"],[COL.brick,"3"]], "lg-dot"),
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, tip:"LS-C E1, the highest susceptibility class anywhere in the culvert's drainage area. Public jurisdictions only.", legend:legendRows([[COL.gray,"0"],[COL.ice,"1"],[COL.orange,"2"],[COL.brick,"3"]], "lg-dot"),
           make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_LSC_e1", label:"Susceptibility class in the drainage (E1)"}, {fieldName:"E_LSC_pt", label:"Score at the pipe", format:{places:2}}, {fieldName:"E_LSC_hist", label:"Landslide exposure score", format:{places:2}}, {fieldName:"V_LSC_hist", label:"Landslide vulnerability V", format:{places:2}}, {fieldName:"contrib_area_ac", label:"Contributing area (ac)", format:{places:1, digitSeparator:true}}]}]}})},
         {id:"bridges", label:"Bridges", checked:true, tip:"LS-B E1, the highest susceptibility class within 25 m of the structure.", legend:legendRows([[COL.gray,"0"],[COL.ice,"1"],[COL.orange,"2"],[COL.brick,"3"]], "lg-sq"),
           make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"bridge_id", label:"NBI structure"}, {fieldName:"owner", label:"Owner"}, {fieldName:"E_LSB_e1", label:"Susceptibility class within 25 m (E1)"}, {fieldName:"E_LSB_hist", label:"Landslide exposure score", format:{places:2}}, {fieldName:"V_LSB_hist", label:"Landslide vulnerability V", format:{places:2}}]}]}})},
@@ -681,9 +715,10 @@
           note:"Slope, drainage size, and burn severity, each 0 to 3, weighted 0.2, 0.2, 0.3.", noteTip:"E1 mean slope of the contributing area (over 30 percent = 3), E2 contributing area (under 0.25 sq mi = 3, over 5 sq mi = 0), E3 most-likely fire severity standing in for soil burn severity; E = (0.2 E1 + 0.2 E2 + 0.3 E3) / 0.7."},
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_DFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:vClassRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
           note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3.", noteTip:"Roads: no sensitivity (decision 25). Culverts: opening width and condition with blockage (decision 7). Bridges: span type, condition, span length."}],
+      extra(L, ctx){ culvertDrainage(L, ctx, "Slope and drainage size are read from this area."); },
       layers(){ return [
         {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_DFR_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFR_e1", label:"E1 slope class", format:{places:1}}, {fieldName:"E_DFR_e2", label:"E2 drainage size class", format:{places:1}}, {fieldName:"E_DFR_e3", label:"E3 burn severity class"}, {fieldName:"V_DFR_hist", label:"Vulnerability V", format:{places:2}}]}]}})},
-        {id:"culverts", label:"Culverts", checked:true, legend:legendRows(EC_LEG, "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_DFC_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFC_e1", label:"E1 basin slope class", format:{places:1}}, {fieldName:"E_DFC_e2", label:"E2 basin size class", format:{places:1}}, {fieldName:"E_DFC_e3", label:"E3 burn severity in the drainage"}, {fieldName:"V_DFC_hist", label:"Vulnerability V", format:{places:2}}, {fieldName:"DF_option", label:"Option"}]}]}})},
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, legend:legendRows(EC_LEG, "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_DFC_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFC_e1", label:"E1 basin slope class", format:{places:1}}, {fieldName:"E_DFC_e2", label:"E2 basin size class", format:{places:1}}, {fieldName:"E_DFC_e3", label:"E3 burn severity in the drainage"}, {fieldName:"V_DFC_hist", label:"Vulnerability V", format:{places:2}}, {fieldName:"DF_option", label:"Option"}]}]}})},
         {id:"bridges", label:"Bridges", checked:true, legend:legendRows(EC_LEG, "lg-sq"), make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"owner", label:"Owner"}, {fieldName:"E_DFB_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"V_DFB_hist", label:"Vulnerability V", format:{places:2}}]}]}})}];
       },
       filters:[{id:"top", label:"High exposure only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_DFR_hist >= 1.999" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.999" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.999" : null; }}],
@@ -812,6 +847,76 @@
       return layer;
     }
 
+    // ---------- a culvert's drainage area on click (every tab that shows culverts) ----------
+    function culvertDrainage(L, ctx, hint){
+      const drain = new M.GraphicsLayer({title:"Drainage area", listMode:"hide"}); ctx.view.map.add(drain, 1);
+      ctx.extraLayers.push(drain);
+      const idle = "Click a culvert to draw the land that drains to it." + (hint ? " " + hint : "");
+      $("panel-extra").innerHTML = `<div class="grp"><h3>Selected culvert</h3>
+        <div class="lg-row"><span class="lg-sw" style="background:rgba(232,119,34,.38);border:1px solid #9C3E27"></span> drains straight to it</div>
+        <div class="lg-row"><span class="lg-sw" style="background:rgba(0,114,206,.22);border:1px dashed #003B71"></span> arrives through upstream culverts</div>
+        <p class="note" id="drain-note">${esc(idle)}</p></div>`;
+      const SYM = {direct:{type:"simple-fill", color:[232,119,34,0.38], outline:{color:[156,62,39,0.95], width:1.4}}, upstream:{type:"simple-fill", color:[0,114,206,0.22], outline:{color:[0,59,113,0.9], width:1.1, style:"short-dash"}}};
+      const ringsOf = g => g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
+      const prev = ctx.onClick;
+      ctx.onClick = evt => { if (prev) prev(evt); if (!L.culverts) return; ctx.view.hitTest(evt, {include:[L.culverts]}).then(res => {
+        const noteEl = $("drain-note"); if (!noteEl) return; const g = res.results.length ? res.results[0].graphic : null;
+        if (!g) return; drain.removeAll(); const cid = g.attributes ? g.attributes.crossing_id : null;
+        if (!cid) { noteEl.textContent = (g.attributes && g.attributes.culvert_id ? g.attributes.culvert_id + ": " : "") + "no drainage on record for this culvert."; return; }
+        noteEl.textContent = "Loading drainage for " + cid + "...";
+        fetch(BASE + "watersheds/" + cid + ".geojson").then(r => r.ok ? r.json() : null).then(gj => {
+          if (!gj) { noteEl.textContent = cid + ": no drainage file (no watershed, or a restricted crossing)."; return; }
+          let direct = 0, upstream = 0, nUp = 0;
+          gj.features.forEach(f => { const part = f.properties.part; drain.add(new M.Graphic({geometry:{type:"polygon", rings:ringsOf(f.geometry), spatialReference:{wkid:4326}}, symbol:SYM[part] || SYM.direct, attributes:f.properties}));
+            if (part === "direct") direct = f.properties.area_ac; else { upstream = f.properties.area_ac; nUp = f.properties.n_upstream || 0; } });
+          noteEl.textContent = cid + ": " + fmt(direct + upstream, 1) + " acres in all; " + fmt(direct, 1) + " drain straight to this crossing" + (upstream ? ", " + fmt(upstream, 1) + " arrive through " + nUp + " upstream crossing" + (nUp === 1 ? "" : "s") : "") + "." + (hint ? " " + hint : "");
+        }).catch(() => { noteEl.textContent = cid + ": drainage could not be loaded."; });
+      }); };
+    }
+    const HELP_TAB = {
+      overview:"On Overview, roads are colored by their highest vulnerability across the hazards, and Priority makes the most critical roads thickest. Click a culvert to draw its drainage area.",
+      flood:"On Flooding, culverts are colored by whether the pipe passes the 100-year storm. Click a culvert to draw its drainage area; its flood score is the highest flood class anywhere in that area.",
+      wildfire:"On Wildfire, click a road or path to outline the 300 ft area its score came from. The two within-300-ft layers show that ground for every road.",
+      landslide:"On Landslide, click a culvert to draw its drainage area; a culvert takes the highest landslide class anywhere in that area.",
+      debris_flow:"On Debris flow, click a culvert to draw its drainage area; slope and drainage size are read from it. Burn severity is a stand-in until the contracted surface arrives.",
+      avalanche:"On Avalanche, roads score on steep ground uphill of them. The TRPA mapped zones are a layer you can turn on."};
+
+
+    // ---------- the map panel: fold (shared with full screen) and drag to resize ----------
+    const store = (k, v) => { try { if (v === undefined) return localStorage.getItem("protect-results-" + k); localStorage.setItem("protect-results-" + k, String(v)); } catch (e) { return null; } };
+    function panelControls(){
+      const wrap = $("map-wrap"), panel = $("layer-panel"), rz = $("pane-resizer");
+      const head = panel.querySelector(".fs-head"), hb = head && head.querySelector("button");
+      const glyph = () => { if (!hb) return; const min = panel.classList.contains("fs-min"), fs = wrap.classList.contains("fs-on");
+        hb.innerHTML = fs ? (min ? "+" : "&#8211;") : (min ? "&#187;" : "&#171;");
+        hb.title = min ? "Show the panel" : "Fold the panel away"; hb.setAttribute("aria-label", hb.title); hb.setAttribute("aria-expanded", String(!min)); };
+      const setMin = min => { panel.classList.toggle("fs-min", min); if (!wrap.classList.contains("fs-on")) store("min", min ? 1 : 0); glyph(); };
+      if (hb) hb.onclick = e => { e.stopPropagation(); setMin(!panel.classList.contains("fs-min")); };
+      panel.addEventListener("click", e => { if (panel.classList.contains("fs-min") && !wrap.classList.contains("fs-on") && !e.target.closest("button")) setMin(false); });
+      new MutationObserver(glyph).observe(wrap, {attributes:true, attributeFilter:["class"]});
+      const setW = px => { px = Math.max(230, Math.min(560, Math.round(px))); document.documentElement.style.setProperty("--panel-w", px + "px"); store("w", px); };
+      const w0 = Number(store("w")); if (w0) setW(w0);
+      if (store("min") === "1" && innerWidth > 900) setMin(true); else glyph();
+      rz.addEventListener("pointerdown", e => { e.preventDefault(); rz.setPointerCapture(e.pointerId); document.body.classList.add("resizing");
+        const x0 = e.clientX, start = panel.getBoundingClientRect().width;
+        const move = ev => setW(start + ev.clientX - x0);
+        const up = () => { rz.removeEventListener("pointermove", move); rz.removeEventListener("pointerup", up); rz.removeEventListener("pointercancel", up); document.body.classList.remove("resizing"); };
+        rz.addEventListener("pointermove", move); rz.addEventListener("pointerup", up); rz.addEventListener("pointercancel", up); });
+      rz.addEventListener("keydown", e => { const w = panel.getBoundingClientRect().width; if (e.key === "ArrowLeft") { e.preventDefault(); setW(w - 20); } else if (e.key === "ArrowRight") { e.preventDefault(); setW(w + 20); } });
+      rz.addEventListener("dblclick", () => setW(300));
+    }
+    // the band's real height (it wraps on narrow screens) sizes the map
+    const fitBand = () => document.documentElement.style.setProperty("--band-h", $("band").offsetHeight + "px");
+    fitBand(); addEventListener("resize", fitBand);
+    // Pages menu: close on an outside click or Escape
+    document.addEventListener("click", e => { const p = $("pages"); if (p.open && !p.contains(e.target)) p.open = false; });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") $("pages").open = false; });
+    // help dialog
+    const dlg = $("help-dlg");
+    $("help-btn").addEventListener("click", () => { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); });
+    dlg.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => dlg.close ? dlg.close() : dlg.removeAttribute("open")));
+    dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
     // ---------- page state ----------
     let view, gridApi, current = null, ctx = null;
     const BASE_LAYERS = {};
@@ -828,7 +933,9 @@
       view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}, popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
       view.ui.add(new Home({view}), "top-left");
       view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
-      addFullscreen(view, document.getElementById("map-wrap"), document.getElementById("map-view"), {panel:document.querySelector("#map-wrap .layer-panel")});
+      addFullscreen(view, document.getElementById("map-wrap"), document.getElementById("map-view"), {panel:$("layer-panel"), label:(MODES[modeFromHash()] || {}).title || "Overview"});
+      panelControls();
+      reactiveUtils.watch(() => view.stationary && view.scale, () => zoomHints());
       // the popup widget is created lazily; listen through reactiveUtils so the handler attaches when it exists
       reactiveUtils.on(() => view.popup, "trigger-action", e => { if (e.action.id !== "note") return; const g = view.popup.selectedFeature; if (!g) return;
         const layerId = Object.keys(ctx.L).find(k => ctx.L[k] === g.layer); if (!layerId) return;
@@ -837,6 +944,8 @@
       window.addEventListener("hashchange", () => switchMode(modeFromHash()));
     });
 
+    // the zoom-in hint shows only while the map is zoomed out past a layer's scale
+    function zoomHints(){ if (!view) return; document.querySelectorAll(".zin").forEach(e => { e.hidden = view.scale <= Number(e.dataset.ms); }); }
     function modeFromHash(){ const h = (location.hash || "#overview").slice(1); return MODES[h] ? h : "overview"; }
 
     async function switchMode(name){
@@ -845,7 +954,9 @@
       const mode = MODES[name];
       document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.mode === name));
       document.title = mode.title + " | Results | PROTECT | TRPA";
-      $("banner").innerHTML = esc(mode.banner) + (mode.bannerTip ? tip(mode.bannerTip) : "");
+      $("draft-chip").dataset.tip = mode.banner + (mode.bannerTip ? " " + mode.bannerTip : "");
+      const headLbl = document.querySelector("#layer-panel .fs-head span"); if (headLbl) headLbl.textContent = mode.title;
+      $("help-tab").textContent = HELP_TAB[name] || "";
       $("lead").innerHTML = mode.lead;
       $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
       $("foot").innerHTML = "Draft v0.2. " + mode.foot + " Internal review draft.";
@@ -870,7 +981,7 @@
       const defs = mode.layers();
       const made = await Promise.all(defs.map(d => Promise.resolve(d.make()).catch(e => { console.warn("layer", d.id, e); return null; })));
       if (current !== name) return;
-      defs.forEach((d, i) => { const l = made[i]; if (!l) return; l.visible = d.checked; ctx.L[d.id] = l; ctx.layers.push(l);
+      defs.forEach((d, i) => { const l = made[i]; if (!l) return; l.visible = d.checked; if (d.minScale) l.minScale = d.minScale; ctx.L[d.id] = l; ctx.layers.push(l);
         if (l.popupTemplate && NOTE_TYPES[d.id]) l.popupTemplate.actions = [{id:"note", title:"Add a workshop note", className:"esri-icon-comment"}]; });
       // operational layers above hillshade (index 0) and below the boundary: insert after hillshade, keep polygons under points
       ctx.layers.slice().reverse().forEach(l => view.map.add(l, 1));
@@ -889,7 +1000,7 @@
       if (cb.length) { applyColor(cb[0]); $("color-by").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { $("color-by").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); const o = cb.find(x => x.value === b.dataset.v); if (o) applyColor(o); })); }
       // layer toggles
       const sw = (id, on) => `<input type="checkbox" class="sw" id="${id}"${on ? " checked" : ""} />`;
-      $("panel-layers").innerHTML = defs.map(d => `<label class="lyr">${sw("tg-" + d.id, d.checked)} ${esc(d.label)}${d.tip ? tip(d.tip) : ""}</label>${d.legend ? `<div class="lg-row sub-lg">${d.legend}</div>` : ""}`).join("")
+      $("panel-layers").innerHTML = defs.map(d => `<label class="lyr">${sw("tg-" + d.id, d.checked)} ${esc(d.label)}${d.minScale ? `<span class="zin" data-ms="${d.minScale}">zoom in to see</span>` : ""}${d.tip ? tip(d.tip) : ""}</label>${d.legend ? `<div class="lg-row sub-lg">${d.legend}</div>` : ""}`).join("")
         + `<label class="lyr">${sw("tg-bound", true)} TRPA boundary</label><label class="lyr">${sw("tg-hill", false)} Terrain (hillshade)${tip("Esri World Hillshade under the data layers.")}</label>`;
       defs.forEach(d => $("tg-" + d.id).addEventListener("change", e => { ctx.L[d.id].visible = e.target.checked; }));
       $("tg-bound").addEventListener("change", e => { BASE_LAYERS.bound.visible = e.target.checked; });
@@ -897,6 +1008,7 @@
       BASE_LAYERS.bound.visible = true; BASE_LAYERS.hill.visible = false;
       // extras and click
       $("panel-extra").innerHTML = "";
+      zoomHints();
       if (mode.extra) mode.extra(ctx.L, ctx);
       if (ctx.onClick) ctx.clickHandle = view.on("click", ctx.onClick);
       // filters
