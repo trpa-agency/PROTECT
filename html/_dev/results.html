@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Results | PROTECT | TRPA</title>
+  <meta name="description" content="Draft vulnerability assessment results for the Lake Tahoe Region transportation network: an overview by asset and criticality, and one tab per hazard." />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- No Calcite include: the ArcGIS SDK registers its own Calcite build for its widgets, which blocks a second
+       copy from defining components created after load. The page's own controls are native elements. -->
+  <!-- Plotly and AG Grid load BEFORE the ArcGIS SDK (its AMD loader otherwise captures these UMD bundles) -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <!-- ArcGIS Maps SDK -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script>
+    // Full screen map button. The panel beside the map rides along as a floating, collapsible legend:
+    // the same DOM nodes, so every control keeps working; opts.adopt borrows controls from outside the map. Falls back to a fixed overlay where the
+    // Fullscreen API is unavailable; Esc exits either way.
+    function addFullscreen(view, wrap, mapEl, opts){
+      opts = opts || {};
+      if (!view || !wrap || !mapEl) return;
+      mapEl.classList.add("fs-map"); (opts.hide || []).forEach(el => el && el.classList.add("fs-hide"));
+      // controls that live outside the map (opts.adopt) move into a floating panel while full screen
+      let panel = opts.panel;
+      const adopt = (opts.adopt || []).filter(Boolean).map(el => ({el, mark:document.createComment("fs")}));
+      if (!panel && adopt.length) { panel = document.createElement("div"); panel.className = "fs-adopt"; wrap.appendChild(panel); }
+      if (panel) { panel.classList.add("fs-panel");
+        const head = document.createElement("div"); head.className = "fs-head";
+        head.innerHTML = '<span></span><button type="button" title="Collapse" aria-expanded="true">&#8211;</button>';
+        head.firstChild.textContent = opts.label || "Legend";
+        const b = head.querySelector("button");
+        b.onclick = () => { const min = panel.classList.toggle("fs-min"); b.innerHTML = min ? "+" : "&#8211;";
+          b.title = min ? "Expand" : "Collapse"; b.setAttribute("aria-expanded", String(!min)); };
+        panel.prepend(head); }
+      const btn = document.createElement("div"); btn.className = "esri-widget--button esri-widget"; btn.setAttribute("role", "button"); btn.tabIndex = 0;
+      const icon = document.createElement("span"); icon.setAttribute("aria-hidden", "true"); btn.appendChild(icon);
+      const isFs = () => document.fullscreenElement === wrap;
+      const set = on => { if (on !== wrap.classList.contains("fs-on"))
+          adopt.forEach(a => { if (on) { a.el.before(a.mark); panel.appendChild(a.el); } else if (a.mark.parentNode) { a.mark.replaceWith(a.el); } });
+        wrap.classList.toggle("fs-on", on); icon.className = "esri-icon " + (on ? "esri-icon-zoom-in-fixed" : "esri-icon-zoom-out-fixed");
+        btn.title = on ? "Exit full screen" : "Full screen"; btn.setAttribute("aria-label", btn.title); };
+      const toggle = () => { if (wrap.classList.contains("fs-on")) { if (isFs()) document.exitFullscreen(); else set(false); }
+        else if (wrap.requestFullscreen) wrap.requestFullscreen().catch(() => set(true)); else set(true); };
+      document.addEventListener("fullscreenchange", () => set(isFs()));
+      document.addEventListener("keydown", e => { if (e.key === "Escape" && wrap.classList.contains("fs-on") && !isFs()) set(false); });
+      btn.addEventListener("click", toggle);
+      btn.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+      set(false); view.ui.add(btn, "top-left");
+    }
+  </script>
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    /* one sticky band: logo, title, hazard tabs, Draft chip, help, Pages menu */
+    :root{--band-h:58px;--panel-w:300px;}
+    header.band{position:sticky;top:0;z-index:40;background:var(--trpa-navy);color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.08);}
+    .band-in{max-width:1320px;margin:0 auto;padding:.45rem 1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .band-logo{flex-shrink:0;line-height:0;}
+    .band-logo img{height:40px;width:auto;display:block;}
+    .band-title{flex-shrink:0;}
+    .band-title .agency{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);}
+    .band-title h1{font-size:1.15rem;font-weight:700;line-height:1.15;color:#fff;}
+    header.band .tabs{flex:1;display:flex;gap:.15rem;flex-wrap:wrap;min-width:0;align-self:stretch;align-items:stretch;}
+    header.band .tabs a{display:flex;align-items:center;padding:0 .8rem;font-size:.84rem;font-weight:600;color:var(--trpa-ice);text-decoration:none;border-bottom:3px solid transparent;border-radius:4px 4px 0 0;white-space:nowrap;}
+    header.band .tabs a:hover{color:#fff;background:rgba(255,255,255,.07);}
+    header.band .tabs a.on{color:#fff;background:rgba(255,255,255,.12);border-bottom-color:var(--trpa-blue);}
+    .band-tools{display:flex;align-items:center;gap:.6rem;flex-shrink:0;margin-left:auto;}
+    .draft{position:relative;background:var(--trpa-blue);color:#fff;font-weight:700;font-size:.7rem;padding:.18rem .6rem;border-radius:999px;cursor:help;outline:none;}
+    .draft::after{content:attr(data-tip);position:absolute;top:calc(100% + 9px);right:0;background:#fff;color:var(--trpa-navy);padding:.6rem .75rem;border-radius:6px;font-size:.76rem;font-weight:400;line-height:1.45;width:max-content;max-width:min(340px,calc(100vw - 2rem));box-shadow:0 6px 18px rgba(0,43,85,.25);border:1px solid var(--gray-border);display:none;z-index:70;white-space:normal;}
+    .draft:hover::after,.draft:focus::after{display:block;}
+    .band-btn{display:inline-flex;align-items:center;gap:.4rem;background:transparent;border:1px solid rgba(180,203,232,.55);color:#fff;font:600 .78rem 'Open Sans',sans-serif;border-radius:999px;padding:.22rem .7rem .22rem .3rem;cursor:pointer;}
+    .band-btn:hover,.band-btn:focus-visible{background:rgba(255,255,255,.1);border-color:#fff;outline:none;}
+    .band-btn .ic{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--trpa-ice);color:var(--trpa-navy);font-size:.7rem;font-weight:700;font-style:italic;font-family:Georgia,serif;}
+    details.pages{position:relative;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--trpa-ice);}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:var(--trpa-navy);border:1px solid var(--gray-border);border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:70;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-text);margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:var(--trpa-navy);text-decoration:none;font-size:.84rem;font-weight:600;}
+    details.pages .menu a:hover{background:#eef4fb;color:var(--trpa-blue);}
+    details.pages .menu a.on{color:var(--trpa-blue);}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:var(--gray-text);}
+    .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+    /* help dialog */
+    dialog.help{border:0;border-radius:10px;padding:0;max-width:min(560px,calc(100vw - 2rem));width:100%;margin:auto;color:var(--trpa-navy);box-shadow:0 18px 50px rgba(0,43,85,.35);}
+    dialog.help::backdrop{background:rgba(0,30,60,.45);}
+    dialog.help .hd{background:var(--trpa-navy);color:#fff;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;}
+    dialog.help .hd h2{font-size:1rem;font-weight:700;}
+    dialog.help .hd button{background:transparent;border:0;color:#fff;font-size:1.3rem;line-height:1;cursor:pointer;padding:0 .2rem;}
+    dialog.help .bd{padding:.9rem 1.1rem 1rem;font-size:.86rem;line-height:1.5;}
+    dialog.help ol{margin:0 0 .7rem 1.2rem;}
+    dialog.help li{margin:.35rem 0;}
+    dialog.help .tabnote{background:#eef4fb;border-left:3px solid var(--trpa-blue);padding:.5rem .7rem;border-radius:4px;font-size:.82rem;}
+    dialog.help .ft{padding:0 1.1rem 1rem;text-align:right;}
+    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:.4rem;}
+    .kpi{background:#fff;border:1px solid var(--gray-border);border-top:3px solid var(--trpa-blue);border-radius:6px;padding:.6rem .8rem;}
+    .kpi .v{font-size:1.45rem;font-weight:700;line-height:1.1;}
+    .kpi .l{font-size:.72rem;color:var(--gray-text);margin-top:.15rem;}
+    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;height:calc(100vh - var(--band-h) - 1.6rem);min-height:480px;}
+    .layer-panel{width:var(--panel-w);flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;height:100%;transition:width .15s;}
+    .panel-lead{font-size:.8rem;line-height:1.45;margin:0 0 .4rem;}
+    .zin{font-size:.7rem;color:var(--gray-text);font-style:italic;margin-left:.2rem;}
+    .pane-resizer{flex:0 0 7px;cursor:col-resize;background:#fff;border-left:1px solid var(--gray-border);border-right:1px solid var(--gray-border);position:relative;touch-action:none;outline:none;}
+    .pane-resizer::after{content:"";position:absolute;top:50%;left:1px;width:3px;height:28px;margin-top:-14px;border-left:1px dotted #9aa5b1;border-right:1px dotted #9aa5b1;}
+    .pane-resizer:hover,.pane-resizer:focus-visible,body.resizing .pane-resizer{background:var(--trpa-ice);}
+    body.resizing{cursor:col-resize;user-select:none;}
+    body.resizing .layer-panel{transition:none;}
+    .layer-panel.fs-min + .pane-resizer,.fs-on .pane-resizer{display:none;}
+    /* the panel's navy head (shared with full screen): tab name and the fold button */
+    .map-wrap:not(.fs-on) #layer-panel .fs-head{display:flex;align-items:center;justify-content:space-between;position:sticky;top:-.9rem;z-index:2;margin:-.9rem -1rem .7rem;padding:.4rem .5rem .4rem 1rem;background:var(--trpa-navy);color:#fff;font:600 .82rem 'Open Sans',sans-serif;letter-spacing:.03em;}
+    #layer-panel .fs-head button{font-size:1.15rem;}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min{width:40px;padding:0;overflow:hidden;cursor:pointer;background:var(--trpa-navy);border-right:1px solid var(--gray-border);}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min > :not(.fs-head){display:none;}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head{margin:0;height:100%;flex-direction:column-reverse;justify-content:flex-end;gap:.8rem;padding:.55rem 0;}
+    .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head span{writing-mode:vertical-rl;transform:rotate(180deg);}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .layer-panel .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;font-size:.82rem;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .6rem;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--trpa-navy);margin-top:.35rem;}
+    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;}
+    .lg-dot{flex:0 0 14px;height:14px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-sq{flex:0 0 12px;height:12px;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-sw{flex:0 0 18px;height:11px;border-radius:2px;display:inline-block;}
+    .sub-lg{margin-left:1.9rem}
+    .sw{appearance:none;-webkit-appearance:none;width:30px;height:16px;border-radius:999px;background:#c9d1da;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s;outline:none;}
+    .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+    .sw:checked{background:var(--trpa-blue);} .sw:checked::after{left:16px;}
+    .sw:focus-visible{box-shadow:0 0 0 2px var(--trpa-ice);}
+    .btn{font:600 .8rem 'Open Sans',sans-serif;color:var(--trpa-blue);background:#fff;border:1px solid var(--trpa-blue);border-radius:6px;padding:.4rem .8rem;cursor:pointer;}
+    .btn:hover{background:var(--trpa-blue);color:#fff;}
+    details.block{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.5rem .9rem;margin-top:1.2rem;}
+    details.block summary{font-size:.9rem;font-weight:700;cursor:pointer;padding:.3rem 0;list-style:none;display:flex;align-items:center;gap:.5rem;}
+    details.block summary::before{content:"";width:0;height:0;border-left:6px solid var(--trpa-blue);border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .15s;}
+    details.block[open] summary::before{transform:rotate(90deg);}
+    details.block .notes{margin:.4rem 0 .5rem;}
+    .cb{display:flex;flex-wrap:wrap;gap:.3rem;margin:.1rem 0 .5rem;}
+    .cb button{font:600 .74rem 'Open Sans',sans-serif;color:var(--trpa-navy);background:#fff;border:1px solid var(--gray-border);border-radius:999px;padding:.22rem .6rem;cursor:pointer;}
+    .cb button:hover{border-color:var(--trpa-blue);}
+    .cb button.on{background:var(--trpa-navy);border-color:var(--trpa-navy);color:#fff;}
+    #map-view{flex:1;min-width:0;height:100%;}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+    .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
+    .chart h3{font-size:.85rem;font-weight:700;margin:.2rem .4rem .1rem;}
+    .chart .sub{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .3rem;}
+    /* chart tabs: the two distributions share one card */
+    .ch-tabs{display:flex;gap:.2rem;border-bottom:1px solid var(--gray-border);margin:0 .2rem .4rem;}
+    .ch-tabs button{font:600 .78rem 'Open Sans',sans-serif;color:var(--gray-text);background:none;border:0;border-bottom:3px solid transparent;padding:.35rem .6rem;cursor:pointer;margin-bottom:-1px;text-align:left;}
+    .ch-tabs button:hover{color:var(--trpa-navy);}
+    .ch-tabs button.on{color:var(--trpa-navy);border-bottom-color:var(--trpa-blue);}
+    /* vulnerability by criticality matrix (as on the scoring rubrics page) */
+    .mx-head{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:.2rem .4rem .1rem;}
+    .mx-head h3{margin:0;flex:1;}
+    .mx-head select{font:600 .78rem 'Open Sans',sans-serif;color:var(--trpa-navy);border:1px solid var(--gray-border);border-radius:6px;padding:.25rem .4rem;background:#fff;}
+    table.matrix{border-collapse:collapse;width:calc(100% - .8rem);margin:.4rem .4rem .3rem;font-size:.8rem;}
+    table.matrix th,table.matrix td{border:1px solid #e6e9ee;text-align:center;padding:.4rem .3rem;}
+    table.matrix thead th{background:var(--trpa-navy);color:#fff;font-weight:600;}
+    table.matrix th.rh{text-align:left;background:#f7f9fc;font-weight:600;white-space:nowrap;}
+    table.matrix th.rh i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.35rem;vertical-align:-1px;}
+    table.matrix td{font-weight:700;}
+    table.matrix .mx-pct{font-size:.66rem;color:var(--gray-text);font-weight:400;}
+    #mx-note{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .5rem;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
+    .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
+    .grid-wrap{width:100%;height:480px;}
+    .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
+      --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
+    .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
+    .notes li{margin:.25rem 0 .25rem 1.1rem;}
+    .empty{background:#fff;border:1px dashed var(--gray-border);border-radius:8px;padding:1.2rem;font-size:.86rem;color:var(--gray-text);margin:.6rem 0;}
+    footer.app-footer{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(300px,calc(100vw - 2rem));text-align:left;white-space:normal;
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
+    @media (max-width:900px){
+      .map-wrap{flex-direction:column;}
+      .map-wrap{height:auto;min-height:0;}
+      .layer-panel{width:100%;height:auto;max-height:none;}
+      .map-wrap:not(.fs-on) #layer-panel.fs-min{width:100%;height:auto;}
+      .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head{flex-direction:row;height:auto;padding:.4rem .5rem .4rem 1rem;}
+      .map-wrap:not(.fs-on) #layer-panel.fs-min .fs-head span{writing-mode:horizontal-tb;transform:none;}
+      .pane-resizer{display:none;}
+      #map-view{height:420px;flex:none;}
+      header.band{position:static;}
+      .band-in{padding:.4rem 1rem;gap:.6rem;}
+      .band-logo img{height:30px;}
+      .band-title .agency{display:none;}
+      header.band .tabs{order:5;flex-basis:100%;overflow-x:auto;flex-wrap:nowrap;}
+      header.band .tabs a{padding:.45rem .7rem;}
+      .band-btn .lbl{display:none;}
+      .band-btn{padding:.22rem;}
+      .charts{grid-template-columns:1fr;}
+      .toolbar .qf{min-width:0;flex-basis:100%;}
+    }
+      /* full screen map: the panel beside the map floats over it as a collapsible legend (same controls) */
+    .fs-on{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;background:#fff;display:block!important;z-index:1000;}
+    .fs-on .fs-map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;border-radius:0!important;}
+    .fs-on .fs-panel{position:absolute!important;top:12px;left:60px;z-index:20;display:block!important;flex:none!important;width:var(--panel-w,320px)!important;max-width:calc(100% - 76px);height:auto!important;max-height:calc(100% - 120px)!important;overflow-y:auto!important;padding:0 .9rem .9rem!important;background:#fff;border:1px solid #DDDDDD!important;border-radius:8px;box-shadow:0 4px 18px rgba(0,43,85,.25);}
+    .fs-on .fs-hide{display:none!important;}
+    .fs-head{display:none;}
+    .fs-adopt{display:none;}
+    .fs-on .fs-head{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:2;margin:0 -.9rem .7rem;padding:.45rem .6rem .45rem .9rem;background:#003B71;color:#fff;font:600 .82rem 'Open Sans',sans-serif;letter-spacing:.03em;}
+    .fs-head button{border:0;background:transparent;color:#fff;font-size:1.05rem;line-height:1;cursor:pointer;padding:0 .3rem;}
+    .fs-on .fs-panel.fs-min{padding-bottom:0!important;overflow:hidden!important;}
+    .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
+    .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
+  </style>
+</head>
+<body>
+
+  <header class="band" id="band">
+    <div class="band-in">
+      <a class="band-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="band-title"><div class="agency">PROTECT &middot; Tahoe Resilience Improvement Plan</div><h1>Results</h1></div>
+      <nav class="tabs" aria-label="Results by hazard" id="tabs">
+        <a href="#overview" data-mode="overview">Overview</a>
+        <a href="#flood" data-mode="flood">Flooding</a>
+        <a href="#wildfire" data-mode="wildfire">Wildfire</a>
+        <a href="#landslide" data-mode="landslide">Landslide</a>
+        <a href="#debris_flow" data-mode="debris_flow">Debris flow</a>
+        <a href="#avalanche" data-mode="avalanche">Avalanche</a>
+      </nav>
+      <div class="band-tools">
+        <span class="draft" id="draft-chip" tabindex="0" data-tip="Draft results for workshop review.">Draft</span>
+        <button type="button" class="band-btn" id="help-btn" aria-haspopup="dialog"><span class="ic" aria-hidden="true">i</span><span class="lbl">How to use</span><span class="sr">How to use this page</span></button>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html">Home</a></div><div class="g"><b>Results</b><a href="results.html" class="on" aria-current="page">Results</a></div><div class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></div><div class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></div><div class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div><div class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></div></nav></details>
+      </div>
+    </div>
+  </header>
+
+  <dialog class="help" id="help-dlg" aria-labelledby="help-h">
+    <div class="hd"><h2 id="help-h">How to use this page</h2><button type="button" data-close aria-label="Close">&times;</button></div>
+    <div class="bd">
+      <ol>
+        <li><b>Pick a hazard</b> from the tabs in the blue bar. Overview combines every hazard.</li>
+        <li><b>Use the panel beside the map.</b> The buttons at the top choose what the roads are colored by, with the legend under them. Switches turn layers on and off. Hover any small i for what a layer shows.</li>
+        <li><b>Click anything on the map</b> for its scores. Click a culvert to draw the land that drains to it.</li>
+        <li><b>Make room for the map.</b> Drag the panel's edge to resize it, or use the arrows in its blue header to fold it away. The full-screen button on the map hides everything else and floats the panel over the map.</li>
+        <li><b>Scroll down</b> for charts, a searchable table you can export to CSV, how the numbers are made, and key numbers.</li>
+        <li><b>Leave a comment</b> on any road, culvert, bridge, path, or hub: open its popup and choose Add a workshop note.</li>
+        <li><b>Other pages</b> are under Pages, at the right of the blue bar.</li>
+      </ol>
+      <p class="tabnote" id="help-tab"></p>
+    </div>
+    <div class="ft"><button type="button" class="btn" data-close>Got it</button></div>
+  </dialog>
+
+  <main>
+    <div class="empty" id="empty" style="display:none"></div>
+
+    <div class="map-wrap" id="map-wrap">
+      <div class="layer-panel" id="layer-panel">
+        <p class="lead panel-lead" id="lead"></p>
+        <div id="panel-color"></div>
+        <div class="grp"><h3>Layers</h3><div id="panel-layers"></div></div>
+        <div id="panel-extra"></div>
+        <div class="grp" id="panel-filter-wrap"><h3>Filter</h3><div id="panel-filter"></div></div>
+      </div>
+      <div class="pane-resizer" id="pane-resizer" role="separator" aria-orientation="vertical" aria-label="Resize the map panel" tabindex="0" title="Drag to resize; double-click to reset"></div>
+      <div id="map-view"></div>
+    </div>
+
+    <h2 class="sec">Vulnerability, criticality, and distributions</h2>
+    <div class="charts">
+      <div class="chart" id="mx-card">
+        <div class="mx-head"><h3>Vulnerability by criticality</h3><label class="sr" for="mx-asset">Asset type</label><select id="mx-asset"></select></div>
+        <div class="sub">How many assets fall in each vulnerability class and criticality class.</div>
+        <div id="mx"></div><p id="mx-note"></p>
+      </div>
+      <div class="chart">
+        <div class="ch-tabs" role="tablist"><button type="button" role="tab" id="ch-a-title" data-ch="a" class="on" aria-selected="true"></button><button type="button" role="tab" id="ch-b-title" data-ch="b" aria-selected="false"></button></div>
+        <div class="sub" id="ch-a-sub"></div><div class="sub" id="ch-b-sub" hidden></div>
+        <div id="ch-a" style="height:290px"></div><div id="ch-b" style="height:290px" hidden></div>
+      </div>
+    </div>
+
+    <h2 class="sec" id="table-title">Table</h2>
+    <p class="lead" id="table-lead"></p>
+    <div class="toolbar">
+      <input id="qf" class="qf" type="text" placeholder="Search the table" aria-label="Quick search" />
+      <button type="button" id="export" class="btn">Export CSV</button>
+    </div>
+    <div id="grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <details class="block"><summary>How the numbers are made</summary>
+      <ul class="notes" id="notes"></ul>
+    </details>
+
+    <h2 class="sec">Key numbers</h2>
+    <div class="kpis" id="kpis"></div>
+    <p class="note" style="font-size:.72rem;color:var(--gray-text);margin:.2rem 0 .4rem;" id="gen-note"></p>
+  </main>
+
+  <footer class="app-footer">
+    <p id="foot"></p>
+  </footer>
+
+  <script>
+  (function () {
+    const BASE = "../../data/processed/results/";
+    const BOUND_URL = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4";
+    const AVZ_URL = "https://maps.trpa.org/server/rest/services/Avalanche_Zones/MapServer/0";
+    const WSHED_URL = "https://maps.trpa.org/server/rest/services/DataDownloader_SoilsandHydro/MapServer/5";
+    const POD_URL = "https://services1.arcgis.com/gGHDlz6USftL5Pau/arcgis/rest/services/TMU_PreAttack/FeatureServer/37";
+    // context layers: read from the source services, not part of any score
+    const watershedLayer = () => new M.FeatureLayer({url:WSHED_URL, title:"Watersheds", outFields:["NAME","WTRSHD_ACRES"],
+      renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.6], width:1}}},
+      labelingInfo:[{labelExpressionInfo:{expression:"$feature.NAME"}, maxScale:0, minScale:200000, symbol:{type:"text", color:[0,59,113,1], haloColor:[255,255,255,0.9], haloSize:1.2, font:{family:"Open Sans", size:9, weight:"bold"}}}],
+      popupTemplate:{title:"{NAME} watershed", content:[{type:"fields", fieldInfos:[{fieldName:"WTRSHD_ACRES", label:"Acres", format:{places:0, digitSeparator:true}}]}]}});
+    const POD_GROUP = `When($feature.PCL_Type == "Paved_Road" || $feature.PCL_Type == "Dirt_Road", "road", $feature.PCL_Type == "Ridge" || $feature.PCL_Type == "River" || $feature.PCL_Type == "Lake" || $feature.PCL_Type == "Fuel_Transition", "natural", "other")`;
+    const podLayer = () => new M.FeatureLayer({url:POD_URL, title:"POD boundaries", outFields:["Name","PCL_Type","Probabilit","Status"],
+      renderer:{type:"unique-value", valueExpression:POD_GROUP, uniqueValueInfos:[
+        {value:"road", label:"Road", symbol:{type:"simple-line", color:[0,59,113,1], width:1.2, style:"dash"}},
+        {value:"natural", label:"Ridge, water, or fuel change", symbol:{type:"simple-line", color:[74,97,24,1], width:1.2, style:"dash"}},
+        {value:"other", label:"Trail or other", symbol:{type:"simple-line", color:[123,106,138,1], width:1, style:"dot"}}]},
+      popupTemplate:{title:"POD boundary: {Name}", content:[{type:"fields", fieldInfos:[{fieldName:"PCL_Type", label:"Line follows"}, {fieldName:"Probabilit", label:"Recorded control probability"}, {fieldName:"Status", label:"Status"}]}]}});
+    // culverts and bridges draw only at this scale and closer on tabs where roads are the subject (about zoom 12.3)
+    const CULVERT_MIN_SCALE = 120000;
+    // road and path line widths by class 0 to 3, every tab: kept thin so dense segments stay readable
+    const LINE_W = [0.6, 0.9, 1.2, 1.6];
+    const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
+    const COL = {ice:"#B4CBE8", blue:"#0072CE", navy:"#003B71", peach:"#E8A05A", orange:"#E87722", brick:"#9C3E27", gray:"#cfd4da",
+                 forest:"#4A6118", sand:"#E8C77A", tan:"#E0C68A", earth:"#B47E00", purple:"#7B6A8A"};
+    // criticality quarters 0 to 3: one blue hue, the lightest still visible on the gray basemap
+    const CRIT_RAMP = ["#8DB6E2", "#4F93D8", "#0072CE", "#002B55"];
+    const MI = 1609.344;
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const tip = t => `<i class="i" tabindex="0" data-tip="${esc(t)}">i</i>`;
+    const vClassOf = v => (v == null || isNaN(v)) ? null : v < 1 ? "Low" : v < 2 ? "Medium" : "High";
+    const VC_COL = {Low:COL.ice, Medium:COL.orange, High:COL.brick};
+    const RAMP = [COL.gray, COL.ice, COL.sand, COL.orange, COL.brick];
+    const scoreCol = v => (v == null || isNaN(v)) ? COL.gray : v < 0.1 ? RAMP[0] : v < 1.15 ? RAMP[1] : v < 1.45 ? RAMP[2] : v < 1.9 ? RAMP[3] : RAMP[4];
+    const clsCol4 = v => ({0:COL.gray, 1:COL.ice, 2:COL.orange, 3:COL.brick})[Math.round(v)] || COL.gray;
+    const lsCol = k => ({0:COL.gray, 1:COL.ice, 2:COL.orange, 3:COL.brick})[k] || COL.gray;
+
+    // ---------- data caches ----------
+    const cache = {};
+    const getJSON = url => cache[url] || (cache[url] = fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }));
+    const rowsOf = url => getJSON(url).then(gj => gj.features.map(f => Object.assign({}, f.properties)));
+    const summary = () => getJSON(BASE + "summary.json").catch(() => ({}));
+
+    // ---------- chart helpers ----------
+    const LAYOUT = {font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified", paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"};
+    function barBands(div, bands, miles, counts, colors, xTitle, yTitle){
+      Plotly.newPlot(div, [{type:"bar", x:bands, y:bands.map(b => miles[b] || 0), marker:{color:bands.map(b => colors[b])},
+        customdata:bands.map(b => counts[b] || 0), hovertemplate:"%{y:.1f} " + yTitle + " (%{customdata} segments)<extra></extra>"}],
+        Object.assign({}, LAYOUT, {margin:{l:50,r:10,t:10,b:60}, xaxis:{title:xTitle, tickangle:-15}, yaxis:{title:yTitle, gridcolor:"#eef0f3"}}),
+        {displayModeBar:false, responsive:true});
+    }
+    function stackedShare(div, groups, cats, catColor, rows, groupOf, catOf, weightOf, yTitle, unit){
+      const traces = cats.map(c => ({type:"bar", name:c, x:groups, marker:{color:catColor[c]},
+        y:groups.map(g => { const sub = rows.filter(r => groupOf(r) === g); const tot = sub.reduce((s, r) => s + weightOf(r), 0) || 1;
+          return 100 * sub.filter(r => catOf(r) === c).reduce((s, r) => s + weightOf(r), 0) / tot; }),
+        customdata:groups.map(g => rows.filter(r => groupOf(r) === g && catOf(r) === c).reduce((s, r) => s + weightOf(r), 0)),
+        hovertemplate:"%{y:.1f} percent (%{customdata:.0f} " + unit + ")<extra>" + c + "</extra>"}));
+      Plotly.newPlot(div, traces, Object.assign({}, LAYOUT, {barmode:"stack", margin:{l:45,r:10,t:10,b:90}, legend:{orientation:"h", y:1.14},
+        yaxis:{title:yTitle, gridcolor:"#eef0f3", range:[0,100]}, xaxis:{tickangle:-25}}), {displayModeBar:false, responsive:true});
+    }
+
+    // ---------- symbols ----------
+    const dot = (color, size) => ({type:"simple-marker", style:"circle", color, size, outline:{color:[255,255,255,0.9], width:0.6}});
+    const sq = (color, size = 11) => ({type:"simple-marker", style:"square", color, size, outline:{color:[255,255,255,0.95], width:size < 9 ? 0.6 : 1}});
+    const HUB_SIZE = 6; // transit hubs: small squares so they do not cover the roads around them
+    const line = (color, width, dash) => ({type:"simple-line", color, width, style:dash ? "short-dash" : "solid"});
+    const fill = (rgb, a) => ({type:"simple-fill", color:[...rgb, a], outline:{color:[...rgb, Math.min(1, a + .1)], width:0.3}});
+    const breaksRenderer = (field, infos) => ({type:"class-breaks", field, classBreakInfos:infos});
+    const bandInfos = (symOf) => [  // five score bands used for E and V on lines and points
+      {minValue:-0.01, maxValue:0.1, symbol:symOf(RAMP[0], 0)}, {minValue:0.1, maxValue:1.15, symbol:symOf(RAMP[1], 1)},
+      {minValue:1.15, maxValue:1.45, symbol:symOf(RAMP[2], 2)}, {minValue:1.45, maxValue:1.9, symbol:symOf(RAMP[3], 3)},
+      {minValue:1.9, maxValue:3.1, symbol:symOf(RAMP[4], 4)}];
+    const cls4Infos = (symOf) => [
+      {minValue:-0.5, maxValue:0.5, symbol:symOf(COL.gray, 0)}, {minValue:0.5, maxValue:1.5, symbol:symOf(COL.ice, 1)},
+      {minValue:1.5, maxValue:2.5, symbol:symOf(COL.orange, 2)}, {minValue:2.5, maxValue:3.5, symbol:symOf(COL.brick, 3)}];
+    const vClassRenderer = (field, symOf) => ({type:"class-breaks", valueExpression:`IIf(IsEmpty($feature.${field}), -1, $feature.${field})`,
+      // exactly 0 is not exposed (roads carry no sensitivity, so V = E), drawn gray with not scored rather than as Low
+      classBreakInfos:[{minValue:-1.5, maxValue:0.0005, symbol:symOf(COL.gray, 0)}, {minValue:0.0005, maxValue:0.999, symbol:symOf(COL.ice, 1)},
+        {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
+    // combined class from scoring (V_class): the highest per-pair class, where wildfire pairs use their own
+    // breaks (Low under 2, Medium 2 to 2.5, High over 2.5), so it can differ from the class of V_max
+    const vClassFieldRenderer = (field, symOf) => ({type:"unique-value", field, defaultSymbol:symOf(COL.gray, 0), defaultLabel:"not scored",
+      uniqueValueInfos:[{value:"Low", symbol:symOf(COL.ice, 1)}, {value:"Medium", symbol:symOf(COL.orange, 2)}, {value:"High", symbol:symOf(COL.brick, 3)}]});
+    const lineW = k => [1.2, 1.8, 2.2, 2.6, 3][k];
+    const dotS = k => [4, 5, 6, 7, 8][k];
+    const legendRows = (items, kind) => items.map(([c, l]) => `<div class="lg-row"><span class="${kind}" style="background:${c}"></span> ${l}</div>`).join("");
+    const BAND_LEG = [[RAMP[0],"0"],[RAMP[1],"over 0 to 1"],[RAMP[2],"over 1 to 1.4"],[RAMP[3],"over 1.4 to 1.9"],[RAMP[4],"over 1.9 to 3"]];
+    const VC_LEG = [[COL.ice,"Low"],[COL.orange,"Medium"],[COL.brick,"High"],[COL.gray,"not exposed (0) or not scored"]];
+    const EC_LEG = [[COL.gray,"None"],[COL.ice,"Low"],[COL.orange,"Medium"],[COL.brick,"High"]];
+    const eClassOf = v => (v == null || isNaN(v)) ? null : v < 0.1 ? "None" : v < 1 ? "Low" : v < 2 ? "Medium" : "High";
+    const EC_COL = {None:COL.gray, Low:COL.ice, Medium:COL.orange, High:COL.brick};
+    const E_CLASSES = ["None", "Low", "Medium", "High"];
+    // wildfire classes (TRPA, Oct. 12, 2026): Low 1 to under 2, Medium 2 to 2.5, High over 2.5. Wildfire
+    // scores run 1.0 to 3.0, and on roads and paths vulnerability equals exposure (no sensitivity).
+    const wfClassOf = v => (v == null || isNaN(v)) ? null : v > 2.5 ? "High" : v >= 2 ? "Medium" : v >= 1 ? "Low" : "None";
+    const wfRenderer = (field, symOf) => ({type:"class-breaks", valueExpression:`IIf(IsEmpty($feature.${field}), -1, $feature.${field})`,
+      classBreakInfos:[{minValue:-1.5, maxValue:0.999, symbol:symOf(COL.gray, 0)}, {minValue:0.999, maxValue:1.999, symbol:symOf(COL.ice, 1)},
+        {minValue:1.999, maxValue:2.5, symbol:symOf(COL.orange, 2)}, {minValue:2.5, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
+    const WF_LEG = [[COL.ice,"Low"],[COL.orange,"Medium"],[COL.brick,"High"]];
+    const WF_NOTE = "Classes: Low 1 to under 2, Medium 2 to 2.5, High over 2.5.";
+    // exposure class renderer: 0 gray, under 1 ice, 1 to under 2 orange, 2 and over brick
+    const eClassRenderer = (field, symOf) => ({type:"class-breaks", field, classBreakInfos:[
+      {minValue:-0.01, maxValue:0.1, symbol:symOf(COL.gray, 0)}, {minValue:0.1, maxValue:0.999, symbol:symOf(COL.ice, 1)},
+      {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
+    // priority: color by vulnerability class, line weight by criticality quarter; the weights apply only at
+    // CULVERT_MIN_SCALE and closer, zoomed out every line draws at one width
+    const scaleSize = (near, far) => ({type:"size", valueExpression:"$view.scale", stops:[{value:CULVERT_MIN_SCALE, size:near}, {value:CULVERT_MIN_SCALE + 1, size:far}]});
+    // paths: hairline zoomed out (they bury the roads at basin scale), full width from 2x CULVERT_MIN_SCALE in to it;
+    // applied after every renderer change, so it replaces any class or criticality widths on paths
+    const thinPaths = l => { if (!l || !l.renderer) return; const r = l.renderer.clone();
+      r.visualVariables = [{type:"size", valueExpression:"$view.scale", stops:[{value:CULVERT_MIN_SCALE, size:1.2}, {value:CULVERT_MIN_SCALE * 2, size:0.3}]}]; l.renderer = r; };
+    // every asset table sorts by vulnerability, then criticality (both highest first)
+    const CRIT_COL = {field:"C_class", headerName:"Criticality class", width:125, type:"numericColumn", sort:"desc", sortIndex:1};
+    const critSize = () => ({type:"size", field:"C_class", minDataValue:0, maxDataValue:3, minSize:scaleSize(0.5, 0.9), maxSize:scaleSize(2.4, 0.9), legendOptions:{title:"criticality quarter"}});
+    const priorityRenderer = (field, dash) => Object.assign(vClassFieldRenderer(field, (c,k) => line(c, LINE_W[2], dash)), {
+      visualVariables:[critSize()]});
+    function milesByClass(div, rows, field, classOf, classes, colors, yTitle){
+      const miles = {}, counts = {}; classes.forEach(c => { miles[c] = 0; counts[c] = 0; });
+      rows.forEach(r => { const c = classOf(r[field]); if (c != null && c in miles) { miles[c] += r.miles; counts[c] += 1; } });
+      barBands(div, classes, miles, counts, colors, "", yTitle);
+    }
+
+    // ---------- modes ----------
+    let M; // ArcGIS modules
+    const MODES = {};
+
+    MODES.overview = {
+      title:"Overview", banner:"Draft results for workshop review. Every asset's highest vulnerability across the hazards scored so far, read against criticality.",
+      bannerTip:"Vulnerability = (Exposure x wE) + (Sensitivity x wS) per hazard pair, 0 to 3; roads carry no sensitivity, so a road pair is its exposure (decision 25). The asset carries the highest pair (V_max). Criticality is component 1, carried separately; the class here is provisional from the street layer's criticality percentile.",
+      lead:"Which roads, culverts, bridges, paths, and transit hubs are most vulnerable across every hazard scored, and which of those also matter most to the network.",
+      kpiBorder:COL.navy,
+      kpis(s){ const v = s.vulnerability; if (!v) return null; const r = v.roads || {}, h = r.hotspots || {};
+        return [[fmt((r.V_class||{}).High), "road segments High"], [fmt((r.miles_by_class||{}).High), "road miles High"],
+          [fmt(h.segments), "High vulnerability on top-criticality roads"], [fmt(h.miles), "miles of those"],
+          [fmt(((v.culverts||{}).V_class||{}).High), "culverts High"], [fmt(((v.bridges||{}).V_class||{}).High), "bridges High"],
+          [fmt(((v.paths||{}).V_class||{}).High), "paths High"], [fmt(((v.transit||{}).V_class||{}).High), "transit hubs High"]]; },
+      note(s){ return "Generated " + (s.generated || "") + ". Class breaks: Low under 1, Medium 1 to under 2, High 2 and over; wildfire Low under 2, Medium 2 to 2.5, High over 2.5. Criticality class from percentile breaks 25, 50, 75 (provisional)."; },
+      emptyText:"Vulnerability results have not been published yet. The hazard tabs show exposure.",
+      colorBy:[
+        {value:"prio", label:"Priority", renderer:{roads:priorityRenderer("V_class", false), paths:priorityRenderer("V_class", true)}, legend:legendRows(VC_LEG.slice(0,3), "lg-line") + `<div class="lg-row"><span class="lg-line" style="background:#5a6577;height:1px"></span> thin: lowest criticality quarter</div><div class="lg-row"><span class="lg-line" style="background:#5a6577;height:5px"></span> thick: top criticality quarter</div>`,
+          note:"Color is the vulnerability class; line weight, shown once zoomed in to culvert level, is how much the road matters to the network. Every road is shown; Hotspots only narrows the map to thick red.", noteTip:"Vulnerability class from the highest scored pair (stand-in pairs left out). Criticality from component 1, cut into quarters by percentile until the network lane sets its class rule. Priority is read on the two axes, never multiplied (rubric 1.3)."},
+        {value:"crit", label:"Criticality", default:true, field:{roads:"C_class"}, legend:legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line"), note:"Criticality from the Criticality Index at its default weights, cut into quarters at the 25th, 50th and 75th percentiles, the same classes as the Criticality app."},
+        {value:"FLR", label:"Flooding", field:{roads:"V_FLR_hist", paths:"V_FLAT_hist"}, legend:legendRows(VC_LEG, "lg-line")},
+        {value:"WFR", label:"Wildfire", renderer:{roads:wfRenderer("V_WFR_hist", (c,k) => line(c, LINE_W[k])), paths:wfRenderer("V_WFAT_hist", (c,k) => line(c, LINE_W[k], true))}, legend:legendRows(WF_LEG, "lg-line"), note:WF_NOTE},
+        {value:"LSR", label:"Landslide", field:{roads:"V_LSR_hist"}, legend:legendRows(VC_LEG, "lg-line")},
+        {value:"DFR", label:"Debris flow", field:{roads:"V_DFR_hist"}, legend:legendRows(VC_LEG, "lg-line")},
+        {value:"AVR", label:"Avalanche", field:{roads:"V_AVR_hist"}, legend:legendRows(VC_LEG, "lg-line")}],
+      colorHeading:"Roads, colored by",
+      extra(L, ctx){ culvertDrainage(L, ctx, "The culvert's landslide and debris-flow scores read this area."); },
+      layers(){ return [
+        {id:"roads", label:"Roads", checked:true, make:() => roadLayer(null, {renderer:vClassFieldRenderer("V_class", (c,k) => line(c, LINE_W[k])),
+          popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}},
+            {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}, {fieldName:"V_max_all", label:"Vulnerability with the stand-in pairs", format:{places:2}}, {fieldName:"V_max_all_pair", label:"Set by, with stand-ins"},
+            {fieldName:"V_FLR_hist", label:"Flooding V", format:{places:2}}, {fieldName:"V_WFR_hist", label:"Wildfire V", format:{places:2}},
+            {fieldName:"V_LSR_hist", label:"Landslide V", format:{places:2}}, {fieldName:"V_DFR_hist", label:"Debris flow V", format:{places:2}}, {fieldName:"V_AVR_hist", label:"Avalanche V", format:{places:2}},
+            {fieldName:"C_class", label:"Criticality class (provisional)"}, {fieldName:"criticality_pctl", label:"Criticality percentile", format:{places:0}}]}]}})},
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, tip:"Highest pair among flooding, landslide, and debris flow; public jurisdictions only.", legend:legendRows(VC_LEG.slice(0,3), "lg-dot"),
+          make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => dot(c, [4,5,6,7][k])),
+            popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}},
+              {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}, {fieldName:"V_FLC_hist", label:"Flooding V", format:{places:2}}, {fieldName:"V_LSC_hist", label:"Landslide V", format:{places:2}}, {fieldName:"V_DFC_hist", label:"Debris flow V", format:{places:2}}, {fieldName:"S_source", label:"Sensitivity data"}]}]}})},
+        {id:"bridges", minScale:CULVERT_MIN_SCALE, label:"Bridges", checked:true, legend:legendRows(VC_LEG.slice(0,3), "lg-sq"),
+          make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => sq(c)),
+            popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"owner", label:"Owner"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"},
+              {fieldName:"V_FLB_hist", label:"Flooding V", format:{places:2}}, {fieldName:"V_LSB_hist", label:"Landslide V", format:{places:2}}, {fieldName:"V_DFB_hist", label:"Debris flow V", format:{places:2}}]}]}})},
+        {id:"paths", label:"Paths and bike routes", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "paths_wildfire.geojson", title:"Paths", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => line(c, LINE_W[k], true)),
+          popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Facility class"}, {fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}]}]}})},
+        {id:"hubs", label:"Transit hubs", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => sq(c, HUB_SIZE)),
+          popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[{fieldName:"V_max", label:"Vulnerability (highest pair)", format:{places:2}}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"V_class", label:"Class"}]}]}})},
+        {id:"notes", label:"Workshop notes", checked:true, tip:"Notes partners have sent from the feedback page, colored by concern (1 greatest). Open any asset's popup and choose Add a workshop note to add one.", legend:legendRows([[COL.brick,"1: greatest concern"],[COL.orange,"2: concern"],[COL.earth,"3: worth noting"]], "lg-dot"), make:() => notesLayer()}];
+      },
+      filters:[{id:"hot", label:"Hotspots only", tip:"High vulnerability on top-quarter criticality (roads), or High vulnerability (other assets).",
+        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "V_class = 'High' AND C_class = 3" : null; ["culverts","bridges","paths","hubs"].forEach(k => { if (L[k]) L[k].definitionExpression = on ? "V_class = 'High'" : null; }); }}],
+      charts:[
+        {title:"Road miles by vulnerability and criticality", sub:"Each criticality quarter, split by vulnerability class", async draw(div, s){
+          const m = {}; (await roadRows(null)).forEach(r => { if (!r.V_class || r.C_class == null) return; const k = r.V_class + "|" + r.C_class;
+            m[k] = m[k] || {miles:0, segments:0}; m[k].miles += r.miles; m[k].segments += 1; });
+
+          const cs = ["0","1","2","3"], traces = ["Low","Medium","High"].map(vc => ({type:"bar", name:vc, x:cs.map(c => "criticality " + c), marker:{color:VC_COL[vc]},
+            y:cs.map(c => (m[vc + "|" + c]||{}).miles || 0), customdata:cs.map(c => (m[vc + "|" + c]||{}).segments || 0), hovertemplate:"%{y:.1f} miles (%{customdata} segments)<extra>" + vc + "</extra>"}));
+          Plotly.newPlot(div, traces, Object.assign({}, LAYOUT, {barmode:"stack", margin:{l:50,r:10,t:10,b:50}, legend:{orientation:"h", y:1.14}, yaxis:{title:"road miles", gridcolor:"#eef0f3"}}), {displayModeBar:false, responsive:true}); }},
+        {title:"Vulnerability class by asset type", sub:"Share of each asset type in each class, highest pair", async draw(div, s){
+          const v = s.vulnerability || {}; const groups = [["Roads", (v.roads||{}).V_class], ["Culverts", (v.culverts||{}).V_class], ["Bridges", (v.bridges||{}).V_class], ["Paths", (v.paths||{}).V_class], ["Transit hubs", (v.transit||{}).V_class]].filter(g => g[1]);
+          const traces = ["Low","Medium","High"].map(vc => ({type:"bar", name:vc, x:groups.map(g => g[0]), marker:{color:VC_COL[vc]},
+            y:groups.map(g => { const t = Object.values(g[1]).reduce((a,b)=>a+b,0) || 1; return 100 * (g[1][vc]||0) / t; }), customdata:groups.map(g => g[1][vc]||0), hovertemplate:"%{y:.1f} percent (%{customdata})<extra>" + vc + "</extra>"}));
+          Plotly.newPlot(div, traces, Object.assign({}, LAYOUT, {barmode:"stack", margin:{l:45,r:10,t:10,b:60}, legend:{orientation:"h", y:1.14}, yaxis:{title:"percent", gridcolor:"#eef0f3", range:[0,100]}}), {displayModeBar:false, responsive:true}); }}],
+      table:{title:"Road table", lead:"Every road segment, highest vulnerability first, with its criticality. Turn on Hotspots only above the map to narrow this to High vulnerability on top-quarter criticality.", exportName:"PROTECT_roads.csv",
+        async rows(){ return roadRows(null); },
+        filterRows:(rows, on) => on ? rows.filter(r => r.V_class === "High" && r.C_class === 3) : rows, defaultFilter:false,
+        cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:110},
+          {field:"V_max", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=(p.data||{}).V_class; return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}},
+          {field:"V_max_pair", headerName:"Set by", width:90}, {field:"V_FLR_hist", headerName:"Flood", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
+          {field:"V_WFR_hist", headerName:"Wildfire", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"V_LSR_hist", headerName:"Landslide", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
+          {field:"V_DFR_hist", headerName:"Debris flow", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"V_AVR_hist", headerName:"Avalanche", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
+          CRIT_COL, {field:"criticality_pctl", headerName:"Crit. percentile", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+          {field:"miles", headerName:"Miles", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"src_objectid", headerName:"Segment", width:95}]},
+      notes:["<b>Score.</b> For each hazard pair, exposure times its weight plus sensitivity times its weight, each 0 to 3. The asset carries the highest pair; the popup says which hazard set it.",
+        "<b>Stand-in pairs.</b> Debris flow is scored on the fire severity surface in place of the contracted soil burn severity, and the draft's drainage-size break puts nearly every basin at 3, so it is left out of the combined class until the real input arrives. The \"With stand-ins\" view and the popup carry the every-pair reading.",
+        "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 2, Medium 2 to 2.5, High over 2.5, and an asset's class is the highest of its pair classes.",
+        "<b>Why roads are never Low.</b> Wildfire likelihood is at least 1 everywhere with the Resource Kit data, so every segment's wildfire score, and with it its highest pair, is at least 1.",
+        "<b>Criticality.</b> Component 1 from the street network lane, carried separately and never multiplied in. The class here cuts the criticality percentile into quarters and is provisional until that lane sets its rule.",
+        "<b>Sensitivity data.</b> Roads carry no sensitivity (rubrics decision 25): each road pair's score is its exposure. Culverts without an inspection carry the fair default; the S_source field says which.",
+        "<b>Not yet in.</b> Future horizons (2050, 2080), the contracted fire-behavior package, and any pair the hazard tabs mark as not published."],
+      foot:"Draft v0.2. Method: <code>docs/SCORING_RUBRICS.md</code> sections 1 to 6. Internal review draft."
+    };
+
+    MODES.flood = {
+      title:"Flooding", banner:"Draft results for workshop review. The numbers rank crossings; they are not design values.",
+      bannerTip:"Public jurisdictions only. The restricted state DOT export is excluded at the row level and is not in any figure on this page.",
+      lead:"Which roads lie in flood zones and how critical they are, which culverts and bridges are most vulnerable to flooding, and which culverts cannot pass a 100-year storm. The method is sections 2 and 6.2 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
+      kpis(s){ const c = s.culverts || {}, b = s.bridges || {}; if (!c.scored_public) return null;
+        return [[fmt(c.scored_public), "culverts scored"], [fmt(c.full_profile), "with size, drainage, and condition all known"], [fmt(c.with_ratio), "with a capacity check"],
+          [c.ratio_median == null ? "-" : fmt(c.ratio_median, 2), "typical storm-to-capacity ratio"], [fmt(c.ratio_over_1), "cannot pass the 100-year storm"],
+          [fmt(c.size_suspect), "records to confirm with the owner"], [c.vulnerability ? fmt((c.vulnerability.V_FLC_class||{}).High) : "-", "high flooding vulnerability"], [fmt(b.count), "bridges"]]; },
+      note(s){ return "Generated " + (s.generated || "") + ". Counts exclude the restricted jurisdiction."; },
+      colorHeading:"Culverts, colored by",
+      colorBy:[
+        {value:"ratio", label:"Storm vs capacity", renderer:{culverts:{type:"class-breaks", valueExpression:"IIf($feature.size_suspect == 1, -1, IIf(IsEmpty($feature.load_ratio_100), -2, $feature.load_ratio_100))",
+          classBreakInfos:[{minValue:-2.5, maxValue:-1.5, symbol:dot(COL.gray, 4)}, {minValue:-1.5, maxValue:-0.5, symbol:dot("#ffffff", 5)}, {minValue:-0.5, maxValue:0.5, symbol:dot(COL.ice, 5)},
+            {minValue:0.5, maxValue:1, symbol:dot(COL.blue, 5)}, {minValue:1, maxValue:2, symbol:dot(COL.peach, 6)}, {minValue:2, maxValue:4, symbol:dot(COL.orange, 7)}, {minValue:4, maxValue:1e9, symbol:dot(COL.brick, 8)}]}},
+          legend:legendRows([[COL.ice,"passes with room"],[COL.blue,"passes"],[COL.peach,"storm up to twice capacity"],[COL.orange,"two to four times capacity"],[COL.brick,"over four times capacity"],["#ffffff","record to confirm, not scored"],[COL.gray,"no check possible"]], "lg-dot"),
+          note:"The 100-year storm flow divided by what the pipe passes.", noteTip:"Loading ratio, FL-C S2: 100-yr event flow over crossing capacity at headwater equal to the crown."},
+        {value:"flood", label:"Flood exposure", renderer:{culverts:{type:"unique-value", valueExpression:"Text(Round($feature.E_FLC_hist))", defaultSymbol:dot(COL.gray,4),
+          uniqueValueInfos:[{value:"0",symbol:dot(COL.gray,4)},{value:"1",symbol:dot(COL.ice,5)},{value:"2",symbol:dot(COL.blue,6)},{value:"3",symbol:dot(COL.navy,7)}]}},
+          legend:legendRows([[COL.gray,"0: no flood zone, no mapped stream"],[COL.ice,"1: on a small drainage line"],[COL.blue,"2: 500-year zone or a mapped stream"],[COL.navy,"3: 100-year flood zone"]], "lg-dot"),
+          note:"The highest flood class anywhere in the culvert's drainage area.", noteTip:"FL-C E1, sampled as the maximum over the contributing watershed, plus 1 (capped at 3) where high lake stage backs water up."},
+        {value:"vuln", label:"Vulnerability", renderer:{culverts:vClassRenderer("V_FLC_hist", (c,k) => dot(c, [4,5,6,8][k]))}, legend:legendRows(VC_LEG, "lg-dot"),
+          note:"Flooding vulnerability: exposure at 0.3 plus how the pipe would cope at 0.7.", noteTip:"V_FLC = 0.30 x E + 0.25 x S1 (debris potential) + 0.30 x S2 (loading ratio) + 0.15 x S3 (condition and blockage). Culverts with no inspection carry the fair default and are marked partial."}],
+      layers(){ return [
+        // roads first, so they draw under the culvert and bridge points
+        {id:"roads", label:"Roads, flood exposure", checked:true,
+          tip:"FL-R exposure: the highest flood class along the segment (3: FEMA 100-year zone; 2: 500-year zone or a mapped stream). Color is the exposure class; zoomed in to culvert level, line weight is the criticality quarter, so the thickest dark lines are the most critical roads in a 100-year zone.",
+          legend:legendRows([[COL.navy,"100-yr"],[COL.blue,"500-yr or stream"],[COL.gray,"none"]], "lg-line"),
+          make:() => roadLayer("flood", {renderer:{type:"unique-value", valueExpression:"Text(Round(DefaultValue($feature.E_FLR_hist, 0)))",
+              defaultSymbol:line(COL.gray, LINE_W[0]), uniqueValueInfos:[{value:"0", symbol:line(COL.gray, LINE_W[0])}, {value:"1", symbol:line(COL.ice, LINE_W[1])},
+                {value:"2", symbol:line(COL.blue, LINE_W[2])}, {value:"3", symbol:line(COL.navy, LINE_W[3])}],
+              visualVariables:[critSize()]},
+            popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"},
+              {fieldName:"E_FLR_hist", label:"Flood exposure class", format:{places:0}},
+              {fieldName:"len_pct_c3", label:"Percent of length in a 100-year zone", format:{places:0}},
+              {fieldName:"len_pct_c2", label:"Percent of length in a 500-year zone or along a stream", format:{places:0}},
+              {fieldName:"C_class", label:"Criticality quarter (3 = top)"}, {fieldName:"criticality_pctl", label:"Criticality percentile", format:{places:0}}]}]}})},
+        {id:"culverts", label:"Culverts (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"],
+          popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"crossing_id", label:"Crossing"}, {fieldName:"barrels", label:"Barrels"},
+            {fieldName:"d_eq_in", label:"Equivalent diameter (in)", format:{places:1}}, {fieldName:"material_class", label:"Material"}, {fieldName:"contrib_area_ac", label:"Contributing area (ac)", format:{places:1, digitSeparator:true}},
+            {fieldName:"basin_landcover", label:"Majority land cover"}, {fieldName:"q_method", label:"Event flow method"}, {fieldName:"q_event_100_cfs", label:"Q100 (cfs)", format:{places:1}}, {fieldName:"q_cap_crossing_cfs", label:"Capacity at the crown (cfs)", format:{places:1}},
+            {fieldName:"load_ratio_100", label:"Loading ratio, 100-yr", format:{places:2}}, {fieldName:"cond_class", label:"Condition class"}, {fieldName:"cond_source", label:"Condition source"},
+            {fieldName:"E_FLC_hist", label:"Flood exposure E (watershed)"}, {fieldName:"E_FLC_pt", label:"Flood exposure at the point"}, {fieldName:"S_FLC", label:"Flood sensitivity S", format:{places:2}}, {fieldName:"V_FLC_hist", label:"Flood vulnerability V", format:{places:2}},
+            {fieldName:"V_class", label:"Vulnerability class (highest pair)"}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"S_source", label:"Sensitivity data"}, {fieldName:"tailwater_flag", label:"Tailwater flag"}, {fieldName:"size_suspect", label:"Size suspect"}, {fieldName:"ratio_review", label:"Ratio review"}]}]}})},
+        {id:"bridges", label:"Bridges, flood exposure", checked:true, tip:"E_FLB: how often the bridge has been overtopped (NBI waterway adequacy, item 71) at 0.20 and the flood class within 25 m at 0.10, normalized to 0 to 3.",
+          legend:legendRows([[COL.forest,"Low"],[COL.orange,"Medium"],[COL.brick,"High"]], "lg-sq"),
+          make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], renderer:breaksRenderer("E_FLB_hist", [{minValue:-1, maxValue:0.999, symbol:sq(COL.forest)}, {minValue:0.999, maxValue:1.999, symbol:sq(COL.orange)}, {minValue:1.999, maxValue:3.1, symbol:sq(COL.brick)}]),
+            popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"bridge_id", label:"NBI structure"}, {fieldName:"owner", label:"Owner"}, {fieldName:"year_built", label:"Year built"}, {fieldName:"waterway_eval", label:"Waterway adequacy (item 71)"}, {fieldName:"scour_label", label:"Scour"},
+              {fieldName:"bridge_condition_label", label:"Condition"}, {fieldName:"E_FLB_hist", label:"Flood exposure E", format:{places:2}}, {fieldName:"S_FLB", label:"Flood sensitivity S", format:{places:2}}, {fieldName:"V_FLB_hist", label:"Flood vulnerability V", format:{places:2}}, {fieldName:"V_class", label:"Class (highest pair)"}]}]}})},
+        {id:"flood", label:"Classed flood surface", checked:false, tip:"FEMA 1 percent zones (3), the 0.2 percent zone and a 10 m buffer on the lidar-derived streams (2). The lake's own stillwater zone is excluded.",
+          legend:`<span class="lg-sw" style="background:rgba(0,59,113,.45)"></span> class 3 &nbsp; <span class="lg-sw" style="background:rgba(0,114,206,.35)"></span> class 2`,
+          make:() => new M.GeoJSONLayer({url:BASE + "flood_surface.geojson", title:"Classed flood surface", visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([0,59,113],0.45)},{value:2, symbol:fill([0,114,206],0.35)},{value:1, symbol:fill([180,203,232],0.5)}]}, popupTemplate:{title:"Flood class {hz_class}", content:"{label}"}})},
+        {id:"wshed", label:"Watersheds", checked:false, tip:"TRPA's watershed boundaries for context, named when zoomed in. Not part of the score; each culvert's own drainage area draws when you click it.",
+          legend:`<span class="lg-sw" style="background:transparent;border:1.5px solid #003B71"></span> watershed boundary`, make:() => watershedLayer()}];
+      },
+      extra(L, ctx){ culvertDrainage(L, ctx, "Flood exposure is the highest flood class anywhere in this area."); },
+      filters:[{id:"review", label:"Flagged for owner review only", tip:"size_suspect (the recorded size cannot be the crossing for the basin that arrives) and ratio_review (ratio above 20).", apply(on, L){ L.culverts.definitionExpression = on ? "size_suspect = 1 OR ratio_review = 1" : null; }}],
+      charts:[
+        {title:"Storm vs capacity, by pipe size", sub:"Above 1, the 100-year storm exceeds the pipe. Log scale.", async draw(div){
+          const rows = await rowsOf(BASE + "culverts_results.geojson"); const classes = ["small","medium","large","major"];
+          Plotly.newPlot(div, classes.map(c => ({type:"box", name:c, x:rows.filter(r => r.size_class===c && r.load_ratio_100!=null && r.load_ratio_100>0).map(r=>r.load_ratio_100), marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h", hovertemplate:"%{x:.2f}<extra>%{fullData.name}</extra>"})),
+            Object.assign({}, LAYOUT, {margin:{l:60,r:10,t:10,b:40}, showlegend:false, xaxis:{type:"log", title:"Loading ratio (100-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true}, shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}]}), {displayModeBar:false, responsive:true}); }},
+        {title:"Flood exposure by jurisdiction", sub:"Share of each jurisdiction's culverts in each flood class", async draw(div){
+          const rows = await rowsOf(BASE + "culverts_results.geojson"); const jur = [...new Set(rows.map(r=>r.jurisdiction))].sort();
+          stackedShare(div, jur, ["0","1","2","3"], {"0":COL.gray,"1":COL.ice,"2":COL.blue,"3":COL.navy}, rows, r => r.jurisdiction, r => String(Math.round(r.E_FLC_hist)), r => 1, "percent of culverts", "culverts"); }}],
+      table:{title:"Culvert table", lead:"The Flags column is the owner review list.", exportName:"PROTECT_culvert_results.csv",
+        async rows(){ const rows = await rowsOf(BASE + "culverts_results.geojson"); let crit = {}; try { crit = await scoreTable("roads_criticality"); } catch (e) {}
+          rows.forEach(p => { const c = crit[String(p.parent_segment_id)]; if (c && c.criticality_pctl != null) p.C_class = c.criticality_pctl < 25 ? 0 : c.criticality_pctl < 50 ? 1 : c.criticality_pctl < 75 ? 2 : 3; const fl = []; if (p.size_suspect == 1) fl.push("size suspect"); if (p.ratio_review == 1) fl.push("ratio review"); if (p.tailwater_flag == 1) fl.push("tailwater"); if (p.on_stream == 1) fl.push("on mapped stream"); p.flags = fl.join("; "); }); return rows; },
+        cols:[{field:"culvert_id", headerName:"Culvert", minWidth:190, flex:1, filter:"agTextColumnFilter"}, {field:"jurisdiction", headerName:"Jurisdiction", width:150, filter:"agTextColumnFilter"}, {field:"road_name", headerName:"Road", width:150, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+          {field:"crossing_id", headerName:"Crossing", width:100}, {field:"d_eq_in", headerName:"Dia (in)", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"contrib_area_ac", headerName:"Basin (ac)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+          {field:"q_event_100_cfs", headerName:"Q100 (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"q_cap_crossing_cfs", headerName:"Qcap (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+          {field:"load_ratio_100", headerName:"Storm / capacity", width:125, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const v=p.value; if(v==null) return {}; const c = v>=4?COL.brick: v>=2?COL.orange: v>=1?COL.peach: null; return c ? {background:c, color: v>=2?"#fff":"#003B71", fontWeight:600} : {};}},
+          {field:"E_FLC_hist", headerName:"Flood E", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:p=>{const m={3:COL.navy,2:COL.blue,1:COL.ice}; const c=m[p.value]; return c?{background:c,color:p.value>=2?"#fff":"#003B71",fontWeight:600}:{};}},
+          {field:"V_FLC_hist", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}}, CRIT_COL,
+          {field:"S_source", headerName:"Sensitivity data", width:130, valueFormatter:p=>p.value||"-"}, {field:"cond_class", headerName:"Cond.", width:85, valueFormatter:p=>p.value==null?"-":p.value}, {field:"flags", headerName:"Flags", width:200, filter:"agTextColumnFilter"}, {field:"q_method", headerName:"Q method", width:135}]},
+      notes:["<b>Watershed.</b> Drainage area to each culvert from the 2 m lidar DEM, with the road fill cut through every culvert so creeks pass where they should.",
+        "<b>Flow.</b> The 100-year storm from NOAA Atlas 14 and the land cover; basins over 1 sq mi use the USGS regional equations.",
+        "<b>Capacity.</b> What the pipe passes with water at the top of the opening. Real culverts take more, so the ratio errs high by 1.5 to 2.",
+        "<b>Flags.</b> A small recorded pipe on a big drainage is a record to check, not a score; it is withheld and listed for the owner. A ratio above 20 is listed too.",
+        "<b>Flood exposure.</b> The highest flood class anywhere in the culvert's drainage. The value at the pipe itself is in the popup for comparison.",
+        "<b>Vulnerability.</b> Exposure at 0.3 plus sensitivity at 0.7: how much debris the basin can send, whether the pipe passes the 100-year storm, and its condition and blockage. Condition exists for about a third of culverts; the rest carry the fair default and are marked partial.",
+        "<b>Roads.</b> Scored on two things only: flood exposure and criticality. Exposure is the highest flood class anywhere along the segment (3 in a FEMA 100-year zone; 2 in the 500-year zone or along a mapped stream; 0 otherwise). Criticality is the segment's quarter from the latest clean street layer. The map colors by exposure and thickens by criticality."],
+      foot:"Culvert inventories from six jurisdictions and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA. Method: <code>docs/SCORING_RUBRICS.md</code> 2.2 to 2.5."
+    };
+
+    MODES.wildfire = {
+      title:"Wildfire", banner:"Draft results for workshop review. The scores rank segments by where fire is likely and intense; they are not a fire behavior forecast.",
+      bannerTip:"Component 2 exposure (WF-R, WF-AT, WF-TC). Roads carry no sensitivity (decision 25), so a road's wildfire vulnerability is its exposure. Criticality is carried separately.",
+      lead:"Which roads, paths, and transit hubs sit where fire is most likely and would burn most severely. The method is section 6.4 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
+      kpiBorder:COL.orange,
+      kpis(s){ const w = s.wildfire; if (!w) return null; const r = w.roads || {}, p = w.paths || {}, t = w.transit || {}; const km2 = (w.surfaces_km2||{}).wildfire_burnprob || {};
+        return [[fmt(r.segments), "road segments scored"], [fmt(r.miles), "road miles scored"], [fmt(r.miles_e2_class3), "road miles where high-severity fire covers at least 25 percent of the 300 ft buffer"], [fmt(((r.E||{})["3.0"])||0), "segments at the top score (3.0)"],
+          [fmt(Number(km2["2"]||0) + Number(km2["3"]||0)), "km2 of the basin where fire is 0.5 percent or more likely a year"], [fmt(p.count), "paths scored"], [fmt(p.miles_e_ge_1_6, 1), "path miles where high-severity fire covers at least 25 percent of the 300 ft buffer"], [t.count == null ? "-" : fmt(t.n_e_ge_1_6) + " of " + fmt(t.count), "transit hubs where high-severity fire covers at least 25 percent of the 300 ft buffer"]]; },
+      note(s){ const w = s.wildfire || {}; return "Generated " + (s.generated || "") + ". " + (w.inputs ? "E1: " + w.inputs.e1 + ". E2: " + w.inputs.e2 + "." : ""); },
+      emptyText:"Wildfire results have not been published yet.",
+      colorHeading:"Roads, colored by",
+      colorBy:[
+        {value:"e", label:"Exposure", renderer:{roads:wfRenderer("E_WFR_hist", (c,k) => line(c, LINE_W[k])), paths:wfRenderer("E_WFAT_hist", (c,k) => line(c, LINE_W[k], true))},
+          legend:legendRows(WF_LEG, "lg-line"),
+          note:"How exposed each road is to fire: likelihood at 0.7 plus severity at 0.3. Likelihood is the highest class within 300 ft; severity is the highest class covering at least 25 percent of the 300 ft buffer. " + WF_NOTE, noteTip:"WF-R exposure score 0 to 3: E = 0.70 x E1 (annual burn probability class) + 0.30 x E2 (most-likely fire severity class, in place of the draft's flame length). E1 is the maximum within a 300 ft buffer; E2 is the highest class covering at least 25 percent of that buffer, so a single 30 m cell does not set it (decision 27). Scores that occur: 1.0 (low likelihood, low severity), 1.3 (moderate severity on at least 25 percent of the buffer), 1.6 to 1.7 (high severity on at least 25 percent of the buffer), 2.0 to 2.3 (likelihood over 0.5 percent a year), 2.7 to 3.0 (over 1 percent with high severity). Class breaks are the wildfire classes (decision 26): Low 1 to under 2, Medium 2 to 2.5, High over 2.5."},
+        {value:"e1", label:"Likelihood", renderer:{roads:breaksRenderer("E_WFR_e1", cls4Infos((c,k) => line(c, LINE_W[k]))), paths:breaksRenderer("E_WFAT_e1", cls4Infos((c,k) => line(c, LINE_W[k], true)))},
+          legend:legendRows([[COL.gray,"0: no burn probability"],[COL.ice,"1: under 0.5 percent a year"],[COL.orange,"2: 0.5 to 1 percent a year"],[COL.brick,"3: over 1 percent a year"]], "lg-line"),
+          note:"How often fire reaches the ground within 300 ft of the road.", noteTip:"E1, annual burn probability from the Sierra Nevada Regional Resource Kit (Pyrologix 2022, 30 m), classed on the draft's breaks of 0.5 and 1 percent."},
+        {value:"e2", label:"Severity", renderer:{roads:breaksRenderer("E_WFR_e2", cls4Infos((c,k) => line(c, LINE_W[k]))), paths:breaksRenderer("E_WFAT_e2", cls4Infos((c,k) => line(c, LINE_W[k], true)))},
+          legend:legendRows([[COL.gray,"0: nothing burnable"],[COL.ice,"1: low severity most likely"],[COL.orange,"2: moderate severity most likely"],[COL.brick,"3: high severity most likely"]], "lg-line"),
+          note:"How severely a fire would most likely burn within 300 ft of the road.", noteTip:"E2, TRPA most-likely fire severity (Fire service, layer 3): the Resource Kit's severity probabilities stacked into the most likely class. Stands in for the draft's flame length (decision 22). A segment takes the highest class covering at least 25 percent of its 300 ft buffer (decision 27)."}],
+      layers(){ return [
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("wildfire", {
+          popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"}, {fieldName:"E_WFR_hist", label:"Wildfire exposure score", format:{places:1}},
+            {fieldName:"E_WFR_e1", label:"E1 burn probability class"}, {fieldName:"E_WFR_e2", label:"E2 fire severity class"},
+            {fieldName:"len_pct_c1", label:"Length in likelihood class 1 (percent)", format:{places:0}}, {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}}, {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}}, {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}})},
+        {id:"paths", label:"Paths and bike routes", checked:true, tip:"WF-AT: existing active transportation facilities, scored with the same two indicators and no sensitivity term. Drawn dashed.",
+          make:() => new M.GeoJSONLayer({url:BASE + "paths_wildfire.geojson", title:"Paths", outFields:["*"], popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Facility class"}, {fieldName:"E_WFAT_hist", label:"Wildfire exposure score", format:{places:1}}, {fieldName:"E_WFAT_e1", label:"E1 burn probability class"}, {fieldName:"E_WFAT_e2", label:"E2 fire severity class"}, {fieldName:"V_class", label:"Vulnerability class (highest pair)"}]}]}})},
+        {id:"hubs", label:"Transit hubs", checked:true, tip:"WF-TC: the eight transit hubs, scored within 300 ft of the point: burn probability the highest class, severity the highest class covering at least 25 percent of the circle.", legend:legendRows(WF_LEG, "lg-dot"),
+          make:() => new M.GeoJSONLayer({url:BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"], renderer:wfRenderer("E_WFTC_hist", (c,k) => sq(c, HUB_SIZE)),
+            popupTemplate:{title:"Transit hub {tc_id}", content:[{type:"fields", fieldInfos:[{fieldName:"E_WFTC_hist", label:"Wildfire exposure score", format:{places:1}}, {fieldName:"E_WFTC_e1", label:"E1 burn probability class"}, {fieldName:"E_WFTC_e2", label:"E2 fire severity class"}]}]}})},
+        {id:"bp", label:"Burn probability surface", checked:false, tip:"E1 surface: the Resource Kit burn probability classed 1 to 3 (under 0.5, 0.5 to 1, over 1 percent a year). Zero and non-burnable cells are blank.", legend:`<span class="lg-sw" style="background:rgba(180,203,232,.6)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3`,
+          make:() => fireSurface("wildfire_burnprob", "Burn probability")},
+        {id:"fl", label:"Fire severity surface", checked:false, tip:"E2 surface: TRPA most-likely fire severity classed 1 to 3 (low, moderate, high).", make:() => fireSurface("wildfire_e2", "Fire severity")},
+        {id:"bp300", label:"Likelihood within 300 ft of roads", checked:false, tip:"The burn probability classes clipped to 300 ft of every road segment: the ground each segment was scored against. Click a segment to outline its own buffer.", make:() => fireSurface("wildfire_burnprob_300ft", "Burn probability within 300 ft of roads")},
+        {id:"fl300", label:"Severity within 300 ft of roads", checked:false, tip:"The most-likely fire severity classes clipped to 300 ft of every road segment.", make:() => fireSurface("wildfire_e2_300ft", "Fire severity within 300 ft of roads")},
+        {id:"pods", label:"POD boundaries", checked:false, tip:"Potential operational delineations (PODs): the lines fire managers plan to hold a fire on, from the Forest Service Lake Tahoe Basin pre-attack plan. Draft lines shown for context; not part of the score. About half follow roads; natural edges are ridges, water, and fuel changes.",
+          legend:legendRows([[COL.navy,"road"],["#4A6118","natural edge"],[COL.purple,"trail, other"]], "lg-line"), make:() => podLayer()}];
+      },
+      extra(L, ctx){ // the segment's own 300 ft buffer on click
+        const bufLayer = new M.GraphicsLayer({title:"Selected buffer", listMode:"hide"}); ctx.view.map.add(bufLayer, 1); ctx.extraLayers.push(bufLayer);
+        $("panel-extra").innerHTML = `<div class="grp"><h3>Selected segment</h3><div class="lg-row"><span class="lg-sw" style="background:rgba(0,59,113,.12);border:1.5px dashed #003B71"></span> its 300 ft sampling buffer</div><p class="note" id="buf-note">Click a road or path to outline the 300 ft buffer its score came from.</p></div>`;
+        ctx.onClick = evt => ctx.view.hitTest(evt, {include:[L.roads, L.paths]}).then(res => {
+          bufLayer.removeAll(); const note = $("buf-note"); const g = res.results.length ? res.results[0].graphic : null;
+          if (!g || !g.geometry) { note.textContent = "Click a road or path to outline the 300 ft buffer its score came from."; return; }
+          bufLayer.add(new M.Graphic({geometry:M.geometryEngine.geodesicBuffer(g.geometry, 300, "feet"), symbol:{type:"simple-fill", color:[0,59,113,0.12], outline:{color:[0,59,113,0.95], width:1.5, style:"short-dash"}}}));
+          const a = g.attributes || {}; const e = a.E_WFR_hist != null ? a.E_WFR_hist : a.E_WFAT_hist, e1 = a.E_WFR_e1 != null ? a.E_WFR_e1 : a.E_WFAT_e1, e2 = a.E_WFR_e2 != null ? a.E_WFR_e2 : a.E_WFAT_e2;
+          note.textContent = (a.name || "Unnamed segment") + ": score " + fmt(e,1) + " from likelihood class " + fmt(e1,0) + " and severity class " + fmt(e2,0) + " within this buffer.";
+        });
+      },
+      filters:[{id:"top", label:"High exposure only", tip:"Exposure 2 and over: burn probability over 0.5 percent a year within 300 ft, with moderate or high severity covering at least 25 percent of the 300 ft buffer.",
+        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_WFR_hist >= 1.999" : null; if (L.paths) L.paths.definitionExpression = on ? "E_WFAT_hist >= 1.999" : null; if (L.hubs) L.hubs.definitionExpression = on ? "E_WFTC_hist >= 1.999" : null; }}],
+      charts:[
+        {title:"Road miles by exposure class", sub:"Low 1 to under 2, Medium 2 to 2.5, High over 2.5", async draw(div){ milesByClass(div, await roadRows("wildfire"), "E_WFR_hist", wfClassOf, ["Low", "Medium", "High"], EC_COL, "road miles"); }},
+        {title:"Exposure class by road type", sub:"Share of each road type's miles in each class", async draw(div){ const rows = await roadRows("wildfire"); stackedShare(div, topTypes(rows), ["Low", "Medium", "High"], EC_COL, rows, r => r.class || "unknown", r => wfClassOf(r.E_WFR_hist || 0), r => r.miles, "percent of miles", "miles"); }}],
+      table:{title:"Road table", lead:"", exportName:"PROTECT_wildfire_roads.csv", rows:() => roadRows("wildfire"),
+        cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"}, {field:"src_objectid", headerName:"Segment", width:100},
+          {field:"E_WFR_hist", headerName:"Exposure", width:100, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,1), cellStyle:p=>{const c=wfClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
+          {field:"E_WFR_e1", headerName:"Likelihood", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:p=>({background:clsCol4(p.value), color:Math.round(p.value)>=2?"#fff":"#003B71", fontWeight:600})},
+          {field:"E_WFR_e2", headerName:"Severity", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:p=>({background:clsCol4(p.value), color:Math.round(p.value)>=2?"#fff":"#003B71", fontWeight:600})},
+          CRIT_COL,
+          {field:"len_pct_c1", headerName:"Length in class 1 (%)", width:150, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)}, {field:"len_pct_c2", headerName:"in class 2 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)}, {field:"len_pct_c3", headerName:"in class 3 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+          {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}]},
+      notes:["<b>Likelihood (E1).</b> Annual burn probability from the Sierra Nevada Regional Resource Kit (Pyrologix 2022, 30 m), classed on the draft's breaks: under 0.5 percent a year is 1, 0.5 to 1 percent is 2, over 1 percent is 3.",
+        "<b>Severity (E2).</b> TRPA most-likely fire severity, the Resource Kit's three severity probabilities stacked: low is 1, moderate is 2, high is 3. It stands in for the draft's flame length (decision 22).",
+        "<b>Sampling.</b> Burn probability is the highest class within 300 ft of the segment, path, or hub; severity is the highest class covering at least 25 percent of that 300 ft buffer, so a single 30 m cell nearby does not set it; the two \"within 300 ft of roads\" layers show that ground, and a click outlines a segment's own buffer. The score is 0.7 x E1 + 0.3 x E2.",
+        "<b>No zeros.</b> The Resource Kit model gives urban ground a burn probability too, so every segment scores at least 1; only water and bare rock are blank.",
+        "<b>Vulnerability.</b> Roads and paths carry no sensitivity (decision 25), so the exposure score is the wildfire vulnerability score and is not shown separately. Classes: Low 1 to under 2, Medium 2 to 2.5, High over 2.5.",
+        "<b>Vintage.</b> Both inputs are the 2022 to 2023 Pyrologix generation, after the 2021 Caldor Fire. The contracted fire-behavior package replaces them on the same breaks if it is delivered and reviewed in time for December."],
+      foot:"Fire inputs from the Sierra Nevada Regional Resource Kit and the TRPA Fire service; roads from the TRPA street network; paths and hubs from TRPA services. Method: <code>docs/SCORING_RUBRICS.md</code> 6.4, decision 22."
+    };
+
+    MODES.landslide = {
+      title:"Landslide", banner:"Draft results for workshop review. The scores rank assets by how landslide-prone the ground around them is; they do not model where a slide would run.",
+      bannerTip:"Component 2 exposure (LS-R, LS-C, LS-B) plus vulnerability on the draft's sensitivity terms and defaults. Runout modeling is not being pursued.",
+      lead:"Which roads, culverts, and bridges sit on ground that is prone to landslides or has already slid. The method is sections 2, 3, and 6.3 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
+      kpiBorder:COL.earth,
+      kpis(s){ const w = s.landslide; if (!w) return null; const r = w.roads || {}, c = w.culverts || {}, b = w.bridges || {}, km2 = w.surface_km2 || {};
+        return [[fmt(r.segments), "road segments scored"], [fmt(r.miles), "road miles scored"], [fmt(r.miles_e1_class3), "road miles on class 3 ground"], [fmt(km2["3"]), "km2 of class 3 ground in the basin"], [fmt(c.scored), "culverts scored"], [fmt(c.n_e1_class3), "culverts with class 3 in their drainage"], [fmt(b.count), "bridges scored"], [fmt(b.n_e1_class3), "bridges on class 3 ground"]]; },
+      note(s){ return "Generated " + (s.generated || "") + ". Culvert counts exclude the restricted jurisdiction."; },
+      emptyText:"Landslide results have not been published yet.",
+      colorHeading:"Colored by",
+      colorBy:[
+        {value:"cls", label:"Exposure", renderer:{roads:breaksRenderer("E_LSR_e1", cls4Infos((c,k) => line(lsCol(k), LINE_W[k]))), culverts:breaksRenderer("E_LSC_e1", cls4Infos((c,k) => dot(lsCol(k), [4,5,6,7][k]))), bridges:breaksRenderer("E_LSB_e1", cls4Infos((c,k) => sq(lsCol(k))))},
+          legend:legendRows([[COL.gray,"0: under 40 percent of the ground prone"],[COL.ice,"1: 40 to 60 percent prone"],[COL.orange,"2: 60 to 80 percent prone"],[COL.brick,"3: over 80 percent prone, or a recorded landslide"]], "lg-line"),
+          note:"The highest class touching the road, within 25 m of the bridge, or anywhere in the culvert's drainage area.", noteTip:"E1: the share of each 90 m cell that the USGS 2024 susceptibility model calls landslide-prone (over 80 percent = 3, over 60 = 2, over 40 = 1; decision 24), with every recorded landslide in the USGS inventory as 3."},
+        {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_LSR_hist", (c,k) => line(c, LINE_W[k])), culverts:vClassRenderer("V_LSC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_LSB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
+          note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3. Exposure tops out at 2.14 until the climate term is scored.", noteTip:"E = (0.50 x E1 + 0.20 x E2) / 0.70; E2 is the Cal-Adapt precipitation change, 0 at the historical horizon. Roads: no sensitivity (decision 25). Culverts: opening width and condition. Bridges: span type, condition, span length."}],
+      extra(L, ctx){ culvertDrainage(L, ctx, "The landslide class is the highest anywhere in this area."); },
+      layers(){ return [
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("landslide", {
+          popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"src_objectid", label:"Segment"}, {fieldName:"E_LSR_e1", label:"Susceptibility class (E1)"}, {fieldName:"E_LSR_hist", label:"Landslide exposure score", format:{places:2}}, {fieldName:"V_LSR_hist", label:"Landslide vulnerability V", format:{places:2}},
+            {fieldName:"len_pct_c1", label:"Length in class 1 (percent)", format:{places:0}}, {fieldName:"len_pct_c2", label:"in class 2 (percent)", format:{places:0}}, {fieldName:"len_pct_c3", label:"in class 3 (percent)", format:{places:0}}, {fieldName:"seg_len_m", label:"Length (m)", format:{places:0, digitSeparator:true}}]}]}})},
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, tip:"LS-C E1, the highest susceptibility class anywhere in the culvert's drainage area. Public jurisdictions only.", legend:legendRows([[COL.gray,"0"],[COL.ice,"1"],[COL.orange,"2"],[COL.brick,"3"]], "lg-dot"),
+          make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_LSC_e1", label:"Susceptibility class in the drainage (E1)"}, {fieldName:"E_LSC_pt", label:"Score at the pipe", format:{places:2}}, {fieldName:"E_LSC_hist", label:"Landslide exposure score", format:{places:2}}, {fieldName:"V_LSC_hist", label:"Landslide vulnerability V", format:{places:2}}, {fieldName:"contrib_area_ac", label:"Contributing area (ac)", format:{places:1, digitSeparator:true}}]}]}})},
+        {id:"bridges", minScale:CULVERT_MIN_SCALE, label:"Bridges", checked:true, tip:"LS-B E1, the highest susceptibility class within 25 m of the structure.", legend:legendRows([[COL.gray,"0"],[COL.ice,"1"],[COL.orange,"2"],[COL.brick,"3"]], "lg-sq"),
+          make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"bridge_id", label:"NBI structure"}, {fieldName:"owner", label:"Owner"}, {fieldName:"E_LSB_e1", label:"Susceptibility class within 25 m (E1)"}, {fieldName:"E_LSB_hist", label:"Landslide exposure score", format:{places:2}}, {fieldName:"V_LSB_hist", label:"Landslide vulnerability V", format:{places:2}}]}]}})},
+        {id:"surf", label:"Susceptibility surface", checked:false, tip:"The classed E1 surface: USGS 2024 susceptibility over 40, 60, and 80 percent of the cell plus recorded landslides.", legend:`<span class="lg-sw" style="background:rgba(180,203,232,.6)"></span> 1 &nbsp; <span class="lg-sw" style="background:rgba(232,119,34,.5)"></span> 2 &nbsp; <span class="lg-sw" style="background:rgba(156,62,39,.55)"></span> 3`,
+          make:() => new M.GeoJSONLayer({url:BASE + "landslide_surface.geojson", title:"Susceptibility surface", visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([156,62,39],0.55)},{value:2, symbol:fill([232,119,34],0.5)},{value:1, symbol:fill([180,203,232],0.6)}]}, popupTemplate:{title:"Susceptibility class {hz_class}", content:"{label}"}})}];
+      },
+      filters:[{id:"top", label:"Class 3 only", tip:"Roads, culverts, and bridges on very high susceptibility ground or at a recorded landslide.", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_LSR_e1 >= 2.5" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_LSC_e1 >= 2.5" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_LSB_e1 >= 2.5" : null; }}],
+      charts:[
+        {title:"Road miles by susceptibility class", sub:"Where the network sits on the 0 to 3 class scale", async draw(div){ const rows = await roadRows("landslide"); const labs = {0:"0: under 40 percent prone", 1:"1: 40 to 60 percent", 2:"2: 60 to 80 percent", 3:"3: over 80 percent or recorded"}; const miles = {}, counts = {};
+          rows.forEach(r => { const k = labs[Math.round(r.E_LSR_e1 || 0)]; miles[k] = (miles[k]||0) + r.miles; counts[k] = (counts[k]||0) + 1; }); barBands(div, Object.values(labs), miles, counts, {[labs[0]]:COL.gray, [labs[1]]:COL.ice, [labs[2]]:COL.orange, [labs[3]]:COL.brick}, "", "road miles"); }},
+        {title:"Culverts by jurisdiction", sub:"Share of each jurisdiction's culverts in each class, by drainage area", async draw(div){ const rows = (await rowsOf(BASE + "culverts_results.geojson")).filter(p => p.E_LSC_e1 != null); if (!rows.length) return;
+          stackedShare(div, [...new Set(rows.map(r => r.jurisdiction))].sort(), ["0","1","2","3"], {"0":COL.gray,"1":COL.ice,"2":COL.orange,"3":COL.brick}, rows, r => r.jurisdiction, r => String(Math.round(r.E_LSC_e1)), r => 1, "percent of culverts", "culverts"); }}],
+      table:{title:"Road table", lead:"Culvert and bridge values are on the map and in the flooding tab's table.", exportName:"PROTECT_landslide_roads.csv", rows:() => roadRows("landslide"),
+        cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"}, {field:"src_objectid", headerName:"Segment", width:100},
+          {field:"E_LSR_e1", headerName:"Class", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:p=>({background:lsCol(Math.round(p.value||0)), color:Math.round(p.value)>=2?"#fff":"#003B71", fontWeight:600})},
+          {field:"E_LSR_hist", headerName:"Exposure", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"V_LSR_hist", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}}, CRIT_COL,
+          {field:"len_pct_c1", headerName:"Length in class 1 (%)", width:150, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)}, {field:"len_pct_c2", headerName:"in class 2 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)}, {field:"len_pct_c3", headerName:"in class 3 (%)", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+          {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}]},
+      notes:["<b>Susceptibility (E1).</b> The USGS 2024 susceptibility model (Mirus and others) gives, for each 90 m cell, the share of the ground that is landslide-prone from slope and relief. Over 80 percent scores 3, over 60 scores 2, over 40 scores 1 (decision 24).",
+        "<b>Recorded landslides.</b> Every mapped landslide in the USGS inventory counts as class 3. Polygons over 10 km2 are mapping units and are left out; a landslide point counts within 50 m.",
+        "<b>Climate term (E2).</b> Cal-Adapt precipitation change at weight 0.2 scores 0 at the historical horizon, so exposure tops out at 2.14 until the 2050 and 2080 columns are added.",
+        "<b>Sampling.</b> Roads take the highest class touching the segment. Bridges take the highest class within 25 m. Culverts take the highest class anywhere in their drainage area, which is why a culvert in town can score 3 when the slope above it does.",
+        "<b>Vulnerability.</b> Roads: exposure only (decision 25). Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3, from opening width and condition (culverts) and span type, condition, and span length (bridges).",
+        "<b>Not modeled.</b> Where a slide would run. The scores say how prone the ground is, not what it would hit."],
+      foot:"Susceptibility from the USGS 2024 landslide susceptibility model; recorded landslides from the USGS inventory. Method: <code>docs/SCORING_RUBRICS.md</code> 2, 3, 6.3, decision 24."
+    };
+
+    MODES.debris_flow = {
+      title:"Debris flow", banner:"Draft results for workshop review. Option 1 of the draft with the fire severity surface standing in for predicted soil burn severity until the contracted package arrives.",
+      bannerTip:"Component 2 exposure (DF-R, DF-C, DF-B): mean upslope slope, contributing area, and burn severity at 0.20, 0.20, 0.30. DF_option records the stand-in.",
+      lead:"Which roads, culverts, and bridges sit below small, steep, burn-prone drainages. The method is section 4 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
+      kpiBorder:COL.brick,
+      kpis(s){ const w = s.debris_flow; if (!w) return null; const r = w.roads || {}; const E = r.E || {}; const hi = Object.entries(E).filter(([k]) => Number(k) >= 2).reduce((a, [,v]) => a + v, 0);
+        return [[fmt(r.segments), "road segments scored"], [fmt(r.miles), "road miles scored"], [fmt(hi), "segments scoring 2 and over"], [fmt(r.zero_segments), "segments at 0"]]; },
+      note(s){ return "Generated " + (s.generated || "") + ". Culverts read slope and area from their own drainage; roads and bridges read the largest drainage they touch."; },
+      emptyText:"Debris flow results have not been published yet.",
+      colorHeading:"Colored by",
+      colorBy:[
+        {value:"e", label:"Exposure", renderer:{roads:eClassRenderer("E_DFR_hist", (c,k) => line(c, LINE_W[k])), culverts:eClassRenderer("E_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:eClassRenderer("E_DFB_hist", (c,k) => sq(c))}, legend:legendRows(EC_LEG, "lg-line"),
+          note:"Slope, drainage size, and burn severity, each 0 to 3, weighted 0.2, 0.2, 0.3.", noteTip:"E1 mean slope of the contributing area (over 30 percent = 3), E2 contributing area (under 0.25 sq mi = 3, over 5 sq mi = 0), E3 most-likely fire severity standing in for soil burn severity; E = (0.2 E1 + 0.2 E2 + 0.3 E3) / 0.7."},
+        {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_DFR_hist", (c,k) => line(c, LINE_W[k])), culverts:vClassRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
+          note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3.", noteTip:"Roads: no sensitivity (decision 25). Culverts: opening width and condition with blockage (decision 7). Bridges: span type, condition, span length."}],
+      extra(L, ctx){ culvertDrainage(L, ctx, "Slope and drainage size are read from this area."); },
+      layers(){ return [
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_DFR_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFR_e1", label:"E1 slope class", format:{places:1}}, {fieldName:"E_DFR_e2", label:"E2 drainage size class", format:{places:1}}, {fieldName:"E_DFR_e3", label:"E3 burn severity class"}, {fieldName:"V_DFR_hist", label:"Vulnerability V", format:{places:2}}]}]}})},
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, legend:legendRows(EC_LEG, "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_DFC_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFC_e1", label:"E1 basin slope class", format:{places:1}}, {fieldName:"E_DFC_e2", label:"E2 basin size class", format:{places:1}}, {fieldName:"E_DFC_e3", label:"E3 burn severity in the drainage"}, {fieldName:"V_DFC_hist", label:"Vulnerability V", format:{places:2}}, {fieldName:"DF_option", label:"Option"}]}]}})},
+        {id:"bridges", minScale:CULVERT_MIN_SCALE, label:"Bridges", checked:true, legend:legendRows(EC_LEG, "lg-sq"), make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"owner", label:"Owner"}, {fieldName:"E_DFB_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"V_DFB_hist", label:"Vulnerability V", format:{places:2}}]}]}})}];
+      },
+      filters:[{id:"top", label:"High exposure only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_DFR_hist >= 1.999" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.999" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.999" : null; }}],
+      charts:[
+        {title:"Road miles by exposure class", sub:"Low under 1, Medium 1 to under 2, High 2 and over", async draw(div){ milesByClass(div, await roadRows("debris_flow"), "E_DFR_hist", eClassOf, E_CLASSES, EC_COL, "road miles"); }},
+        {title:"Culverts by jurisdiction", sub:"Share of each jurisdiction's culverts in each exposure class", async draw(div){ const rows = (await rowsOf(BASE + "culverts_results.geojson")).filter(p => p.E_DFC_hist != null); if (!rows.length) return;
+          stackedShare(div, [...new Set(rows.map(r => r.jurisdiction))].sort(), E_CLASSES, EC_COL, rows, r => r.jurisdiction, r => eClassOf(r.E_DFC_hist || 0), r => 1, "percent of culverts", "culverts"); }}],
+      table:{title:"Road table", lead:"", exportName:"PROTECT_debris_flow_roads.csv", rows:() => roadRows("debris_flow"),
+        cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120}, {field:"src_objectid", headerName:"Segment", width:100},
+          {field:"E_DFR_hist", headerName:"Exposure", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=eClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
+          {field:"E_DFR_e1", headerName:"Slope", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"E_DFR_e2", headerName:"Drainage size", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"E_DFR_e3", headerName:"Burn severity", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+          {field:"V_DFR_hist", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}}, CRIT_COL,
+          {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}]},
+      notes:["<b>Slope (E1).</b> The mean slope of everything that drains to a cell, from the 2 m lidar DEM, aggregated to 30 m. Over 30 percent scores 3, 0 to 5 percent scores 0, in half-point steps.",
+        "<b>Drainage size (E2).</b> Contributing area at the cell. Small, steep drainages score high: under 0.25 square miles is 3, over 5 square miles is 0. Roads and bridges read the largest drainage they touch, so a highway over a river scores low and a road below a small burned ravine scores high.",
+        "<b>Burn severity (E3).</b> The TRPA most-likely fire severity surface stands in for the contracted predicted soil burn severity (DF_option records this). Culverts take the highest class in their drainage.",
+        "<b>Culverts.</b> Read slope and area from their own delineated drainage rather than the raster, which is more exact for a crossing.",
+        "<b>Vulnerability.</b> Roads: exposure only (decision 25). Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3, from opening width and condition with blockage for culverts (decision 7) and span terms for bridges."],
+      foot:"Terrain from the 2 m lidar DEM; burn severity stand-in from the TRPA Fire service. Method: <code>docs/SCORING_RUBRICS.md</code> 4, decisions 7 and 15."
+    };
+
+    MODES.avalanche = {
+      title:"Avalanche", banner:"Draft results for workshop review. The score describes closure likelihood from steep ground above the road, not damage.",
+      bannerTip:"AV-R exposure only (E 1.0): the dominant slope tier on the uphill side within 1,000 ft of the segment, combined with a TRPA avalanche zone within 1,000 ft as the record (decisions 17, 18, 20).",
+      lead:"Which roads run below slopes that release avalanches, and which of those have a mapped avalanche zone. The method is section 5 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
+      kpiBorder:COL.purple,
+      kpis(s){ const w = s.avalanche; if (!w) return null; const r = w.roads || {}; const E = r.E || {}; const hi = Object.entries(E).filter(([k]) => Number(k) >= 2).reduce((a, [,v]) => a + v, 0);
+        return [[fmt(r.segments), "road segments scored"], [fmt(r.miles), "road miles scored"], [fmt(hi), "segments scoring 2 and over"], [fmt(r.records), "segments within 1,000 ft of a mapped avalanche zone"], [fmt(r.zero_segments), "segments with no steep ground above"]]; },
+      note(s){ return "Generated " + (s.generated || "") + ". Slope tiers from the lidar DEM at 10 m; uphill means at least one 20 m elevation band above the segment."; },
+      emptyText:"Avalanche results have not been published yet.",
+      colorHeading:"Roads, colored by",
+      colorBy:[
+        {value:"e", label:"Exposure", renderer:{roads:eClassRenderer("E_AVR_hist", (c,k) => line(c, LINE_W[k]))}, legend:legendRows(EC_LEG, "lg-line"),
+          note:"The slope tier that covers the most ground above the road within 1,000 ft, raised one step where a mapped zone is within 1,000 ft.", noteTip:"Scores: no record 0 / 1 / 1.5 / 2 by slope tier, with a mapped zone 1 / 2 / 2.5 / 3. Tiers: under 25 degrees 0; 25 to 30 or over 50 is 1; 30 to 35 or 45 to 50 is 2; 35 to 45 is 3. Class breaks are the same 1.0 and 2.0 as vulnerability, so High means a record with 35 to 45 degree ground or any record on 30 to 50 degree ground."},
+        {value:"tier", label:"Slope tier", renderer:{roads:breaksRenderer("av_tier", cls4Infos((c,k) => line(c, LINE_W[k])))}, legend:legendRows([[COL.gray,"0: under 25 degrees"],[COL.ice,"1: 25 to 30 or over 50"],[COL.orange,"2: 30 to 35 or 45 to 50"],[COL.brick,"3: 35 to 45 degrees"]], "lg-line"), note:"The dominant slope tier on the uphill side, before the record."}],
+      layers(){ return [
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("avalanche", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_AVR_hist", label:"Avalanche score", format:{places:1}}, {fieldName:"av_tier", label:"Dominant uphill slope tier"}, {fieldName:"av_record", label:"Mapped zone within 1,000 ft (1 = yes)"}, {fieldName:"uphill_ha", label:"Uphill ground within 1,000 ft (ha)", format:{places:1}}]}]}})},
+        {id:"zones", label:"TRPA avalanche zones", checked:true, legend:`<span class="lg-sw" style="background:rgba(123,106,138,.45)"></span> mapped zone`, make:() => new M.FeatureLayer({url:AVZ_URL, title:"Avalanche zones", opacity:0.8, renderer:{type:"simple", symbol:fill([123,106,138], 0.45)}, popupTemplate:{title:"{Name}", content:"Frequency: {Frequency}"}})}];
+      },
+      filters:[{id:"top", label:"High exposure only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_AVR_hist >= 1.999" : null; }}],
+      charts:[
+        {title:"Road miles by exposure class", sub:"Low under 1, Medium 1 to under 2, High 2 and over", async draw(div){ milesByClass(div, await roadRows("avalanche"), "E_AVR_hist", eClassOf, E_CLASSES, EC_COL, "road miles"); }},
+        {title:"Slope tier by record", sub:"Miles in each dominant slope tier, with and without a mapped zone nearby", async draw(div){ const rows = await roadRows("avalanche"); const tiers = ["0","1","2","3"];
+          const traces = [["no mapped zone", 0, COL.ice], ["mapped zone within 1,000 ft", 1, COL.purple]].map(([n, rec, c]) => ({type:"bar", name:n, x:tiers.map(t => "tier " + t), marker:{color:c}, y:tiers.map(t => rows.filter(r => String(r.av_tier ?? 0) === t && (r.av_record||0) === rec).reduce((s, r) => s + r.miles, 0)), hovertemplate:"%{y:.1f} miles<extra>" + n + "</extra>"}));
+          Plotly.newPlot(div, traces, Object.assign({}, LAYOUT, {barmode:"group", margin:{l:50,r:10,t:10,b:50}, legend:{orientation:"h", y:1.14}, yaxis:{title:"road miles", gridcolor:"#eef0f3"}}), {displayModeBar:false, responsive:true}); }}],
+      table:{title:"Road table", lead:"Every segment is scored; a High score off US-50, SR-89, SR-28, SR-207, or SR-431 is a finding to review with the state DOTs.", exportName:"PROTECT_avalanche_roads.csv", rows:() => roadRows("avalanche"),
+        cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120}, {field:"src_objectid", headerName:"Segment", width:100},
+          {field:"E_AVR_hist", headerName:"Exposure", width:100, type:"numericColumn", valueFormatter:p=>fmt(p.value,1), cellStyle:p=>{const c=eClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
+          {field:"V_AVR_hist", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}}, CRIT_COL,
+          {field:"av_tier", headerName:"Slope tier", width:100, type:"numericColumn"}, {field:"av_record", headerName:"Mapped zone", width:110, valueFormatter:p=>p.value==1?"yes":"no"}, {field:"uphill_ha", headerName:"Uphill ground (ha)", width:140, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+          {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}]},
+      notes:["<b>Slope.</b> Slope in degrees from the lidar DEM at 10 m, in four tiers: under 25 degrees rarely releases, 35 to 45 is the prime release band, and over 50 sheds snow before it builds up. The segment takes the tier that covers the most ground above it within 1,000 ft (decision 17).",
+        "<b>Uphill.</b> Ground at least one 20 m elevation band above the segment's midpoint. Ground below the road does not count.",
+        "<b>Record.</b> A TRPA avalanche zone polygon within 1,000 ft (decision 18). The accident databases the draft names are not used. A record raises the score one step; a record on ground under 25 degrees scores 1 (decision 20).",
+        "<b>Exposure only.</b> The draft sets no sensitivity for this pair, so the score is the vulnerability. Avalanches rarely damage roads; the score describes closure likelihood.",
+        "<b>Check.</b> The five corridors (US-50, SR-89, SR-28, SR-207, SR-431) should carry nearly all High segments. Others are findings for the state DOTs."],
+      foot:"Terrain from the 2 m lidar DEM; zones from the TRPA Avalanche_Zones service. Method: <code>docs/SCORING_RUBRICS.md</code> 5, decisions 17, 18, 20."
+    };
+
+    // ---------- shared pieces ----------
+    function fireSurface(stem, title){ return new M.GeoJSONLayer({url:BASE + stem + ".geojson", title, visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([156,62,39],0.55)},{value:2, symbol:fill([232,119,34],0.5)},{value:1, symbol:fill([180,203,232],0.6)}]}, popupTemplate:{title:title + " class {hz_class}", content:"{label}"}}); }
+    const topTypes = rows => { const t = [...new Set(rows.map(r => r.class || "unknown"))]; const mi = x => rows.filter(r => (r.class || "unknown") === x).reduce((s, r) => s + r.miles, 0); return t.sort((a, b) => mi(b) - mi(a)).slice(0, 8); };
+    // roads: one geometry file (downloaded once) plus a small score table per hazard, joined here
+    const roadGeom = () => cache.__geom || (cache.__geom = getJSON(BASE + "roads_geometry.geojson").then(gj => {
+      const byId = {}; gj.features.forEach(f => { byId[String(f.properties.src_objectid)] = f; }); return {gj, byId};
+    }));
+    const scoreTable = stem => cache["__t_" + stem] || (cache["__t_" + stem] = getJSON(BASE + stem + ".json").then(t => { const m = {}; const cols = t.columns; t.rows.forEach(a => { const r = {}; cols.forEach((c, i) => { r[c] = a[i]; }); m[String(r.src_objectid)] = r; }); return m; }));
+    // rows for charts and tables: geometry attributes + the hazard's scores + the vulnerability columns
+    // ---------- vulnerability by criticality matrix ----------
+    // per tab, the asset types scored for that hazard and their vulnerability field; V_class is used as
+    // published, wildfire fields take the wildfire breaks, the rest the standard breaks
+    const MX_SRC = {culverts:"culverts_results.geojson", bridges:"bridges_results.geojson"};
+    const MX_LABEL = {roads:"Road segments", culverts:"Culverts", bridges:"Bridges"};
+    const MX = {
+      overview:{roads:"V_class", culverts:"V_class", bridges:"V_class"},
+      flood:{roads:"V_FLR_hist", culverts:"V_FLC_hist", bridges:"V_FLB_hist"},
+      wildfire:{roads:"V_WFR_hist"},
+      landslide:{roads:"V_LSR_hist", culverts:"V_LSC_hist", bridges:"V_LSB_hist"},
+      debris_flow:{roads:"V_DFR_hist", culverts:"V_DFC_hist", bridges:"V_DFB_hist"},
+      avalanche:{roads:"V_AVR_hist"}};
+    const MX_ROWS = [["High", COL.brick], ["Medium", COL.orange], ["Low", COL.ice], ["Not exposed", COL.gray]];
+    const critClass = pctl => pctl == null ? null : pctl < 25 ? 0 : pctl < 50 ? 1 : pctl < 75 ? 2 : 3;
+    async function mxCounts(name, asset){
+      const field = MX[name][asset], out = {n:0, skipped:0};
+      const cls = v => { if (field === "V_class") return v || null; if (v == null || isNaN(v)) return null;
+        if (+v === 0) return "Not exposed"; const c = field.startsWith("V_WF") ? wfClassOf(+v) : vClassOf(+v); return c === "None" ? "Not exposed" : c; };
+      const add = (v, c) => { const k = cls(v); if (!k) { out.skipped++; return; } const key = k + "|" + (c == null ? "none" : c); out[key] = (out[key] || 0) + 1; out.n++; };
+      if (asset === "roads") { (await roadRows(name === "overview" ? null : name)).forEach(r => add(r[field], r.C_class)); return out; }
+      const rows = await rowsOf(BASE + MX_SRC[asset]);
+      let crit = {}; try { crit = await scoreTable("roads_criticality"); } catch (e) {}
+      rows.forEach(r => { const c = crit[String(r.parent_segment_id)]; add(r[field], c ? critClass(c.criticality_pctl) : null); });
+      return out;
+    }
+    async function renderMatrix(name){
+      const sel = $("mx-asset"), assets = Object.keys(MX[name] || {});
+      if (sel.dataset.mode !== name) { sel.dataset.mode = name; sel.innerHTML = assets.map(a => `<option value="${a}">${MX_LABEL[a]}</option>`).join(""); }
+      const asset = sel.value || assets[0];
+      $("mx").innerHTML = ""; $("mx-note").textContent = "Loading the counts...";
+      let m; try { m = await mxCounts(name, asset); } catch (e) { if (current === name) $("mx-note").textContent = "Counts are not available for this asset type yet."; return; }
+      if (current !== name || sel.value !== asset) return;
+      const cols = [0, 1, 2, 3].concat(MX_ROWS.some(([r]) => m[r + "|none"]) ? ["none"] : []);
+      const rows = MX_ROWS.filter(([r]) => r !== "Not exposed" || cols.some(c => m[r + "|" + c]));
+      const cell = (r, c) => { const n = m[r + "|" + c] || 0, pct = m.n ? n / m.n * 100 : 0;
+        return `<td style="background:rgba(0,114,206,${(Math.min(pct, 40) / 40 * 0.35).toFixed(3)})">${n.toLocaleString()}<div class="mx-pct">${pct.toFixed(1)}%</div></td>`; };
+      $("mx").innerHTML = `<table class="matrix"><thead><tr><th>Vulnerability</th>${cols.map(c => `<th>${c === "none" ? "No class" : "Criticality " + c}</th>`).join("")}</tr></thead><tbody>`
+        + rows.map(([r, col]) => `<tr><th class="rh"><i style="background:${col}"></i>${r}</th>${cols.map(c => cell(r, c)).join("")}</tr>`).join("") + "</tbody></table>";
+      const unit = MX_LABEL[asset].toLowerCase();
+      $("mx-note").textContent = `${m.n.toLocaleString()} ${unit}; count and percent of the total in each cell. Criticality 3 is the most critical quarter of the road network`
+        + (asset !== "roads" ? `; ${unit} take the class of the road they carry` : "")
+        + (cols.includes("none") ? "; no class means no matching road segment" : "")
+        + (rows.some(([r]) => r === "Not exposed") ? "; not exposed means a score of 0" : "")
+        + (m.skipped ? `; ${m.skipped.toLocaleString()} not scored are left out` : "") + ".";
+    }
+    $("mx-asset").addEventListener("change", () => renderMatrix(current));
+    // chart tabs: one card, two distributions; Plotly sizes a hidden chart wrong, so resize on show
+    document.querySelectorAll(".ch-tabs button").forEach(b => b.addEventListener("click", () => showChart(b.dataset.ch)));
+    function showChart(k){
+      ["a", "b"].forEach(x => { const on = x === k, t = $("ch-" + x + "-title");
+        t.classList.toggle("on", on); t.setAttribute("aria-selected", on); $("ch-" + x).hidden = !on; $("ch-" + x + "-sub").hidden = !on; });
+      try { Plotly.Plots.resize($("ch-" + k)); } catch (e) {}
+    }
+
+    async function roadRows(hazard){
+      const key = "roads_rows_" + (hazard || "vulnerability");
+      if (cache[key]) return cache[key];
+      cache[key] = (async () => {
+        const {gj} = await roadGeom();
+        const sc = hazard ? await scoreTable("roads_" + hazard) : {};
+        let vul = {}; try { vul = await scoreTable("roads_vulnerability"); } catch (e) {}
+        let crit = {}; try { crit = await scoreTable("roads_criticality"); } catch (e) { console.warn("roads_criticality.json not found; using the criticality in roads_vulnerability.json"); }
+
+        return gj.features.map(f => { const p = Object.assign({}, f.properties, sc[String(f.properties.src_objectid)] || {});
+          const v = vul[String(f.properties.src_objectid)]; if (v) Object.keys(v).forEach(k => { if (k.startsWith("V_") || k === "C_class" || k.startsWith("criticality")) p[k] = v[k]; });
+          // criticality from the latest clean street layer, re-cut into quarters (percentile breaks 25, 50, 75)
+          const c = crit[String(f.properties.src_objectid)];
+          if (c && c.criticality_pctl != null) { p.criticality_score = c.criticality_score; p.criticality_pctl = c.criticality_pctl;
+            p.C_class = c.criticality_pctl < 25 ? 0 : c.criticality_pctl < 50 ? 1 : c.criticality_pctl < 75 ? 2 : 3; }
+          p.miles = (p.seg_len_m || 0) / MI; return p; });
+      })();
+      return cache[key];
+    }
+    // a GeoJSONLayer of the roads carrying the joined attributes, served from an in-memory blob
+    async function roadLayer(hazard, opts){
+      const rows = await roadRows(hazard);
+      const {gj} = await roadGeom();
+      const byId = {}; rows.forEach(r => { byId[String(r.src_objectid)] = r; });
+      const fc = {type:"FeatureCollection", features: gj.features.map(f => ({type:"Feature", geometry:f.geometry, properties: byId[String(f.properties.src_objectid)] || f.properties}))};
+      const url = URL.createObjectURL(new Blob([JSON.stringify(fc)], {type:"application/geo+json"}));
+      return new M.GeoJSONLayer(Object.assign({url, title:"Roads", outFields:["*"]}, opts));
+    }
+
+    // ---------- workshop notes: link out and read back ----------
+    const FEEDBACK_URL = "workshop-feedback.html";
+    const STATION_OF = {overview:"any", flood:"flood", wildfire:"fire", landslide:"slide", debris_flow:"debris", avalanche:"avy"};
+    const NOTE_TYPES = {roads:"road", culverts:"culvert", bridges:"bridge", paths:"trail", hubs:"transit"};
+    function noteLink(layerId, a, loc){
+      const type = NOTE_TYPES[layerId];
+      const id = type === "road" ? "src:" + a.src_objectid : type === "culvert" ? a.culvert_id : type === "bridge" ? a.bridge_id : type === "trail" ? "at:" + a.at_id : "tc:" + a.tc_id;
+      const name = type === "road" ? (a.name || "Unnamed road") : type === "culvert" ? ("Culvert at " + (a.road_name || "unnamed road")) : type === "bridge" ? ((a.facility_carried || "Bridge") + " over " + (a.feature_crossed || "")) : type === "trail" ? (a.name || "Path") : ("Transit hub " + a.tc_id);
+      const sub = type === "road" ? [a.class, a.V_class ? "vulnerability " + a.V_class : ""].filter(Boolean).join(", ") : type === "culvert" ? [a.jurisdiction, a.V_class ? "vulnerability " + a.V_class : ""].filter(Boolean).join(", ") : (a.V_class ? "vulnerability " + a.V_class : "");
+      const q = new URLSearchParams({station:STATION_OF[current] || "any", type, id:String(id), name, sub});
+      if (loc) { q.set("lon", loc.longitude.toFixed(6)); q.set("lat", loc.latitude.toFixed(6)); }
+      return FEEDBACK_URL + "?" + q.toString();
+    }
+    // notes already sent by partners, read from the public view and drawn by concern
+    const NOTES_VIEW = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_notes_read/FeatureServer/0";
+    const CONCERN_COL = {1:COL.brick, 2:COL.orange, 3:COL.earth};
+    async function notesLayer(){
+      const layer = new M.GraphicsLayer({title:"Workshop notes", listMode:"hide"});
+      try {
+        const q = new URLSearchParams({where:"round='Workshop 1'", outFields:"*", f:"json", resultRecordCount:"2000", _:String(Date.now())});
+        const res = await fetch(NOTES_VIEW + "/query?" + q.toString()).then(r => r.json());
+        const seen = {};
+        (res.features || []).forEach(f => { let parsed = {}; try { parsed = JSON.parse(f.attributes.notes_json || "{}"); } catch (e) {}
+          (parsed.notes || []).forEach(n => { if (n.lon == null || n.lat == null) return; const k = (f.attributes.reviewer_key || "") + "|" + n.key; if (seen[k]) return; seen[k] = 1;
+            layer.add(new M.Graphic({geometry:{type:"point", longitude:n.lon, latitude:n.lat}, attributes:{name:n.name || "", type:n.type || "", concern:n.concern || null, why:n.why || "", hazards:(n.hazards || []).join(", "), agency:f.attributes.agency || "", missing:n.missing ? "yes" : "no"},
+              symbol:{type:"simple-marker", style:"circle", size:13, color:CONCERN_COL[n.concern] || "#8a93a2", outline:{color:[255,255,255,1], width:1.2}},
+              popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"concern", label:"Concern (1 = greatest)"}, {fieldName:"hazards", label:"Hazards"}, {fieldName:"why", label:"Why"}, {fieldName:"agency", label:"From"}, {fieldName:"missing", label:"Missing from the draft results"}]}]}})); }); });
+        layer.noteCount = layer.graphics.length;
+      } catch (e) { console.warn("workshop notes", e); layer.noteCount = null; }
+      return layer;
+    }
+
+    // ---------- a culvert's drainage area on click (every tab that shows culverts) ----------
+    function culvertDrainage(L, ctx, hint){
+      const drain = new M.GraphicsLayer({title:"Drainage area", listMode:"hide"}); ctx.view.map.add(drain, 1);
+      ctx.extraLayers.push(drain);
+      const idle = "Click a culvert to draw the land that drains to it." + (hint ? " " + hint : "");
+      $("panel-extra").innerHTML = `<div class="grp"><h3>Selected culvert</h3>
+        <div class="lg-row"><span class="lg-sw" style="background:rgba(232,119,34,.38);border:1px solid #9C3E27"></span> drains straight to it</div>
+        <div class="lg-row"><span class="lg-sw" style="background:rgba(0,114,206,.22);border:1px dashed #003B71"></span> arrives through upstream culverts</div>
+        <p class="note" id="drain-note">${esc(idle)}</p></div>`;
+      const SYM = {direct:{type:"simple-fill", color:[232,119,34,0.38], outline:{color:[156,62,39,0.95], width:1.4}}, upstream:{type:"simple-fill", color:[0,114,206,0.22], outline:{color:[0,59,113,0.9], width:1.1, style:"short-dash"}}};
+      const ringsOf = g => g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
+      const prev = ctx.onClick;
+      ctx.onClick = evt => { if (prev) prev(evt); if (!L.culverts) return; ctx.view.hitTest(evt, {include:[L.culverts]}).then(res => {
+        const noteEl = $("drain-note"); if (!noteEl) return; const g = res.results.length ? res.results[0].graphic : null;
+        if (!g) return; drain.removeAll(); const cid = g.attributes ? g.attributes.crossing_id : null;
+        if (!cid) { noteEl.textContent = (g.attributes && g.attributes.culvert_id ? g.attributes.culvert_id + ": " : "") + "no drainage on record for this culvert."; return; }
+        noteEl.textContent = "Loading drainage for " + cid + "...";
+        fetch(BASE + "watersheds/" + cid + ".geojson").then(r => r.ok ? r.json() : null).then(gj => {
+          if (!gj) { noteEl.textContent = cid + ": no drainage file (no watershed, or a restricted crossing)."; return; }
+          let direct = 0, upstream = 0, nUp = 0;
+          gj.features.forEach(f => { const part = f.properties.part; drain.add(new M.Graphic({geometry:{type:"polygon", rings:ringsOf(f.geometry), spatialReference:{wkid:4326}}, symbol:SYM[part] || SYM.direct, attributes:f.properties}));
+            if (part === "direct") direct = f.properties.area_ac; else { upstream = f.properties.area_ac; nUp = f.properties.n_upstream || 0; } });
+          noteEl.textContent = cid + ": " + fmt(direct + upstream, 1) + " acres in all; " + fmt(direct, 1) + " drain straight to this crossing" + (upstream ? ", " + fmt(upstream, 1) + " arrive through " + nUp + " upstream crossing" + (nUp === 1 ? "" : "s") : "") + "." + (hint ? " " + hint : "");
+        }).catch(() => { noteEl.textContent = cid + ": drainage could not be loaded."; });
+      }); };
+    }
+    const HELP_TAB = {
+      overview:"On Overview, roads open colored by criticality; Priority colors them by their highest vulnerability across the hazards and, zoomed in, makes the most critical roads thickest. Click a culvert to draw its drainage area.",
+      flood:"On Flooding, culverts are colored by whether the pipe passes the 100-year storm. Click a culvert to draw its drainage area; its flood score is the highest flood class anywhere in that area.",
+      wildfire:"On Wildfire, click a road or path to outline the 300 ft area its score came from. The two within-300-ft layers show that ground for every road.",
+      landslide:"On Landslide, click a culvert to draw its drainage area; a culvert takes the highest landslide class anywhere in that area.",
+      debris_flow:"On Debris flow, click a culvert to draw its drainage area; slope and drainage size are read from it. Burn severity is a stand-in until the contracted surface arrives.",
+      avalanche:"On Avalanche, roads score on steep ground uphill of them. The TRPA mapped zones are a layer you can turn on."};
+
+
+    // ---------- the map panel: fold (shared with full screen) and drag to resize ----------
+    const store = (k, v) => { try { if (v === undefined) return localStorage.getItem("protect-results-" + k); localStorage.setItem("protect-results-" + k, String(v)); } catch (e) { return null; } };
+    function panelControls(){
+      const wrap = $("map-wrap"), panel = $("layer-panel"), rz = $("pane-resizer");
+      const head = panel.querySelector(".fs-head"), hb = head && head.querySelector("button");
+      const glyph = () => { if (!hb) return; const min = panel.classList.contains("fs-min"), fs = wrap.classList.contains("fs-on");
+        hb.innerHTML = fs ? (min ? "+" : "&#8211;") : (min ? "&#187;" : "&#171;");
+        hb.title = min ? "Show the panel" : "Fold the panel away"; hb.setAttribute("aria-label", hb.title); hb.setAttribute("aria-expanded", String(!min)); };
+      const setMin = min => { panel.classList.toggle("fs-min", min); if (!wrap.classList.contains("fs-on")) store("min", min ? 1 : 0); glyph(); };
+      if (hb) hb.onclick = e => { e.stopPropagation(); setMin(!panel.classList.contains("fs-min")); };
+      panel.addEventListener("click", e => { if (panel.classList.contains("fs-min") && !wrap.classList.contains("fs-on") && !e.target.closest("button")) setMin(false); });
+      new MutationObserver(glyph).observe(wrap, {attributes:true, attributeFilter:["class"]});
+      const setW = px => { px = Math.max(230, Math.min(560, Math.round(px))); document.documentElement.style.setProperty("--panel-w", px + "px"); store("w", px); };
+      const w0 = Number(store("w")); if (w0) setW(w0);
+      if (store("min") === "1" && innerWidth > 900) setMin(true); else glyph();
+      rz.addEventListener("pointerdown", e => { e.preventDefault(); rz.setPointerCapture(e.pointerId); document.body.classList.add("resizing");
+        const x0 = e.clientX, start = panel.getBoundingClientRect().width;
+        const move = ev => setW(start + ev.clientX - x0);
+        const up = () => { rz.removeEventListener("pointermove", move); rz.removeEventListener("pointerup", up); rz.removeEventListener("pointercancel", up); document.body.classList.remove("resizing"); };
+        rz.addEventListener("pointermove", move); rz.addEventListener("pointerup", up); rz.addEventListener("pointercancel", up); });
+      rz.addEventListener("keydown", e => { const w = panel.getBoundingClientRect().width; if (e.key === "ArrowLeft") { e.preventDefault(); setW(w - 20); } else if (e.key === "ArrowRight") { e.preventDefault(); setW(w + 20); } });
+      rz.addEventListener("dblclick", () => setW(300));
+    }
+    // the band's real height (it wraps on narrow screens) sizes the map
+    const fitBand = () => document.documentElement.style.setProperty("--band-h", $("band").offsetHeight + "px");
+    fitBand(); addEventListener("resize", fitBand);
+    // Pages menu: close on an outside click or Escape
+    document.addEventListener("click", e => { const p = $("pages"); if (p.open && !p.contains(e.target)) p.open = false; });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") $("pages").open = false; });
+    // help dialog
+    const dlg = $("help-dlg");
+    $("help-btn").addEventListener("click", () => { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); });
+    dlg.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => dlg.close ? dlg.close() : dlg.removeAttribute("open")));
+    dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+    // ---------- page state ----------
+    let view, gridApi, current = null, ctx = null;
+    const BASE_LAYERS = {};
+    agGrid.createGrid($("grid"), {columnDefs:[], rowData:[], defaultColDef:{sortable:true, resizable:true, filter:true}, onGridReady:e => { gridApi = e.api; }});
+    $("qf").addEventListener("input", e => { if (gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
+    $("export").addEventListener("click", () => { if (gridApi && current) gridApi.exportDataAsCsv({fileName:MODES[current].table.exportName}); });
+
+    require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/geometryEngine","esri/core/reactiveUtils","esri/widgets/Home","esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, Graphic, geometryEngine, reactiveUtils, Home, BasemapToggle){
+      M = {Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, Graphic, geometryEngine, reactiveUtils};
+      BASE_LAYERS.hill = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer", title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
+      BASE_LAYERS.bound = new FeatureLayer({url:BOUND_URL, title:"TRPA boundary", renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
+      const map = new Map({basemap:"gray-vector", layers:[BASE_LAYERS.hill, BASE_LAYERS.bound]});
+      view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}, popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
+      view.ui.add(new Home({view}), "top-left");
+      view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+      addFullscreen(view, document.getElementById("map-wrap"), document.getElementById("map-view"), {panel:$("layer-panel"), label:(MODES[modeFromHash()] || {}).title || "Overview"});
+      panelControls();
+      reactiveUtils.watch(() => view.stationary && view.scale, () => zoomHints());
+      // the popup widget is created lazily; listen through reactiveUtils so the handler attaches when it exists
+      reactiveUtils.on(() => view.popup, "trigger-action", e => { if (e.action.id !== "note") return; const g = view.popup.selectedFeature; if (!g) return;
+        const layerId = Object.keys(ctx.L).find(k => ctx.L[k] === g.layer); if (!layerId) return;
+        window.open(noteLink(layerId, g.attributes || {}, view.popup.location || (g.geometry && g.geometry.type === "point" ? g.geometry : null)), "_blank"); });
+      switchMode(modeFromHash());
+      window.addEventListener("hashchange", () => switchMode(modeFromHash()));
+    });
+
+    // the zoom-in hint shows only while the map is zoomed out past a layer's scale
+    function zoomHints(){ if (!view) return; document.querySelectorAll(".zin").forEach(e => { e.hidden = view.scale <= Number(e.dataset.ms); }); }
+    function modeFromHash(){ const h = (location.hash || "#overview").slice(1); return MODES[h] ? h : "overview"; }
+
+    async function switchMode(name){
+      if (name === current) return;
+      current = name;
+      const mode = MODES[name];
+      document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.mode === name));
+      document.title = mode.title + " | Results | PROTECT | TRPA";
+      $("draft-chip").dataset.tip = mode.banner + (mode.bannerTip ? " " + mode.bannerTip : "");
+      const headLbl = document.querySelector("#layer-panel .fs-head span"); if (headLbl) headLbl.textContent = mode.title;
+      $("help-tab").textContent = HELP_TAB[name] || "";
+      $("lead").innerHTML = mode.lead;
+      $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
+      $("foot").innerHTML = "Draft v0.2. " + mode.foot + " Internal review draft.";
+      $("table-title").textContent = mode.table.title; $("table-lead").textContent = mode.table.lead || ""; $("table-lead").hidden = !mode.table.lead;
+      $("ch-a-title").textContent = mode.charts[0].title; $("ch-a-sub").textContent = mode.charts[0].sub;
+      $("ch-b-title").textContent = mode.charts[1].title; $("ch-b-sub").textContent = mode.charts[1].sub;
+      ["ch-a","ch-b"].forEach(id => Plotly.purge(id)); showChart("a"); renderMatrix(name);
+      $("qf").value = ""; if (gridApi) { gridApi.setGridOption("quickFilterText", ""); gridApi.setGridOption("columnDefs", mode.table.cols); gridApi.setGridOption("rowData", []); }
+
+      // summary-driven blocks
+      const s = await summary();
+      const items = mode.kpis(s);
+      $("empty").style.display = items ? "none" : "";
+      $("empty").textContent = mode.emptyText || "Not published yet.";
+      $("kpis").innerHTML = (items || []).map(([v,l]) => `<div class="kpi" style="border-top-color:${mode.kpiBorder || COL.blue}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      $("gen-note").textContent = items ? mode.note(s) : "";
+      if (name === "overview") setTimeout(() => { const nl = ctx && ctx.L.notes; if (nl && nl.noteCount != null && items) $("kpis").insertAdjacentHTML("beforeend", `<div class="kpi" style="border-top-color:${COL.purple}"><div class="v">${fmt(nl.noteCount)}</div><div class="l">workshop notes sent so far</div></div>`); }, 1500);
+
+      // map: drop the previous mode's layers, add this one's
+      if (ctx) { ctx.layers.forEach(l => view.map.remove(l)); ctx.extraLayers.forEach(l => view.map.remove(l)); if (ctx.clickHandle) ctx.clickHandle.remove(); }
+      ctx = {view, layers:[], extraLayers:[], onClick:null, clickHandle:null, L:{}};
+      const defs = mode.layers();
+      const made = await Promise.all(defs.map(d => Promise.resolve(d.make()).catch(e => { console.warn("layer", d.id, e); return null; })));
+      if (current !== name) return;
+      defs.forEach((d, i) => { const l = made[i]; if (!l) return; l.visible = d.checked; if (d.minScale) l.minScale = d.minScale; ctx.L[d.id] = l; ctx.layers.push(l);
+        if (l.popupTemplate && NOTE_TYPES[d.id]) l.popupTemplate.actions = [{id:"note", title:"Add a workshop note", className:"esri-icon-comment"}]; });
+      thinPaths(ctx.L.paths);
+      // operational layers above hillshade (index 0) and below the boundary: insert after hillshade, keep polygons under points
+      ctx.layers.slice().reverse().forEach(l => view.map.add(l, 1));
+      view.map.reorder(BASE_LAYERS.bound, 1);
+      // color-by
+      const cb = mode.colorBy || [];
+      const cb0 = cb.find(o => o.default) || cb[0]; // the view a tab opens on
+      $("panel-color").innerHTML = cb.length ? `<h3>${esc(mode.colorHeading || "Colored by")}</h3><div class="cb" id="color-by">${cb.map(o => `<button type="button" data-v="${o.value}"${o === cb0 ? ' class="on"' : ""}>${esc(o.label)}</button>`).join("")}</div><div id="legend"></div>` : "";
+      const applyColor = o => { Object.entries(o.renderer || {}).forEach(([id, r]) => { if (ctx.L[id]) ctx.L[id].renderer = r; });
+        if (o.field) Object.entries(o.field).forEach(([id, f]) => { if (!ctx.L[id]) return; ctx.L[id].renderer = (f === "C_class") ? breaksRenderer("C_class", [{minValue:-0.5, maxValue:0.5, symbol:line(CRIT_RAMP[0], LINE_W[0])}, {minValue:0.5, maxValue:1.5, symbol:line(CRIT_RAMP[1], LINE_W[1])}, {minValue:1.5, maxValue:2.5, symbol:line(CRIT_RAMP[2], LINE_W[2])}, {minValue:2.5, maxValue:3.5, symbol:line(CRIT_RAMP[3], LINE_W[3])}]) : vClassRenderer(f, (c,k) => line(c, LINE_W[k], id === "paths")); });
+        thinPaths(ctx.L.paths);
+        $("legend").innerHTML = (o.legend || "") + (o.note ? `<p class="note">${esc(o.note)}${o.noteTip ? tip(o.noteTip) : ""}</p>` : "");
+        // roads-only views hide the other assets (their markers would bury the roads) and restore them after
+        Object.entries(ctx.L).forEach(([id, l]) => { if (id === "roads" || id === "notes" || !l) return; const tg = $("tg-" + id);
+          if (o.roadsOnly) { if (l.__vis == null) l.__vis = l.visible; l.visible = false; }
+          else if (l.__vis != null) { l.visible = l.__vis; l.__vis = null; }
+          if (tg) tg.checked = l.visible; }); };
+      if (cb.length) { applyColor(cb0); $("color-by").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { $("color-by").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); const o = cb.find(x => x.value === b.dataset.v); if (o) applyColor(o); })); }
+      // layer toggles
+      const sw = (id, on) => `<input type="checkbox" class="sw" id="${id}"${on ? " checked" : ""} />`;
+      $("panel-layers").innerHTML = defs.map(d => `<label class="lyr">${sw("tg-" + d.id, d.checked)} ${esc(d.label)}${d.minScale ? `<span class="zin" data-ms="${d.minScale}">zoom in to see</span>` : ""}${d.tip ? tip(d.tip) : ""}</label>${d.legend ? `<div class="lg-row sub-lg">${d.legend}</div>` : ""}`).join("")
+        + `<label class="lyr">${sw("tg-bound", true)} TRPA boundary</label><label class="lyr">${sw("tg-hill", false)} Terrain (hillshade)${tip("Esri World Hillshade under the data layers.")}</label>`;
+      defs.forEach(d => $("tg-" + d.id).addEventListener("change", e => { ctx.L[d.id].visible = e.target.checked; }));
+      $("tg-bound").addEventListener("change", e => { BASE_LAYERS.bound.visible = e.target.checked; });
+      $("tg-hill").addEventListener("change", e => { BASE_LAYERS.hill.visible = e.target.checked; });
+      BASE_LAYERS.bound.visible = true; BASE_LAYERS.hill.visible = false;
+      // extras and click
+      $("panel-extra").innerHTML = "";
+      zoomHints();
+      if (mode.extra) mode.extra(ctx.L, ctx);
+      if (ctx.onClick) ctx.clickHandle = view.on("click", ctx.onClick);
+      // filters
+      const fl = mode.filters || [];
+      $("panel-filter-wrap").style.display = fl.length ? "" : "none";
+      $("panel-filter").innerHTML = fl.map(f => `<label class="lyr">${sw("fl-" + f.id, false)} ${esc(f.label)}${f.tip ? tip(f.tip) : ""}</label>`).join("");
+      fl.forEach(f => $("fl-" + f.id).addEventListener("change", e => { f.apply(e.target.checked, ctx.L); if (mode.table.filterRows && gridApi) mode.table.rows().then(rows => gridApi.setGridOption("rowData", mode.table.filterRows(rows, e.target.checked))); }));
+
+      // charts and table (each guarded: a missing file leaves its block empty)
+      if (items) {
+        mode.charts[0].draw("ch-a", s).catch(e => console.warn("chart a", e));
+        mode.charts[1].draw("ch-b", s).catch(e => console.warn("chart b", e));
+        mode.table.rows().then(rows => { if (current !== name || !gridApi) return; const on = mode.table.defaultFilter && mode.table.filterRows;
+          if (on) { const sw = $("fl-" + (mode.filters[0] || {}).id); if (sw) sw.checked = true; }
+          gridApi.setGridOption("rowData", on ? mode.table.filterRows(rows, true) : rows); }).catch(e => console.warn("table", e));
+        if (mode.table.defaultFilter && mode.filters && mode.filters[0]) mode.filters[0].apply(true, ctx.L);
+      }
+    }
+  })();
+  </script>
+</body>
+</html>
