@@ -35,6 +35,10 @@
     header.app-header a.cta:hover{background:#005CA8;}
     main{max-width:1240px;margin:0 auto;padding:1.25rem 1.75rem 3rem;}
     .intro .lede{font-size:.98rem;max-width:64rem;margin:.4rem 0 1.1rem;}
+    /* Summary callout at the top of the page */
+    .summary-box{background:#eaf3fb;border:1px solid var(--trpa-ice);border-left:5px solid var(--trpa-blue);border-radius:8px;padding:1rem 1.3rem;margin:.2rem 0 1rem;}
+    .summary-box h2{font-size:1.15rem;font-weight:700;color:var(--trpa-navy);margin:0 0 .3rem;}
+    .summary-box .lede{font-size:1.02rem;margin:0;}
     .intro .lede strong{color:var(--trpa-navy);}
     h2.section{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .6rem;}
     /* Page cards */
@@ -165,45 +169,22 @@
 
 
   <main>
-    <section class="intro">
+    <section class="intro summary-box">
+      
       <p class="lede">
-        A vulnerability assessment and an interactive map tool for the Lake Tahoe Basin's transportation
-        assets: which roads, bridges, culverts, active transportation routes, and transit centers are most
+        This is a vulnerability assessment for the Lake Tahoe Basin's transportation
+        infrastructure: which roads, bridges, culverts, active transportation routes, and transit centers are most
         vulnerable to flooding, landslide, wildfire, debris flow, and avalanche.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; Task 3.2 is the risk-based vulnerability assessment and Task 3.3 is this risk index mapping tool. Roads, bridges, and culverts are scored against all five hazards; active transport and transit centers against flooding and wildfire only.">i</i>
-        The results point the 2027 Tahoe Resilience Improvement Plan (TRIP) to the assets and places that
-        need resilience investment first.
+        The interactive mapping tools allow you to explore how vulnerability and criticality of assets were assessed and provide feedback on how this analysis could be improved.
       </p>
-      <div class="flow">
-        <span class="step">Source data<i class="i" tabindex="0" data-tip="Source layers and pipelines: the street network built from Overture data (the base network for criticality and RA2CE), climate projections and trigger-storm climatology, the compiled bridge and culvert layers, and the hazard exposure surfaces classed 0 to 3.">i</i></span><span class="arrow">&rarr;</span>
-        <span class="stack">
-          <span class="step">1. Criticality: which roads matter most<i class="i" tabindex="0" data-tip="Component 1, the criticality assessment. Road segment criticality is defined by equity, traffic, detour length, and access to critical locations; 18,285 segments on the clean Overture street layer, scored on traffic, detour length, trips to exits and services, and equity, with adjustable weights. Bridges and culverts inherit the road segment's score.">i</i></span>
-          <span class="step">2a. Hazard maps: how exposed<i class="i" tabindex="0" data-tip="Exposure surfaces. Each hazard surface is classed 0 to 3 with breaks held in configuration: flooding, landslide, wildfire, debris flow, and avalanche. Assets sample the classed surfaces so every pair uses the same classes.">i</i></span>
-        </span><span class="arrow">&rarr;</span>
-        <span class="step">2. Vulnerability: exposure plus sensitivity<i class="i" tabindex="0" data-tip="Component 2, the system-wide, indicator-based vulnerability assessment (indicator screening). V = (E x wE) + (S x wS), that is, Vulnerability = (Exposure Score x wE) + (Sensitivity Score x wS), weights set per hazard-asset pair (consultant draft methodology, Aug. 20, 2026). Asset-level scores on a 0 to 3 scale, classed High, Medium, and Low. Criticality is assessed separately and read alongside vulnerability.">i</i></span><span class="arrow">&rarr;</span>
-        <span class="step">3. Disruption scenarios: what a closure costs<i class="i" tabindex="0" data-tip="Component 3, scenario-based disruption analyses in RA2CE on the Overture street network: detours, travel-time change, blocked assets, and populations affected. Two scenarios are selected from the high-criticality and high-vulnerability results in October 2026.">i</i></span><span class="arrow">&rarr;</span>
-        <span class="step">2027 TRIP</span>
-      </div>
     </section>
 
-    <div class="banner">
-      <div>
-        <div class="when">Next milestone</div>
-        <div class="what">Workshop 1 &middot; Nov. 9, 2026<i class="i" tabindex="0" data-tip="Partners review the draft historical-horizon results for all 15 hazard-asset pairs, the two disruption scenarios, and the interactive mapping tool. Print maps and the tool freeze on Nov. 4.">i</i></div>
-      </div>
-      <div class="checks">
-        <span><b>Oct. 9</b> rubrics to the consultant</span>
-        <span><b>Oct. 16</b> methods and first results</span>
-        <span><b>Oct. 30</b> all results final</span>
-        <span><b>Nov. 6</b> tool and materials final</span>
-        <span><a href="workshop-punchlist.html" style="color:var(--trpa-blue);font-weight:700;text-decoration:none;">Punch list &rarr;</a></span>
-      </div>
-    </div>
 
     <h2 class="section">Results</h2>
     <section class="card-grid">
       <a class="page-card featured" href="results.html">
         <div class="card-head"><h3>Results</h3><span class="chip blue">v0.2 draft</span></div>
-        <p>The draft vulnerability assessment: every asset's class across the hazards scored so far, read against criticality, with one tab per hazard.<i class="i" tabindex="0" data-tip="Overview tab: V_max per road, culvert, bridge, path, and transit hub, vulnerability by criticality, and the hotspot list. Hazard tabs: flooding (culverts and bridges, drainage area on click), wildfire (roads, paths, hubs, the 300 ft sampling footprint), landslide, debris flow, and avalanche. Reads data/processed/results written by scripts/publish_results.py.">i</i></p>
+        <p>The draft vulnerability assessment: every asset scored by both vulnerability to hazards and criticality to the transportation network, with one tab per hazard.<i class="i" tabindex="0" data-tip="Overview tab: V_max per road, culvert, bridge, path, and transit hub, vulnerability by criticality, and the hotspot list. Hazard tabs: flooding (culverts and bridges, drainage area on click), wildfire (roads, paths, hubs, the 300 ft sampling footprint), landslide, debris flow, and avalanche. Reads data/processed/results written by scripts/publish_results.py.">i</i></p>
         <ul><li>Overview: combined class, criticality, hotspots</li><li>Flooding, wildfire, landslide, debris flow, avalanche tabs</li><li>Maps, distributions, tables with CSV export</li></ul>
         <span class="open">Open &rarr;</span>
       </a>
@@ -213,7 +194,7 @@
     <section class="card-grid compact">
       <a class="page-card compact" href="criticality-index.html">
         <div class="card-head"><h3>Criticality</h3><span class="chip">live</span></div>
-        <p>Component 1: which roads matter most, from equity, traffic, detours, and access to critical places. 18,285 segments with adjustable weights (traffic, detour, trips, equity).<i class="i" tabindex="0" data-tip="The criticality assessment on the Overture street network: four sub-indices, adjustable weights, hazard filters, CSV export. Bridges and culverts inherit the road segment's class.">i</i></p>
+        <p>Component 1: which roads matter most based on equity, traffic, detours, and access to critical places. Interactive sliders allow for adjustable weights to explore the impact of weighting variables differently (traffic, detour, trips, equity).<i class="i" tabindex="0" data-tip="The criticality assessment on the Overture street network: four sub-indices, adjustable weights, hazard filters, CSV export. Bridges and culverts inherit the road segment's class.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
       <a class="page-card compact" href="od-services-index.html">
@@ -268,7 +249,21 @@
         <p>The digital sticky notes for the Workshop 1 results activity: click an asset or drop a pin, rate the concern, say why.<i class="i" tabindex="0" data-tip="Five hazard stations; sends to a Survey123 layer once configured, CSV export and import until then; the Report out tab tallies everyone's notes by asset.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
+
     </section>
+        <div class="banner">
+      <div>
+        <div class="when">Next milestone</div>
+        <div class="what">Workshop 1 &middot; Nov. 9, 2026<i class="i" tabindex="0" data-tip="Partners review the draft historical-horizon results for all 15 hazard-asset pairs, the two disruption scenarios, and the interactive mapping tool. Print maps and the tool freeze on Nov. 4.">i</i></div>
+      </div>
+      <div class="checks">
+        <span><b>Oct. 9</b> rubrics to the consultant</span>
+        <span><b>Oct. 16</b> methods and first results</span>
+        <span><b>Oct. 30</b> all results final</span>
+        <span><b>Nov. 6</b> tool and materials final</span>
+        <span><a href="workshop-punchlist.html" style="color:var(--trpa-blue);font-weight:700;text-decoration:none;">Punch list &rarr;</a></span>
+      </div>
+    </div>
 
     <h2 class="section">Phasing</h2>
     <div class="panel">
@@ -331,6 +326,20 @@
           <tr><td>Pavement condition<i class="i" tabindex="0" data-tip="Not used for scoring: roads carry no sensitivity (rubrics decision 25), so every road pair is exposure only. Bridge condition comes from the National Bridge Inventory; culvert condition is compiled.">i</i></td><td><span class="tag open">Source TBD</span></td><td>Jurisdictions are asked after the workshop; until then roads default to fair with the source flagged as partial.</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <h2 class="section">How the assessment works</h2>
+    <div class="panel">
+      <div class="flow">
+        <span class="step">Source data<i class="i" tabindex="0" data-tip="Source layers and pipelines: the street network built from Overture data (the base network for criticality and RA2CE), climate projections and trigger-storm climatology, the compiled bridge and culvert layers, and the hazard exposure surfaces classed 0 to 3.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="stack">
+          <span class="step">1. Criticality: which roads matter most<i class="i" tabindex="0" data-tip="Component 1, the criticality assessment. Road segment criticality is defined by equity, traffic, detour length, and access to critical locations; 18,285 segments on the clean Overture street layer, scored on traffic, detour length, trips to exits and services, and equity, with adjustable weights. Bridges and culverts inherit the road segment's score.">i</i></span>
+          <span class="step">2a. Hazard maps: how exposed<i class="i" tabindex="0" data-tip="Exposure surfaces. Each hazard surface is classed 0 to 3 with breaks held in configuration: flooding, landslide, wildfire, debris flow, and avalanche. Assets sample the classed surfaces so every pair uses the same classes.">i</i></span>
+        </span><span class="arrow">&rarr;</span>
+        <span class="step">2. Vulnerability: exposure plus sensitivity<i class="i" tabindex="0" data-tip="Component 2, the system-wide, indicator-based vulnerability assessment (indicator screening). V = (E x wE) + (S x wS), that is, Vulnerability = (Exposure Score x wE) + (Sensitivity Score x wS), weights set per hazard-asset pair (consultant draft methodology, Aug. 20, 2026). Asset-level scores on a 0 to 3 scale, classed High, Medium, and Low. Criticality is assessed separately and read alongside vulnerability.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="step">3. Disruption scenarios: what a closure costs<i class="i" tabindex="0" data-tip="Component 3, scenario-based disruption analyses in RA2CE on the Overture street network: detours, travel-time change, blocked assets, and populations affected. Two scenarios are selected from the high-criticality and high-vulnerability results in October 2026.">i</i></span><span class="arrow">&rarr;</span>
+        <span class="step">2027 TRIP</span>
+      </div>
     </div>
   </main>
 
