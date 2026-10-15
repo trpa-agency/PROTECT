@@ -233,7 +233,7 @@
       ["2026-10-11","Debris flow (option 1, fire severity standing in for soil burn severity) and avalanche (uphill slope tiers, TRPA zones as the record) scored","Done","surfaces"],
       ["2026-10-11","Vulnerability on every asset class: bridge and culvert sensitivity from the NBI and the profile, roads exposure only (decision 25), V_max and class; hotspots on the Results overview","Done","surfaces"],
       ["2026-10-11","Site restructure: one Results page (overview plus a tab per hazard), five-group nav, grouped landing page; three hazard pages and the Phase 1 map archived; rubrics v0.4","Done","surfaces"],
-      // open: surfaces lane
+      // open: surfaces and assets
       ["2026-10-08","NDOT workshop-display sign-off (segment-level aggregates only; NDOT reviews before anything is shown)","Open","surfaces"],
       ["2026-10-12","ICF package: rubrics v0.4 PDF, FL-C and FL-B method note refreshed for decisions 22 and 24, the sensitivity defaults, and the debris-flow drainage-size floor as a question","Open","surfaces"],
       ["2026-10-12","Contracted fire data cutoff: anything not in hand stays out until December; the RRK inputs carry the workshop","Open","surfaces"],
@@ -250,7 +250,7 @@
       ["2026-11-06","Workshop feedback: the Survey123 layer configured in workshop-feedback.html (CSV fallback until then)","Open","surfaces"],
       ["2026-11-09","Workshop 1","Open","both"],
       ["2026-11-13","Sticky notes and Mentimeter answers digitized into the feedback layer; December backlog started","Open","both"],
-      // open: network lane
+      // open: network and criticality
       ["2026-10-15","Criticality class rule: the 0 to 3 class on the road layer, inherited by bridges, culverts, paths, and hubs (replaces the provisional percentile quarters on the Results page)","Open","network"],
       ["2026-10-21","Two scenarios picked from the hotspots: Scenario 1 the SR-89 West Shore wildfire closure; Scenario 2 another state, hazard, and season","Open","network"],
       ["2026-10-23","Scenario hazard rasters and the closure set (which culverts and bridges fail at the scenario intensity) as the RA2CE link-failure input","Open","network"],
@@ -289,7 +289,7 @@
       {field:"dueLabel", headerName:"Due", width:95, pinned:"left", cellStyle:{fontWeight:"700"}, comparator:(a,b,na,nb)=> na.data.due < nb.data.due ? -1 : (na.data.due > nb.data.due ? 1 : 0)},
       {field:"week", headerName:"Week", width:120},
       {field:"item", headerName:"Task", flex:1, minWidth:320, wrapText:true, autoHeight:true},
-      {field:"lane", headerName:"Lane", width:170},
+      {field:"lane", headerName:"Workstream", width:170},
       {field:"status", headerName:"Status", width:110, cellStyle:colorCell(statusColor)}
     ];
     let api = null, filter = "Not done";
