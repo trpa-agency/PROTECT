@@ -692,7 +692,7 @@
     // Published assets of the selected pair in each vulnerability x criticality cell, read from
     // data/processed/results (written by scripts/publish_results.py). Culverts and bridges take the
     // class of their parent road segment; paths and transit centers carry none ("No class").
-    const RES_BASE = "../../data/processed/results/";
+    const RES_BASE = "../data/processed/results/";
     const MX_FILES = {culvert:"culverts_results.geojson", bridge:"bridges_results.geojson", at:"paths_wildfire.geojson", tc:"transit_wildfire.geojson",
       road:{Flooding:"roads_flood.json", Landslide:"roads_landslide.json", Wildfire:"roads_wildfire.json", "Debris flow":"roads_debris_flow.json", Avalanche:"roads_avalanche.json"}};
     const MX_UNIT = {culvert:"culverts", bridge:"bridges", road:"road segments", at:"paths", tc:"transit centers"};
