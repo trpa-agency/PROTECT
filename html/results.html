@@ -456,7 +456,7 @@
     MODES.overview = {
       title:"Overview", banner:"Draft results for workshop review. Every asset's highest vulnerability across the hazards scored so far, read against criticality.",
       bannerTip:"Vulnerability = (Exposure x wE) + (Sensitivity x wS) per hazard pair, 0 to 3; roads carry no sensitivity, so a road pair is its exposure (decision 25). The asset carries the highest pair (V_max). Criticality is component 1, carried separately; the class here is provisional from the street layer's criticality percentile.",
-      lead:"Which roads, culverts, bridges, paths, and transit hubs are most vulnerable across every hazard scored, and which of those also matter most to the network.",
+      lead:"Roads, culverts, bridges, paths, and transit hubs ranked by vulnerability across all scored hazards and by importance to the network",
       kpiBorder:COL.navy,
       kpis(s){ const v = s.vulnerability; if (!v) return null; const r = v.roads || {}, h = r.hotspots || {};
         return [[fmt((r.V_class||{}).High), "road segments High"], [fmt((r.miles_by_class||{}).High), "road miles High"],
