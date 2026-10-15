@@ -43,8 +43,8 @@ One point per drainage asset compiled from six jurisdiction deliveries, the stat
 | `road_name` | string | - | Yes | Road carried, as delivered; null where the agency gave none | - |
 | `material` | string | - | Yes | Pipe material as delivered (raw text or code) | - |
 | `xsection_shape` | string | - | Yes | Cross-section shape as delivered | - |
-| `span_in` | float | inches | Yes | Opening width (diameter for round pipes), cleaned: the -9999 sentinel and circular spans over 144 in. are nulled | > 0 |
-| `rise_in` | float | inches | Yes | Opening height for boxes, arches, and ellipses | > 0 |
+| `span_in` | float | inches | Yes | Opening width (the diameter for round pipes), as the agency recorded it. The profile, the published files, and the curated geodatabase set it to null if it is 0 or less (including -9999), over 576 in., or a round span over 144 in. (`culvert_profile.clean_span_rise`) | > 0 once cleaned |
+| `rise_in` | float | inches | Yes | Opening height for boxes, arches, and ellipses. Set to null if 0 or less wherever span is cleaned | > 0 |
 | `length_ft` | float | feet | Yes | Pipe length as delivered | > 0 |
 | `inlet_type`, `outlet_type` | string | - | Yes | End treatments as delivered | - |
 | `install_year` | int | year | Yes | Year built; exists for El Dorado County and the city only | 1900 to 2026 |
@@ -105,7 +105,7 @@ One point per drainage asset compiled from six jurisdiction deliveries, the stat
 | `E_FLC_hist` | float | score | Yes | FL-C flood exposure, historical horizon: the maximum flood class over the contributing watershed (or within 25 m where none), plus 1 where `tailwater_flag = 1`, capped at 3 | 0, 1, 2, 3 |
 | `E_FLC_pt` | float | score | Yes | The same indicator sampled as the maximum within 25 m of the point, carried for comparison with the watershed rule | 0, 2, 3 |
 | `E_FLC_src` | string | - | Yes | Which sampling produced `E_FLC_hist` | `watershed`, `buffer` |
-| `E_source` | string | - | Yes | Exposure data completeness | `full` (watershed), `partial` (buffer fallback) |
+| `E_source` | string | - | Yes | `full` if every pair's exposure came from the culvert's own watershed or profile (`E_<pair>_src`), and `partial` if any pair used 25 m around the culvert instead. Layers scored before Oct. 15, 2026 hold only the last pair's flag; `publish_results.py` rebuilds it from the per-pair fields | `full`, `partial` |
 
 Future fields follow the same pattern: `E_LSC_hist`, `E_DFC_hist`, the sensitivity scores `S_<pair>`, and `V_<pair>_hist`, `V_max`, `V_max_pair`, `V_class` per rubric section 2.6.
 
@@ -272,3 +272,4 @@ The flood exposure surface on the FL-C E1 values, so every flood pair in both la
 | Date | Change | Author |
 |---|---|---|
 | 2026-10-09 | Initial dictionary: inventory, profile, exposure, crossings, bridges, road table, flood surface, published files | the analyst |
+| 2026-10-15 | `span_in` stays as recorded on the layer and is cleaned where it is used; `E_source` now covers every pair scored | the analyst |

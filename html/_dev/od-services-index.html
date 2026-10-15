@@ -626,7 +626,7 @@
         <button class="rank-btn" data-rank="prioritarian">Prioritarian</button>
       </div>
       <div class="norm-note" id="rank-note">
-        Every resident counts once: the routed trip counts from RA2CE with no weighting.
+        Every resident counts once: the routed trip counts with no weighting.
       </div>
     </div>
 
@@ -831,11 +831,11 @@
 <div class="info-pop hidden" id="info-pop"></div>
 
 <script>
-require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/TileLayer","esri/popup/content/CustomContent"], (Map, MapView, FeatureLayer, TileLayer, CustomContent) => {
+require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers/TileLayer","esri/popup/content/CustomContent"], (Map, MapView, GeoJSONLayer, TileLayer, CustomContent) => {
 
   // ═══════════════════════════════════════════════════════
   //  DESTINATION DEFINITIONS
-  //  Each field holds RA2CE routed trip volume on the segment for
+  //  Each field holds the residents routed over the segment on
   //  trips bound for that destination type. One field per index
   //  component, each normalized on its own before weighting.
   // ═══════════════════════════════════════════════════════
@@ -852,21 +852,20 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers
 
   // ═══════════════════════════════════════════════════════
   //  TRIP RANKING FAMILIES
-  //  Same four destinations, two RA2CE result sets. Both families are
-  //  loaded up front so the switch is instant with no re-query.
+  //  Same four destinations, two trip families from one routing run.
+  //  Both families are loaded up front so the switch is instant.
   // ═══════════════════════════════════════════════════════
   const RANKINGS = {
     traffic:      { label: "Traffic",
-                    note: "Every resident counts once: the routed trip counts from RA2CE with no weighting." },
+                    note: "Every resident counts once: the routed trip counts with no weighting." },
     prioritarian: { label: "Prioritarian",
-                    note: "The same RA2CE routed trips, weighted for equity. Neighborhoods with a higher equity index count for more, so roads that disadvantaged communities depend on score higher." }
+                    note: "The same routed trips, weighted for equity. Neighborhoods with a higher equity index count for more, so roads that disadvantaged communities depend on score higher." }
   };
 
   const OD_RAMP = { lo: "#2c7bb6", mid: "#ffffbf", hi: "#d7191c" };
 
-  const LAYER_URL     = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0";
+  const BASE          = "../../data/processed/results/";
   const HAZARD_FIELDS = ["in_flood_zone", "high_sev_fire", "landslide_mean"];
-  const ID_FIELDS     = ["OBJECTID", "segment_id", "name", "class", ...HAZARD_FIELDS];
 
   // Field for a destination under the active ranking, e.g. prioritarian_evacuation
   const fieldOf   = d => `${rankMode}_${d.base}`;
@@ -1084,10 +1083,11 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers
 
   // ═══════════════════════════════════════════════════════
   //  INFO POPOVERS
-  //  Method notes drawn from the RA2CE notebook that produced these
-  //  fields (scripts/ra2ce/ra2ce_tahoe.ipynb).
+  //  Method notes for the routed-trip fields
+  //  (scripts/ra2ce_v2/od_stochastic_assignment.ipynb, joined to the
+  //  clean street layer by scripts/Streets_Network_Clean.ipynb).
   // ═══════════════════════════════════════════════════════
-  const SRC = `<div class="src">Source: RA2CE (Deltares) run on the Overture drive-routable network.</div>`;
+  const SRC = `<div class="src">Source: the clean street layer, the same data as the Criticality Index. Trips are routed by travel time on the corrected RA2CE network of Overture streets and averaged over 100 randomized runs.</div>`;
 
   const INFO = {
     od: {
@@ -1390,15 +1390,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers
   // ═══════════════════════════════════════════════════════
   //  ESRI SETUP
   // ═══════════════════════════════════════════════════════
-  const OUT_FIELDS = [...ID_FIELDS, ...ALL_FIELDS];
-  const WHERE      = ALL_FIELDS.map(f => `${f} IS NOT NULL`).join(" AND ");
-
-  featureLayer = new FeatureLayer({
-    url: LAYER_URL,
-    title: "Tahoe Street Network",
-    outFields: OUT_FIELDS,
-    definitionExpression: WHERE
-  });
+  const WHERE = ALL_FIELDS.map(f => `${f} IS NOT NULL`).join(" AND ");
 
   const hillshade = new TileLayer({
     url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
@@ -1409,7 +1401,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers
     e.currentTarget.classList.toggle("active", hillshade.visible);
   });
 
-  const map  = new Map({ basemap: "gray-vector", layers: [hillshade, featureLayer] });
+  const map  = new Map({ basemap: "gray-vector", layers: [hillshade] });
   const view = new MapView({
     container: "viewDiv", map,
     center: [-120.03, 39.09], zoom: 10,
@@ -1417,26 +1409,26 @@ require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers
   });
     addFullscreen(view, document.querySelector(".app-body"), document.querySelector(".main-area"), {panel:document.querySelector(".left-panel")});
 
-  // The service caps a single query at 2,000 records, so page through by OBJECTID.
+  // The clean street layer, as the Criticality Index reads it: one geometry file and the trip table
+  // (scripts/publish_results.py), joined on src_objectid. OBJECTID keeps the src_objectid value.
+  const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(`${url.split("/").pop()}: ${r.status}`); return r.json(); });
   async function loadAllFeatures() {
-    const PAGE = 2000;
-    const out  = [];
-    let start  = 0;
-    while (true) {
-      const res = await featureLayer.queryFeatures({
-        where: WHERE,
-        outFields: OUT_FIELDS,
-        orderByFields: ["OBJECTID ASC"],
-        returnGeometry: false,
-        start, num: PAGE
-      });
-      out.push(...res.features);
-      document.getElementById("loading-msg").textContent =
-        `Loading street segments… ${out.length.toLocaleString()}`;
-      if (res.features.length < PAGE) break;
-      start += PAGE;
-    }
-    return out;
+    const [gj, t] = await Promise.all([getJSON(BASE + "roads_geometry.geojson"), getJSON(BASE + "roads_od.json")]);
+    const tab = {};
+    t.rows.forEach(r => { const o = {}; t.columns.forEach((c, i) => { o[c] = r[i]; }); tab[String(o.src_objectid)] = o; });
+    const feats = [];
+    gj.features.forEach(f => {
+      const o = tab[String(f.properties.src_objectid)];
+      if (!o || ALL_FIELDS.some(k => o[k] == null)) return;
+      feats.push({ type: "Feature", geometry: f.geometry,
+                   properties: Object.assign({ name: f.properties.name, class: f.properties.class }, o) });
+    });
+    featureLayer = new GeoJSONLayer({
+      url: URL.createObjectURL(new Blob([JSON.stringify({ type: "FeatureCollection", features: feats })], { type: "application/geo+json" })),
+      title: "Tahoe Street Network", outFields: ["*"], definitionExpression: WHERE
+    });
+    map.add(featureLayer);
+    return feats.map(f => ({ attributes: Object.assign({ OBJECTID: Number(f.properties.src_objectid) }, f.properties) }));
   }
 
   function summarizeRaw() {
