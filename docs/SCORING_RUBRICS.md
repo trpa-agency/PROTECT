@@ -225,7 +225,7 @@ the option 1 matrix locally from its own watershed delineation and estimates Qca
 | | | | 2 | 1.5 | | |
 | | | | 1 | 1 | | |
 | | | | 0 | 0.5 | | |
-| S2 | 100-yr capacity loading ratio, `load_ratio` = Qevent / Qdesign | 0.35 (draft); 0.30 under the S3 proposal | 4 and over | 3 | 1 when `span_in` is null, `S_source` partial | Per crossing; multi-barrel crossings grouped (section 2.4) |
+| S2 | 100-yr capacity loading ratio, `load_ratio` = Qevent / Qdesign; the 25-yr ratio is scored on the same bands as an alternate reading (decision 5) | 0.35 (draft); 0.30 under the S3 proposal | 4 and over | 3 | 1 when `span_in` is null, `S_source` partial | Per crossing; multi-barrel crossings grouped (section 2.4) |
 | | | | 3 to under 4 | 2.5 | | |
 | | | | 2.5 to under 3 | 2 | | |
 | | | | 2 to under 2.5 | 1.5 | | |
@@ -387,7 +387,7 @@ note.
   transportation assets in the 1 percent floodplain and two in the 0.2 percent. Compare with the
   FEMA fallback counts for city culverts and roads before shipping FL-C.
 - Sensitivity to the design event: report how many culverts change class between the 25-yr and
-  100-yr ratio.
+  100-yr ratio. `score_vulnerability.py` logs the class crosstab on every run (decision 5).
 - Row counts reconcile across the profile, the scored set, and the published layer, with the
   NDOT rows accounted for separately.
 
@@ -403,7 +403,12 @@ note.
 3. Watershed sampling for culvert exposure (section 1.7) instead of a point buffer.
 4. Tailwater modifier on FL-C E1 for shoreline outlets.
 5. 100-yr as the loading-ratio event, with 25-yr carried for comparison (the draft names the
-   100-yr as likely appropriate).
+   100-yr as likely appropriate). The 25-yr reading is scored alongside (S2 on the 25-yr
+   ratio, everything else unchanged: `S_FLC_q25`, `V_FLC_hist_q25`, config
+   `scoring.flc.alt_rps`) and shown through the Design storm toggle on the Results page
+   Flooding tab. It stays out of the combined class (`V_max`, `V_class`). On the public
+   culverts it moves about 230 down one FL-C class (about 80 High to Medium, 150 Medium to
+   Low) and never raises a score.
 6. Capacity from HDS-5 inlet control as the default Qdesign where asset records have none.
 7. Under debris-flow option 1, replace the sensitivity debris-potential term with opening size
    and condition to avoid counting basin slope twice.

@@ -121,6 +121,9 @@ scoring:
     weights_draft: {e: 0.30, s1: 0.35, s2: 0.35}
     s1_default: 1                 # no watershed: debris potential 1, S_source partial
     s2_default: 1                 # loading ratio withheld (size_suspect) or no size: 1, S_source partial
+    alt_rps: [25]                 # decision 5: S2 also scored on these storms' loading ratios (profile.return_periods),
+                                  # written as S_FLC_s2_q<rp>, S_FLC_q<rp>, V_FLC_<horizon>_q<rp>; the headline storm
+                                  # (profile.headline_rp) stays the score of record and the only one in V_max / V_class
     landcover_columns:            # profile basin_landcover group -> draft matrix column (TRPA choice for grass, barren, wetland)
       forest: trees
       shrub: shrubs

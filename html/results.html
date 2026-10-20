@@ -160,6 +160,8 @@
     .cb button{font:600 .74rem 'Open Sans',sans-serif;color:var(--trpa-navy);background:#fff;border:1px solid var(--gray-border);border-radius:999px;padding:.22rem .6rem;cursor:pointer;}
     .cb button:hover{border-color:var(--trpa-blue);}
     .cb button.on{background:var(--trpa-navy);border-color:var(--trpa-navy);color:#fff;}
+    .cb button:disabled{opacity:.45;cursor:not-allowed;border-color:var(--gray-border);}
+    .layer-panel h3 .i{text-transform:none;letter-spacing:normal;}
     #map-view{flex:1;min-width:0;height:100%;}
     .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
     .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
@@ -264,6 +266,7 @@
     <div class="map-wrap" id="map-wrap">
       <div class="layer-panel" id="layer-panel">
         <p class="lead panel-lead" id="lead"></p>
+        <div id="panel-storm"></div>
         <div id="panel-color"></div>
         <div class="grp"><h3>Layers</h3><div id="panel-layers"></div></div>
         <div id="panel-extra"></div>
@@ -414,6 +417,10 @@
     // ---------- modes ----------
     let M; // ArcGIS modules
     const MODES = {};
+    // Flooding tab design storm: the 100-year is the score of record (and the only one in the
+    // Overview's combined class); the 25-year rescores FL-C S2 only (rubrics decision 5)
+    let RP = 100;
+    const flcV = () => RP === 100 ? "V_FLC_hist" : "V_FLC_hist_q" + RP;
 
     MODES.overview = {
       title:"Overview", banner:"Draft results for workshop review. Every asset's highest vulnerability across the hazards scored so far, read against criticality.",
@@ -497,25 +504,31 @@
     MODES.flood = {
       title:"Flooding", banner:"Draft results for workshop review. The numbers rank crossings; they are not design values.",
       bannerTip:"Public jurisdictions only. The restricted state DOT export is excluded at the row level and is not in any figure on this page.",
-      lead:"Which roads lie in flood zones and how critical they are, which culverts and bridges are most vulnerable to flooding, and which culverts cannot pass a 100-year storm. The method is sections 2 and 6.2 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
+      get lead(){ return "Which roads lie in flood zones and how critical they are, which culverts and bridges are most vulnerable to flooding, and which culverts cannot pass a " + RP + "-year storm. The method is sections 2 and 6.2 of the <a href='scoring-rubrics.html'>scoring rubrics</a>."; },
+      storm:{heading:"Design storm", options:[[100, "100-year"], [25, "25-year"]],
+        tip:"The 100-year storm is the score of record and the only one in the Overview's combined class. The 25-year view rescores the storm-to-capacity term on the 25-year storm; exposure, debris, and condition stay the same (rubrics decision 5).",
+        offTip:"The 25-year scores appear after the next results run.",
+        ready(s, rp){ if (rp === 100) return true; const b = ((s.culverts || {}).storms || {})[String(rp)]; return !!(b && b.V_FLC_class); }},
       kpis(s){ const c = s.culverts || {}, b = s.bridges || {}; if (!c.scored_public) return null;
-        return [[fmt(c.scored_public), "culverts scored"], [fmt(c.full_profile), "with size, drainage, and condition all known"], [fmt(c.with_ratio), "with a capacity check"],
-          [c.ratio_median == null ? "-" : fmt(c.ratio_median, 2), "typical storm-to-capacity ratio"], [fmt(c.ratio_over_1), "cannot pass the 100-year storm"],
-          [fmt(c.size_suspect), "records to confirm with the owner"], [c.vulnerability ? fmt((c.vulnerability.V_FLC_class||{}).High) : "-", "high flooding vulnerability"], [fmt(b.count), "bridges"]]; },
+        // one block per design storm; summaries published before the toggle carry only the 100-year keys
+        const st = (c.storms || {})[String(RP)] || (RP === 100 ? {with_ratio:c.with_ratio, ratio_median:c.ratio_median, ratio_over_1:c.ratio_over_1, V_FLC_class:(c.vulnerability || {}).V_FLC_class} : {});
+        return [[fmt(c.scored_public), "culverts scored"], [fmt(c.full_profile), "with size, drainage, and condition all known"], [fmt(st.with_ratio), "with a capacity check"],
+          [st.ratio_median == null ? "-" : fmt(st.ratio_median, 2), "typical storm-to-capacity ratio"], [fmt(st.ratio_over_1), "cannot pass the " + RP + "-year storm"],
+          [fmt(c.size_suspect), "records to confirm with the owner"], [st.V_FLC_class ? fmt(st.V_FLC_class.High) : "-", "high flooding vulnerability"], [fmt(b.count), "bridges"]]; },
       note(s){ return "Generated " + (s.generated || "") + ". Counts exclude the restricted jurisdiction."; },
       colorHeading:"Culverts, colored by",
-      colorBy:[
-        {value:"ratio", label:"Storm vs capacity", renderer:{culverts:{type:"class-breaks", valueExpression:"IIf($feature.size_suspect == 1, -1, IIf(IsEmpty($feature.load_ratio_100), -2, $feature.load_ratio_100))",
+      get colorBy(){ const lr = "$feature.load_ratio_" + RP; return [
+        {value:"ratio", label:"Storm vs capacity", renderer:{culverts:{type:"class-breaks", valueExpression:`IIf($feature.size_suspect == 1, -1, IIf(IsEmpty(${lr}), -2, ${lr}))`,
           classBreakInfos:[{minValue:-2.5, maxValue:-1.5, symbol:dot(COL.gray, 4)}, {minValue:-1.5, maxValue:-0.5, symbol:dot("#ffffff", 5)}, {minValue:-0.5, maxValue:0.5, symbol:dot(COL.ice, 5)},
             {minValue:0.5, maxValue:1, symbol:dot(COL.blue, 5)}, {minValue:1, maxValue:2, symbol:dot(COL.peach, 6)}, {minValue:2, maxValue:4, symbol:dot(COL.orange, 7)}, {minValue:4, maxValue:1e9, symbol:dot(COL.brick, 8)}]}},
           legend:legendRows([[COL.ice,"passes with room"],[COL.blue,"passes"],[COL.peach,"storm up to twice capacity"],[COL.orange,"two to four times capacity"],[COL.brick,"over four times capacity"],["#ffffff","record to confirm, not scored"],[COL.gray,"no check possible"]], "lg-dot"),
-          note:"The 100-year storm flow divided by what the pipe passes.", noteTip:"Loading ratio, FL-C S2: 100-yr event flow over crossing capacity at headwater equal to the crown."},
+          note:"The " + RP + "-year storm flow divided by what the pipe passes.", noteTip:"Loading ratio, FL-C S2: " + RP + "-yr event flow over crossing capacity at headwater equal to the crown."},
         {value:"flood", label:"Flood exposure", renderer:{culverts:{type:"unique-value", valueExpression:"Text(Round($feature.E_FLC_hist))", defaultSymbol:dot(COL.gray,4),
           uniqueValueInfos:[{value:"0",symbol:dot(COL.gray,4)},{value:"1",symbol:dot(COL.ice,5)},{value:"2",symbol:dot(COL.blue,6)},{value:"3",symbol:dot(COL.navy,7)}]}},
           legend:legendRows([[COL.gray,"0: no flood zone, no mapped stream"],[COL.ice,"1: on a small drainage line"],[COL.blue,"2: 500-year zone or a mapped stream"],[COL.navy,"3: 100-year flood zone"]], "lg-dot"),
           note:"The highest flood class anywhere in the culvert's drainage area.", noteTip:"FL-C E1, sampled as the maximum over the contributing watershed, plus 1 (capped at 3) where high lake stage backs water up."},
-        {value:"vuln", label:"Vulnerability", renderer:{culverts:vClassRenderer("V_FLC_hist", (c,k) => dot(c, [4,5,6,8][k]))}, legend:legendRows(VC_LEG, "lg-dot"),
-          note:"Flooding vulnerability: exposure at 0.3 plus how the pipe would cope at 0.7.", noteTip:"V_FLC = 0.30 x E + 0.25 x S1 (debris potential) + 0.30 x S2 (loading ratio) + 0.15 x S3 (condition and blockage). Culverts with no inspection carry the fair default and are marked partial."}],
+        {value:"vuln", label:"Vulnerability", renderer:{culverts:vClassRenderer(flcV(), (c,k) => dot(c, [4,5,6,8][k]))}, legend:legendRows(VC_LEG, "lg-dot"),
+          note:"Flooding vulnerability: exposure at 0.3 plus how the pipe would cope with the " + RP + "-year storm at 0.7.", noteTip:"V_FLC = 0.30 x E + 0.25 x S1 (debris potential) + 0.30 x S2 (loading ratio, " + RP + "-yr storm) + 0.15 x S3 (condition and blockage). Culverts with no inspection carry the fair default and are marked partial."}]; },
       layers(){ return [
         // roads first, so they draw under the culvert and bridge points
         {id:"roads", label:"Roads, flood exposure", checked:true,
@@ -533,9 +546,9 @@
         {id:"culverts", label:"Culverts (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"],
           popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"crossing_id", label:"Crossing"}, {fieldName:"barrels", label:"Barrels"},
             {fieldName:"d_eq_in", label:"Equivalent diameter (in)", format:{places:1}}, {fieldName:"material_class", label:"Material"}, {fieldName:"contrib_area_ac", label:"Contributing area (ac)", format:{places:1, digitSeparator:true}},
-            {fieldName:"basin_landcover", label:"Majority land cover"}, {fieldName:"q_method", label:"Event flow method"}, {fieldName:"q_event_100_cfs", label:"Q100 (cfs)", format:{places:1}}, {fieldName:"q_cap_crossing_cfs", label:"Capacity at the crown (cfs)", format:{places:1}},
-            {fieldName:"load_ratio_100", label:"Loading ratio, 100-yr", format:{places:2}}, {fieldName:"cond_class", label:"Condition class"}, {fieldName:"cond_source", label:"Condition source"},
-            {fieldName:"E_FLC_hist", label:"Flood exposure E (watershed)"}, {fieldName:"E_FLC_pt", label:"Flood exposure at the point"}, {fieldName:"S_FLC", label:"Flood sensitivity S", format:{places:2}}, {fieldName:"V_FLC_hist", label:"Flood vulnerability V", format:{places:2}},
+            {fieldName:"basin_landcover", label:"Majority land cover"}, {fieldName:"q_method", label:"Event flow method"}, {fieldName:"q_event_100_cfs", label:"Q100 (cfs)", format:{places:1}}, {fieldName:"q_event_25_cfs", label:"Q25 (cfs)", format:{places:1}}, {fieldName:"q_cap_crossing_cfs", label:"Capacity at the crown (cfs)", format:{places:1}},
+            {fieldName:"load_ratio_100", label:"Loading ratio, 100-yr", format:{places:2}}, {fieldName:"load_ratio_25", label:"Loading ratio, 25-yr", format:{places:2}}, {fieldName:"cond_class", label:"Condition class"}, {fieldName:"cond_source", label:"Condition source"},
+            {fieldName:"E_FLC_hist", label:"Flood exposure E (watershed)"}, {fieldName:"E_FLC_pt", label:"Flood exposure at the point"}, {fieldName:"S_FLC", label:"Flood sensitivity S", format:{places:2}}, {fieldName:"V_FLC_hist", label:"Flood vulnerability V, 100-yr storm", format:{places:2}}, {fieldName:"V_FLC_hist_q25", label:"Flood vulnerability V, 25-yr storm", format:{places:2}},
             {fieldName:"V_class", label:"Vulnerability class (highest pair)"}, {fieldName:"V_max_pair", label:"Set by"}, {fieldName:"S_source", label:"Sensitivity data"}, {fieldName:"tailwater_flag", label:"Tailwater flag"}, {fieldName:"size_suspect", label:"Size suspect"}, {fieldName:"ratio_review", label:"Ratio review"}]}]}})},
         {id:"bridges", label:"Bridges, flood exposure", checked:true, tip:"E_FLB: how often the bridge has been overtopped (NBI waterway adequacy, item 71) at 0.20 and the flood class within 25 m at 0.10, normalized to 0 to 3.",
           legend:legendRows([[COL.forest,"Low"],[COL.orange,"Medium"],[COL.brick,"High"]], "lg-sq"),
@@ -551,29 +564,32 @@
       extra(L, ctx){ culvertDrainage(L, ctx, "Flood exposure is the highest flood class anywhere in this area."); },
       filters:[{id:"review", label:"Flagged for owner review only", tip:"size_suspect (the recorded size cannot be the crossing for the basin that arrives) and ratio_review (ratio above 20).", apply(on, L){ L.culverts.definitionExpression = on ? "size_suspect = 1 OR ratio_review = 1" : null; }}],
       charts:[
-        {title:"Storm vs capacity, by pipe size", sub:"Above 1, the 100-year storm exceeds the pipe. Log scale.", async draw(div){
-          const rows = await rowsOf(BASE + "culverts_results.geojson"); const classes = ["small","medium","large","major"];
-          Plotly.newPlot(div, classes.map(c => ({type:"box", name:c, x:rows.filter(r => r.size_class===c && r.load_ratio_100!=null && r.load_ratio_100>0).map(r=>r.load_ratio_100), marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h", hovertemplate:"%{x:.2f}<extra>%{fullData.name}</extra>"})),
-            Object.assign({}, LAYOUT, {margin:{l:60,r:10,t:10,b:40}, showlegend:false, xaxis:{type:"log", title:"Loading ratio (100-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true}, shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}]}), {displayModeBar:false, responsive:true}); }},
+        {title:"Storm vs capacity, by pipe size", get sub(){ return "Above 1, the " + RP + "-year storm exceeds the pipe. Log scale."; }, async draw(div){
+          const rows = await rowsOf(BASE + "culverts_results.geojson"); const classes = ["small","medium","large","major"]; const lr = "load_ratio_" + RP;
+          Plotly.newPlot(div, classes.map(c => ({type:"box", name:c, x:rows.filter(r => r.size_class===c && r[lr]!=null && r[lr]>0).map(r=>r[lr]), marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h", hovertemplate:"%{x:.2f}<extra>%{fullData.name}</extra>"})),
+            Object.assign({}, LAYOUT, {margin:{l:60,r:10,t:10,b:40}, showlegend:false, xaxis:{type:"log", title:"Loading ratio (" + RP + "-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true}, shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}]}), {displayModeBar:false, responsive:true}); }},
         {title:"Flood exposure by jurisdiction", sub:"Share of each jurisdiction's culverts in each flood class", async draw(div){
           const rows = await rowsOf(BASE + "culverts_results.geojson"); const jur = [...new Set(rows.map(r=>r.jurisdiction))].sort();
           stackedShare(div, jur, ["0","1","2","3"], {"0":COL.gray,"1":COL.ice,"2":COL.blue,"3":COL.navy}, rows, r => r.jurisdiction, r => String(Math.round(r.E_FLC_hist)), r => 1, "percent of culverts", "culverts"); }}],
-      table:{title:"Culvert table", lead:"One row per scored culvert. The Flags column is the owner review list.", exportName:"PROTECT_culvert_results.csv",
+      table:{title:"Culvert table", lead:"One row per scored culvert. The Flags column is the owner review list.", get exportName(){ return RP === 100 ? "PROTECT_culvert_results.csv" : "PROTECT_culvert_results_" + RP + "yr.csv"; },
         async rows(){ const rows = await rowsOf(BASE + "culverts_results.geojson"); rows.forEach(p => { const fl = []; if (p.size_suspect == 1) fl.push("size suspect"); if (p.ratio_review == 1) fl.push("ratio review"); if (p.tailwater_flag == 1) fl.push("tailwater"); if (p.on_stream == 1) fl.push("on mapped stream"); p.flags = fl.join("; "); }); return rows; },
-        cols:[{field:"culvert_id", headerName:"Culvert", minWidth:190, flex:1, filter:"agTextColumnFilter"}, {field:"jurisdiction", headerName:"Jurisdiction", width:150, filter:"agTextColumnFilter"}, {field:"road_name", headerName:"Road", width:150, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
+        // columns follow the design storm (the Q, storm / capacity, and vulnerability columns); their
+        // fixed colIds keep them in place, since AG Grid appends a column whose id is new
+        get cols(){ return [{field:"culvert_id", headerName:"Culvert", minWidth:190, flex:1, filter:"agTextColumnFilter"}, {field:"jurisdiction", headerName:"Jurisdiction", width:150, filter:"agTextColumnFilter"}, {field:"road_name", headerName:"Road", width:150, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"},
           {field:"crossing_id", headerName:"Crossing", width:100}, {field:"d_eq_in", headerName:"Dia (in)", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"contrib_area_ac", headerName:"Basin (ac)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
-          {field:"q_event_100_cfs", headerName:"Q100 (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"q_cap_crossing_cfs", headerName:"Qcap (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
-          {field:"load_ratio_100", headerName:"Storm / capacity", width:125, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const v=p.value; if(v==null) return {}; const c = v>=4?COL.brick: v>=2?COL.orange: v>=1?COL.peach: null; return c ? {background:c, color: v>=2?"#fff":"#003B71", fontWeight:600} : {};}},
+          {colId:"q_event", field:"q_event_" + RP + "_cfs", headerName:"Q" + RP + " (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"q_cap_crossing_cfs", headerName:"Qcap (cfs)", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)},
+          {colId:"load_ratio", field:"load_ratio_" + RP, headerName:"Storm / capacity", headerTooltip:RP + "-year storm flow over capacity", width:125, type:"numericColumn", sort:"desc", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const v=p.value; if(v==null) return {}; const c = v>=4?COL.brick: v>=2?COL.orange: v>=1?COL.peach: null; return c ? {background:c, color: v>=2?"#fff":"#003B71", fontWeight:600} : {};}},
           {field:"E_FLC_hist", headerName:"Flood E", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,0), cellStyle:p=>{const m={3:COL.navy,2:COL.blue,1:COL.ice}; const c=m[p.value]; return c?{background:c,color:p.value>=2?"#fff":"#003B71",fontWeight:600}:{};}},
-          {field:"V_FLC_hist", headerName:"Vulnerability", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}},
-          {field:"S_source", headerName:"Sensitivity data", width:130, valueFormatter:p=>p.value||"-"}, {field:"cond_class", headerName:"Cond.", width:85, valueFormatter:p=>p.value==null?"-":p.value}, {field:"flags", headerName:"Flags", width:200, filter:"agTextColumnFilter"}, {field:"q_method", headerName:"Q method", width:135}]},
-      notes:["<b>Watershed.</b> Drainage area to each culvert from the 2 m lidar DEM, with the road fill cut through every culvert so creeks pass where they should.",
-        "<b>Flow.</b> The 100-year storm from NOAA Atlas 14 and the land cover; basins over 1 sq mi use the USGS regional equations.",
+          {colId:"v_flc", field:flcV(), headerName:"Vulnerability", headerTooltip:"Flooding vulnerability, " + RP + "-year storm", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}},
+          {field:"S_source", headerName:"Sensitivity data", width:130, valueFormatter:p=>p.value||"-"}, {field:"cond_class", headerName:"Cond.", width:85, valueFormatter:p=>p.value==null?"-":p.value}, {field:"flags", headerName:"Flags", width:200, filter:"agTextColumnFilter"}, {field:"q_method", headerName:"Q method", width:135}]; }},
+      get notes(){ return ["<b>Watershed.</b> Drainage area to each culvert from the 2 m lidar DEM, with the road fill cut through every culvert so creeks pass where they should.",
+        "<b>Flow.</b> The 100-year and 25-year storms from NOAA Atlas 14 and the land cover; basins over 1 sq mi use the USGS regional equations.",
+        "<b>Design storm.</b> The 100-year storm is the score of record and the only one in the Overview's combined class. The 25-year view rescores only the storm-to-capacity term, so a culvert's score stays the same or drops.",
         "<b>Capacity.</b> What the pipe passes with water at the top of the opening. Real culverts take more, so the ratio errs high by 1.5 to 2.",
         "<b>Flags.</b> A small recorded pipe on a big drainage is a record to check, not a score; it is withheld and listed for the owner. A ratio above 20 is listed too.",
         "<b>Flood exposure.</b> The highest flood class anywhere in the culvert's drainage. The value at the pipe itself is in the popup for comparison.",
-        "<b>Vulnerability.</b> Exposure at 0.3 plus sensitivity at 0.7: how much debris the basin can send, whether the pipe passes the 100-year storm, and its condition and blockage. Condition exists for about a third of culverts; the rest carry the fair default and are marked partial.",
-        "<b>Roads.</b> Scored on two things only: flood exposure and criticality. Exposure is the highest flood class anywhere along the segment (3 in a FEMA 100-year zone; 2 in the 500-year zone or along a mapped stream; 0 otherwise). Criticality is the segment's quarter from the latest clean street layer. The map colors by exposure and thickens by criticality."],
+        "<b>Vulnerability.</b> Exposure at 0.3 plus sensitivity at 0.7: how much debris the basin can send, whether the pipe passes the " + RP + "-year storm, and its condition and blockage. Condition exists for about a third of culverts; the rest carry the fair default and are marked partial.",
+        "<b>Roads.</b> Scored on two things only: flood exposure and criticality. Exposure is the highest flood class anywhere along the segment (3 in a FEMA 100-year zone; 2 in the 500-year zone or along a mapped stream; 0 otherwise). Criticality is the segment's quarter from the latest clean street layer. The map colors by exposure and thickens by criticality."]; },
       foot:"Culvert inventories from six jurisdictions and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA. Method: <code>docs/SCORING_RUBRICS.md</code> 2.2 to 2.5."
     };
 
@@ -875,7 +891,7 @@
     }
     const HELP_TAB = {
       overview:"On Overview, roads are colored by their highest vulnerability across the hazards, and Priority makes the most critical roads thickest. Click a culvert to draw its drainage area.",
-      flood:"On Flooding, culverts are colored by whether the pipe passes the 100-year storm. Click a culvert to draw its drainage area; its flood score is the highest flood class anywhere in that area.",
+      flood:"On Flooding, culverts are colored by whether the pipe passes the 100-year storm; Design storm switches the culvert scores to the 25-year storm. Click a culvert to draw its drainage area; its flood score is the highest flood class anywhere in that area.",
       wildfire:"On Wildfire, click a road or path to outline the 300 ft area its score came from. The two within-300-ft layers show that ground for every road.",
       landslide:"On Landslide, click a culvert to draw its drainage area; a culvert takes the highest landslide class anywhere in that area.",
       debris_flow:"On Debris flow, click a culvert to draw its drainage area; slope and drainage size are read from it. Burn severity is a stand-in until the contracted surface arrives.",
@@ -948,6 +964,54 @@
     function zoomHints(){ if (!view) return; document.querySelectorAll(".zin").forEach(e => { e.hidden = view.scale <= Number(e.dataset.ms); }); }
     function modeFromHash(){ const h = (location.hash || "#overview").slice(1); return MODES[h] ? h : "overview"; }
 
+    // KPI tiles from the mode's block of the summary; null items means not published
+    function paintKpis(mode, s){
+      const items = mode.kpis(s);
+      $("empty").style.display = items ? "none" : "";
+      $("empty").textContent = mode.emptyText || "Not published yet.";
+      $("kpis").innerHTML = (items || []).map(([v,l]) => `<div class="kpi" style="border-top-color:${mode.kpiBorder || COL.blue}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      $("gen-note").textContent = items ? mode.note(s) : "";
+      return items;
+    }
+
+    // color-by buttons, legend, and renderers; keep is the view to leave selected on a repaint
+    function paintColor(mode, keep){
+      const cb = mode.colorBy || [];
+      const sel = Math.max(0, cb.findIndex(o => o.value === keep));
+      $("panel-color").innerHTML = cb.length ? `<h3>${esc(mode.colorHeading || "Colored by")}</h3><div class="cb" id="color-by">${cb.map((o, i) => `<button type="button" data-v="${o.value}"${i === sel ? ' class="on"' : ""}>${esc(o.label)}</button>`).join("")}</div><div id="legend"></div>` : "";
+      const applyColor = o => { Object.entries(o.renderer || {}).forEach(([id, r]) => { if (ctx.L[id]) ctx.L[id].renderer = r; });
+        if (o.field) Object.entries(o.field).forEach(([id, f]) => { if (!ctx.L[id]) return; ctx.L[id].renderer = (f === "C_class") ? breaksRenderer("C_class", [{minValue:-0.5, maxValue:0.5, symbol:line(CRIT_RAMP[0], 1.3)}, {minValue:0.5, maxValue:1.5, symbol:line(CRIT_RAMP[1], 1.7)}, {minValue:1.5, maxValue:2.5, symbol:line(CRIT_RAMP[2], 2.3)}, {minValue:2.5, maxValue:3.5, symbol:line(CRIT_RAMP[3], 3)}]) : vClassRenderer(f, (c,k) => line(c, [1.2,1.8,2.4,3][k], id === "paths")); });
+        $("legend").innerHTML = (o.legend || "") + (o.note ? `<p class="note">${esc(o.note)}${o.noteTip ? tip(o.noteTip) : ""}</p>` : "");
+        // roads-only views hide the other assets (their markers would bury the roads) and restore them after
+        Object.entries(ctx.L).forEach(([id, l]) => { if (id === "roads" || id === "notes" || !l) return; const tg = $("tg-" + id);
+          if (o.roadsOnly) { if (l.__vis == null) l.__vis = l.visible; l.visible = false; }
+          else if (l.__vis != null) { l.visible = l.__vis; l.__vis = null; }
+          if (tg) tg.checked = l.visible; }); };
+      if (cb.length) { applyColor(cb[sel]); $("color-by").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { $("color-by").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); const o = cb.find(x => x.value === b.dataset.v); if (o) applyColor(o); })); }
+    }
+
+    // design storm (Flooding): a switch repaints the storm-dependent text, KPIs, colors, charts,
+    // and table columns in place, keeping the layers, the selected color view, and the search
+    function paintStorm(mode, s){
+      const st = mode.storm;
+      if (!st) { $("panel-storm").innerHTML = ""; return; }
+      const off = st.options.some(([v]) => !st.ready(s, v));
+      $("panel-storm").innerHTML = `<h3>${esc(st.heading)}${tip(st.tip + (off ? " " + st.offTip : ""))}</h3><div class="cb" id="storm-by">${st.options.map(([v, l]) =>
+        `<button type="button" data-v="${v}"${v === RP ? ' class="on"' : ""}${st.ready(s, v) ? "" : ` disabled title="${esc(st.offTip)}"`}>${esc(l)}</button>`).join("")}</div>`;
+      $("storm-by").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+        const v = Number(b.dataset.v); if (v === RP) return; RP = v;
+        $("storm-by").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+        const on = document.querySelector("#color-by button.on");
+        $("lead").innerHTML = mode.lead; $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
+        $("ch-a-sub").textContent = mode.charts[0].sub; $("ch-b-sub").textContent = mode.charts[1].sub;
+        paintKpis(mode, s); paintColor(mode, on ? on.dataset.v : null);
+        ["ch-a","ch-b"].forEach(id => Plotly.purge(id));
+        mode.charts[0].draw("ch-a", s).catch(e => console.warn("chart a", e));
+        mode.charts[1].draw("ch-b", s).catch(e => console.warn("chart b", e));
+        if (gridApi) gridApi.setGridOption("columnDefs", mode.table.cols);
+      }));
+    }
+
     async function switchMode(name){
       if (name === current) return;
       current = name;
@@ -968,11 +1032,8 @@
 
       // summary-driven blocks
       const s = await summary();
-      const items = mode.kpis(s);
-      $("empty").style.display = items ? "none" : "";
-      $("empty").textContent = mode.emptyText || "Not published yet.";
-      $("kpis").innerHTML = (items || []).map(([v,l]) => `<div class="kpi" style="border-top-color:${mode.kpiBorder || COL.blue}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
-      $("gen-note").textContent = items ? mode.note(s) : "";
+      if (mode.storm && !mode.storm.ready(s, RP)) RP = mode.storm.options[0][0];
+      const items = paintKpis(mode, s);
       if (name === "overview") setTimeout(() => { const nl = ctx && ctx.L.notes; if (nl && nl.noteCount != null && items) $("kpis").insertAdjacentHTML("beforeend", `<div class="kpi" style="border-top-color:${COL.purple}"><div class="v">${fmt(nl.noteCount)}</div><div class="l">workshop notes sent so far</div></div>`); }, 1500);
 
       // map: drop the previous mode's layers, add this one's
@@ -986,18 +1047,9 @@
       // operational layers above hillshade (index 0) and below the boundary: insert after hillshade, keep polygons under points
       ctx.layers.slice().reverse().forEach(l => view.map.add(l, 1));
       view.map.reorder(BASE_LAYERS.bound, 1);
-      // color-by
-      const cb = mode.colorBy || [];
-      $("panel-color").innerHTML = cb.length ? `<h3>${esc(mode.colorHeading || "Colored by")}</h3><div class="cb" id="color-by">${cb.map((o, i) => `<button type="button" data-v="${o.value}"${i === 0 ? ' class="on"' : ""}>${esc(o.label)}</button>`).join("")}</div><div id="legend"></div>` : "";
-      const applyColor = o => { Object.entries(o.renderer || {}).forEach(([id, r]) => { if (ctx.L[id]) ctx.L[id].renderer = r; });
-        if (o.field) Object.entries(o.field).forEach(([id, f]) => { if (!ctx.L[id]) return; ctx.L[id].renderer = (f === "C_class") ? breaksRenderer("C_class", [{minValue:-0.5, maxValue:0.5, symbol:line(CRIT_RAMP[0], 1.3)}, {minValue:0.5, maxValue:1.5, symbol:line(CRIT_RAMP[1], 1.7)}, {minValue:1.5, maxValue:2.5, symbol:line(CRIT_RAMP[2], 2.3)}, {minValue:2.5, maxValue:3.5, symbol:line(CRIT_RAMP[3], 3)}]) : vClassRenderer(f, (c,k) => line(c, [1.2,1.8,2.4,3][k], id === "paths")); });
-        $("legend").innerHTML = (o.legend || "") + (o.note ? `<p class="note">${esc(o.note)}${o.noteTip ? tip(o.noteTip) : ""}</p>` : "");
-        // roads-only views hide the other assets (their markers would bury the roads) and restore them after
-        Object.entries(ctx.L).forEach(([id, l]) => { if (id === "roads" || id === "notes" || !l) return; const tg = $("tg-" + id);
-          if (o.roadsOnly) { if (l.__vis == null) l.__vis = l.visible; l.visible = false; }
-          else if (l.__vis != null) { l.visible = l.__vis; l.__vis = null; }
-          if (tg) tg.checked = l.visible; }); };
-      if (cb.length) { applyColor(cb[0]); $("color-by").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { $("color-by").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); const o = cb.find(x => x.value === b.dataset.v); if (o) applyColor(o); })); }
+      // design storm (Flooding only) and color-by
+      paintStorm(mode, s);
+      paintColor(mode);
       // layer toggles
       const sw = (id, on) => `<input type="checkbox" class="sw" id="${id}"${on ? " checked" : ""} />`;
       $("panel-layers").innerHTML = defs.map(d => `<label class="lyr">${sw("tg-" + d.id, d.checked)} ${esc(d.label)}${d.minScale ? `<span class="zin" data-ms="${d.minScale}">zoom in to see</span>` : ""}${d.tip ? tip(d.tip) : ""}</label>${d.legend ? `<div class="lg-row sub-lg">${d.legend}</div>` : ""}`).join("")

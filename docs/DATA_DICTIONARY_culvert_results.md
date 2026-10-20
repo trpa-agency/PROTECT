@@ -109,6 +109,8 @@ One point per drainage asset compiled from six jurisdiction deliveries, the stat
 
 Future fields follow the same pattern: `E_LSC_hist`, `E_DFC_hist`, the sensitivity scores `S_<pair>`, and `V_<pair>_hist`, `V_max`, `V_max_pair`, `V_class` per rubric section 2.6.
 
+The 25-yr design storm (rubric decision 5, config `scoring.flc.alt_rps`) adds three FL-C fields with S2 read from `load_ratio_25` and every other term unchanged: `S_FLC_s2_q25` (S2, 0 to 3, the `s2_default` of 1 where the ratio is withheld or missing), `S_FLC_q25` (normalized sensitivity), and `V_FLC_hist_q25` (vulnerability, 0 to 3, never above `V_FLC_hist`). They are not part of `V_max`, `V_max_pair`, or `V_class`, which stay on the 100-yr storm. The results files carry `S_FLC_q25` and `V_FLC_hist_q25`.
+
 ### Joins and relationships
 
 - **Joins to:** `CulvertCondition` on `culvert_id` (one-to-many; relationship class `Culvert_has_Condition`). That table holds one row per inspection: `inspection_date`, `condition_rating` as delivered, `condition_scheme` (how the agency rates condition, recorded because schemes differ), `structural_cond`, `blockage_pct`, `maintenance_need`, `notes`, `data_source`, `load_date`. The profile's `cond_class` is the harmonized latest row (rubric 2.5)
@@ -258,7 +260,7 @@ The flood exposure surface on the FL-C E1 values, so every flood pair in both la
 | `culverts_results.csv` | The same rows without geometry | 5,096 |
 | `bridges_results.geojson` | The bridges with the section 3 fields plus facility, feature crossed, owner, year built, and condition labels | 40 |
 | `flood_surface.geojson` | `Hazard_Flood_Class` simplified to 5 m, with `hz_class` and `label` | 1,307 |
-| `summary.json` | Counts and quantiles the page's KPI cards show: scored, full profile, with ratio, ratio median and 90th percentile, suspect and review counts, tailwater count, regression count, exposure distribution, counts by jurisdiction, bridge counts, surface area by class, generation date, and notes | - |
+| `summary.json` | Counts and quantiles the page's KPI cards show: scored, full profile, with ratio, ratio median and 90th percentile, suspect and review counts, tailwater count, regression count, exposure distribution, counts by jurisdiction, bridge counts, surface area by class, generation date, and notes. `culverts.storms` holds one block per design storm (`"100"`, `"25"`: with ratio, ratio over 1, ratio median and 90th percentile, FL-C vulnerability median and class counts) for the Flooding tab's Design storm toggle; `culverts.headline_rp` names the storm of record | - |
 
 ### Known caveats
 

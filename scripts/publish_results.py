@@ -29,7 +29,7 @@ CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "pare
                 "cond_class", "cond_source", "cond_stale", "blockage_pct", "tailwater_flag", "on_stream",
                 "size_suspect", "ratio_review", "profile_completeness", "E_FLC_hist", "E_FLC_pt", "E_FLC_src",
                 "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_DFC_hist", "E_DFC_e1", "E_DFC_e2", "E_DFC_e3", "DF_option", "E_source",
-                "S_FLC", "V_FLC_hist", "S_LSC", "V_LSC_hist", "S_DFC", "V_DFC_hist", "V_max", "V_max_pair", "V_class",
+                "S_FLC", "V_FLC_hist", "S_FLC_q25", "V_FLC_hist_q25", "S_LSC", "V_LSC_hist", "S_DFC", "V_DFC_hist", "V_max", "V_max_pair", "V_class",
                 "V_max_all", "V_max_all_pair", "V_class_all", "S_source"]
 BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_crossed", "year_built",
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
@@ -48,6 +48,20 @@ WF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 2 else "Medium" if
 WF_ROAD_COLS = [c.format(p="WFR") for c in ROAD_COLS]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
          "q_cap_crossing_cfs": 1, "load_ratio_25": 2, "load_ratio_100": 2, "max_span_m": 1, "span_in": 1, "d_eq_in": 1}
+
+
+def storm_block(cul: pd.DataFrame, rp: int, v_col: str) -> dict:
+    """The Flooding tab's KPIs for one design storm: the loading ratio and FL-C vulnerability.
+    The headline storm reads V_FLC_hist; an alternate storm reads its V_FLC_hist_q<rp>."""
+    out = {}
+    lr = cul[f"load_ratio_{rp}"] if f"load_ratio_{rp}" in cul.columns else None
+    if lr is not None and lr.notna().any():
+        out.update({"with_ratio": int(lr.notna().sum()), "ratio_over_1": int((lr >= 1).sum()),
+                    "ratio_median": float(lr.median()), "ratio_p90": float(lr.quantile(0.9))})
+    if v_col in cul.columns and cul[v_col].notna().any():
+        out.update({"V_FLC_median": float(cul[v_col].median()),
+                    "V_FLC_class": {str(k): int(v) for k, v in cul[v_col].map(CLASS_OF).value_counts().items()}})
+    return out
 
 
 def public_only(df: pd.DataFrame, cfg: dict, log) -> pd.DataFrame:
@@ -482,7 +496,12 @@ def main() -> None:
     flood["geometry"] = flood.geometry.simplify(5, preserve_topology=True)
     flood = flood[["hz_class", "label", "geometry"]].to_crs("EPSG:4326")
 
-    lr = cul["load_ratio_100"]
+    hl = int(cfg["profile"]["headline_rp"])
+    lr = cul[f"load_ratio_{hl}"]
+    # one KPI block per design storm for the Flooding tab's toggle (decision 5)
+    storms = {str(hl): storm_block(cul, hl, "V_FLC_hist")}
+    for rp in [int(x) for x in (cfg["scoring"]["flc"].get("alt_rps") or []) if int(x) != hl]:
+        storms[str(rp)] = storm_block(cul, rp, f"V_FLC_hist_q{rp}")
     summary = {
         "generated": pd.Timestamp.today().strftime("%Y-%m-%d"),
         "culverts": {
@@ -499,6 +518,8 @@ def main() -> None:
             "E_FLC": {str(k): int(v) for k, v in cul["E_FLC_hist"].value_counts().sort_index().items()}
             if "E_FLC_hist" in cul else {},
             "by_jurisdiction": {j: int(n) for j, n in cul["jurisdiction"].value_counts().items()},
+            "headline_rp": hl,
+            "storms": storms,
             "vulnerability": ({
                 "V_FLC_median": float(cul["V_FLC_hist"].median()),
                 "V_FLC_class": {str(k): int(v) for k, v in cul["V_FLC_hist"].map(
