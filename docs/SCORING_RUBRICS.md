@@ -299,9 +299,23 @@ Parameters live in `config.yaml` (`hydraulics:` block, to be added with the prof
   class; they also serve the watershed sampling in section 2.3. Culverts within 10 m of each
   other on the same segment are one crossing: one watershed, capacities summed. The DEM is 2010
   lidar; crossings rebuilt since then are flagged where `install_year` is 2011 or later.
-- **Event flow, Qevent.** Rational method, Q = C i A, for basins under 1 sq mi, with C by
-  majority landcover (forest 0.35, shrub 0.40, developed 0.60, barren 0.50) and i the Atlas 14
-  intensity at the basin's time of concentration (Kirpich), 100-yr headline and 25-yr carried.
+- **Event flow, Qevent.** Rational method, Q = C i A, for basins under 1 sq mi, with C the
+  area-weighted mean over the watershed of a cell surface built from NLCD land cover,
+  hydrologic soil group, and slope class on the Rawls, Wong, and McCuen (1981) table, the
+  25-year-and-over column for both events (**TRPA decision 28**; the lookup the CULVERT tool
+  uses), and i the Atlas 14 intensity at the basin's time of concentration (Kirpich), 100-yr
+  headline and 25-yr carried. Soil groups are SSURGO survey CA693, which covers the basin in
+  both states (dual groups take the undrained letter; the lake's Water map unit carries none);
+  the slope class is the 2 m slope averaged to 30 m (under 2, 2 to 6, 6 and over percent); the
+  NLCD developed classes map to the table's open space, 1/4 acre, 1/8 acre, and commercial rows
+  by impervious share. Cells with no soil group, water, and barren take the land-cover values
+  (forest 0.35, shrub and grass 0.40, developed 0.60, barren 0.50, water 1.0), which also remain
+  available as a whole (`profile.runoff_c_method: landcover`); both coefficients travel with
+  every crossing (`runoff_c_lc`, `runoff_c_tab`, `runoff_c_method`). Why: on the California
+  basins inside both methods' published ranges (0.45 to 1 sq mi) the land-cover C gave
+  rational flows about twice the Lahontan regression (Oct. 20, 2026); a sketch on
+  basin-average soil shares put the table C near 0.9 of it. The attributes stage logs that
+  ratio on every run. No frequency factor is applied on top of the table.
   Basins of 1 sq mi and over (about 230 crossings) use the USGS regional regression
   equations for their state, Q_T = a A^b P^c with A in sq mi and P the basin mean annual
   precipitation in inches from the PRISM 1991-2020 normals (800 m): California, Lahontan
@@ -427,6 +441,14 @@ note.
 20. Two gaps in the draft's tables, scored by TRPA interpretation until confirmed: culvert
     openings over 8 ft score 1 (the draft's lowest band), and an avalanche record with no slope
     over 25 degrees within 1,000 ft scores 1 (section 5.2).
+28. **TRPA decision (Oct. 20, 2026): runoff coefficient from land cover, soil group, and
+    slope.** The rational-method C is the area-weighted mean of a cell surface on the Rawls,
+    Wong, and McCuen (1981) table (NLCD class x hydrologic soil group x slope class, the
+    25-year-and-over column for both events), the lookup the CULVERT tool uses, in place of
+    one value per majority land cover. Soil groups from SSURGO CA693; the land-cover values
+    stay as the fallback and are carried beside the table value. Reason: on the California
+    basins inside both methods' ranges the land-cover C gave flows about twice the USGS
+    Lahontan regression. No frequency factor is applied on top of the table (section 2.4).
 
 ---
 

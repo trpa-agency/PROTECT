@@ -74,7 +74,8 @@ One point per drainage asset compiled from six jurisdiction deliveries, the stat
 | `basin_elev_mean_ft` | float | feet | Yes | Area-weighted mean elevation of the contributing watershed | 6,200 to 10,900 |
 | `basin_precip_in` | float | inches per year | Yes | Area-weighted mean annual precipitation of the watershed, PRISM 1991 to 2020 normals (800 m) | 15 to 90 |
 | `basin_landcover` | string | - | Yes | Majority NLCD 2021 group over the watershed | `forest`, `shrub`, `grass`, `developed`, `barren`, `water`, `wetland` |
-| `runoff_c` | float | - | No | Rational-method runoff coefficient; the land-cover value, or 0.35 where no watershed | 0.30 to 1.00 |
+| `runoff_c` | float | - | No | Rational-method runoff coefficient, averaged over the watershed from the land cover by soil group by slope table (Rawls, Wong, and McCuen 1981; decision 28); the land-cover value where the surface has none, 0.35 where no watershed | 0.08 to 1.00 |
+| `runoff_c_method` | string | - | No | Where `runoff_c` came from | `table`, `landcover` (no soil group), `default` (no watershed) |
 | `tc_min` | float | minutes | Yes | Kirpich time of concentration from the longest flow path and relief, bounded 5 to 1,440 | 5 to 1,440 |
 | `ddf_point` | string | - | Yes | Nearest NOAA Atlas 14 point used for intensity | one of the eight basin points |
 | `q_method` | string | - | No | How the event flow was estimated | `rational` (under 1 sq mi), `regression_CA`, `regression_NV`, `regression_needed` (no precipitation or state), `none` (no watershed) |
@@ -125,7 +126,7 @@ The 25-yr design storm (rubric decision 5, config `scoring.flc.alt_rps`) adds th
 - The El Dorado and Washoe crossing rule has no manhole-run exception, so a short storm-drain pipe that crosses a side street can be typed as a culvert.
 - TRPA legacy provisional points carry sizes that were never verified; 303 of the 465 `ratio_review` flags are legacy points.
 - 221 typed culverts had no flow cell within 4 m and have no watershed; they take the 25 m exposure fallback and a null loading ratio.
-- The runoff coefficient is the land-cover default per group, not calibrated to Tahoe snow-affected runoff.
+- The runoff coefficient comes from a rainfall table (land cover, soil group, slope), not calibrated to Tahoe rain-on-snow peaks; the check is agreement with the USGS regression, fitted to gauged peaks, on the basins where both methods apply (logged each run).
 - Rows for the restricted jurisdiction exist here and nowhere under the repo.
 
 ---
@@ -164,7 +165,10 @@ One row per crossing: the group of culverts within 10 m of each other on one str
 | `area_check_pct` | float | percent | No | `contrib_area_ac` against `facc_area_ac`; a disagreement over 5 percent and 2 cells is logged | about 0 |
 | `basin_slope_pct` | float | percent | Yes | Area-weighted mean slope | 0 to 100 |
 | `basin_landcover` | string | - | Yes | Majority NLCD group | as in `Culverts` |
-| `runoff_c` | float | - | Yes | Area-weighted runoff coefficient from the land-cover shares | 0.30 to 1.00 |
+| `runoff_c` | float | - | Yes | The runoff coefficient used: `runoff_c_tab` where the surface covers the basin, `runoff_c_lc` otherwise | 0.08 to 1.00 |
+| `runoff_c_lc` | float | - | Yes | Area-weighted runoff coefficient from the land-cover shares (the pre-Oct. 20 method) | 0.30 to 1.00 |
+| `runoff_c_tab` | float | - | No | Mean of the land cover by soil group by slope surface over the cells that have a value | 0.08 to 0.97 |
+| `runoff_c_method` | string | - | Yes | `table` or `landcover` | |
 | `delineated` | date | - | No | Run date | ISO 8601 |
 
 `CulvertWatersheds_inc` carries `gridcode` (= `crossing_pp`), `crossing_id`, and `downstream_crossing_id` on each polygon.
