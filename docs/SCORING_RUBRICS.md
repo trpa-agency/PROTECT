@@ -313,9 +313,12 @@ Parameters live in `config.yaml` (`hydraulics:` block, to be added with the prof
   available as a whole (`profile.runoff_c_method: landcover`); both coefficients travel with
   every crossing (`runoff_c_lc`, `runoff_c_tab`, `runoff_c_method`). Why: on the California
   basins inside both methods' published ranges (0.45 to 1 sq mi) the land-cover C gave
-  rational flows about twice the Lahontan regression (Oct. 20, 2026); a sketch on
-  basin-average soil shares put the table C near 0.9 of it. The attributes stage logs that
-  ratio on every run. No frequency factor is applied on top of the table.
+  rational flows about twice the Lahontan regression; with the table the regression is 0.82
+  of the rational flow on those 58 basins (Oct. 20, 2026 run; median basin C 0.20 on forest
+  and 0.34 on developed basins, against 0.38 and 0.60 before). The attributes stage logs that
+  ratio on every run. Nevada region 1 reads 0.16 on its 31 basins, mostly the equation's own
+  low bias (about 0.4 of Lahontan on the same basins; `regression.nv_uses` decision pending).
+  No frequency factor is applied on top of the table.
   Basins of 1 sq mi and over (about 230 crossings) use the USGS regional regression
   equations for their state, Q_T = a A^b P^c with A in sq mi and P the basin mean annual
   precipitation in inches from the PRISM 1991-2020 normals (800 m): California, Lahontan
