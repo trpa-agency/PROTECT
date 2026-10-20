@@ -121,6 +121,9 @@ scoring:
     weights_draft: {e: 0.30, s1: 0.35, s2: 0.35}
     s1_default: 1                 # no watershed: debris potential 1, S_source partial
     s2_default: 1                 # loading ratio withheld (size_suspect) or no size: 1, S_source partial
+    alt_rps: [25]                 # decision 5: S2 also scored on these storms' loading ratios (profile.return_periods),
+                                  # written as S_FLC_s2_q<rp>, S_FLC_q<rp>, V_FLC_<horizon>_q<rp>; the headline storm
+                                  # (profile.headline_rp) stays the score of record and the only one in V_max / V_class
     landcover_columns:            # profile basin_landcover group -> draft matrix column (TRPA choice for grass, barren, wetland)
       forest: trees
       shrub: shrubs
@@ -175,6 +178,32 @@ assets:
 profile:
   work_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_terrain.gdb  # terrain rasters
   nlcd: F:\GIS\PROJECTS\Transportation\Protect\Data\NLCD\NLCD_Tahoe.tif   # NLCD 2021 land cover clip (MRLC viewer, Oct. 9); blank = no landcover terms
+  # Runoff coefficient (SCORING_RUBRICS 2.4). "table" = NLCD class x hydrologic soil group x slope
+  # class from Rawls, Wong, and McCuen (1981), the lookup the CULVERT tool (culvert-at-risk.org)
+  # uses; "landcover" = the runoff_c block below. Both are carried in the crossing table
+  # (runoff_c_tab, runoff_c_lc); runoff_c is the chosen one. On the basins where the rational
+  # method and the USGS regression both apply, the land-cover C ran about twice the regression
+  # (Oct. 20, 2026); the table closes most of that gap. The attributes stage logs that ratio.
+  runoff_c_method: table
+  runoff_c_table: data/runoff_coefficients_rawls1981.csv
+  runoff_c_storm: ge25     # the table's 25-year-and-over column, for Q25 and Q100 alike. No frequency
+                           # factor on top: CULVERT multiplies the same table by 1.1 to 1.25, which double counts
+  runoff_c_slope_breaks_pct: [2, 6]   # the table's slope classes: under 2, 2 to under 6, 6 and over
+  runoff_c_cell_m: 30      # the C surface is built at this cell on the DEM grid: slope averaged from 2 m
+                           # (the table is a drainage-area slope; 2 m lidar slope puts every curb over 6 percent),
+                           # soil polygons rasterized, NLCD resampled. Zonal means read it like PRISM
+  hsg: F:\GIS\PROJECTS\Transportation\Protect\Data\SSURGO\hsg_ca693.shp   # scripts/fetch_hsg.py; blank = land-cover C
+  hsg_survey: CA693        # Tahoe Basin Area, California and Nevada: one survey, both states
+  hsg_dual_as: D           # A/D, B/D, C/D (drained / undrained) take the undrained letter, as CULVERT does
+  nlcd_rows:               # NLCD class -> table row. Developed classes by impervious share against TR-55:
+    forest: [41, 42, 43]   # NLCD 22 is 20 to 49 percent impervious (1/4 acre lots, 38), 23 is 50 to 79
+    meadow: [52, 71, 90, 95]   # (1/8 acre, 65), 24 is 80 to 100 (commercial, 85). Classes not listed
+    pasture: [81]              # (water, barren) and cells with no soil group fall back to the runoff_c block
+    cultivated: [82]
+    open_space: [21]
+    residential_quarter: [22]
+    residential_eighth: [23]
+    commercial: [24]
   fill_z_limit_m: 3        # fill sinks shallower than this before flow direction; null = no Fill.
                            # The enforced DEM still has sinks at unbreached crossings (Oct. 8 QA:
                            # two-cell flow loops at the pour cells, accumulation split, flow

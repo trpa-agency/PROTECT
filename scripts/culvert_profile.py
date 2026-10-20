@@ -17,9 +17,14 @@ resumable and skips work that already exists unless --overwrite is given.
                 profile.pour_snap_m, a few metres: the breach runs through the culvert's
                 own cell), group multi-barrel crossings, delineate incremental watersheds,
                 record each crossing's downstream crossing, zonal statistics (slope, max
-                and mean elevation, PRISM mean annual precipitation, NLCD), and aggregate
-                up the drainage tree so every crossing carries its FULL contributing area.
-                Writes CulvertCrossings and CulvertWatersheds_inc. SERVER JOB.
+                and mean elevation, PRISM mean annual precipitation, NLCD, the runoff
+                coefficient surface), and aggregate up the drainage tree so every crossing
+                carries its FULL contributing area. The runoff coefficient surface
+                (profile.runoff_c_method table) is NLCD class x hydrologic soil group x
+                slope class on the Rawls, Wong, and McCuen (1981) table, built at
+                profile.runoff_c_cell_m from the soil polygons (profile.hsg) and the slope
+                raster; the land-cover C is carried beside it. Writes CulvertCrossings and
+                CulvertWatersheds_inc. SERVER JOB.
     attributes  Equivalent diameter, size and material classes, condition harmonization,
                 event flow (rational method on Atlas 14 under profile.rational_max_sqmi,
                 USGS regional regression above it: Gotvald 2012 Lahontan region in
@@ -29,7 +34,9 @@ resumable and skips work that already exists unless --overwrite is given.
                 outputs the hydrology fields are null and profile_completeness says so.
 
     PRISM 1991-2020 annual precipitation normals (800 m) feed the regression:
-    python scripts/fetch_prism.py downloads them to profile.prism_ppt.
+    python scripts/fetch_prism.py downloads them to profile.prism_ppt. SSURGO map units
+    with their hydrologic soil group feed the runoff coefficient surface:
+    python scripts/fetch_hsg.py downloads them to profile.hsg.
 
 Usage (arcgispro-py3, Spatial Analyst):
     python scripts/culvert_profile.py --stage terrain
@@ -359,13 +366,16 @@ def _group_crossings(pts: gpd.GeoDataFrame, dist_m: float) -> pd.Series:
     return roots
 
 
-def aggregate_upstream(tree: pd.DataFrame, lc_cols: list, log, mean_cols: list[str] = ()) -> dict[int, tuple]:
+def aggregate_upstream(tree: pd.DataFrame, lc_cols: list, log, mean_cols: list[str] = (),
+                       sum_cols: list[str] = ()) -> dict[int, tuple]:
     """Sum each crossing's incremental zone with everything upstream of it.
 
     `tree` is indexed by pp_id with `dn_zone` (the next crossing downstream, NaN at an
     outlet), `inc_cells`, `inc_slope_mean`, `inc_elev_max`, one column per NLCD code in
-    `lc_cols`, and any per-zone means named in `mean_cols` (area-weighted up the tree).
-    Returns {pp_id: (cells, slope_sum, elev_max, {code: cells}, {mean_col: weighted_sum})}.
+    `lc_cols`, any per-zone means named in `mean_cols` (area-weighted up the tree), and any
+    per-zone totals named in `sum_cols` (summed as they are).
+    Returns {pp_id: (cells, slope_sum, elev_max, {code: cells}, {mean_col: weighted_sum},
+    {sum_col: sum})}.
 
     Cycles are cut first. D8 flow direction can loop inside flat sinks (the aggregated test
     DEM has them; the hydro-enforced 2 m DEM should not), and a looped downstream chain
@@ -417,8 +427,9 @@ def aggregate_upstream(tree: pd.DataFrame, lc_cols: list, log, mean_cols: list[s
         lcs = {c: (float(own[c]) if pd.notna(own[c]) else 0.0) for c in lc_cols}
         own_cells = float(own["inc_cells"]) if pd.notna(own["inc_cells"]) else 0.0
         wsum = {c: (float(own[c]) * own_cells if own_cells and pd.notna(own[c]) else 0.0) for c in mean_cols}
+        ssum = {c: (float(own[c]) if pd.notna(own[c]) else 0.0) for c in sum_cols}
         for ch in children.get(pid, []):
-            c_cells, c_slope_sum, c_elev, c_lcs, c_wsum = full[ch]
+            c_cells, c_slope_sum, c_elev, c_lcs, c_wsum, c_ssum = full[ch]
             cells += c_cells
             slope_sum += c_slope_sum
             elev = max(elev, c_elev)
@@ -426,7 +437,9 @@ def aggregate_upstream(tree: pd.DataFrame, lc_cols: list, log, mean_cols: list[s
                 lcs[k] += c_lcs[k]
             for k in mean_cols:
                 wsum[k] += c_wsum[k]
-        full[pid] = (cells, slope_sum, elev, lcs, wsum)
+            for k in sum_cols:
+                ssum[k] += c_ssum[k]
+        full[pid] = (cells, slope_sum, elev, lcs, wsum, ssum)
         par = down_map.get(pid)
         if par is not None:
             pending[par] -= 1
@@ -435,6 +448,90 @@ def aggregate_upstream(tree: pd.DataFrame, lc_cols: list, log, mean_cols: list[s
     if len(full) != len(ids):
         raise RuntimeError(f"drainage-tree aggregation left {len(ids) - len(full)} crossings unresolved")
     return full
+
+
+HSG_LETTER = {1: "A", 2: "B", 3: "C", 4: "D"}
+
+
+def load_runoff_table(cfg: dict) -> dict[str, dict[str, list[float]]]:
+    """{land_use: {"A": [C under 2 pct, C 2 to 6, C 6 and over], ...}} from profile.runoff_c_table
+    for the profile.runoff_c_storm column."""
+    p = cfg["profile"]
+    storm = p.get("runoff_c_storm", "ge25")
+    t = pd.read_csv(REPO / p["runoff_c_table"])
+    t = t[t["storm"] == storm]
+    if t.empty:
+        raise SystemExit(f"{p['runoff_c_table']}: no rows for storm column {storm}")
+    return {r.land_use: {g: [float(getattr(r, f"{g}_0_2")), float(getattr(r, f"{g}_2_6")), float(getattr(r, f"{g}_6"))]
+                         for g in "ABCD"} for r in t.itertuples()}
+
+
+def runoff_c_for_key(key: int, table: dict, p: dict) -> float | None:
+    """C for a cell key nlcd * 100 + hsg * 10 + slope class (hsg 0 = no soil group; slope class
+    1 to 3 on profile.runoff_c_slope_breaks_pct). The table row for the NLCD class where the
+    soil group is known; the land-cover block (profile.runoff_c) where it is not or the class
+    has no row; None (NoData) for a class in neither."""
+    nlcd, hsg, sclass = key // 100, (key // 10) % 10, key % 10
+    row = next((r for r, codes in p.get("nlcd_rows", {}).items() if nlcd in codes), None)
+    if row and hsg in HSG_LETTER and 1 <= sclass <= 3:
+        return table[row][HSG_LETTER[hsg]][sclass - 1]
+    group = next((g for g, codes in p["nlcd_groups"].items() if nlcd in codes), None)
+    return p["runoff_c"].get(group) if group else None
+
+
+def build_runoff_c_raster(cfg: dict, log, slope, work: str):
+    """The runoff coefficient surface for profile.runoff_c_method table, on the DEM grid at
+    profile.runoff_c_cell_m: NLCD class x hydrologic soil group (profile.hsg rasterized, 0
+    where none) x slope class (the fine slope averaged to the coarse cell). Every cell's lookup
+    key is kept as runoff_key with its C in the attribute table, so a value can be traced in
+    Pro. Returns the saved raster, or None (land-cover C only) when NLCD or the soil layer is
+    absent."""
+    import arcpy
+    from arcpy import sa
+    p = cfg["profile"]
+    if not p.get("nlcd") or not arcpy.Exists(p["nlcd"]):
+        log.warning("profile.nlcd not found; runoff C falls back to the land-cover block")
+        return None
+    if not p.get("hsg") or not arcpy.Exists(p["hsg"]):
+        log.warning(f"profile.hsg not found ({p.get('hsg')}); runoff C falls back to the land-cover block. "
+                    f"python scripts/fetch_hsg.py downloads it")
+        return None
+    table = load_runoff_table(cfg)
+    missing = [r for r in p.get("nlcd_rows", {}) if r not in table]
+    if missing:
+        raise SystemExit(f"profile.nlcd_rows names rows not in {p['runoff_c_table']}: {missing}")
+    b1, b2 = (float(b) for b in p.get("runoff_c_slope_breaks_pct", [2, 6]))
+    fine = float(slope.meanCellWidth)
+    factor = max(1, int(round(float(p.get("runoff_c_cell_m", 30)) / fine)))
+    coarse = int(fine * factor)
+    log.info(f"Runoff C surface at {coarse} m: NLCD x soil group x slope class (breaks {b1:g} and {b2:g} percent), "
+             f"{p['runoff_c_table']} column {p.get('runoff_c_storm', 'ge25')}")
+    slope_c = f"{work}\\slope_{coarse}m"
+    (sa.Aggregate(slope, factor, "MEAN", "EXPAND", "DATA") if factor > 1 else slope).save(slope_c)
+    hsg_r, key_path, out = f"{work}\\hsg_{coarse}m", f"{work}\\runoff_key", f"{work}\\runoff_c_tab"
+    with arcpy.EnvManager(snapRaster=slope_c, cellSize=slope_c, extent=slope_c,
+                          outputCoordinateSystem=arcpy.Describe(slope).spatialReference):
+        arcpy.conversion.PolygonToRaster(p["hsg"], "hsg_n", hsg_r, "MAXIMUM_AREA", "NONE", slope_c)
+        s = sa.Raster(slope_c)
+        hsg = sa.Con(sa.IsNull(sa.Raster(hsg_r)), 0, sa.Raster(hsg_r))
+        sclass = sa.Con(s < b1, 1, sa.Con(s < b2, 2, 3))
+        key = sa.Int(sa.Raster(p["nlcd"])) * 100 + hsg * 10 + sclass
+        key.save(key_path)
+    arcpy.management.BuildRasterAttributeTable(key_path, "Overwrite")
+    arcpy.management.AddField(key_path, "runoff_c", "DOUBLE")
+    n = {"table": 0, "landcover": 0, "none": 0}
+    with arcpy.da.UpdateCursor(key_path, ["Value", "Count", "runoff_c"]) as cur:
+        for row in cur:
+            k = int(row[0])
+            row[2] = runoff_c_for_key(k, table, p)
+            has_row = any(k // 100 in codes for codes in p.get("nlcd_rows", {}).values())
+            n["none" if row[2] is None else ("table" if has_row and (k // 10) % 10 in HSG_LETTER else "landcover")] += int(row[1])
+            cur.updateRow(row)
+    sa.Lookup(key_path, "runoff_c").save(out)
+    tot = max(1, sum(n.values()))
+    log.info(f"Runoff C surface -> {out}: table C on {100 * n['table'] / tot:.1f} percent of cells, land-cover "
+             f"fallback {100 * n['landcover'] / tot:.1f} (no soil group, water, barren), no value {100 * n['none'] / tot:.1f}")
+    return sa.Raster(out)
 
 
 def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
@@ -574,6 +671,23 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
                     f"and the regression cannot run. python scripts/fetch_prism.py downloads them.")
         zones["inc_ppt_mm"] = np.nan
         mean_cols.append("inc_ppt_mm")
+    # The runoff coefficient surface, read like PRISM (resampled to the zone grid on the fly).
+    # Its cell count travels with its sum so a basin partly outside the surface averages over
+    # the cells that have a value rather than over every cell.
+    sum_cols = ["inc_runoff_c_sum", "inc_runoff_c_n"]
+    c_ras = build_runoff_c_raster(cfg, log, slope, work) if p.get("runoff_c_method", "landcover") == "table" else None
+    if c_ras is not None:
+        zs_c = f"{scratch}\\zs_runoff_c"
+        sa.ZonalStatisticsAsTable(wshed, "Value", c_ras, zs_c, "DATA", "MEAN")
+        zc = pd.DataFrame([r for r in arcpy.da.SearchCursor(zs_c, ["VALUE", "COUNT", "MEAN"])],
+                          columns=["pp_id", "inc_runoff_c_n", "inc_runoff_c_mean"])
+        zc["inc_runoff_c_sum"] = zc["inc_runoff_c_n"] * zc["inc_runoff_c_mean"]
+        zones = zones.merge(zc[["pp_id"] + sum_cols], on="pp_id", how="left")
+    else:
+        if p.get("runoff_c_method", "landcover") != "landcover":
+            log.warning("profile.runoff_c_method is not 'table' or 'landcover'; using the land-cover block")
+        for c in sum_cols:
+            zones[c] = np.nan
     lc = None
     if p.get("nlcd"):
         log.info("Tabulating NLCD area per zone ...")
@@ -589,7 +703,7 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
         tree = tree.merge(lc, on="pp_id", how="left")
     tree = tree.set_index("pp_id")
     lc_cols = [c for c in tree.columns if isinstance(c, (int, np.integer))]
-    full = aggregate_upstream(tree, lc_cols, log, mean_cols=mean_cols)
+    full = aggregate_upstream(tree, lc_cols, log, mean_cols=mean_cols, sum_cols=sum_cols)
     tree["full_cells"] = [full[int(i)][0] for i in tree.index]
     tree["basin_slope_pct"] = [full[int(i)][1] / full[int(i)][0] if full[int(i)][0] else np.nan for i in tree.index]
     tree["basin_elev_max_m"] = [full[int(i)][2] if np.isfinite(full[int(i)][2]) else np.nan for i in tree.index]
@@ -611,10 +725,29 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
                     gsum.loc[i, g] += full[int(i)][3][code]
         tree["basin_landcover"] = gsum.idxmax(axis=1).where(gsum.sum(axis=1) > 0)
         tot = gsum.sum(axis=1).replace(0, np.nan)
-        tree["runoff_c"] = sum(gsum[g] * p["runoff_c"].get(g, p["runoff_c"]["default"]) for g in gsum.columns) / tot
+        tree["runoff_c_lc"] = sum(gsum[g] * p["runoff_c"].get(g, p["runoff_c"]["default"]) for g in gsum.columns) / tot
     else:
         tree["basin_landcover"] = None
-        tree["runoff_c"] = np.nan
+        tree["runoff_c_lc"] = np.nan
+    # runoff_c is the chosen coefficient: the table surface where the basin has it, the
+    # land-cover value otherwise; both stay on the table for comparison.
+    if c_ras is not None:
+        c_sum = pd.Series([full[int(i)][5]["inc_runoff_c_sum"] for i in tree.index], index=tree.index)
+        c_n = pd.Series([full[int(i)][5]["inc_runoff_c_n"] for i in tree.index], index=tree.index)
+        tree["runoff_c_tab"] = c_sum / c_n.replace(0, np.nan)
+        tree["runoff_c"] = tree["runoff_c_tab"].fillna(tree["runoff_c_lc"])
+        tree["runoff_c_method"] = np.where(tree["runoff_c_tab"].notna(), "table", "landcover")
+        cover = (c_n / tree["full_cells"].replace(0, np.nan)).median()
+        both = tree[["runoff_c_tab", "runoff_c_lc", "basin_landcover"]].dropna()
+        log.info(f"Runoff C: table on {int((tree['runoff_c_method'] == 'table').sum())} crossings (surface covers "
+                 f"{100 * cover:.0f} percent of basin cells, median), land-cover fallback on "
+                 f"{int((tree['runoff_c_method'] == 'landcover').sum())}. Median table C against land-cover C by "
+                 f"majority landcover:\n" + both.groupby("basin_landcover")[["runoff_c_tab", "runoff_c_lc"]]
+                 .median().round(2).to_string())
+    else:
+        tree["runoff_c_tab"] = np.nan
+        tree["runoff_c"] = tree["runoff_c_lc"]
+        tree["runoff_c_method"] = "landcover"
 
     # 8. assemble the crossing table
     rep_attrs = reps.set_index("pp_id")[["pp_x", "pp_y", "elev_m", "snap_dist_m"] + (["flen_m"] if flen is not None else [])]
@@ -638,7 +771,8 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
     xt = xt[["crossing_id", "crossing_pp", "downstream_crossing_id", "barrels", "member_ids", "jurisdiction",
              "restricted", "pp_x", "pp_y", "snap_dist_m", "pp_elev_ft", "basin_elev_max_m", "basin_elev_mean_ft",
              "basin_precip_in", "relief_ft", "flow_len_ft", "inc_cells", "full_cells", "contrib_area_ac",
-             "facc_area_ac", "area_check_pct", "basin_slope_pct", "basin_landcover", "runoff_c", "delineated"]]
+             "facc_area_ac", "area_check_pct", "basin_slope_pct", "basin_landcover", "runoff_c", "runoff_c_lc",
+             "runoff_c_tab", "runoff_c_method", "delineated"]]
     log.info("Basin mean annual precipitation (in) quantiles:\n"
              + xt["basin_precip_in"].quantile([.1, .5, .9]).round(1).to_string())
     log.info("Contributing area (ac) quantiles:\n" + xt["contrib_area_ac"].quantile([.1, .5, .9, .99]).round(1).to_string())
@@ -660,7 +794,8 @@ def stage_delineate(cfg: dict, log, overwrite: bool) -> None:
                ("relief_ft", "DOUBLE", None), ("flow_len_ft", "DOUBLE", None), ("inc_cells", "DOUBLE", None),
                ("full_cells", "DOUBLE", None), ("contrib_area_ac", "DOUBLE", None), ("facc_area_ac", "DOUBLE", None),
                ("area_check_pct", "DOUBLE", None), ("basin_slope_pct", "DOUBLE", None),
-               ("basin_landcover", "TEXT", 20), ("runoff_c", "DOUBLE", None), ("delineated", "DATE", None)]
+               ("basin_landcover", "TEXT", 20), ("runoff_c", "DOUBLE", None), ("runoff_c_lc", "DOUBLE", None),
+               ("runoff_c_tab", "DOUBLE", None), ("runoff_c_method", "TEXT", 12), ("delineated", "DATE", None)]
     for pth in (out_tbl, out_fc):
         if arcpy.Exists(pth):
             arcpy.management.Delete(pth)
@@ -885,7 +1020,8 @@ def profile_fields(cfg: dict):
          ("crossing_id", "TEXT", 12), ("barrels", "SHORT", None), ("large_culvert_id", "TEXT", 20),
          ("scored", "SHORT", None), ("contrib_area_ac", "DOUBLE", None), ("basin_slope_pct", "DOUBLE", None),
          ("basin_elev_mean_ft", "DOUBLE", None), ("basin_precip_in", "DOUBLE", None),
-         ("basin_landcover", "TEXT", 20), ("runoff_c", "DOUBLE", None), ("tc_min", "DOUBLE", None),
+         ("basin_landcover", "TEXT", 20), ("runoff_c", "DOUBLE", None), ("runoff_c_method", "TEXT", 12),
+         ("tc_min", "DOUBLE", None),
          ("ddf_point", "TEXT", 30), ("q_method", "TEXT", 20), ("q_region", "TEXT", 30)]
     f += [(f"q_event_{rp}_cfs", "DOUBLE", None) for rp in rps]
     f += [("q_cap_cfs", "DOUBLE", None), ("q_full_cfs", "DOUBLE", None), ("q_cap_crossing_cfs", "DOUBLE", None)]
@@ -953,10 +1089,11 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
         log.info(f"Read {len(xt)} crossings and {len(link)} culvert links")
     except Exception as e:
         log.warning(f"Crossing table not available ({e}); hydrology fields will be null")
-    xcols = ["contrib_area_ac", "basin_slope_pct", "basin_landcover", "runoff_c", "pp_elev_ft", "relief_ft",
-             "flow_len_ft", "basin_elev_mean_ft", "basin_precip_in"]
+    xcols = ["contrib_area_ac", "basin_slope_pct", "basin_landcover", "runoff_c", "runoff_c_method", "pp_elev_ft",
+             "relief_ft", "flow_len_ft", "basin_elev_mean_ft", "basin_precip_in"]
     if have_xing:
-        for c in ("basin_elev_mean_ft", "basin_precip_in"):  # crossing tables from before Oct. 9 lack these
+        # crossing tables from before Oct. 9 lack the first two, from before Oct. 20 the third
+        for c in ("basin_elev_mean_ft", "basin_precip_in", "runoff_c_method"):
             if c not in xt.columns:
                 xt[c] = np.nan
         cul = cul.merge(link[["culvert_id", "crossing_id", "barrels", "snap_dist_m"]], on="culvert_id", how="left")
@@ -965,6 +1102,7 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
         for c in ["crossing_id", "barrels", "snap_dist_m"] + xcols:
             cul[c] = np.nan
     cul["runoff_c"] = cul["runoff_c"].fillna(p["runoff_c"]["default"])
+    cul["runoff_c_method"] = cul["runoff_c_method"].fillna("default")  # default = no watershed
     cul["tailwater_flag"] = (cul["pp_elev_ft"] < p["tailwater_ft"]).astype(int)
 
     # Culverts on a mapped stream. A small recorded pipe on an enforced creek channel with a
@@ -1052,6 +1190,21 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
     log.info(f"Event flow: rational on {int((cul['q_method'] == 'rational').sum())} culverts; regression on {n_reg} "
              f"(CA {int((state[can_reg] == 'CA').sum())}, NV {int((state[can_reg] == 'NV').sum())}); "
              f"regression_needed (no precipitation or state): {int((cul['q_method'] == 'regression_needed').sum())}")
+    # Calibration: on the basins inside both methods' ranges (the regression's published area
+    # floor up to rational_max_sqmi) the two should agree. Near 1 means the runoff coefficients
+    # match the gauged record the regression was fitted to. Oct. 20, 2026: the land-cover C
+    # gave 0.49 on the California side; the table C is expected near 0.9. Nevada region 1 runs
+    # low on its own (decision pending on regression.nv_uses), so read the CA line.
+    lo = float(p["regression"]["applicability"]["area_sqmi"][0])
+    ov = ((cul["q_method"] == "rational") & sqmi.between(lo, p["rational_max_sqmi"])
+          & cul["basin_precip_in"].gt(0) & eq_state.notna() & cul[f"q_event_{hl}_cfs"].gt(0))
+    if ov.any():
+        ratio = regression_q(sqmi[ov], cul.loc[ov, "basin_precip_in"], eq_state[ov], hl) / cul.loc[ov, f"q_event_{hl}_cfs"]
+        by = ratio.groupby(eq_state[ov]).agg(["size", "median"])
+        log.info(f"Calibration, regression / rational Q{hl} on the {int(ov.sum())} rational basins of {lo:g} to "
+                 f"{p['rational_max_sqmi']:g} sq mi (runoff C by {cul['runoff_c_method'].value_counts().to_dict()}): "
+                 f"median {ratio.median():.2f}; "
+                 + "; ".join(f"{s} {r['median']:.2f} on {int(r['size'])}" for s, r in by.iterrows()))
     if n_reg:
         # The two state equations come from different regionalizations (Sierra east slope vs
         # the arid Southwest); log how far apart they sit on the same basins so the method

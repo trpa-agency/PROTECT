@@ -74,7 +74,8 @@ One point per drainage asset compiled from six jurisdiction deliveries, the stat
 | `basin_elev_mean_ft` | float | feet | Yes | Area-weighted mean elevation of the contributing watershed | 6,200 to 10,900 |
 | `basin_precip_in` | float | inches per year | Yes | Area-weighted mean annual precipitation of the watershed, PRISM 1991 to 2020 normals (800 m) | 15 to 90 |
 | `basin_landcover` | string | - | Yes | Majority NLCD 2021 group over the watershed | `forest`, `shrub`, `grass`, `developed`, `barren`, `water`, `wetland` |
-| `runoff_c` | float | - | No | Rational-method runoff coefficient; the land-cover value, or 0.35 where no watershed | 0.30 to 1.00 |
+| `runoff_c` | float | - | No | Rational-method runoff coefficient, averaged over the watershed from the land cover by soil group by slope table (Rawls, Wong, and McCuen 1981; decision 28); the land-cover value where the surface has none, 0.35 where no watershed | 0.08 to 1.00 |
+| `runoff_c_method` | string | - | No | Where `runoff_c` came from | `table`, `landcover` (no soil group), `default` (no watershed) |
 | `tc_min` | float | minutes | Yes | Kirpich time of concentration from the longest flow path and relief, bounded 5 to 1,440 | 5 to 1,440 |
 | `ddf_point` | string | - | Yes | Nearest NOAA Atlas 14 point used for intensity | one of the eight basin points |
 | `q_method` | string | - | No | How the event flow was estimated | `rational` (under 1 sq mi), `regression_CA`, `regression_NV`, `regression_needed` (no precipitation or state), `none` (no watershed) |
@@ -109,6 +110,8 @@ One point per drainage asset compiled from six jurisdiction deliveries, the stat
 
 Future fields follow the same pattern: `E_LSC_hist`, `E_DFC_hist`, the sensitivity scores `S_<pair>`, and `V_<pair>_hist`, `V_max`, `V_max_pair`, `V_class` per rubric section 2.6.
 
+The 25-yr design storm (rubric decision 5, config `scoring.flc.alt_rps`) adds three FL-C fields with S2 read from `load_ratio_25` and every other term unchanged: `S_FLC_s2_q25` (S2, 0 to 3, the `s2_default` of 1 where the ratio is withheld or missing), `S_FLC_q25` (normalized sensitivity), and `V_FLC_hist_q25` (vulnerability, 0 to 3, never above `V_FLC_hist`). They are not part of `V_max`, `V_max_pair`, or `V_class`, which stay on the 100-yr storm. The results files carry `S_FLC_q25` and `V_FLC_hist_q25`.
+
 ### Joins and relationships
 
 - **Joins to:** `CulvertCondition` on `culvert_id` (one-to-many; relationship class `Culvert_has_Condition`). That table holds one row per inspection: `inspection_date`, `condition_rating` as delivered, `condition_scheme` (how the agency rates condition, recorded because schemes differ), `structural_cond`, `blockage_pct`, `maintenance_need`, `notes`, `data_source`, `load_date`. The profile's `cond_class` is the harmonized latest row (rubric 2.5)
@@ -123,7 +126,7 @@ Future fields follow the same pattern: `E_LSC_hist`, `E_DFC_hist`, the sensitivi
 - The El Dorado and Washoe crossing rule has no manhole-run exception, so a short storm-drain pipe that crosses a side street can be typed as a culvert.
 - TRPA legacy provisional points carry sizes that were never verified; 303 of the 465 `ratio_review` flags are legacy points.
 - 221 typed culverts had no flow cell within 4 m and have no watershed; they take the 25 m exposure fallback and a null loading ratio.
-- The runoff coefficient is the land-cover default per group, not calibrated to Tahoe snow-affected runoff.
+- The runoff coefficient comes from a rainfall table (land cover, soil group, slope), not calibrated to Tahoe rain-on-snow peaks; the check is agreement with the USGS regression, fitted to gauged peaks, on the basins where both methods apply (logged each run).
 - Rows for the restricted jurisdiction exist here and nowhere under the repo.
 
 ---
@@ -162,7 +165,10 @@ One row per crossing: the group of culverts within 10 m of each other on one str
 | `area_check_pct` | float | percent | No | `contrib_area_ac` against `facc_area_ac`; a disagreement over 5 percent and 2 cells is logged | about 0 |
 | `basin_slope_pct` | float | percent | Yes | Area-weighted mean slope | 0 to 100 |
 | `basin_landcover` | string | - | Yes | Majority NLCD group | as in `Culverts` |
-| `runoff_c` | float | - | Yes | Area-weighted runoff coefficient from the land-cover shares | 0.30 to 1.00 |
+| `runoff_c` | float | - | Yes | The runoff coefficient used: `runoff_c_tab` where the surface covers the basin, `runoff_c_lc` otherwise | 0.08 to 1.00 |
+| `runoff_c_lc` | float | - | Yes | Area-weighted runoff coefficient from the land-cover shares (the pre-Oct. 20 method) | 0.30 to 1.00 |
+| `runoff_c_tab` | float | - | No | Mean of the land cover by soil group by slope surface over the cells that have a value | 0.08 to 0.97 |
+| `runoff_c_method` | string | - | Yes | `table` or `landcover` | |
 | `delineated` | date | - | No | Run date | ISO 8601 |
 
 `CulvertWatersheds_inc` carries `gridcode` (= `crossing_pp`), `crossing_id`, and `downstream_crossing_id` on each polygon.
@@ -258,7 +264,7 @@ The flood exposure surface on the FL-C E1 values, so every flood pair in both la
 | `culverts_results.csv` | The same rows without geometry | 5,096 |
 | `bridges_results.geojson` | The bridges with the section 3 fields plus facility, feature crossed, owner, year built, and condition labels | 40 |
 | `flood_surface.geojson` | `Hazard_Flood_Class` simplified to 5 m, with `hz_class` and `label` | 1,307 |
-| `summary.json` | Counts and quantiles the page's KPI cards show: scored, full profile, with ratio, ratio median and 90th percentile, suspect and review counts, tailwater count, regression count, exposure distribution, counts by jurisdiction, bridge counts, surface area by class, generation date, and notes | - |
+| `summary.json` | Counts and quantiles the page's KPI cards show: scored, full profile, with ratio, ratio median and 90th percentile, suspect and review counts, tailwater count, regression count, exposure distribution, counts by jurisdiction, bridge counts, surface area by class, generation date, and notes. `culverts.storms` holds one block per design storm (`"100"`, `"25"`: with ratio, ratio over 1, ratio median and 90th percentile, FL-C vulnerability median and class counts) for the Flooding tab's Design storm toggle; `culverts.headline_rp` names the storm of record | - |
 
 ### Known caveats
 

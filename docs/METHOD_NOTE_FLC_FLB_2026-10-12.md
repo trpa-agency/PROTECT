@@ -179,3 +179,19 @@ County. Roads carry no sensitivity (decision 25): each road pair's vulnerability
 exposure. The 2050 and 2080 columns are December work. Cross-checks
 against the documented failures in the literature review (the Incline Village blocked culvert,
 the Washoe County flash flood, the SR 89 Meeks Creek culvert) are reported with the delivery.
+
+## Addendum (Oct. 20, 2026): runoff coefficient
+
+The next profile run replaces the one value per land cover with the Rawls, Wong, and McCuen
+(1981) table (land cover by hydrologic soil group by slope class; decision 28), after the
+capacity cross-check against the CULVERT tool (`scripts/culvert_crosscheck.py`, 93 percent
+agreement on pass or fail; the gap is its 1.5 D headwater default) and the calibration below.
+On the 70 California-side basins of 0.45 to 1 sq mi, where the rational method and the
+Lahontan regression both apply, the rational Q100 above ran about twice the regression (median
+ratio 0.49; forest basins imply C 0.19 against the 0.35 used). The Oct. 20 profile run on
+the server gives the regression at 0.82 of the rational flow on the 58 California basins,
+median basin C 0.20 on forest and 0.34 on developed basins (0.38 and 0.60 before), a
+100-year loading ratio median of 0.58 on the scored set (1.07 in the Oct. 9 run) with the
+90th percentile at 10.4 (18.5), and 365 ratio_review flags (457). The numbers in the body of
+this note are the Oct. 12 run; the published results and class counts follow the next score
+and publish. The profile log prints the regression-to-rational ratio on every run.

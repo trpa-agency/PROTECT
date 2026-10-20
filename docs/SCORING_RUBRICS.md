@@ -225,7 +225,7 @@ the option 1 matrix locally from its own watershed delineation and estimates Qca
 | | | | 2 | 1.5 | | |
 | | | | 1 | 1 | | |
 | | | | 0 | 0.5 | | |
-| S2 | 100-yr capacity loading ratio, `load_ratio` = Qevent / Qdesign | 0.35 (draft); 0.30 under the S3 proposal | 4 and over | 3 | 1 when `span_in` is null, `S_source` partial | Per crossing; multi-barrel crossings grouped (section 2.4) |
+| S2 | 100-yr capacity loading ratio, `load_ratio` = Qevent / Qdesign; the 25-yr ratio is scored on the same bands as an alternate reading (decision 5) | 0.35 (draft); 0.30 under the S3 proposal | 4 and over | 3 | 1 when `span_in` is null, `S_source` partial | Per crossing; multi-barrel crossings grouped (section 2.4) |
 | | | | 3 to under 4 | 2.5 | | |
 | | | | 2.5 to under 3 | 2 | | |
 | | | | 2 to under 2.5 | 1.5 | | |
@@ -299,9 +299,26 @@ Parameters live in `config.yaml` (`hydraulics:` block, to be added with the prof
   class; they also serve the watershed sampling in section 2.3. Culverts within 10 m of each
   other on the same segment are one crossing: one watershed, capacities summed. The DEM is 2010
   lidar; crossings rebuilt since then are flagged where `install_year` is 2011 or later.
-- **Event flow, Qevent.** Rational method, Q = C i A, for basins under 1 sq mi, with C by
-  majority landcover (forest 0.35, shrub 0.40, developed 0.60, barren 0.50) and i the Atlas 14
-  intensity at the basin's time of concentration (Kirpich), 100-yr headline and 25-yr carried.
+- **Event flow, Qevent.** Rational method, Q = C i A, for basins under 1 sq mi, with C the
+  area-weighted mean over the watershed of a cell surface built from NLCD land cover,
+  hydrologic soil group, and slope class on the Rawls, Wong, and McCuen (1981) table, the
+  25-year-and-over column for both events (**TRPA decision 28**; the lookup the CULVERT tool
+  uses), and i the Atlas 14 intensity at the basin's time of concentration (Kirpich), 100-yr
+  headline and 25-yr carried. Soil groups are SSURGO survey CA693, which covers the basin in
+  both states (dual groups take the undrained letter; the lake's Water map unit carries none);
+  the slope class is the 2 m slope averaged to 30 m (under 2, 2 to 6, 6 and over percent); the
+  NLCD developed classes map to the table's open space, 1/4 acre, 1/8 acre, and commercial rows
+  by impervious share. Cells with no soil group, water, and barren take the land-cover values
+  (forest 0.35, shrub and grass 0.40, developed 0.60, barren 0.50, water 1.0), which also remain
+  available as a whole (`profile.runoff_c_method: landcover`); both coefficients travel with
+  every crossing (`runoff_c_lc`, `runoff_c_tab`, `runoff_c_method`). Why: on the California
+  basins inside both methods' published ranges (0.45 to 1 sq mi) the land-cover C gave
+  rational flows about twice the Lahontan regression; with the table the regression is 0.82
+  of the rational flow on those 58 basins (Oct. 20, 2026 run; median basin C 0.20 on forest
+  and 0.34 on developed basins, against 0.38 and 0.60 before). The attributes stage logs that
+  ratio on every run. Nevada region 1 reads 0.16 on its 31 basins, mostly the equation's own
+  low bias (about 0.4 of Lahontan on the same basins; `regression.nv_uses` decision pending).
+  No frequency factor is applied on top of the table.
   Basins of 1 sq mi and over (about 230 crossings) use the USGS regional regression
   equations for their state, Q_T = a A^b P^c with A in sq mi and P the basin mean annual
   precipitation in inches from the PRISM 1991-2020 normals (800 m): California, Lahontan
@@ -387,7 +404,7 @@ note.
   transportation assets in the 1 percent floodplain and two in the 0.2 percent. Compare with the
   FEMA fallback counts for city culverts and roads before shipping FL-C.
 - Sensitivity to the design event: report how many culverts change class between the 25-yr and
-  100-yr ratio.
+  100-yr ratio. `score_vulnerability.py` logs the class crosstab on every run (decision 5).
 - Row counts reconcile across the profile, the scored set, and the published layer, with the
   NDOT rows accounted for separately.
 
@@ -403,7 +420,12 @@ note.
 3. Watershed sampling for culvert exposure (section 1.7) instead of a point buffer.
 4. Tailwater modifier on FL-C E1 for shoreline outlets.
 5. 100-yr as the loading-ratio event, with 25-yr carried for comparison (the draft names the
-   100-yr as likely appropriate).
+   100-yr as likely appropriate). The 25-yr reading is scored alongside (S2 on the 25-yr
+   ratio, everything else unchanged: `S_FLC_q25`, `V_FLC_hist_q25`, config
+   `scoring.flc.alt_rps`) and shown through the Design storm toggle on the Results page
+   Flooding tab. It stays out of the combined class (`V_max`, `V_class`). On the public
+   culverts it moves about 230 down one FL-C class (about 80 High to Medium, 150 Medium to
+   Low) and never raises a score.
 6. Capacity from HDS-5 inlet control as the default Qdesign where asset records have none.
 7. Under debris-flow option 1, replace the sensitivity debris-potential term with opening size
    and condition to avoid counting basin slope twice.
@@ -422,6 +444,14 @@ note.
 20. Two gaps in the draft's tables, scored by TRPA interpretation until confirmed: culvert
     openings over 8 ft score 1 (the draft's lowest band), and an avalanche record with no slope
     over 25 degrees within 1,000 ft scores 1 (section 5.2).
+28. **TRPA decision (Oct. 20, 2026): runoff coefficient from land cover, soil group, and
+    slope.** The rational-method C is the area-weighted mean of a cell surface on the Rawls,
+    Wong, and McCuen (1981) table (NLCD class x hydrologic soil group x slope class, the
+    25-year-and-over column for both events), the lookup the CULVERT tool uses, in place of
+    one value per majority land cover. Soil groups from SSURGO CA693; the land-cover values
+    stay as the fallback and are carried beside the table value. Reason: on the California
+    basins inside both methods' ranges the land-cover C gave flows about twice the USGS
+    Lahontan regression. No frequency factor is applied on top of the table (section 2.4).
 
 ---
 
