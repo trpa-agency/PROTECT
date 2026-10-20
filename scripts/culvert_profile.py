@@ -835,6 +835,19 @@ def _material_class(m) -> str:
     return "unknown"
 
 
+def clean_span_rise(cul: pd.DataFrame, p: dict) -> tuple[pd.Series, pd.Series]:
+    """Delivered span and rise with the sentinels and impossible sizes nulled: spans of 0 or less (the
+    -9999 sentinel) or over 4 x profile.max_span_in, round spans over max_span_in, rises of 0 or less.
+    The layer keeps the delivered values; the profile, the published files, and the curated
+    geodatabase use these."""
+    span = pd.to_numeric(cul["span_in"], errors="coerce")
+    rise = pd.to_numeric(cul["rise_in"], errors="coerce")
+    span = span.where((span > 0) & (span <= p["max_span_in"] * 4))
+    rise = rise.where(rise > 0)
+    circ = cul["xsection_shape"].isna() | cul["xsection_shape"].astype(str).str.lower().str.contains("circ|pipe|round|code 1|none", regex=True)
+    return span.where(~(circ & (span > p["max_span_in"]))), rise
+
+
 def _size_class(d, breaks) -> str | None:
     if d is None or pd.isna(d):
         return None
@@ -1038,12 +1051,7 @@ def stage_attributes(cfg: dict, log, dry_run: bool, apply: bool) -> pd.DataFrame
     log.info(f"Read {len(cond)} condition records")
 
     # geometry-derived descriptors
-    span = pd.to_numeric(cul["span_in"], errors="coerce")
-    rise = pd.to_numeric(cul["rise_in"], errors="coerce")
-    span = span.where((span > 0) & (span <= p["max_span_in"] * 4))
-    rise = rise.where(rise > 0)
-    circ = cul["xsection_shape"].isna() | cul["xsection_shape"].astype(str).str.lower().str.contains("circ|pipe|round|code 1|none", regex=True)
-    span = span.where(~(circ & (span > p["max_span_in"])))
+    span, rise = clean_span_rise(cul, p)
     cul["span_in"], cul["rise_in"] = span, rise
     cul["d_eq_in"] = np.where(rise.notna() & (rise != span), np.sqrt(4 * span * rise / math.pi), span).round(1)
     cul["size_class"] = cul["d_eq_in"].map(lambda d: _size_class(d, p["size_breaks_in"]))

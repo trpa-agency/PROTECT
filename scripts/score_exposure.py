@@ -38,9 +38,10 @@ Usage (arcgispro-py3; runs on the server):
     python scripts/score_exposure.py --hazard landslide --build
     python scripts/score_exposure.py --hazard landslide --assets culverts bridges roads --overwrite
 
-Outputs: fields on Culverts and Bridges (E_FLC_hist, E_FLC_pt, E_FLC_src, E_FLB_hist, E_FLB_e1,
-E_FLB_e2, E_source), a table Exposure_<hazard>_roads in the analysis geodatabase (segment_id,
-E_FLR_hist, length shares), and CSVs under outputs/ (NDOT rows go to the restricted QA folder).
+Outputs: fields on Culverts and Bridges (E_<pair>_hist, the indicator terms, E_<pair>_src on culverts, and
+E_source, rebuilt across every pair scored so far), a table Exposure_<hazard>_roads in the analysis geodatabase
+(src_objectid, E_<pair>_hist, E_<pair>_e1 to e3, length shares), and CSVs under outputs/ (NDOT rows go to
+the restricted QA folder).
 """
 
 from __future__ import annotations
@@ -156,6 +157,40 @@ def weighted_exposure(parts: dict, weights: dict) -> float:
     missing indicator does not pull the score down (0 to 3)."""
     w = sum(float(weights[k]) for k in parts)
     return sum(float(weights[k]) * float(parts[k]) for k in parts) / w if w else 0.0
+
+
+# per-pair culvert exposure sources that count as complete (rubric 1.6): sampled over the culvert's
+# own watershed, or read from its own profile
+FULL_SOURCES = {"watershed", "profile"}
+
+
+def exposure_source(df: pd.DataFrame) -> np.ndarray:
+    """Culvert E_source across every pair scored so far: full where each stored E_<pair>_src is
+    complete, partial otherwise. Each run scores one hazard, so the flag is rebuilt from the per-pair
+    columns rather than taken from the pair that ran last."""
+    cols = [c for c in df.columns if c.startswith("E_") and c.endswith("_src")]
+    if not cols:
+        return np.full(len(df), None, dtype=object)
+    s = df[cols]
+    return np.where((s.isin(FULL_SOURCES) | s.isna()).all(axis=1), "full", "partial")
+
+
+def bridge_exposure_source(br: pd.DataFrame) -> np.ndarray:
+    """Bridge E_source across the pairs on the layer: partial where FL-B is scored and NBI item 71 is
+    blank (its E1 takes the default); LS-B and DF-B read the classed surfaces, which never default."""
+    blank = br["waterway_eval"].isna() | (br["waterway_eval"].astype(str).str.strip() == "")
+    return np.where(blank & ("E_FLB_hist" in br.columns), "partial", "full")
+
+
+def landslide_labels(ls: dict) -> dict:
+    """hz_class -> label for the landslide E1 surface, worded for exposure.landslide.lsi_mode."""
+    if ls.get("lsi_mode", "concentration") == "classes":
+        return {3: "very high susceptibility (class 5) or a recorded landslide", 2: "high susceptibility (class 4)",
+                1: "moderate susceptibility (class 3)"}
+    p1, p2, p3 = (f"{float(v):g}" for v in ls["lsi_share_pct"])
+    return {3: f"over {p3} percent of the 90 m cell landslide-prone, or a recorded landslide",
+            2: f"over {p2} to {p3} percent of the 90 m cell landslide-prone",
+            1: f"over {p1} to {p2} percent of the 90 m cell landslide-prone"}
 
 
 def indicators(surf) -> list:
@@ -403,8 +438,7 @@ def build_landslide_surface(cfg: dict, log, overwrite: bool) -> dict:
     surf = dissolve_classes(gpd.GeoDataFrame(pd.concat(parts, ignore_index=True), geometry="geometry", crs=crs), crs)
     log.info("Landslide E1 surface, area by class (km2):\n"
              + (surf.groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6)).round(1).to_string())
-    write_class_fc(surf, gdb, fc, "landslide", {3: "very high susceptibility (class 5) or a recorded landslide",
-                                                2: "high susceptibility (class 4)", 1: "moderate susceptibility (class 3)"}, cfg, log)
+    write_class_fc(surf, gdb, fc, "landslide", landslide_labels(ls), cfg, log)
     log.info(f"E2 (precipitation change) scores {ls.get('precip_change_hist', 0)} at the historical horizon; weight kept")
     return {"e1": (float(w["e1"]), surf), "e2": (float(w["e2"]), None)}
 
@@ -730,7 +764,7 @@ def score_culverts(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run:
     cul[f"E_{pair}_{h}"] = e.round(2)
     cul[f"E_{pair}_pt"] = e_pt.round(2)
     cul[f"E_{pair}_src"] = src
-    cul["E_source"] = np.where(src == "watershed", "full", "partial")
+    cul["E_source"] = exposure_source(cul)
     fields = [(f"E_{pair}_{h}", "DOUBLE", None), (f"E_{pair}_pt", "DOUBLE", None), (f"E_{pair}_src", "TEXT", 12),
               ("E_source", "TEXT", 10)]
     if len(inds) > 1:
@@ -772,8 +806,7 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
         e2 = br["hz_pt"].astype(float)
         br[f"E_{pair}_e1"], br[f"E_{pair}_e2"] = e1.round(2), e2.round(2)
         br[f"E_{pair}_{h}"] = ((w["e1"] * e1 + w["e2"] * e2) / (w["e1"] + w["e2"])).round(2)
-        br["E_source"] = np.where(br["waterway_eval"].isna() | (br["waterway_eval"].astype(str).str.strip() == ""),
-                                  "partial", "full")
+        br["E_source"] = bridge_exposure_source(br)
         fields = [(f"E_{pair}_{h}", "DOUBLE", None), (f"E_{pair}_e1", "DOUBLE", None), (f"E_{pair}_e2", "DOUBLE", None),
                   ("E_source", "TEXT", 10)]
     else:
@@ -781,7 +814,7 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
         weights = {name: wt for name, wt, _, _ in inds}
         parts = {name: sample_points(br, g, float(ex["point_buffer_m"]), hint_agg(hint)).values for name, _, g, hint in inds}
         br[f"E_{pair}_{h}"] = [round(weighted_exposure({k: v[j] for k, v in parts.items()}, weights), 2) for j in range(len(br))]
-        br["E_source"] = "full"
+        br["E_source"] = bridge_exposure_source(br)
         fields = [(f"E_{pair}_{h}", "DOUBLE", None), ("E_source", "TEXT", 10)]
         if len(inds) > 1:
             for name in parts:
@@ -853,7 +886,7 @@ def write_line_scores(out: pd.DataFrame, key: str, stem: str, pair: str, cfg: di
     """Rename the generic E_ columns to the pair, write the CSV, and the analysis-geodatabase table."""
     import arcpy
     h = cfg["exposure"]["horizon"]
-    out.rename(columns={f"E_{h}": f"E_{pair}_{h}", "E_e1": f"E_{pair}_e1", "E_e2": f"E_{pair}_e2"}, inplace=True)
+    out.rename(columns={f"E_{h}": f"E_{pair}_{h}", **{f"E_e{k}": f"E_{pair}_e{k}" for k in (1, 2, 3)}}, inplace=True)
     p = REPO / cfg["paths"]["outputs"] / f"exposure_{stem}.csv"
     p.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(p, index=False)

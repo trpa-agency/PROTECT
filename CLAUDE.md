@@ -92,9 +92,10 @@ PROTECT/
 ├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
 ├── html/workshop-feedback.html      # Workshop 1 digital sticky notes: hazard stations, click an asset or drop a pin, concern 1-3, why, missing flag; sends to the AGOL table (SURVEY block), CSV fallback; Report out tab + printable master list
 ├── scripts/create_workshop_feedback_layer.py  # makes/checks the AGOL table + submit/read views for the feedback page (--smoke-test)
+├── scripts/build_curated_gdb.py     # PROTECT_curated.gdb on F: (config `curated:`): only the hazard + asset layers and fields the assessment and pages use, NDOT rows excluded; DataDictionary + DatasetCatalog tables, CSV copies beside it
 ├── html/results.html                # the Results page: Overview + one tab per hazard (data-driven MODES config)
 ├── html/criticality-index.html      # criticality app, Results-page format (18,285 segments, adjustable weights; reads data/processed/results/roads_geometry.geojson + roads_criticality.json)
-├── html/od-services-index.html      # OD access-to-services index (RA2CE routed trips; criticality factor 4)
+├── html/od-services-index.html      # OD access-to-services index (criticality factor 4); reads roads_od.json + roads_geometry.geojson (publish_results.py, clean street layer), no longer the PROTECT_VA service
 ├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)
 ├── html/climate-data.html           # v0.2 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
 ├── html/tahoe-precip-events.html    # storm events + debris-flow explorer (CDN libs, embedded culverts + WRF I1h grid)

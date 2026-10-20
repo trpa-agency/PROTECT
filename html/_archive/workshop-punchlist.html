@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT Workshop 1 Punch List | TRPA</title>
+  <meta name="description" content="Dated data-team task list for the PROTECT Workshop 1 on Nov. 9, 2026, with the decisions open and the print-map spec." />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- AG Grid Community (pinned to 31.3.2: v33+ Theming API drops the legacy quartz CSS this page uses) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <!-- Open Sans (TRPA web font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:#0072CE; --trpa-navy:#003B71; --trpa-earth:#B47E00; --trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27; --trpa-olive:#B5A64C; --trpa-orange:#E87722; --trpa-purple:#7B6A8A;
+      --trpa-ice:#B4CBE8; --gray-text:#5a6577; --gray-border:#DDDDDD; --page-bg:#f4f6f9; --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:54px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.35rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .header-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+    header.app-header .header-meta a{color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;}
+    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
+
+    main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    .intro .lede{font-size:.98rem;max-width:95ch;margin-bottom:1rem;}
+    .intro .lede a{color:var(--trpa-blue);font-weight:600;}
+
+    .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
+    .kpi-card{background:#fff;border-radius:8px;padding:.85rem 1.1rem;flex:1;min-width:150px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
+    .kpi-card.warn{border-top-color:var(--trpa-brick);}
+    .kpi-card.next{border-top-color:var(--trpa-orange);}
+    .kpi-card .kpi-value{font-size:1.7rem;font-weight:700;color:var(--trpa-navy);line-height:1;}
+    .kpi-card .kpi-label{font-size:.76rem;color:var(--gray-text);margin-top:.35rem;}
+
+    /* Checkpoint strip */
+    .checks{display:flex;gap:0;flex-wrap:wrap;margin:.2rem 0 1.2rem;}
+    .check{flex:1;min-width:140px;position:relative;padding:0 .9rem .2rem 0;}
+    .check::before{content:"";display:block;height:4px;border-radius:2px;background:var(--trpa-ice);margin-bottom:.5rem;}
+    .check.done::before{background:var(--trpa-forest);}
+    .check.next::before{background:var(--trpa-orange);}
+    .check .when{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-text);}
+    .check.done .when{color:var(--trpa-forest);}
+    .check.next .when{color:var(--trpa-orange);}
+    .check .what{font-size:.84rem;font-weight:600;}
+
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .6rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    .lead a{color:var(--trpa-blue);font-weight:600;}
+
+    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.5rem 0 .7rem;}
+    .toolbar input.qf{flex:1;min-width:220px;padding:.5rem .75rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.9rem;color:var(--trpa-navy);}
+    .toolbar input.qf:focus{outline:none;border-color:var(--trpa-blue);box-shadow:0 0 0 2px rgba(0,114,206,.18);}
+    .toolbar button{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.5rem .9rem;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;}
+    .toolbar button:hover{background:var(--trpa-blue);}
+    .seg{display:inline-flex;border:1px solid var(--gray-border);border-radius:6px;overflow:hidden;background:#fff;}
+    .seg button{background:#fff;border:none;border-right:1px solid var(--gray-border);padding:.45rem .8rem;font-family:inherit;font-size:.8rem;font-weight:600;color:var(--trpa-navy);cursor:pointer;}
+    .seg button:last-child{border-right:none;}
+    .seg button:hover{background:#eaf3fb;}
+    .seg button.on{background:var(--trpa-navy);color:#fff;}
+    .ag-theme-quartz{--ag-font-family:'Open Sans',system-ui,sans-serif;--ag-foreground-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-header-background-color:var(--trpa-navy);--ag-row-hover-color:#eaf3fb;--ag-border-color:#e6e9ee;--ag-font-size:13px;}
+    .grid-wrap{width:100%;}
+
+    table.ref{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:.85rem;margin-bottom:1rem;}
+    table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.55rem .8rem;font-weight:600;vertical-align:top;}
+    table.ref td{padding:.5rem .8rem;border-top:1px solid #eef0f3;vertical-align:top;}
+    table.ref tr:nth-child(even) td{background:#fafbfc;}
+    table.ref td.num{white-space:nowrap;}
+    .panel{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:1rem 1.2rem;margin:.6rem 0 1rem;font-size:.88rem;max-width:95ch;}
+    .panel a{color:var(--trpa-blue);font-weight:600;}
+
+    footer.app-footer{max-width:1240px;margin:0 auto;padding:1.25rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.82rem;}
+    footer.app-footer a{color:var(--trpa-blue);font-weight:600;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    /* Phone widths: tables scroll inside themselves instead of widening the page */
+    @media (max-width:700px){
+      table.ref{display:block;overflow-x:auto;white-space:nowrap;}
+      .toolbar input.qf{min-width:0;flex-basis:100%;}
+    }
+      /* site nav: five groups */
+    .sitenav{background:#fff;border-bottom:1px solid #DDDDDD;}
+    .sitenav .inner{max-width:1320px;margin:0 auto;padding:.35rem 1.6rem;display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.78rem;font-family:'Open Sans',system-ui,sans-serif;}
+    .sitenav .g{display:flex;gap:.5rem;align-items:baseline;}
+    .sitenav .g b{color:#5a6577;font-weight:600;text-transform:uppercase;font-size:.66rem;letter-spacing:.06em;}
+    .sitenav a{color:#003B71;text-decoration:none;font-weight:600;}
+    .sitenav a:hover{color:#0072CE;}
+    .sitenav a.on{color:#0072CE;}
+</style>
+  <style>
+    /* Pages menu in the header (replaces the site nav row) */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Workshop 1 Punch List</h1>
+        <div class="header-sub">Task 3.2 &middot; Data-team tasks from Oct. 8 to the Nov. 9, 2026 workshop</div>
+      </div>
+      <div class="header-meta">
+        <span class="version">Internal</span>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html">Home</a></div><div class="g"><b>Results</b><a href="results.html">Results</a></div><div class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></div><div class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></div><div class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div><div class="g"><b>Workshop</b><a href="workshop-punchlist.html" class="on" aria-current="page">Punch list</a><a href="workshop-feedback.html">Feedback</a></div></nav></details>
+      </div>
+    </div>
+  </header>
+
+
+  <main>
+    <section class="intro">
+      <p class="lede">
+        One dated list of what has to land before Workshop 1, paced to the consultant checkpoints; the reasoning behind each item is in the
+        <a href="https://github.com/trpa-agency/PROTECT/blob/main/docs/WORKSHOP1_BUILD_PLAN.md" target="_blank" rel="noopener">build plan</a>.
+        Status (Done or Open) is held in the page data, and an open item past its date shows as past due.
+      </p>
+    </section>
+
+    <section class="kpi-row" id="kpis"></section>
+
+    <div class="checks" id="checks"></div>
+
+    <h2 class="sec">Tasks</h2>
+    <div class="toolbar">
+      <input id="qf" class="qf" type="text" placeholder="Search tasks" aria-label="Search tasks" />
+      <div class="seg" id="status-seg"></div>
+      <button id="task-export">Export CSV</button>
+    </div>
+    <div id="task-grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <h2 class="sec">Decisions open</h2>
+    <p class="lead">Decisions that gate a task above; the 24 numbered rubric decisions for the consultant stay on the <a href="scoring-rubrics.html">Scoring Rubrics</a> page and are not repeated here.</p>
+    <div class="toolbar" style="justify-content:flex-end;"><button data-tablecsv="dec-table" data-filename="PROTECT_Workshop1_Decisions.csv">Export CSV</button></div>
+    <table class="ref" id="dec-table">
+      <thead><tr><th style="width:6rem;">Need by</th><th>Decision</th><th style="width:16rem;">Who decides</th></tr></thead>
+      <tbody>
+        <tr><td class="num">Oct. 9</td><td>Who presents the vulnerability assessment block at the workshop, TRPA or the consultant. This decides who builds the slides.</td><td>TRPA project lead with the consultant</td></tr>
+        <tr><td class="num">Oct. 15</td><td>Maximum-pair aggregation across pairs (rubric decision 9), and whether the debris-flow stand-in stays in V_max for the workshop: today it sets the combined class on 87 percent of culverts and 69 percent of roads because the draft's drainage-size break (under 0.25 sq mi scores 3) is met almost everywhere.</td><td>Consultant with TRPA</td></tr>
+        <tr><td class="num">Oct. 15</td><td>Wildfire inputs: the Regional Resource Kit burn probability and TRPA fire severity carry the workshop (decision 22); the contracted package replaces them in December if delivered. Flood is FEMA zones for every horizon; no depth model.</td><td>Consultant confirms</td></tr>
+        <tr><td class="num">Oct. 12</td><td>Wildcat environment approval. If approved, Wildcat runs in parallel with the proxy and the proxy is not swapped out mid-stream.</td><td>TRPA IT</td></tr>
+        <tr><td class="num">Oct. 16</td><td>Steering Committee outcome on the four proposed pairs (seiche and high lake level on roads and active transport).</td><td>Steering Committee via the consultant</td></tr>
+        <tr><td class="num">Oct. 21</td><td>Scenario 2 location and hazard (other state, other hazard, other season than Scenario 1).</td><td>Data team</td></tr>
+        <tr><td class="num">Nov. 2</td><td>Whether attendees get the tool URL. The Pages site is public once shared.</td><td>TRPA project lead</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="sec">Print maps</h2>
+    <p class="lead">Twelve layouts from one Pro template, laid out Nov. 2 to 4 and at the printer Nov. 5.</p>
+    <details class="panel">
+      <summary style="cursor:pointer;font-weight:600;">Print map spec</summary>
+      <p style="margin-top:.5rem;">Basin extent, TRPA brand, and the same High, Medium, and Low legend on every sheet. Each hazard gets an exposure-only sheet for the on-screen reveal and the station poster, and a scored-assets sheet the facilitators work from. Large format for the stations, PDF for the screen.</p>
+    </details>
+    <div class="toolbar" style="justify-content:flex-end;"><button data-tablecsv="map-table" data-filename="PROTECT_Workshop1_PrintMaps.csv">Export CSV</button></div>
+    <table class="ref" id="map-table">
+      <thead><tr><th style="width:3rem;">No.</th><th style="width:14rem;">Map</th><th>Exposure layer</th><th>Assets on the scored sheet</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>Flooding, exposure</td><td>FEMA zone and stream-crossing class 0 to 3</td><td></td></tr>
+        <tr><td class="num">2</td><td>Flooding, assets scored</td><td>Same</td><td>Roads (FL-R), bridges (FL-B), culverts (FL-C), active transport (FL-AT), transit centers (FL-TC) by vulnerability</td></tr>
+        <tr><td class="num">3</td><td>Wildfire, exposure</td><td>Burn probability class 0 to 3, high-severity probability inset</td><td></td></tr>
+        <tr><td class="num">4</td><td>Wildfire, assets scored</td><td>Same</td><td>Roads (WF-R), active transport (WF-AT), transit centers (WF-TC) by vulnerability</td></tr>
+        <tr><td class="num">5</td><td>Landslide, exposure</td><td>USGS susceptibility class 0 to 3</td><td></td></tr>
+        <tr><td class="num">6</td><td>Landslide, assets scored</td><td>Same</td><td>Roads (LS-R), bridges (LS-B), culverts (LS-C) by vulnerability</td></tr>
+        <tr><td class="num">7</td><td>Debris flow, exposure</td><td>Proxy raster 0 to 3, or Wildcat if it ran</td><td></td></tr>
+        <tr><td class="num">8</td><td>Debris flow, assets scored</td><td>Same</td><td>Roads (DF-R), bridges (DF-B), culverts (DF-C) by vulnerability</td></tr>
+        <tr><td class="num">9</td><td>Avalanche, exposure</td><td>Dominant uphill slope class with the record flag, corridor labels</td><td></td></tr>
+        <tr><td class="num">10</td><td>Avalanche, assets scored</td><td>Same</td><td>Roads (AV-R) by vulnerability</td></tr>
+        <tr><td class="num">11</td><td>Scenario 1: SR-89 West Shore wildfire closure</td><td>Scenario hazard raster</td><td>Closed links, reroute links, access change per hex, isolated population</td></tr>
+        <tr><td class="num">12</td><td>Scenario 2 (decided Oct. 21)</td><td>Scenario hazard raster</td><td>Same</td></tr>
+      </tbody>
+    </table>
+    <div class="panel">If time allows: a criticality-only map (criticality class on roads, bridges, and culverts) as the context sheet at the entrance. Hotspot callouts, the top 25 per hazard, are labeled on the scored sheets.</div>
+
+    <h2 class="sec">Out of scope for the workshop</h2>
+    <div class="panel">Earthquake, wind, winter storm, seiche, and high lake level scoring; the 2050 and 2080 horizons; Expected Annual Loss; pavement condition outreach; the two-repo split; a standalone scenario explorer page. December or later.</div>
+  </main>
+
+  <footer class="app-footer">
+    <p>Replaced <code>docs/WORKSHOP1_PUNCHLIST.md</code> on Oct. 8, 2026; status is edited in the page's task data (CSV round trip). Reasoning, scripts, and data paths: <a href="https://github.com/trpa-agency/PROTECT/blob/main/docs/WORKSHOP1_BUILD_PLAN.md" target="_blank" rel="noopener">docs/WORKSHOP1_BUILD_PLAN.md</a>. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function () {
+    // ---------- DATA ----------
+    // One row per task: [due (ISO), item, status]. Status is "Done" or "Open"; the page marks an
+    // open item past due when its date has passed. Dates pace the consultant checkpoints below.
+    const WORKSHOP = "2026-11-09";
+    const CHECKPOINTS = [
+      ["2026-10-09","Rubrics to the consultant"],
+      ["2026-10-15","Consultant VA meeting"],
+      ["2026-10-16","Methods and first results"],
+      ["2026-10-30","All results final"],
+      ["2026-11-06","Tool and materials final"],
+      ["2026-11-09","Workshop 1"]
+    ];
+    const TASKS = [
+      // done (short log; the detail is in the repo history and docs/SCORING_RUBRICS.md)
+      ["2026-10-08","Scoring rubrics v0.3 aligned to the consultant's Aug. 20 tables for all 15 pairs; scoring-rubrics.html built","Done","surfaces"],
+      ["2026-10-09","Culvert profile of record on the server: DEM breached through the culvert inventory, 3 m fill, USGS regression over 1 sq mi, review flags; owner review list written","Done","surfaces"],
+      ["2026-10-09","Flooding exposure scored: FL-C (watershed maximum), FL-B (NBI waterway adequacy), FL-R, FL-AT, FL-TC on the FEMA zone and stream-crossing surface","Done","surfaces"],
+      ["2026-10-10","Wildfire exposure scored from the Regional Resource Kit burn probability and TRPA fire severity (decision 22): WF-R, WF-AT, WF-TC","Done","surfaces"],
+      ["2026-10-10","Landslide exposure scored from the USGS 2024 susceptibility as the share of each cell that is prone (decision 24): LS-C, LS-B, LS-R","Done","surfaces"],
+      ["2026-10-11","Debris flow (option 1, fire severity standing in for soil burn severity) and avalanche (uphill slope tiers, TRPA zones as the record) scored","Done","surfaces"],
+      ["2026-10-11","Vulnerability on every asset class: bridge and culvert sensitivity from the NBI and the profile, roads exposure only (decision 25), V_max and class; hotspots on the Results overview","Done","surfaces"],
+      ["2026-10-11","Site restructure: one Results page (overview plus a tab per hazard), five-group nav, grouped landing page; three hazard pages and the Phase 1 map archived; rubrics v0.4","Done","surfaces"],
+      // open: surfaces lane
+      ["2026-10-08","NDOT workshop-display sign-off (segment-level aggregates only; NDOT reviews before anything is shown)","Open","surfaces"],
+      ["2026-10-12","ICF package: rubrics v0.4 PDF, FL-C and FL-B method note refreshed for decisions 22 and 24, the sensitivity defaults, and the debris-flow drainage-size floor as a question","Open","surfaces"],
+      ["2026-10-12","Contracted fire data cutoff: anything not in hand stays out until December; the RRK inputs carry the workshop","Open","surfaces"],
+      ["2026-10-13","Trim the per-page header mini-nav now that every content page carries the shared site nav","Open","surfaces"],
+      ["2026-10-15","Consultant VA meeting: settle the debris-flow drainage-size floor and whether stand-in pairs stay in V_max, the Nevada regression choice, the span-length direction (decision 12), and legacy culvert points in the rating","Open","surfaces"],
+      ["2026-10-16","Known-failure check in Pro against the results: Northwood Blvd, the Washoe flash flood, Meeks Creek (NBI 25 0019)","Open","surfaces"],
+      ["2026-10-16","Culvert owner review list (size suspects and ratios over 20) to the jurisdictions","Open","surfaces"],
+      ["2026-10-28","If the Wildcat environment is approved and the run finishes: compare with the stand-in and choose one for December","Open","surfaces"],
+      ["2026-10-30","All 15 pairs final after consultant feedback; hotspots final (top 25 per hazard, corridor roll-up) to the facilitator sheet","Open","surfaces"],
+      ["2026-11-02","Symbology set once in Pro and saved as layer files: High, Medium, Low on every scored layer, bridge and culvert point symbols, road widths by class","Open","surfaces"],
+      ["2026-11-04","Print maps: 10 hazard layouts and 2 scenario layouts from one template, plus screen PDFs for the on-screen reveal","Open","surfaces"],
+      ["2026-11-04","Results page freeze: popups with E, S, C, V and S_source; dashboard QA checklist; storm events page linked to the flooding results","Open","surfaces"],
+      ["2026-11-05","Posters to the printer; slides to the presenter (criticality; sensitivity sources; debris flow and avalanche methods; one scenario)","Open","both"],
+      ["2026-11-06","Workshop feedback: the Survey123 layer configured in workshop-feedback.html (CSV fallback until then)","Open","surfaces"],
+      ["2026-11-09","Workshop 1","Open","both"],
+      ["2026-11-13","Sticky notes and Mentimeter answers digitized into the feedback layer; December backlog started","Open","both"],
+      // open: network lane
+      ["2026-10-15","Criticality class rule: the 0 to 3 class on the road layer, inherited by bridges, culverts, paths, and hubs (replaces the provisional percentile quarters on the Results page)","Open","network"],
+      ["2026-10-21","Two scenarios picked from the hotspots: Scenario 1 the SR-89 West Shore wildfire closure; Scenario 2 another state, hazard, and season","Open","network"],
+      ["2026-10-23","Scenario hazard rasters and the closure set (which culverts and bridges fail at the scenario intensity) as the RA2CE link-failure input","Open","network"],
+      ["2026-10-23","PROTECT_VA v2 hosted service with E, S, C, V per pair, if the workshop tool needs more than the published GeoJSON","Open","network"],
+      ["2026-10-30","RA2CE scenario runs: redundancy delta, access to the four service types, isolated hexes and population, top reroute links; one fact sheet per scenario","Open","network"]
+    ];
+
+    // ---------- HELPERS ----------
+    const MONTHS = ["Jan.","Feb.","Mar.","Apr.","May","June","July","Aug.","Sept.","Oct.","Nov.","Dec."];
+    function parse(iso){ const p = iso.split("-").map(Number); return new Date(p[0], p[1]-1, p[2]); }
+    function fmt(iso){ const d = parse(iso); return MONTHS[d.getMonth()]+" "+d.getDate(); }
+    function weekOf(iso){ const d = parse(iso); const day = d.getDay(); const mon = new Date(d); mon.setDate(d.getDate() - ((day+6)%7)); const fri = new Date(mon); fri.setDate(mon.getDate()+4); return fmt(mon.toISOString().slice(0,10))+" to "+fri.getDate(); }
+    const today = new Date(); today.setHours(0,0,0,0);
+    function status(row){ if(row[2]==="Done") return "Done"; return parse(row[0]) < today ? "Past due" : "Open"; }
+    const rows = TASKS.map(t => ({due:t[0], dueLabel:fmt(t[0]), week:weekOf(t[0]), item:t[1], status:status(t), lane:{surfaces:"Surfaces and assets", network:"Network and criticality", both:"Both"}[t[3]] || t[3] || ""}));
+
+    // ---------- KPIs AND CHECKPOINTS ----------
+    const daysLeft = Math.round((parse(WORKSHOP) - today) / 86400000);
+    const nDone = rows.filter(r => r.status==="Done").length, nPast = rows.filter(r => r.status==="Past due").length, nOpen = rows.filter(r => r.status==="Open").length;
+    const nextCp = CHECKPOINTS.find(c => parse(c[0]) >= today);
+    document.getElementById("kpis").innerHTML =
+      '<div class="kpi-card next"><div class="kpi-value">'+(daysLeft<0?0:daysLeft)+'</div><div class="kpi-label">Days to Workshop 1 (Nov. 9, 2026)</div></div>'
+      + '<div class="kpi-card"><div class="kpi-value">'+nOpen+'</div><div class="kpi-label">Open tasks</div></div>'
+      + '<div class="kpi-card'+(nPast?' warn':'')+'"><div class="kpi-value">'+nPast+'</div><div class="kpi-label">Past due</div></div>'
+      + '<div class="kpi-card"><div class="kpi-value">'+nDone+'</div><div class="kpi-label">Done</div></div>'
+      + '<div class="kpi-card next"><div class="kpi-value" style="font-size:1.15rem;">'+(nextCp ? fmt(nextCp[0]) : "Held")+'</div><div class="kpi-label">'+(nextCp ? "Next checkpoint: "+nextCp[1] : "Workshop held")+'</div></div>';
+    document.getElementById("checks").innerHTML = CHECKPOINTS.map(c => {
+      const d = parse(c[0]); const cls = d < today ? "done" : (nextCp && c[0]===nextCp[0] ? "next" : "");
+      return '<div class="check '+cls+'"><div class="when">'+fmt(c[0])+(d < today ? " &middot; passed" : (cls==="next" ? " &middot; next" : ""))+'</div><div class="what">'+c[1]+'</div></div>';
+    }).join("");
+
+    // ---------- TASK GRID ----------
+    const statusColor = {"Done":"#4A6118", "Open":"#0072CE", "Past due":"#9C3E27"};
+    function colorCell(map){ return p => { const c = map[p.value]; return c ? {color:c, background:c+"14", fontWeight:"600"} : null; }; }
+    const cols = [
+      {field:"dueLabel", headerName:"Due", width:95, pinned:"left", cellStyle:{fontWeight:"700"}, comparator:(a,b,na,nb)=> na.data.due < nb.data.due ? -1 : (na.data.due > nb.data.due ? 1 : 0)},
+      {field:"week", headerName:"Week", width:120},
+      {field:"item", headerName:"Task", flex:1, minWidth:320, wrapText:true, autoHeight:true},
+      {field:"lane", headerName:"Lane", width:170},
+      {field:"status", headerName:"Status", width:110, cellStyle:colorCell(statusColor)}
+    ];
+    let api = null, filter = "Not done";
+    function initGrid(){
+      if(!window.agGrid){ setTimeout(initGrid, 60); return; }
+      agGrid.createGrid(document.getElementById("task-grid"), {
+        columnDefs: cols, rowData: rows,
+        defaultColDef:{sortable:true, resizable:true, filter:true},
+        domLayout:"autoHeight",
+        isExternalFilterPresent: () => filter!=="All",
+        doesExternalFilterPass: node => filter==="Not done" ? node.data.status!=="Done" : node.data.status===filter,
+        onGridReady: e => { api = e.api; }
+      });
+      document.getElementById("qf").addEventListener("input", ev => { if(api) api.setGridOption("quickFilterText", ev.target.value); });
+      document.getElementById("task-export").addEventListener("click", () => { if(api) api.exportDataAsCsv({fileName:"PROTECT_Workshop1_PunchList.csv"}); });
+    }
+    function renderSeg(){
+      const el = document.getElementById("status-seg");
+      el.innerHTML = ["All","Not done","Past due","Done"].map(s => '<button type="button" data-v="'+s+'" class="'+(s===filter?"on":"")+'">'+s+'</button>').join("");
+      el.onclick = e => { const b = e.target.closest("button"); if(!b) return; filter = b.dataset.v; renderSeg(); if(api) api.onFilterChanged(); };
+    }
+    renderSeg();
+    initGrid();
+
+    // ---------- CSV (static tables) ----------
+    function tableToCsv(tableId){
+      const trs = [...document.getElementById(tableId).querySelectorAll("tr")];
+      return trs.map(tr => [...tr.querySelectorAll("th,td")].map(c => '"' + c.textContent.trim().replace(/\s+/g," ").replaceAll('"','""') + '"').join(",")).join("\n");
+    }
+    document.querySelectorAll("button[data-tablecsv]").forEach(btn => btn.addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([tableToCsv(btn.dataset.tablecsv)], {type:"text/csv"})); a.download = btn.dataset.filename; a.click();
+    }));
+  })();
+  </script>
+  <script>
+    // Pages menu: close on an outside click or Escape
+    (function(){ const p = document.getElementById("pages"); if (!p) return;
+      document.addEventListener("click", e => { if (p.open && !p.contains(e.target)) p.open = false; });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") p.open = false; }); })();
+  </script>
+</body>
+</html>

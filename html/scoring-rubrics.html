@@ -364,7 +364,7 @@
           <calcite-block heading="More on these rules" collapsible scale="s">
             <ul class="notes">
               <li><b>Flood exposure source.</b> The draft's depth-based rows for culverts and bridges are listed for the record and do not apply. The culvert loading ratio carries the hydraulic signal.</li>
-              <li><b>Aggregation across pairs.</b> Summing would double-count one physical failure at one location. Lane default confirmed Oct. 8; decision 9 with the consultant.</li>
+              <li><b>Aggregation across pairs.</b> Summing would double-count one physical failure at one location. Default confirmed Oct. 8; decision 9 with the consultant.</li>
               <li><b>Horizons.</b> Field names carry a horizon suffix from the start so December adds columns, not a schema change. Sensitivity does not vary by horizon. The FEMA flood term has no horizon; the flood pairs carry the future through the culvert loading ratio, whose design flows take 2050 and 2080 factors from the climate pipeline.</li>
               <li><b>Missing data.</b> An asset scored on any default carries <code>S_source</code> (or <code>E_source</code>) = partial; one with every sensitivity indicator defaulted carries default.</li>
             </ul>
@@ -375,7 +375,7 @@
           <div class="card-grid">
             <div class="card" style="--c:#9C3E27"><h3>Small culverts (FL-C, LS-C, DF-C)</h3><ul><li>Everything in the <code>Culverts</code> layer typed culvert; stormwater pipes, inlets, and basins are inventory only.</li><li>Road-crossing rule applied to El Dorado and Washoe pipes: a pipe that crosses a street centerline is a culvert unless both ends are manholes.</li><li>Within 25 m of an NBI culvert-type structure: excluded, scores with the bridge.</li><li>No parent segment within 50 m: inventory only, no rating (decision 10).</li><li>NDOT assets score in the analysis geodatabase only; nothing asset-level is published without NDOT review.</li><li>Expected scored set: about 5,000 including NDOT.</li></ul></div>
             <div class="card" style="--c:#7B6A8A"><h3>Bridges and large culverts (FL-B, LS-B, DF-B)</h3><ul><li>The 40 National Bridge Inventory structures inside the TRPA boundary, built by <code>scripts/build_bridges.py</code>.</li><li>Five are NBI culvert-type structures (item 43B = 19, spans over 20 ft) and score here, not with small culverts.</li><li>NBI condition items run 0 (failed) to 9 (excellent); the draft's bands are 0 to 2, 3 to 4, 5, 6, and 7 to 9 or N.</li><li>Structures not over a waterway stay in the set: water-dependent sensitivity indicators score at the draft's lowest band.</li></ul></div>
-            <div class="card" style="--c:#0072CE"><h3>Road segments (DF-R, AV-R)</h3><ul><li><code>Streets_Network_Tahoe</code> segments, scored length-weighted maximum along the segment.</li><li>Segment IDs and <code>C_class</code> come from the network lane; this lane supplies the debris-flow surface and the DF-R scores so DF-R, DF-B, and DF-C share one surface and one set of class breaks.</li><li>Avalanche: exposure only, current terrain, every segment scored. The corridor list (US-50, SR-89, SR-28, SR-207, SR-431) is the sanity check, not the scope.</li></ul></div>
+            <div class="card" style="--c:#0072CE"><h3>Road segments (DF-R, AV-R)</h3><ul><li><code>Streets_Network_Tahoe</code> segments, scored length-weighted maximum along the segment.</li><li>Segment IDs and <code>C_class</code> come from the criticality layer. DF-R, DF-B, and DF-C share one debris-flow surface and one set of class breaks.</li><li>Avalanche: exposure only, current terrain, every segment scored. The corridor list (US-50, SR-89, SR-28, SR-207, SR-431) is the sanity check, not the scope.</li></ul></div>
           </div>
 
           <h2 class="sec">Culvert loading ratio</h2>
@@ -492,7 +492,7 @@
 
     const DF_OPTION = {id:"dfopt", label:"Debris-flow exposure (decision 15)",
       choices:[["proxy","Workshop proxy raster"],["opt1","Option 1: slope, area, burn severity"],["opt2","Option 2: Wildcat likelihood and hazard class"]], def:"proxy",
-      hint:"Lane default: the proxy for the Nov. 9 workshop, Wildcat (option 2) for December. Option 1 is computed locally for every asset from the TRPA watershed delineation."};
+      hint:"Default: the proxy for the Nov. 9 workshop, Wildcat (option 2) for December. Option 1 is computed locally for every asset from the TRPA watershed delineation."};
 
     // Debris-flow exposure rows shared by DF-C, DF-B, DF-R; the sampling text differs per asset.
     function dfExposure(samp){
@@ -611,7 +611,7 @@
     const COMP = {E:{label:"Exposure", c:"#E87722", shades:["#E87722","#F09A52","#F5B984","#F9D3B0"]}, S:{label:"Sensitivity", c:"#B47E00", shades:["#B47E00","#C99A33","#D9B566","#E8CF99"]}};
     const TAG_CLASS = {proposal:"proposal", pending:"pending"};
 
-    // [no, section, decision, lane default, status]
+    // [no, section, decision, default, status]
     const DECISIONS = [
       [1,"2.8 Culverts","Condition and blockage as a third FL-C sensitivity term (S3) with weights S1 0.25, S2 0.30, S3 0.15, versus the draft's 0.35 / 0.35 with no condition term. The one culvert failure in the literature review's event catalog (Incline Village, Aug. 2025) was a blockage, which neither draft term captures.","S3 on (page default); cond_class stays a popup field if declined","Open"],
       [2,"2.8 Culverts","Debris potential computed locally with the option 1 matrix for every culvert, rather than the CULVERT tool score (option 2). NDOT data cannot be uploaded to a third-party tool, so option 2 would score Nevada highways differently from everything else.","Local computation","Open"],

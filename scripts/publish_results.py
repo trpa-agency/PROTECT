@@ -1,6 +1,7 @@
 """Publish draft VA results for the web pages: public-jurisdiction culverts with the profile and
 exposure fields, the bridges, the classed flood surface, the wildfire scores on roads, paths, and
-transit hubs with the two wildfire surfaces, and a summary JSON for the page KPIs.
+transit hubs with the two wildfire surfaces, the OD Services Index table (roads_od.json), and a
+summary JSON for the page KPIs.
 
     python scripts/publish_results.py            # writes data/processed/results/*
     python scripts/publish_results.py --dry-run  # counts only
@@ -42,6 +43,9 @@ ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e
 V_ROAD_COLS = ["src_objectid", "name", "class", "V_FLR_hist", "V_LSR_hist", "V_WFR_hist", "V_DFR_hist", "V_AVR_hist",
                "V_max", "V_max_pair", "V_class", "V_max_all", "V_max_all_pair", "V_class_all", "C_class", "criticality_score",
                "criticality_pctl", "seg_len_m"]
+OD_DESTS = ("evacuation", "law_enforcement", "medical_facilities", "emergency_shelters")
+OD_COLS = (["src_objectid", "segment_id", "in_flood_zone", "high_sev_fire", "landslide_mean"]
+           + [f"{m}_{d}" for m in ("traffic", "prioritarian") for d in OD_DESTS])
 CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")
 # wildfire pairs (scoring.v_breaks_wildfire): Low under 2.0, Medium 2.0 to 2.5, High over 2.5
 WF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 2 else "Medium" if v <= 2.5 else "High")
@@ -228,6 +232,25 @@ def _json_rows(df: pd.DataFrame, path: Path, log) -> None:
     log.info(f"{len(rows)} rows -> {path.name} ({path.stat().st_size / 1e6:.2f} MB)")
 
 
+def write_od_services(cfg: dict, out_dir: Path, log) -> None:
+    """The OD Services Index page's table (roads_od.json): routed trips to the four destination types and the
+    hazard filter fields from the clean street layer, joined in the browser to roads_geometry.geojson on
+    src_objectid. The same layer feeds the Criticality Index, so the two pages show one routing run."""
+    import json
+    key = cfg["assets"]["streets_key"]
+    st = read_streets(cfg, log, columns=[c for c in OD_COLS if c != key]).drop_duplicates(key)
+    d = pd.DataFrame(st.drop(columns="geometry"))[OD_COLS]
+    for c in d.columns:
+        if pd.api.types.is_float_dtype(d[c]):
+            d[c] = d[c].round(2)
+    meta = {"generated": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), "source": cfg["assets"]["streets_fc"],
+            "routing": "travel time by road class on the corrected RA2CE network, 100 stochastic assignment draws"}
+    p = out_dir / "roads_od.json"
+    p.write_text(json.dumps({"meta": meta, "columns": list(d.columns), "rows": json.loads(d.to_json(orient="values"))},
+                            separators=(",", ":")), encoding="utf-8")
+    log.info(f"{len(d)} rows -> {p.name} ({p.stat().st_size / 1e6:.2f} MB)")
+
+
 def _e_counts(series: pd.Series) -> dict:
     return {str(k): int(v) for k, v in series.round(1).value_counts().sort_index().items()}
 
@@ -243,6 +266,8 @@ def write_hazard_roads(cfg: dict, out_dir: Path, log, hazard: str, pair: str):
     roads = _table(gdb, f"Exposure_{hazard}_roads", log)
     if roads is None:
         return None, None
+    # tables scored before write_line_scores renamed the third indicator still call it E_e3
+    roads = roads.rename(columns={f"E_e{k}": f"E_{pair}_e{k}" for k in (1, 2, 3) if f"E_{pair}_e{k}" not in roads.columns})
     info = pyogrio.read_info(cfg["assets"]["streets_gdb"], layer=cfg["assets"]["streets_fc"])
     extra = [c for c in ("name", "class") if c in list(info["fields"])]
     st = read_streets(cfg, log, columns=extra).drop_duplicates(key)
@@ -306,7 +331,9 @@ def write_landslide(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br: gp
     if "E_LSB_hist" in br.columns:
         summary["bridges"] = {"count": int(br["E_LSB_hist"].notna().sum()), "E": _e_counts(br["E_LSB_hist"].dropna()),
                               "n_e1_class3": int((br.get("E_LSB_e1", pd.Series(dtype=float)) >= 3).sum())}
+    from score_exposure import landslide_labels
     surf = pyogrio.read_dataframe(cfg["exposure"]["hazards_gdb"], layer=ls["class_fc"])
+    surf["label"] = surf["hz_class"].astype(int).map(landslide_labels(ls))
     summary["surface_km2"] = {str(int(k)): round(float(v), 1) for k, v in
                               surf.to_crs(target_crs(cfg)).groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6).items()}
     surf = slim_surface(surf, target_crs(cfg), log, "landslide_surface", simplify_m=10)
@@ -484,11 +511,19 @@ def main() -> None:
     out_dir = REPO / cfg["paths"]["processed"] / "results"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    from culvert_profile import clean_span_rise
+    from score_exposure import bridge_exposure_source, exposure_source
     cul = pyogrio.read_dataframe(gdb, layer=a["culverts_fc"])
     cul = cul[cul["scored"] == 1] if "scored" in cul.columns else cul
-    cul = public_only(cul, cfg, log)
+    cul = public_only(cul, cfg, log).copy()
+    # derived from the stored fields so the files are right whatever the layer holds: the layer keeps the
+    # delivered sizes, and E_source on layers scored before exposure_source reflects only the last pair run
+    cul["span_in"], cul["rise_in"] = clean_span_rise(cul, cfg["profile"])
+    cul["E_source"] = exposure_source(cul)
     cul = tidy(cul, CULVERT_COLS)
-    br = tidy(pyogrio.read_dataframe(gdb, layer=a["bridges_fc"]), BRIDGE_COLS)
+    br = pyogrio.read_dataframe(gdb, layer=a["bridges_fc"])
+    br["E_source"] = bridge_exposure_source(br)
+    br = tidy(br, BRIDGE_COLS)
 
     hz_gdb = cfg["exposure"]["hazards_gdb"]
     fl_fc = cfg["exposure"]["flood"]["class_fc"]
@@ -564,6 +599,7 @@ def main() -> None:
     v_summary = write_vulnerability(cfg, out_dir, log, cul, br)
     if v_summary:
         summary["vulnerability"] = v_summary
+    write_od_services(cfg, out_dir, log)
     cul.to_file(out_dir / "culverts_results.geojson", driver="GeoJSON")
     br.to_file(out_dir / "bridges_results.geojson", driver="GeoJSON")
     flood.to_file(out_dir / "flood_surface.geojson", driver="GeoJSON")

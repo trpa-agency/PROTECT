@@ -317,3 +317,13 @@ ndot:
   pipe_subtypes: [1, 3, 4]        # Storm Drain, Down Drain, Subsurface Drain
   max_diameter_in: 144            # larger values are treated as data errors (one 6300 in. record)
   min_inspection_year: 1990       # earlier dates (an 1899 placeholder) become null
+
+# scripts/build_curated_gdb.py - the curated geodatabase: only the hazard and asset layers the assessment and the
+# pages use, only the fields they use, with DataDictionary and DatasetCatalog tables (CSV copies beside the gdb)
+curated:
+  gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_curated.gdb   # public jurisdictions only
+  restricted_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_curated_restricted.gdb   # --include-restricted; stays on F:
+  fire_perimeters_layer: https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0
+  earthquakes_url: https://earthquake.usgs.gov/fdsnws/event/1/query
+  earthquakes_box: [38.7, 39.4, -120.3, -119.8]   # lat min, lat max, lon min, lon max: the box html/historic-hazards.html queries
+  earthquakes_min_mag: 2.5
