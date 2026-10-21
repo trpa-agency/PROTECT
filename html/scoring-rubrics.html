@@ -249,7 +249,7 @@
         scored for flooding, landslide, wildfire, debris flow, and avalanche: a vulnerability score from 0 to 3
         that combines exposure (how much of the hazard reaches the asset) and sensitivity (how badly the asset
         would fare). Every indicator value and score follows the consultant's draft methodology (Aug. 20, 2026);
-        anything TRPA adds or changes is tagged as a proposal.<i class="i" tabindex="0" data-tip="Interactive version of the v0.5 scoring rubrics (Oct. 12, 2026) for the system-wide, indicator-based vulnerability assessment. Source of record is docs/SCORING_RUBRICS.md in the repo. Version 0.3 adopts the draft's half-point score scale, its class breaks, and its direction for span type, span length, and drainage area. TRPA is not acquiring a flood depth model, so flood exposure is scored from FEMA flood zones and stream crossings (decision 19). No pair is scored until its rubric is agreed.">i</i>
+        anything TRPA adds or changes is tagged as a proposal.<i class="i" tabindex="0" data-tip="Interactive version of the v0.6 scoring rubrics (Oct. 21, 2026) for the system-wide, indicator-based vulnerability assessment. Source of record is docs/SCORING_RUBRICS.md in the repo. Version 0.3 adopts the draft's half-point score scale, its class breaks, and its direction for span type, span length, and drainage area. TRPA is not acquiring a flood depth model, so flood exposure is scored from FEMA flood zones and stream crossings (decision 19). No pair is scored until its rubric is agreed.">i</i>
       </p>
     </section>
 
@@ -447,12 +447,12 @@
   </main>
 
   <footer class="app-footer">
-    <p>Scoring rubrics v0.5 (Oct. 12, 2026); roads are exposure only (decision 25). Source of record: <code>docs/SCORING_RUBRICS.md</code>; equation, weights, indicator values, and scores from the consultant's Aug. 20, 2026 draft Vulnerability Assessment Methodology (not committed); pair definitions from <code>Hazard_Asset_Pairs.md</code> (v0.8) and the <a href="reference-hub.html">Reference Hub</a>. Internal review draft.</p>
+    <p>Scoring rubrics v0.6 (Oct. 21, 2026); roads are exposure only (decision 25). Source of record: <code>docs/SCORING_RUBRICS.md</code>; equation, weights, indicator values, and scores from the consultant's Aug. 20, 2026 draft Vulnerability Assessment Methodology (not committed); pair definitions from <code>Hazard_Asset_Pairs.md</code> (v0.8) and the <a href="reference-hub.html">Reference Hub</a>. Internal review draft.</p>
   </footer>
 
   <script>
   (function () {
-    // ---------- RUBRIC DATA (mirror of docs/SCORING_RUBRICS.md v0.5) ----------
+    // ---------- RUBRIC DATA (mirror of docs/SCORING_RUBRICS.md v0.6) ----------
     // Each indicator lists its values as [score, indicator value], highest first, as the draft's
     // tables do. A matrix indicator (slope x landcover) carries rows, cols, and the score grid.
     // An indicator is active when its `when` test passes against the chosen options.
