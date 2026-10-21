@@ -116,7 +116,7 @@ scoring:
   # V_max_all / V_class_all always carry the every-pair reading alongside. Empty the list to include them.
   v_max_exclude: [DFC, DFB, DFR]
   flc:                            # flooding x small culverts
-    s3: true                      # TRPA proposal: condition and blockage as S3 (weights_s3); false = the draft's S1 / S2 only
+    s3: false                     # decision 1 (Oct. 21, 2026): no condition or blockage term; the draft's S1 / S2 only. true = the retired S3 proposal (weights_s3)
     weights_s3: {e: 0.30, s1: 0.25, s2: 0.30, s3: 0.15}
     weights_draft: {e: 0.30, s1: 0.35, s2: 0.35}
     s1_default: 1                 # no watershed: debris potential 1, S_source partial

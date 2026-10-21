@@ -235,7 +235,7 @@
         <div class="header-sub">Task 3.2 &middot; Exposure and sensitivity rubrics per hazard-asset pair</div>
       </div>
       <div class="header-meta">
-        <span class="version">v0.4</span>
+        <span class="version">v0.5</span>
         <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html">Home</a></div><div class="g"><b>Results</b><a href="results.html">Results</a></div><div class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></div><div class="g"><b>Method and data</b><a href="scoring-rubrics.html" class="on" aria-current="page">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></div><div class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div><div class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></div></nav></details>
       </div>
     </div>
@@ -249,7 +249,7 @@
         scored for flooding, landslide, wildfire, debris flow, and avalanche: a vulnerability score from 0 to 3
         that combines exposure (how much of the hazard reaches the asset) and sensitivity (how badly the asset
         would fare). Every indicator value and score follows the consultant's draft methodology (Aug. 20, 2026);
-        anything TRPA adds or changes is tagged as a proposal.<i class="i" tabindex="0" data-tip="Interactive version of the v0.6 scoring rubrics (Oct. 21, 2026) for the system-wide, indicator-based vulnerability assessment. Source of record is docs/SCORING_RUBRICS.md in the repo. Version 0.3 adopts the draft's half-point score scale, its class breaks, and its direction for span type, span length, and drainage area. TRPA is not acquiring a flood depth model, so flood exposure is scored from FEMA flood zones and stream crossings (decision 19). No pair is scored until its rubric is agreed.">i</i>
+        anything TRPA adds or changes is tagged as a proposal.<i class="i" tabindex="0" data-tip="Interactive version of the v0.7 scoring rubrics (Oct. 21, 2026) for the system-wide, indicator-based vulnerability assessment. Source of record is docs/SCORING_RUBRICS.md in the repo. Version 0.3 adopts the draft's half-point score scale, its class breaks, and its direction for span type, span length, and drainage area. TRPA is not acquiring a flood depth model, so flood exposure is scored from FEMA flood zones and stream crossings (decision 19). No pair is scored until its rubric is agreed.">i</i>
       </p>
     </section>
 
@@ -257,7 +257,7 @@
       <div class="kpi-card"><div class="kpi-value">15</div><div class="kpi-label">Hazard-asset pairs with a rubric in v0.3: five hazards, five asset types<i class="i" tabindex="0" data-tip="Culverts and bridges under flooding, landslide, and debris flow; roads under all five hazards; active transport and transit centers under flooding and wildfire. All 15 pairs are covered on one scale, so every pair samples the same classed hazard surfaces.">i</i></div></div>
       <div class="kpi-card"><div class="kpi-value">0 to 3</div><div class="kpi-label">Score scale in half-point steps; indicator weights sum to 1.0 within each pair</div></div>
       <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Vulnerability classes: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (wildfire: under 2.0, 2.0 to 2.5, over 2.5)<i class="i" tabindex="0" data-tip="TRPA proposal (decision 9). Class breaks are held in config.yaml so that one change carries to every page and map layout.">i</i></div></div>
-      <div class="kpi-card"><div class="kpi-value">23</div><div class="kpi-label">Numbered items for the consultant: 20 open, 3 resolved by the draft's tables</div></div>
+      <div class="kpi-card"><div class="kpi-value">30</div><div class="kpi-label">Numbered notes for ICF review: 3 where a view would help, 24 for the record, 3 resolved by the draft's tables</div></div>
     </section>
 
     <calcite-tabs scale="m">
@@ -394,7 +394,7 @@
           <h2 class="sec">Validation checks before delivery</h2>
           <p class="lead">Checks the data team runs on each result set before it goes to the consultant.</p>
           <div class="card-grid">
-            <div class="card" style="--c:#9C3E27"><h3>Culverts</h3><ul><li>Known-failure check: the Aug. 2025 Incline Village blocked culvert (FL-C S3), the June 2026 Washoe County flash flood crossings (loading ratio at the 1-hr intensity), and the SR 89 Meeks Creek culvert (scores under the bridge rubric, the cross-check between the two paths) should land High.</li><li>Distribution checks on contributing area and loading ratio by jurisdiction; 20 watersheds checked by eye against the hillshade.</li><li>Report how many culverts change class between the 25-yr and 100-yr ratio; the scoring run logs the crosstab (decision 5).</li></ul></div>
+            <div class="card" style="--c:#9C3E27"><h3>Culverts</h3><ul><li>Known-failure check: the Aug. 2025 Incline Village blocked culvert (a blockage, which the screen does not score, so it tests exposure and the loading ratio), the June 2026 Washoe County flash flood crossings (loading ratio at the 1-hr intensity), and the SR 89 Meeks Creek culvert (scores under the bridge rubric, the cross-check between the two paths) should land High.</li><li>Distribution checks on contributing area and loading ratio by jurisdiction; 20 watersheds checked by eye against the hillshade.</li><li>Report how many culverts change class between the 25-yr and 100-yr ratio; the scoring run logs the crosstab (decision 5).</li></ul></div>
             <div class="card" style="--c:#7B6A8A"><h3>Bridges</h3><ul><li>Meeks Creek (structure 25 0019; culvert condition 5, scour code 4) should land High or Medium on FL-B.</li><li>With 40 structures, review every row by hand against the NBI record before delivery.</li></ul></div>
             <div class="card" style="--c:#0072CE"><h3>Avalanche</h3><ul><li>The five corridors should carry nearly all High segments; list any High segment off those corridors for the DOTs.</li><li>The score describes closure likelihood, not damage.</li></ul></div>
           </div>
@@ -404,10 +404,10 @@
       <!-- TAB 4: Decisions -->
       <calcite-tab>
         <div class="tab-body">
-          <h2 class="sec">Decisions requested from the consultant</h2>
-          <p class="lead">Six items need an ICF decision: 1, 7, and 19 (culverts and flooding), 11 and 12 (bridges), and 15
-            (debris flow, before the Nov. 9 workshop). The rest are for the record: TRPA's default is in use, comment only
-            if you disagree. Three are resolved.<i class="i" tabindex="0" data-tip="TRPA defaults confirmed Oct. 8, 2026: the debris flow proxy for the workshop and Wildcat for December; the road-crossing rule applied to El Dorado and Washoe pipes; maximum-pair aggregation; avalanche scored by dominant uphill slope with a record flag, the TRPA zone layer counting as a record source, and no runout modeling; no flood depth model, FEMA zones and stream crossings for flood exposure.">i</i></p>
+          <h2 class="sec">Notes for ICF review</h2>
+          <p class="lead">ICF is asked to review the rubrics as a whole; TRPA has made the working calls. Three notes carry a
+            position where ICF's view would help: 11 and 12 (bridges) and 29 (flood horizons). The rest are for the record:
+            TRPA's choice is in use, flag anything you disagree with. Three are resolved by the draft.<i class="i" tabindex="0" data-tip="TRPA decisions of Oct. 21, 2026: no condition or blockage term in FL-C (1); DF-C sensitivity is opening size and condition (7); debris-flow exposure is option 1 for the workshop (15); flood exposure is FEMA zones and stream crossings on every flood pair (19). Earlier defaults, confirmed Oct. 8: the road-crossing rule applied to El Dorado and Washoe pipes; maximum-pair aggregation; avalanche scored by dominant uphill slope with a record flag and the TRPA zone layer counting as a record source.">i</i></p>
           <div class="toolbar"><button data-tablecsv="dec-table" data-filename="PROTECT_Rubric_Decisions.csv">Export CSV</button></div>
           <table class="ref" id="dec-table">
             <thead><tr><th style="width:3rem;">No.</th><th style="width:9rem;">Section</th><th>Decision</th><th style="width:16rem;">TRPA default</th><th style="width:6.5rem;">Status</th></tr></thead>
@@ -422,17 +422,17 @@
             <thead><tr><th style="width:14rem;">Item</th><th>Draft</th><th>v0.3</th><th style="width:7rem;">Decision</th></tr></thead>
             <tbody>
               <tr><td>Flood exposure (FL-C E1, FL-B E2)</td><td>100-yr flood depth over the road; change in 100-yr depth at the structure; both from a flood depth model</td><td>FEMA flood zone and stream crossing, four values, under every horizon; no depth model is being acquired</td><td class="num">19</td></tr>
-              <tr><td>FL-C sensitivity weights</td><td>Debris potential 0.35, loading ratio 0.35</td><td>Adds condition and blockage at 0.15; debris potential 0.25, loading ratio 0.30</td><td class="num">1</td></tr>
               <tr><td>Debris potential source</td><td>StreamStats API (option 1) or the CULVERT tool (option 2)</td><td>The option 1 matrix computed locally from the TRPA watershed delineation; NDOT data is not sent to third-party tools</td><td class="num">2</td></tr>
               <tr><td>Culvert sampling</td><td>Point value at the asset</td><td>Maximum over the contributing watershed, 25 m buffer where none</td><td class="num">3</td></tr>
               <tr><td>Tailwater</td><td>Not in the draft</td><td>Add 1 (maximum 3) to FL-C E1 where the outlet is within 50 m of the shoreline and below 6,230 ft</td><td class="num">4</td></tr>
               <tr><td>Qdesign</td><td>From asset data or the CULVERT tool</td><td>HDS-5 inlet-control capacity at HW/D = 1.0 where records have none</td><td class="num">6</td></tr>
               <tr><td>Runoff coefficient</td><td>Not specified; Qevent from the StreamStats API</td><td>NLCD land cover by hydrologic soil group by slope class on the Rawls, Wong, and McCuen (1981) table, averaged over the watershed; the land-cover value where no soil group</td><td class="num">28</td></tr>
-              <tr><td>DF-C sensitivity under option 1</td><td>Debris potential 0.30</td><td>Opening size 0.15 and condition and blockage 0.15, because basin slope already sits in exposure</td><td class="num">7</td></tr>
+              <tr><td>DF-C sensitivity under option 1</td><td>Debris potential 0.30</td><td>Opening size 0.15 and condition 0.15 (the LS-C scales), because basin slope already sits in exposure</td><td class="num">7</td></tr>
               <tr><td>Missing-data defaults</td><td>TBD for most indicators</td><td>A default per row, flagged partial or default in the record</td><td class="num">8</td></tr>
               <tr><td>Classes and aggregation</td><td>Not in the draft</td><td>Low under 1.0, Medium to under 2.0, High 2.0 and over; maximum pair score per asset</td><td class="num">9</td></tr>
-              <tr><td>Span length direction</td><td>Longer spans score higher</td><td>The draft's direction is used; TRPA proposes the reverse</td><td class="num">12</td></tr>
-              <tr><td>Debris-flow exposure for the workshop</td><td>Option 1 or option 2</td><td>A proxy raster (WRF 1-hr intensity, slope and contributing area, burn severity proxy) classed 0 to 3 at 0.70 until option 2 runs in December</td><td class="num">15</td></tr>
+              <tr><td>Cumulative sort fields</td><td>Not in the draft</td><td>The count of pairs classed High and the sum of pair scores beside the maximum, for sorting only; not yet published</td><td class="num">30</td></tr>
+              <tr><td>Span length direction</td><td>Longer spans score higher</td><td>The draft's direction is used; TRPA proposes the reverse, citing FHWA HEC-9 (longer spans are less prone to debris blockage) and the lahar bridge fragility study of Dagá and others (2018)</td><td class="num">12</td></tr>
+              <tr><td>Debris-flow exposure for the workshop</td><td>Option 1 or option 2</td><td>Option 1 (slope, drainage area, burn severity stand-in) for Nov. 9; option 2 (Wildcat) reviewed for December; the proxy raster is not used</td><td class="num">15</td></tr>
               <tr><td>Dominant slope and records</td><td>Dominant slope undefined; two accident databases as records</td><td>Largest-area slope class on the uphill side within 1,000 ft; the TRPA zone layer and documented closures also count as records</td><td class="num">17, 18</td></tr>
               <tr><td>Two gaps in the draft's tables</td><td>No row for culvert openings over 8 ft or for an avalanche record with no slope over 25 degrees</td><td>Both score 1</td><td class="num">20</td></tr>
               <tr><td>Flood exposure for roads, active transport, and transit centers</td><td>Floodplain extent (10-yr 3 down to 1,000-yr 0.5) at 0.35 and 100-yr depth at 0.35</td><td>One indicator, the FEMA zone and stream-crossing scale, at the full exposure weight; FEMA maps only the 100-yr and 500-yr floodplains</td><td class="num">21</td></tr>
@@ -447,12 +447,12 @@
   </main>
 
   <footer class="app-footer">
-    <p>Scoring rubrics v0.6 (Oct. 21, 2026); roads are exposure only (decision 25). Source of record: <code>docs/SCORING_RUBRICS.md</code>; equation, weights, indicator values, and scores from the consultant's Aug. 20, 2026 draft Vulnerability Assessment Methodology (not committed); pair definitions from <code>Hazard_Asset_Pairs.md</code> (v0.8) and the <a href="reference-hub.html">Reference Hub</a>. Internal review draft.</p>
+    <p>Scoring rubrics v0.7 (Oct. 21, 2026); roads are exposure only (decision 25). Source of record: <code>docs/SCORING_RUBRICS.md</code>; equation, weights, indicator values, and scores from the consultant's Aug. 20, 2026 draft Vulnerability Assessment Methodology (not committed); pair definitions from <code>Hazard_Asset_Pairs.md</code> (v0.8) and the <a href="reference-hub.html">Reference Hub</a>. Internal review draft.</p>
   </footer>
 
   <script>
   (function () {
-    // ---------- RUBRIC DATA (mirror of docs/SCORING_RUBRICS.md v0.6) ----------
+    // ---------- RUBRIC DATA (mirror of docs/SCORING_RUBRICS.md v0.7) ----------
     // Each indicator lists its values as [score, indicator value], highest first, as the draft's
     // tables do. A matrix indicator (slope x landcover) carries rows, cols, and the score grid.
     // An indicator is active when its `when` test passes against the chosen options.
@@ -464,7 +464,6 @@
     const PPT_VALUES = [[3,"over 40 percent"],[2,"over 20 to 40 percent"],[1,"over 0 to 20 percent"],[0,"no change or decrease"]];
     const SIZE_VALUES = [[3,"under 2 ft opening"],[2.5,"2 to under 3 ft"],[2,"3 to under 5 ft"],[1.5,"5 to under 7 ft"],[1,"7 ft and over (over 8 ft is a TRPA interpretation, decision 20)"]];
     const COND_VALUES = [[3,"poor"],[2,"fair"],[1,"good"]];
-    const CONDBLK_VALUES = [[3,"poor, or blockage 50 percent and over"],[2,"fair, or blockage 25 to under 50 percent"],[1,"good, blockage under 25 percent"]];
     const RATIO_VALUES = [[3,"4 and over"],[2.5,"3 to under 4"],[2,"2.5 to under 3"],[1.5,"2 to under 2.5"],[1,"1.5 to under 2"],[0.5,"1 to under 1.5"],[0,"under 1"]];
     const SPAN_VALUES = [[3,"single span (item 45 = 1)"],[1,"continuous span (item 45 over 1)"]];
     const NBICOND_VALUES = [[3,"0 to 2 (poor)"],[2.5,"3 to 4 (poor)"],[2,"5 (fair)"],[1.5,"6 (fair)"],[1,"7 to 9 (good), N, or none"]];
@@ -491,13 +490,13 @@
     const TAIL_MOD = {id:"tail", delta:1, label:"Tailwater flag set (outlet within 50 m of the shoreline and below 6,230 ft): add 1, maximum 3. TRPA proposal, decision 4"};
 
     const DF_OPTION = {id:"dfopt", label:"Debris-flow exposure (decision 15)",
-      choices:[["proxy","Workshop proxy raster"],["opt1","Option 1: slope, area, burn severity"],["opt2","Option 2: Wildcat likelihood and hazard class"]], def:"proxy",
-      hint:"Default: the proxy for the Nov. 9 workshop, Wildcat (option 2) for December. Option 1 is computed locally for every asset from the TRPA watershed delineation."};
+      choices:[["opt1","Option 1: slope, area, burn severity"],["opt2","Option 2: Wildcat likelihood and hazard class"],["proxy","Proxy raster (not used)"]], def:"opt1",
+      hint:"TRPA decision (Oct. 21, 2026): option 1 for the Nov. 9 workshop, computed locally for every asset from the TRPA watershed delineation. Option 2 (Wildcat) is reviewed for December; the proxy is listed for the record."};
 
     // Debris-flow exposure rows shared by DF-C, DF-B, DF-R; the sampling text differs per asset.
     function dfExposure(samp){
       return [
-        {k:"dfp_e1", code:"E1", comp:"E", name:"Proxy debris-flow class: WRF 1-hr intensity against the Tahoe threshold, slope and contributing area from the DEM, and the burn severity proxy, classed 0 to 3", weight:0.70, values:[[3,"class 3"],[2,"class 2"],[1,"class 1"],[0,"class 0"]], def:0, sampling:samp.proxy, when:o=>o.dfopt==="proxy", opt:"Workshop proxy", tags:["proposal"], tagText:{proposal:"TRPA proposal: workshop fallback, DF_option = proxy (decision 15)"}},
+        {k:"dfp_e1", code:"E1", comp:"E", name:"Proxy debris-flow class: WRF 1-hr intensity against the Tahoe threshold, slope and contributing area from the DEM, and the burn severity proxy, classed 0 to 3", weight:0.70, values:[[3,"class 3"],[2,"class 2"],[1,"class 1"],[0,"class 0"]], def:0, sampling:samp.proxy, when:o=>o.dfopt==="proxy", opt:"Proxy (not used)", tags:["proposal"], tagText:{proposal:"TRPA proxy, listed for the record; not used (decision 15)"}},
         {k:"df1_e1", code:"E1", comp:"E", name:"Mean basin slope (basin_slope_pct)", weight:0.20, values:[[3,"over 30 percent"],[2.5,"over 25 to 30 percent"],[2,"over 20 to 25 percent"],[1.5,"over 15 to 20 percent"],[1,"over 10 to 15 percent"],[0.5,"over 5 to 10 percent"],[0,"0 to 5 percent"]], def:1, sampling:samp.ws, when:o=>o.dfopt==="opt1", opt:"Option 1"},
         {k:"df1_e2", code:"E2", comp:"E", name:"Drainage area (contrib_area_ac); smaller areas lead to higher debris-flow intensities", weight:0.20, values:[[3,"under 0.25 sq mi"],[2.5,"0.25 to 0.5 sq mi"],[2,"over 0.5 to 1 sq mi"],[1.5,"over 1 to 2 sq mi"],[1,"over 2 to 3 sq mi"],[0.5,"over 3 to 5 sq mi"],[0,"over 5 sq mi"]], def:1, sampling:samp.ws, when:o=>o.dfopt==="opt1", opt:"Option 1"},
         {k:"df1_e3", code:"E3", comp:"E", name:"Contracted predicted soil burn severity", weight:0.30, values:BURN_VALUES, def:0, sampling:samp.wsmax, when:o=>o.dfopt==="opt1", opt:"Option 1", tags:["pending"], tagText:{pending:"contracted data pending delivery"}},
@@ -522,13 +521,11 @@
 
     const PAIRS = [
       {id:"FL-C", hazard:"Flooding", asset:"culvert", assetLabel:"Small culverts", wE:0.3, wS:0.7, section:"Rubrics section 2.3",
-        options:[{id:"s3", label:"Condition term (decision 1)", choices:[["on","TRPA proposal: S1 0.25, S2 0.30, S3 0.15"],["off","Draft: S1 0.35, S2 0.35, no condition term"]], def:"on",
-           hint:"The one culvert failure in the literature review's event catalog (Incline Village, Aug. 2025) was a blockage, which neither draft term captures."}],
+        options:[],
         indicators:[
           {k:"flc_e1", code:"E1", comp:"E", name:"FEMA flood zone and stream crossing, in place of the draft's flood depth indicator (no flood depth model is being acquired)", weight:0.30, values:FEMA_VALUES, def:0, sampling:"Maximum within 25 m of the crossing on the road", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 19)"}, mods:[TAIL_MOD]},
-          {k:"flc_s1", code:"S1", comp:"S", kind:"matrix", name:"Debris potential of the basin: mean basin slope by majority landcover (draft option 1 matrix)", weight:{s3:{on:0.25, off:0.35}}, matrix:DEBRIS_MATRIX, def:1, defNote:"1 when no watershed, S_source partial", sampling:"Watershed"},
-          {k:"flc_s2", code:"S2", comp:"S", name:"100-yr capacity loading ratio, load_ratio = Qevent / Qdesign; the 25-yr ratio is scored on the same bands as an alternate reading (decision 5)", weight:{s3:{on:0.30, off:0.35}}, values:RATIO_VALUES, def:1, defNote:"1 when span_in is null, S_source partial", sampling:"Per crossing; multi-barrel crossings grouped"},
-          {k:"flc_s3", code:"S3", comp:"S", name:"Condition and blockage: maximum of cond_class (good 1, fair 2, poor 3) and the blockage class", weight:0.15, values:CONDBLK_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection", when:o=>o.s3==="on", opt:"Condition term on", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 1)"}}
+          {k:"flc_s1", code:"S1", comp:"S", kind:"matrix", name:"Debris potential of the basin: mean basin slope by majority landcover (draft option 1 matrix)", weight:0.35, matrix:DEBRIS_MATRIX, def:1, defNote:"1 when no watershed, S_source partial", sampling:"Watershed"},
+          {k:"flc_s2", code:"S2", comp:"S", name:"100-yr capacity loading ratio, load_ratio = Qevent / Qdesign; the 25-yr ratio is scored on the same bands as an alternate reading (decision 5). No condition term: condition is observed on about one in five scored culverts (decision 1)", weight:0.35, values:RATIO_VALUES, def:1, defNote:"1 when span_in is null, S_source partial", sampling:"Per crossing; multi-barrel crossings grouped"}
         ]},
       {id:"LS-C", hazard:"Landslide", asset:"culvert", assetLabel:"Small culverts", wE:0.7, wS:0.3, section:"Rubrics section 2.3", options:[],
         indicators:[
@@ -538,13 +535,11 @@
           {k:"lsc_s2", code:"S2", comp:"S", name:"Culvert condition where available (cond_class)", weight:0.15, values:COND_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection"}
         ]},
       {id:"DF-C", hazard:"Debris flow", asset:"culvert", assetLabel:"Small culverts", wE:0.7, wS:0.3, section:"Rubrics sections 2.3 and 4.2",
-        options:[DF_OPTION,
-          {id:"sopt", label:"Sensitivity under option 1 (decision 7)", choices:[["prop","TRPA proposal: opening size 0.15 + condition and blockage 0.15"],["draft","Draft: debris potential 0.30"]], def:"prop",
-           hint:"Under option 1 basin slope already sits in exposure, so debris potential in sensitivity counts it twice.", when:o=>o.dfopt==="opt1"}],
+        options:[DF_OPTION],
         indicators:dfExposure({proxy:"Watershed maximum", ws:"Watershed", wsmax:"Watershed maximum", pour:"Pour point"}).concat([
-          {k:"dfc_s1d", code:"S1", comp:"S", kind:"matrix", name:"Debris potential of the basin (the FL-C S1 matrix)", weight:0.30, matrix:DEBRIS_MATRIX, def:1, defNote:"1 when no watershed, S_source partial", sampling:"Watershed", when:o=>!(o.dfopt==="opt1" && o.sopt==="prop"), opt:"Workshop proxy, option 2, or option 1 with the draft sensitivity"},
-          {k:"dfc_s1p", code:"S1", comp:"S", name:"Opening size (d_eq_in, the LS-C S1 scale; small pipes plug regardless of the loading ratio)", weight:0.15, values:SIZE_VALUES, def:2, defNote:"2, S_source partial", sampling:"Per asset", when:o=>o.dfopt==="opt1" && o.sopt==="prop", opt:"Option 1 with the TRPA sensitivity proposal", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 7)"}},
-          {k:"dfc_s2p", code:"S2", comp:"S", name:"Condition and blockage (the FL-C S3 scale)", weight:0.15, values:CONDBLK_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection", when:o=>o.dfopt==="opt1" && o.sopt==="prop", opt:"Option 1 with the TRPA sensitivity proposal", tags:["proposal"], tagText:{proposal:"TRPA proposal (decision 7)"}}
+          {k:"dfc_s1d", code:"S1", comp:"S", kind:"matrix", name:"Debris potential of the basin (the FL-C S1 matrix; the draft's sensitivity, kept under option 2 where slope is not in exposure)", weight:0.30, matrix:DEBRIS_MATRIX, def:1, defNote:"1 when no watershed, S_source partial", sampling:"Watershed", when:o=>o.dfopt!=="opt1", opt:"Option 2 or proxy"},
+          {k:"dfc_s1p", code:"S1", comp:"S", name:"Opening size (d_eq_in, the LS-C S1 scale; small pipes plug regardless of the loading ratio)", weight:0.15, values:SIZE_VALUES, def:2, defNote:"2, S_source partial", sampling:"Per asset", when:o=>o.dfopt==="opt1", opt:"Option 1", tags:["proposal"], tagText:{proposal:"TRPA decision (decision 7): basin slope already sits in option 1 exposure"}},
+          {k:"dfc_s2p", code:"S2", comp:"S", name:"Condition (cond_class, the LS-C S2 scale)", weight:0.15, values:COND_VALUES, def:2, defNote:"2 (fair), S_source partial", sampling:"Latest inspection", when:o=>o.dfopt==="opt1", opt:"Option 1", tags:["proposal"], tagText:{proposal:"TRPA decision (decision 7)"}}
         ])},
       {id:"FL-B", hazard:"Flooding", asset:"bridge", assetLabel:"Bridges and large culverts", wE:0.3, wS:0.7, section:"Rubrics section 3.2", options:[],
         indicators:[
@@ -613,23 +608,24 @@
 
     // [no, section, decision, default, status]
     const DECISIONS = [
-      [1,"2.8 Culverts","Condition and blockage as a third FL-C sensitivity term (S3) with weights S1 0.25, S2 0.30, S3 0.15, versus the draft's 0.35 / 0.35 with no condition term. The one culvert failure in the literature review's event catalog (Incline Village, Aug. 2025) was a blockage, which neither draft term captures.","S3 on (page default); cond_class stays a popup field if declined","Decide"],
+      [1,"2.8 Culverts","TRPA decision (Oct. 21, 2026): no condition or blockage term in FL-C. The draft's S1 0.35 and S2 0.35 stand. Condition is recorded on 544 of 5,096 scored culverts and blockage on 436 more, so a third term would default to fair on four of five assets and separate nothing. cond_class stays in the popup and scores in LS-C and DF-C.","Draft weights; no S3","Record"],
       [2,"2.8 Culverts","Debris potential computed locally with the option 1 matrix for every culvert, rather than the CULVERT tool score (option 2). NDOT data cannot be uploaded to a third-party tool, so option 2 would score Nevada highways differently from everything else.","Local computation","Record"],
       [3,"2.8 Culverts","Watershed sampling for culvert exposure (section 1.7) instead of a point buffer.","Watershed, 25 m fallback","Record"],
       [4,"2.8 Culverts","Tailwater modifier on FL-C E1 for shoreline outlets.","Modifier on","Record"],
       [5,"2.8 Culverts","100-yr as the loading-ratio event, with 25-yr carried for comparison (the draft names the 100-yr as likely appropriate). The 25-yr reading is scored alongside (S2 on the 25-yr ratio, everything else unchanged) and shown through the Design storm toggle on the Results page Flooding tab; it stays out of the combined class. On the public culverts it moves about 230 down one FL-C class and never raises a score.","100-yr headline; 25-yr scored as a toggle, kept out of the combined class","Record"],
       [6,"2.8 Culverts","Capacity from HDS-5 inlet control as the default Qdesign where asset records have none.","HDS-5 at HW/D = 1.0","Record"],
-      [7,"2.8 Culverts","Under debris-flow option 1, replace the sensitivity debris-potential term with opening size and condition to avoid counting basin slope twice.","Replace (page default under option 1)","Decide"],
+      [7,"2.8 Culverts","TRPA decision (Oct. 21, 2026): DF-C sensitivity is opening size and condition on the LS-C scales, 0.15 each, since basin slope already sits in option 1 exposure.","Opening size and condition","Record"],
       [8,"2.8 Culverts","Missing-data defaults as stated per row in section 2.3.","As stated per row","Record"],
       [9,"2.8 Culverts","Bucket breaks (section 1.2) and the max-pair aggregation rule (section 1.4).","Low under 1, Medium to under 2, High 2 and over; max pair (confirmed Oct. 8)","Record"],
       [10,"2.8 Culverts","Whether unsnapped forest-road culverts stay out of the rating.","Out (inventory only)","Record"],
-      [19,"2.8 Culverts","Flood exposure without a depth model. TRPA is not acquiring one, so the draft's depth indicators (FL-C E1, FL-B E2, and the extent and depth indicators for roads, active transport, and transit centers) have no dataset. Every flood pair scores exposure from FEMA flood zones and stream crossings on the FL-C E1 values (1 percent zone 3, 0.2 percent zone or TRPA stream 2, NHD flowline 1, none 0), at the full exposure weight for roads, active transport, and transit centers, with the culvert loading ratio carrying the hydraulic signal. To confirm: the flood pairs have no exposure horizon beyond historical unless a precipitation modifier is applied to the FEMA term in December. Absorbs decision 21.","FEMA zones and stream crossings, every horizon (decided Oct. 8)","Decide"],
+      [19,"2.8 Culverts","TRPA decision (Oct. 21, 2026): flood exposure is FEMA flood zones and stream crossings on every flood pair (the FL-C E1 values: 1 percent zone 3, 0.2 percent zone or TRPA stream 2, NHD flowline 1, none 0), at the full exposure weight for roads, active transport, and transit centers, with the culvert loading ratio carrying the hydraulic signal. No depth model is being acquired, so the draft's depth indicators have no dataset. Absorbs decision 21; the horizon question is decision 29.","FEMA zones and stream crossings","Record"],
+      [29,"2.8 Culverts","Flood horizons. The FEMA term has no 2050 or 2080 version. The loading ratio carries the future through the climate pipeline's change factors on the 25-yr and 100-yr intensities. Is that enough for the flood pairs, or should a precipitation-change modifier also be applied to the FEMA term? If so, which projected metric, from which model set, and on what breaks. A specific recommendation is requested.","Loading ratio only","Review"],
       [20,"2.8 Culverts","Two gaps in the draft's tables, scored by TRPA interpretation until confirmed: culvert openings over 8 ft score 1 (the draft's lowest band), and an avalanche record with no slope over 25 degrees within 1,000 ft scores 1.","Both score 1","Record"],
-      [11,"3.5 Bridges","Whether NBI 45 span type in the draft means item 45 (number of main spans) or item 43 (structure type). The rubric assumes item 45.","Item 45","Decide"],
-      [12,"3.5 Bridges","The direction of the span-length indicator. The draft scores longer spans higher; TRPA proposes the reverse because a longer maximum span means more clearance and fewer in-channel piers.","The draft's direction until decided","Decide"],
+      [11,"3.5 Bridges","Whether NBI 45 span type in the draft means item 45 (number of main spans) or item 43 (structure type). The rubric assumes item 45.","Item 45","Review"],
+      [12,"3.5 Bridges","The direction of the span-length indicator. The draft scores longer spans higher; TRPA proposes the reverse. NBI item 48 is the maximum span, which is the pier spacing, and FHWA's debris guidance holds that longer spans are less prone to debris blockage and that piers should stay out of the main channel where possible (HEC-9, FHWA-IF-04-016, 2005, section 6.26). Bridges with piers were more vulnerable than bridges without in a fragility study of 15 lahar-hit bridges (Dagá and others, 2018, Nat. Hazards Earth Syst. Sci. 18, 2111 to 2125). If the draft's direction reflects replacement cost, that is consequence, which the framework carries in criticality, not sensitivity.","The draft's direction until ICF confirms","Review"],
       [13,"3.5 Bridges","Scour codes 5 to 9, U, and blanks score 1 in the draft's table, so an unevaluated foundation is not read as safe.","","Resolved"],
       [14,"3.5 Bridges","With no depth model, FL-B E2 is the FEMA zone at the structure under every horizon (decision 19).","","Resolved"],
-      [15,"4.4 Debris flow","Option 1 or option 2 for debris-flow exposure, and whether the proxy is acceptable for the Nov. 9 workshop if neither is ready by Oct. 16.","Proxy for the workshop, Wildcat for December (confirmed Oct. 8)","Decide"],
+      [15,"4.4 Debris flow","TRPA decision (Oct. 21, 2026): option 1 (slope, drainage area, burn severity stand-in) for the Nov. 9 workshop. Option 2 (Wildcat) is reviewed for December; the proxy raster is not used.","Option 1","Record"],
       [16,"4.4 Debris flow","The draft's drainage-area breaks and direction (smaller area scores higher) are adopted.","","Resolved"],
       [17,"5.4 Avalanche","The definition of dominant slope: the largest-area slope class on the uphill side within 1,000 ft. The classes and scores are the draft's.","As in section 5.2 (confirmed Oct. 8)","Record"],
       [18,"5.4 Avalanche","Whether the TRPA avalanche zone layer and documented closures count as records alongside the two accident databases.","Both count as records (confirmed Oct. 8)","Record"],
@@ -640,7 +636,8 @@
       [25,"1.1, 4, 6 Roads","Roads carry no sensitivity. FL-R, LS-R, WF-R, and DF-R are scored on exposure alone (V = E), as AV-R already is; the draft's road sensitivity indicators (pavement condition, paved surface, truck AADT, wooden guardrails) are not scored. Exposure keeps the draft's proportions between its indicators, scaled to the full weight. Roads are read alongside criticality, never multiplied by it.","TRPA decision","Record"],
       [26,"1.2, 1.4, 6 Wildfire","Wildfire class breaks. WF-R, WF-AT, and WF-TC are classed Low under 2.0, Medium 2.0 to 2.5, and High over 2.5; every other pair keeps the 1.0 and 2.0 breaks. The asset class (V_class) is the highest of its pair classes.","TRPA decision","Record"],
       [27,"6.4 Wildfire","Fire severity (E2) sampled by area share: the highest most-likely severity class covering at least 25 percent of the 300 ft buffer, 0 when no class reaches that share. The maximum-touching rule let single 30 m High cells set E2 to 3 on roads lying wholly inside Low severity. Burn probability (E1) keeps the maximum within 300 ft.","TRPA decision","Record"],
-      [28,"2.4 Culverts","Runoff coefficient from land cover, soil group, and slope: the rational-method C is the area-weighted mean of a cell surface on the Rawls, Wong, and McCuen (1981) table (NLCD class x hydrologic soil group x slope class, the 25-year-and-over column for both events), the lookup the CULVERT tool uses, in place of one value per majority land cover. Soil groups from SSURGO CA693; the land-cover values stay as the fallback and are carried beside the table value. On the California basins inside both methods' ranges the land-cover C gave flows about twice the USGS Lahontan regression. No frequency factor on top of the table.","TRPA decision","Record"]
+      [28,"2.4 Culverts","Runoff coefficient from land cover, soil group, and slope: the rational-method C is the area-weighted mean of a cell surface on the Rawls, Wong, and McCuen (1981) table (NLCD class x hydrologic soil group x slope class, the 25-year-and-over column for both events), the lookup the CULVERT tool uses, in place of one value per majority land cover. Soil groups from SSURGO CA693; the land-cover values stay as the fallback and are carried beside the table value. On the California basins inside both methods' ranges the land-cover C gave flows about twice the USGS Lahontan regression. No frequency factor on top of the table.","TRPA decision","Record"],
+      [30,"1.4 Framework","Cumulative sort fields beside the maximum pair score: the number of pairs classed High and the sum of the pair scores. The maximum flags an asset vulnerable to any hazard but cannot tell an asset High on one hazard from one High on three; the sum counts one failure at one location more than once, so it ranks and never classes. Not yet in the published layer.","Proposed; not yet published","Record"]
     ];
 
     // ---------- STATE ----------
