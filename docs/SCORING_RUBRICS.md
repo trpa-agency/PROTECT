@@ -3,12 +3,9 @@
 **Version 0.7, Oct. 21, 2026.** TRPA working document for the
 vulnerability assessment.
 
-**What this document is.** TRPA's scoring rules, built on ICF's draft Vulnerability
-Assessment Methodology (Aug. 20, 2026). It is for ICF's review as a whole: TRPA has made the
-working calls, each is in the text, and the numbered notes at the end of each section say
-where TRPA departed from the draft and why. Anything TRPA added or changed is marked **TRPA
-proposal**. Three notes (11, 12, and 29) carry a working position where ICF's view would help;
-none of the rest needs a reply unless ICF sees it differently. The interactive page is `html/scoring-rubrics.html`;
+**What this document is.** TRPA's scoring rules, built on the draft Vulnerability
+Assessment Methodology (Aug. 20, 2026). We made a few new calls and the numbered notes at the end of each section say where TRPA departed from the draft and why. Anything TRPA added or changed is marked **TRPA
+proposal**. The interactive page is `html/scoring-rubrics.html`;
 pair definitions doc is `Hazard_Asset_Pairs.md`.
 
 ## 1. Shared framework
@@ -334,17 +331,12 @@ the `Culverts` feature class beyond the profile:
 - Row counts reconcile across the profile, the scored set, and the published layer, NDOT rows
   counted separately.
 
-### 2.8 Notes for ICF review
-
-**Where ICF's view would help.** TRPA's working position is stated; say if you see it differently.
+### 2.8 Notes
 
 29. Flood horizons. The FEMA term has no 2050 or 2080 version. The loading ratio carries the
     future through the climate pipeline's change factors on the 25-yr and 100-yr intensities.
     Is that enough for the flood pairs, or should a precipitation-change modifier also be
-    applied to the FEMA term? TRPA's working position is the loading ratio alone. If ICF sees
-    a case for the modifier, the projected metric, model set, and breaks would help.
-
-**For the record.** TRPA's choice is in use; flag anything you disagree with.
+    applied to the FEMA term? TRPA's working position is the loading ratio alone.
 
 1. **TRPA decision (Oct. 21, 2026): no condition or blockage term in FL-C.** The draft's S1
    0.35 and S2 0.35 stand. Condition is recorded on 544 of 5,096 scored culverts and blockage
@@ -466,8 +458,7 @@ are less prone to debris blockage and that piers should stay out of the main cha
 possible (HEC-9, FHWA-IF-04-016, 2005, section 6.26). Bridges with piers were more vulnerable
 than bridges without in a fragility study of 15 lahar-hit bridges (Dagá and others, 2018, Nat.
 Hazards Earth Syst. Sci. 18, 2111 to 2125). If the draft's direction reflects replacement cost,
-that is consequence, which the framework carries in criticality, not sensitivity. The draft's
-direction is used until ICF confirms.
+that is consequence, which the framework carries in criticality, not sensitivity.
 
 **DF-B, debris flow x bridges** (E 0.7 / S 0.3)
 
@@ -490,15 +481,12 @@ December.
   basin, so this is a method check, not a result check.
 - With 40 structures, review every row by hand against the NBI record before publication.
 
-### 3.5 Notes for ICF review
-
-**Where ICF's view would help.** TRPA's working position is stated; say if you see it differently.
+### 3.5 Notes
 
 11. Whether "NBI 45 span type" in the draft means item 45 (number of main spans) or item 43
     (structure type). The rubric assumes item 45.
 12. The direction of the span-length indicator. The draft scores longer spans higher; TRPA
-    proposes the reverse (sources in section 3.2). The draft's direction is used until ICF
-    confirms.
+    proposes the reverse (sources in section 3.2).
 
 **Resolved by the draft.**
 
@@ -579,9 +567,7 @@ to the full weight in the same proportions (option 1: 0.29, 0.29, 0.43; option 2
   culvert reads High. Intended.
 - Roads carry no sensitivity (decision 25), so pavement condition is not a gap for roads.
 
-### 4.4 Notes for ICF review
-
-**For the record.** TRPA's choice is in use; flag anything you disagree with.
+### 4.4 Notes
 
 15. **TRPA decision (Oct. 21, 2026): option 1 for the Nov. 9 workshop.** Option 2 (Wildcat) is
     reviewed for December; the proxy is not used.
@@ -631,9 +617,7 @@ proposals** (decisions 17 and 18).
 - Avalanches rarely damage infrastructure (literature review), which is why AV-B left the VA.
   The score describes closure likelihood, not damage.
 
-### 5.4 Notes for ICF review
-
-**For the record.** TRPA's choice is in use; flag anything you disagree with.
+### 5.4 Notes
 
 17. The definition of dominant slope (largest-area class on the uphill side within 1,000 ft).
     The classes and scores are the draft's.
@@ -743,7 +727,7 @@ The WF-R exposure set, E1 0.70 and E2 0.30, no sensitivity. Both sample E1 as th
 within 300 ft. E2 is the
 highest severity class covering at least 25 percent of the 300 ft buffer on both (decision 27).
 
-### 6.5 Notes for ICF review
+### 6.5 Notes
 
 **For the record.** TRPA's choice is in use; flag anything you disagree with.
 
