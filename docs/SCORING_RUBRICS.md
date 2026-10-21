@@ -1,25 +1,24 @@
 # PROTECT scoring rubrics
 
-**Version 0.6, Oct. 21, 2026.** TRPA working document for the system-wide, indicator-based
-vulnerability assessment (component 2 of the Tahoe Resilience Improvement Plan).
+**Version 0.6, Oct. 21, 2026.** TRPA working document for the
+vulnerability assessment.
 
 **What this document is.** TRPA's scoring rules and decision list, built on ICF's draft
-Vulnerability Assessment Methodology (Aug. 20, 2026, internal draft, not committed).
+Vulnerability Assessment Methodology (Aug. 20, 2026).
 The equation, weights, indicator values, and scores are the draft's. Anything TRPA adds or
 changes is marked **TRPA proposal** and numbered in the decision list at the end of each
 section. Section numbers cited anywhere in the decisions (for example "section 1.2") refer to
-this document, not to the ICF draft. The interactive mirror is `html/scoring-rubrics.html`;
-pair definitions mirror `Hazard_Asset_Pairs.md` (v0.8).
+this document, not to the ICF draft. The interactive page is `html/scoring-rubrics.html`;
+pair definitions doc is `Hazard_Asset_Pairs.md` (v0.8).
 
-**How to read it.** This is TRPA showing its work so ICF's review is quick. Each section
-ends with numbered decisions; a yes, a no, or a comment on each is all that is needed. TRPA
-builds against the stated default until then.
+**How to read it.** This is TRPA showing its work. Six items need an ICF decision: 1, 7,
+and 19 (section 2.8), 11 and 12 (section 3.5), and 15 (section 4.4, before the Nov. 9
+workshop). Everything else is for the record: TRPA's default is in use, and a comment is
+welcome wherever ICF disagrees.
 
 **Scope.** The shared framework (section 1) and all 15 pairs: FL-C, LS-C, DF-C (section 2);
 FL-B, LS-B, DF-B (section 3); DF-R (section 4); AV-R (section 5); FL-R, FL-AT, FL-TC, LS-R,
-WF-R, WF-AT, WF-TC (section 6). Nothing is scored until the rubric for that pair is agreed.
-**TRPA is not acquiring a flood depth model**; flood exposure is FEMA flood zones and stream
-crossings everywhere (decision 19).
+WF-R, WF-AT, WF-TC (section 6).
 
 **Lineage.**
 
@@ -361,9 +360,25 @@ the `Culverts` feature class beyond the profile:
 
 ### 2.8 Decisions requested from the consultant
 
+**Please decide.**
+
 1. Condition and blockage as a third FL-C sensitivity term (S3), weights S1 0.25, S2 0.30, S3
    0.15, versus the draft's 0.35 / 0.35 with no condition term. The one culvert failure in the
    event catalog (Incline Village, Aug. 2025) was a blockage, which neither draft term captures.
+7. Under debris-flow option 1, replace the sensitivity debris-potential term with opening size
+   and condition so basin slope is not counted twice.
+19. Flood exposure without a depth model. TRPA is not acquiring one, so the draft's depth
+    indicators (FL-C E1, FL-B E2, and the extent and depth indicators for roads, active
+    transport, and transit centers) have no dataset. Every flood pair scores exposure from
+    FEMA flood zones and stream crossings on the FL-C E1 values (1 percent zone 3, 0.2 percent
+    zone or TRPA stream 2, NHD flowline 1, none 0), at the full exposure weight for roads,
+    active transport, and transit centers, with the culvert loading ratio carrying the
+    hydraulic signal. To confirm: the flood pairs have no exposure horizon beyond historical
+    unless a precipitation modifier is applied to the FEMA term in December. Absorbs decision
+    21.
+
+**For the record.** TRPA's default is in use; comment only if you disagree.
+
 2. Debris potential computed locally with the option 1 matrix for every culvert, not the
    CULVERT tool score (option 2). NDOT data cannot go to a third-party tool, so option 2 would
    score Nevada highways differently from everything else.
@@ -375,18 +390,9 @@ the `Culverts` feature class beyond the profile:
    Flooding tab; it stays out of `V_max` and `V_class`. On the public culverts it moves about
    230 down one FL-C class (about 80 High to Medium, 150 Medium to Low) and never raises one.
 6. Capacity from HDS-5 inlet control as the default Qdesign where asset records have none.
-7. Under debris-flow option 1, replace the sensitivity debris-potential term with opening size
-   and condition so basin slope is not counted twice.
 8. Missing-data defaults as stated per row in section 2.3.
 9. Bucket breaks (section 1.2) and the max-pair aggregation rule (section 1.4).
 10. Whether unsnapped forest-road culverts stay out of the rating.
-19. Flood exposure without a depth model. TRPA is not acquiring one, so the draft's depth
-    indicators (FL-C E1, FL-B E2, and the depth half of the road, active transport, and transit
-    center rubrics) have no dataset. TRPA scores flood exposure from FEMA flood zones and stream
-    crossings on the FL-C E1 values, with the culvert loading ratio carrying the hydraulic
-    signal. To confirm: the flood pairs have no exposure horizon beyond historical unless a
-    precipitation modifier is applied to the FEMA term in December, and the public depth
-    alternatives (StreamStats peak flows, HEC-RAS at selected crossings) stay available.
 20. Two gaps in the draft's tables, scored by TRPA interpretation until confirmed: culvert
     openings over 8 ft score 1 (the lowest band), and an avalanche record with no slope over
     25 degrees within 1,000 ft scores 1 (section 5.2).
@@ -500,14 +506,17 @@ December.
 
 ### 3.5 Decisions requested from the consultant
 
+**Please decide.**
+
 11. Whether "NBI 45 span type" in the draft means item 45 (number of main spans) or item 43
     (structure type). The rubric assumes item 45.
 12. The direction of the span-length indicator. The draft scores longer spans higher; TRPA
     proposes the reverse. The draft's direction is used until decided.
-13. Resolved by the draft's table: scour codes 5 to 9, U, and blanks score 1, so an
-    unevaluated foundation is not read as safe. No decision needed.
-14. Resolved by decision 19: with no depth model, E2 is the FEMA zone at the structure under
-    every horizon. No separate decision needed.
+
+**Resolved, no action.**
+
+13. Resolved by the draft's table: scour codes 5 to 9, U, and blanks score 1. No action.
+14. Resolved by decision 19: E2 is the FEMA zone at the structure under every horizon. No action.
 
 ---
 
@@ -586,9 +595,14 @@ Workshop fallback (neither option ready by Oct. 16): the proxy raster, same samp
 
 ### 4.4 Decisions requested from the consultant
 
+**Please decide.**
+
 15. Option 1 or option 2 for debris-flow exposure, and whether the proxy is acceptable for the
     Nov. 9 workshop if neither is ready by Oct. 16.
-16. Resolved: the draft's drainage-area breaks and direction are adopted. No decision needed.
+
+**Resolved, no action.**
+
+16. Resolved: the draft's drainage-area breaks and direction are adopted. No action.
 
 ---
 
@@ -597,8 +611,7 @@ Workshop fallback (neither option ready by Oct. 16): the proxy raster, same samp
 ### 5.1 Asset set and sampling
 
 `Streets_Network_Tahoe` segments, length-weighted maximum, exposure only (E 1.0), current
-terrain, no climate horizon. The corridor list (US-50, SR-89, SR-28, SR-207, SR-431) is the
-sanity check, not the scope: every segment is scored, and a High segment off those corridors is
+terrain, no climate horizon. The corridor list (US-50, SR-89, SR-28, SR-207, SR-431) is the check, not the scope: every segment is scored, and a High segment off those corridors is
 a finding to review with the state DOTs.
 
 ### 5.2 Indicator rubric
@@ -636,6 +649,10 @@ proposals** (decisions 17 and 18).
   The score describes closure likelihood, not damage.
 
 ### 5.4 Decisions requested from the consultant
+
+Nothing to decide.
+
+**For the record.** TRPA's default is in use; comment only if you disagree.
 
 17. The definition of dominant slope (largest-area class on the uphill side within 1,000 ft).
     The classes and scores are the draft's.
@@ -747,10 +764,12 @@ highest severity class covering at least 25 percent of the 300 ft buffer on both
 
 ### 6.5 Decisions requested from the consultant
 
-21. FEMA flood zones as the flood exposure indicator for roads, active transport, and transit
-    centers, 1 percent zone scoring 3, extent and depth collapsed into one indicator at the
-    full exposure weight. The draft's extent scale reserves 3 and 2.5 for the 10- and 50-year
-    floodplains, which FEMA does not map.
+Nothing to decide.
+
+**For the record.** TRPA's default is in use; comment only if you disagree.
+
+21. Folded into decision 19 (FEMA flood zones as the one flood exposure indicator for roads,
+    active transport, and transit centers).
 22. Wildfire exposure from the data in hand: RRK annual burn probability (Pyrologix 2022, 30 m)
     on the draft's breaks, and TRPA most-likely fire severity classed Low 1, Moderate 2, High 3
     in place of flame length. The contracted package replaces them for December if delivered
