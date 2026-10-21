@@ -566,7 +566,7 @@
           legend:legendRows([[COL.gray,"0: no flood zone, no mapped stream"],[COL.ice,"1: on a small drainage line"],[COL.blue,"2: 500-year zone or a mapped stream"],[COL.navy,"3: 100-year flood zone"]], "lg-dot"),
           note:"The highest flood class anywhere in the culvert's drainage area.", noteTip:"FL-C E1, sampled as the maximum over the contributing watershed, plus 1 (capped at 3) where high lake stage backs water up."},
         {value:"vuln", label:"Vulnerability", renderer:{culverts:vClassRenderer(flcV(), (c,k) => dot(c, [4,5,6,8][k]))}, legend:legendRows(VC_LEG, "lg-dot"),
-          note:"Flooding vulnerability: exposure at 0.3 plus how the pipe would cope with the " + RP + "-year storm at 0.7.", noteTip:"V_FLC = 0.30 x E + 0.25 x S1 (debris potential) + 0.30 x S2 (loading ratio, " + RP + "-yr storm) + 0.15 x S3 (condition and blockage). Culverts with no inspection carry the fair default and are marked partial."}]; },
+          note:"Flooding vulnerability: exposure at 0.3 plus how the pipe would cope with the " + RP + "-year storm at 0.7.", noteTip:"V_FLC = 0.30 x E + 0.35 x S1 (debris potential) + 0.35 x S2 (loading ratio, " + RP + "-yr storm), the draft's weights. Condition and blockage are not scored for flooding (decision 1)."}]; },
       layers(){ return [
         // roads first, so they draw under the culvert and bridge points
         {id:"roads", label:"Roads, flood exposure", checked:true,
@@ -627,7 +627,7 @@
         "<b>Capacity.</b> What the pipe passes with water at the top of the opening. Real culverts take more, so the ratio errs high by 1.5 to 2.",
         "<b>Flags.</b> A small recorded pipe on a big drainage is a record to check, not a score; it is withheld and listed for the owner. A ratio above 20 is listed too.",
         "<b>Flood exposure.</b> The highest flood class anywhere in the culvert's drainage. The value at the pipe itself is in the popup for comparison.",
-        "<b>Vulnerability.</b> Exposure at 0.3 plus sensitivity at 0.7: how much debris the basin can send, whether the pipe passes the " + RP + "-year storm, and its condition and blockage. Condition exists for about a third of culverts; the rest carry the fair default and are marked partial.",
+        "<b>Vulnerability.</b> Exposure at 0.3 plus sensitivity at 0.7: how much debris the basin can send and whether the pipe passes the " + RP + "-year storm. Condition is not scored for flooding: it is observed on about one in five culverts, so a condition term would default almost everywhere (decision 1).",
         "<b>Roads.</b> Scored on two things only: flood exposure and criticality. Exposure is the highest flood class anywhere along the segment (3 in a FEMA 100-year zone; 2 in the 500-year zone or along a mapped stream; 0 otherwise). Criticality is the segment's quarter from the latest clean street layer. The map colors by exposure and thickens by criticality."]; },
       foot:"Culvert inventories from six jurisdictions and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA. Method: <code>docs/SCORING_RUBRICS.md</code> 2.2 to 2.5."
     };
@@ -767,7 +767,7 @@
         {value:"e", label:"Exposure", renderer:{roads:eClassRenderer("E_DFR_hist", (c,k) => line(c, LINE_W[k])), culverts:eClassRenderer("E_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:eClassRenderer("E_DFB_hist", (c,k) => sq(c))}, legend:legendRows(EC_LEG, "lg-line"),
           note:"Slope, drainage size, and burn severity, each 0 to 3, weighted 0.2, 0.2, 0.3.", noteTip:"E1 mean slope of the contributing area (over 30 percent = 3), E2 contributing area (under 0.25 sq mi = 3, over 5 sq mi = 0), E3 most-likely fire severity standing in for soil burn severity; E = (0.2 E1 + 0.2 E2 + 0.3 E3) / 0.7."},
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_DFR_hist", (c,k) => line(c, LINE_W[k])), culverts:vClassRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
-          note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3.", noteTip:"Roads: no sensitivity (decision 25). Culverts: opening width and condition with blockage (decision 7). Bridges: span type, condition, span length."}],
+          note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3.", noteTip:"Roads: no sensitivity (decision 25). Culverts: opening width and condition (decision 7). Bridges: span type, condition, span length."}],
       extra(L, ctx){ culvertDrainage(L, ctx, "Slope and drainage size are read from this area."); },
       layers(){ return [
         {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_DFR_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFR_e1", label:"E1 slope class", format:{places:1}}, {fieldName:"E_DFR_e2", label:"E2 drainage size class", format:{places:1}}, {fieldName:"E_DFR_e3", label:"E3 burn severity class"}, {fieldName:"V_DFR_hist", label:"Vulnerability V", format:{places:2}}]}]}})},
@@ -789,7 +789,7 @@
         "<b>Drainage size (E2).</b> Contributing area at the cell. Small, steep drainages score high: under 0.25 square miles is 3, over 5 square miles is 0. Roads and bridges read the largest drainage they touch, so a highway over a river scores low and a road below a small burned ravine scores high.",
         "<b>Burn severity (E3).</b> The TRPA most-likely fire severity surface stands in for the contracted predicted soil burn severity (DF_option records this). Culverts take the highest class in their drainage.",
         "<b>Culverts.</b> Read slope and area from their own delineated drainage rather than the raster, which is more exact for a crossing.",
-        "<b>Vulnerability.</b> Roads: exposure only (decision 25). Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3, from opening width and condition with blockage for culverts (decision 7) and span terms for bridges."],
+        "<b>Vulnerability.</b> Roads: exposure only (decision 25). Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3, from opening width and condition for culverts (decision 7) and span terms for bridges."],
       foot:"Terrain from the 2 m lidar DEM; burn severity stand-in from the TRPA Fire service. Method: <code>docs/SCORING_RUBRICS.md</code> 4, decisions 7 and 15."
     };
 
