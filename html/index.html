@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PROTECT Risk Index and Resilience Tool | TRPA</title>
-  <meta name="description" content="TRPA's PROTECT Task 3 risk index and vulnerability assessment for Lake Tahoe Basin transportation assets: project pages, Workshop 1 milestones, and workstream status." />
+  <title>Connecting Tahoe Project Pages | TRPA</title>
+  <meta name="description" content="Working pages for every part of TRPA's Connecting Tahoe PROTECT grant: stakeholder engagement, lessons from past emergencies, the Tahoe Resilience Improvement Plan and its vulnerability assessment, and the transportation communications strategy." />
 
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -40,7 +40,19 @@
     .summary-box h2{font-size:1.15rem;font-weight:700;color:var(--trpa-navy);margin:0 0 .3rem;}
     .summary-box .lede{font-size:1.02rem;margin:0;}
     .intro .lede strong{color:var(--trpa-navy);}
-    h2.section{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .6rem;}
+    /* One h2.part per part of the grant scope; h3.section groups inside a part */
+    h2.part{font-size:1.3rem;font-weight:700;margin:2.2rem 0 .7rem;padding-bottom:.35rem;border-bottom:2px solid var(--trpa-ice);scroll-margin-top:1rem;}
+    h3.section{font-size:1rem;font-weight:700;margin:1.3rem 0 .55rem;}
+    /* Parts strip under the summary: one tile per part, links to its section */
+    nav.parts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin:.2rem 0 .4rem;}
+    nav.parts a{display:flex;flex-direction:column;gap:.15rem;background:var(--white);border:1px solid var(--gray-border);border-top:4px solid var(--trpa-ice);border-radius:8px;padding:.7rem .9rem;text-decoration:none;color:var(--trpa-navy);}
+    nav.parts a.main{border-top-color:var(--trpa-blue);}
+    nav.parts a:hover{border-color:var(--trpa-blue);}
+    nav.parts b{font-size:.9rem;}
+    nav.parts span{font-size:.76rem;color:var(--gray-text);}
+    /* A part with no pages yet */
+    .panel.empty{border-style:dashed;background:transparent;}
+    .panel.empty p{color:var(--gray-text);}
     /* Page cards */
     .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;}
     a.page-card{display:flex;flex-direction:column;background:var(--white);border:1px solid var(--gray-border);border-radius:8px;padding:1.05rem 1.2rem;text-decoration:none;color:var(--trpa-navy);transition:box-shadow .15s,border-color .15s;}
@@ -123,6 +135,7 @@
       .banner .checks{margin-left:0;}
       .card-grid,.card-grid.compact{grid-template-columns:1fr;}
       .milestone{min-width:100%;}
+      nav.parts{grid-template-columns:1fr 1fr;}
     }
       /* site nav: five groups */
     .sitenav{background:#fff;border-bottom:1px solid #DDDDDD;}
@@ -157,12 +170,12 @@
       <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
-        <h1>PROTECT Risk Index and Resilience Tool</h1>
-        <div class="header-sub">Task 3 &middot; Tahoe Resilience Improvement Plan</div>
+        <h1>Connecting Tahoe Project Pages</h1>
+        <div class="header-sub">PROTECT grant &middot; working drafts for partner review</div>
       </div>
       <div class="header-meta">
-        <span class="version">v0.8</span>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html" class="on" aria-current="page">Home</a></div><div class="g"><b>Results</b><a href="results.html">Results</a></div><div class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></div><div class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></div><div class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div><div class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></div></nav></details>
+        <span class="version">v0.9</span>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html" class="on" aria-current="page">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-punchlist.html">Workshop 1 punch list</a><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -170,88 +183,36 @@
 
   <main>
     <section class="intro summary-box">
-      
       <p class="lede">
-        Vulnerability assessment for the Lake Tahoe Basin's transportation
-        infrastructure: which roads, bridges, culverts, active transportation routes, and transit centers are most
-        vulnerable to flooding, landslide, wildfire, debris flow, and avalanche.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. Task 3 is the Tahoe Resilience Improvement Plan; Task 3.2 is the risk-based vulnerability assessment and Task 3.3 is this risk index mapping tool. Roads, bridges, and culverts are scored against all five hazards; active transport and transit centers against flooding and wildfire only.">i</i>
-        The interactive mapping tools allow you to explore how vulnerability and criticality of assets were assessed and provide feedback on how this analysis could be improved.
+        Working pages for each part of Connecting Tahoe, grouped the way the grant scope is.<i class="i" tabindex="0" data-tip="PROTECT is the FHWA Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation grant. The draft revised scope has four parts: stakeholder engagement, a review of past emergency responses, the Tahoe Resilience Improvement Plan (TRIP), and a regional emergency communications and transportation plan, which the public pages call the transportation communications strategy.">i</i>
+        Most of the work so far is the vulnerability assessment for the Resilience Improvement Plan; the other parts add pages here as they start.
       </p>
     </section>
 
+    <nav class="parts" aria-label="Parts of the project">
+      <a href="#engagement"><b>Stakeholder engagement</b><span>Workshop 1, Nov. 9, 2026</span></a>
+      <a href="#lessons"><b>Lessons from past emergencies</b><span>No pages yet</span></a>
+      <a href="#trip" class="main"><b>Resilience Improvement Plan</b><span>Vulnerability assessment in draft</span></a>
+      <a href="#communications"><b>Communications strategy</b><span>No pages yet</span></a>
+    </nav>
 
-    <h2 class="section">Results</h2>
-    <section class="card-grid">
-      <a class="page-card featured" href="results.html">
-        <div class="card-head"><h3>Results</h3><span class="chip blue">v0.2 draft</span></div>
-        <p>The draft vulnerability assessment: every asset scored by both vulnerability to hazards and criticality to the transportation network, with one tab per hazard.<i class="i" tabindex="0" data-tip="Overview tab: V_max per road, culvert, bridge, path, and transit hub, vulnerability by criticality, and the hotspot list. Hazard tabs: flooding (culverts and bridges, drainage area on click), wildfire (roads, paths, hubs, the 300 ft sampling footprint), landslide, debris flow, and avalanche. Reads data/processed/results written by scripts/publish_results.py.">i</i></p>
-        <ul><li>Overview: combined class, criticality, hotspots</li><li>Flooding, wildfire, landslide, debris flow, avalanche tabs</li><li>Maps, distributions, tables with CSV export</li></ul>
-        <span class="open">Open &rarr;</span>
-      </a>
-    </section>
-
-    <h2 class="section">Components</h2>
-    <section class="card-grid compact">
-      <a class="page-card compact" href="criticality-index.html">
-        <div class="card-head"><h3>Criticality</h3><span class="chip">live</span></div>
-        <p>Component 1: which roads matter most based on equity, traffic, detours, and access to critical places. Interactive sliders allow for adjustable weights to explore the impact of weighting variables differently (traffic, detour, trips, equity).<i class="i" tabindex="0" data-tip="The criticality assessment on the Overture street network: four sub-indices, adjustable weights, hazard filters, CSV export. Bridges and culverts inherit the road segment's class.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-      <a class="page-card compact" href="od-services-index.html">
-        <div class="card-head"><h3>Access to services</h3><span class="chip">live</span></div>
-        <p>The access-to-critical-locations factor of criticality: routed trips to evacuation, medical, shelter, school, and food destinations.<i class="i" tabindex="0" data-tip="Origin-destination routing in RA2CE on the street network; criticality factor 4.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-    </section>
-
-    <h2 class="section">Method and data</h2>
-    <section class="card-grid compact">
-      <a class="page-card compact" href="scoring-rubrics.html">
-        <div class="card-head"><h3>Scoring rubrics</h3><span class="chip">v0.4</span></div>
-        <p>How every hazard-asset pair is scored: indicators, breaks, weights, defaults, and the 24 decisions open with the consultant.<i class="i" tabindex="0" data-tip="Interactive per-pair scoring on the consultant's half-point scale, rubric tables, the framework, the decisions list, and TRPA's departures from the Aug. 20 draft. Mirrors docs/SCORING_RUBRICS.md.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-      <a class="page-card compact" href="reference-hub.html">
-        <div class="card-head"><h3>Reference hub</h3><span class="chip">v0.6</span></div>
-        <p>The 15 hazard-asset pairs, the data and model inventory, the framework, and the exposure dataset evaluation.<i class="i" tabindex="0" data-tip="Source-of-record tabs for pairs, inventory readiness, methods, and the hazard impact and sensitivity matrix.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-      <a class="page-card compact" href="climate-data.html">
-        <div class="card-head"><h3>Climate inputs</h3><span class="chip">v0.2</span></div>
-        <p>The climate projections and storm statistics behind the future horizons: sources, metrics, and the Atlas 14 depth-duration-frequency extract.<i class="i" tabindex="0" data-tip="LOCA2 and WRF from the cadcat archive, NOAA Atlas 14, and the decisions on horizons and scenarios.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-    </section>
-
-    <h2 class="section">Evidence</h2>
-    <section class="card-grid compact">
-      <a class="page-card compact" href="historic-hazards.html">
-        <div class="card-head"><h3>Historic hazards</h3><span class="chip">v0.1</span></div>
-        <p>Where hazards have already happened: fire perimeters, mapped landslides, and earthquake epicenters.<i class="i" tabindex="0" data-tip="CAL FIRE perimeters with a year filter, the USGS landslide inventory, and USGS earthquake epicenters of magnitude 2.5 and over. The record the predictive surfaces are checked against.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-      <a class="page-card compact" href="tahoe-precip-events.html">
-        <div class="card-head"><h3>Storm events</h3><span class="chip">live</span></div>
-        <p>Recorded storms and the July 14, 2026 debris-flow event against the WRF one-hour intensity grid and the culvert layer.<i class="i" tabindex="0" data-tip="Storm events explorer with the embedded culvert layer and WRF 1-hr intensity grid; the hindcast for the debris-flow pairs.">i</i></p>
-        <span class="open">Open &rarr;</span>
-      </a>
-    </section>
-
-    <h2 class="section">Workshop</h2>
+    <!-- Parts follow the grant scope order. A new page gets a card in its part; a part with
+         no pages keeps its dashed panel until the first one lands. -->
+    <h2 class="part" id="engagement">Stakeholder engagement</h2>
     <section class="card-grid compact">
       <a class="page-card compact" href="workshop-punchlist.html">
-        <div class="card-head"><h3>Punch list</h3><span class="chip">live</span></div>
+        <div class="card-head"><h3>Workshop 1 punch list</h3><span class="chip">live</span></div>
         <p>What is done and what is left before Workshop 1, with dates, the open decisions, and the print-map list.<i class="i" tabindex="0" data-tip="One dated task table with status in the page data; decisions open; the print-map spec.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
       <a class="page-card compact" href="workshop-feedback.html">
-        <div class="card-head"><h3>Feedback</h3><span class="chip">new</span></div>
+        <div class="card-head"><h3>Workshop feedback</h3><span class="chip">new</span></div>
         <p>The digital sticky notes for the Workshop 1 results activity: click an asset or drop a pin, rate the concern, say why.<i class="i" tabindex="0" data-tip="Five hazard stations; sends to a Survey123 layer once configured, CSV export and import until then; the Report out tab tallies everyone's notes by asset.">i</i></p>
         <span class="open">Open &rarr;</span>
       </a>
-
     </section>
-        <div class="banner">
+
+    <div class="banner">
       <div>
         <div class="when">Next milestone</div>
         <div class="what">Workshop 1 &middot; Nov. 9, 2026<i class="i" tabindex="0" data-tip="Partners review the draft historical-horizon results for all 15 hazard-asset pairs, the two disruption scenarios, and the interactive mapping tool. Print maps and the tool freeze on Nov. 4.">i</i></div>
@@ -265,7 +226,80 @@
       </div>
     </div>
 
-    <h2 class="section">Phasing</h2>
+    <h2 class="part" id="lessons">Lessons from past emergencies</h2>
+    <div class="panel empty">
+      <p>No pages yet. The review of how the region responded to the Angora, Tamarack, Caldor, and Davis fires and to major winter storms, with lessons and recommendations, goes here.</p>
+    </div>
+
+    <h2 class="part" id="trip">Resilience Improvement Plan (TRIP)</h2>
+    <div class="panel">
+      <div class="toolbar">
+        <button data-tablecsv="trip-table" data-filename="PROTECT_TRIP_Work_Plan.csv">Export CSV</button>
+      </div>
+      <table class="ref" id="trip-table">
+        <thead><tr><th>Piece of work</th><th>Lead</th><th>Status</th><th>Pages or next step</th></tr></thead>
+        <tbody>
+          <tr><td>Review of existing plans<i class="i" tabindex="0" data-tip="State and local hazard mitigation plans, vulnerability assessments, extreme weather plans, and EIP and TIP documents: what has been done and by whom, what the plan can reuse, what is still needed, and how the plan will differ.">i</i></td><td>ICF</td><td><span class="tag progress">Draft</span></td><td>Draft literature review of 41 plans; not on the site yet.</td></tr>
+          <tr><td>Risk index ratings: the vulnerability assessment<i class="i" tabindex="0" data-tip="The risk-based assessment the plan requires: the chance an asset is affected (vulnerability) and the consequences if it is (criticality).">i</i></td><td>TRPA, ICF review</td><td><span class="tag live">First pass live</span></td><td><a href="results.html">Results</a>, <a href="criticality-index.html">Criticality</a>, <a href="od-services-index.html">Access to services</a>, <a href="scoring-rubrics.html">Scoring rubrics</a></td></tr>
+          <tr><td>Pinch points and priority zones<i class="i" tabindex="0" data-tip="Hazard-prone areas, vulnerable neighborhoods, and travel patterns read together to set priority zones for resilience improvements that support emergency response.">i</i></td><td>TRPA</td><td><span class="tag open">Not started</span></td><td>Builds on the assessment results and the review of past emergencies.</td></tr>
+          <tr><td>Resilience projects and funding strategy</td><td>TRPA</td><td><span class="tag scoped">2027</span></td><td>Prioritized project list with cost estimates and funding options; Workshop 2, May 2027.</td></tr>
+          <tr><td>Additional needs and next steps</td><td>TRPA</td><td><span class="tag scoped">2027</span></td><td>Needs outside this scope of work, recorded in the final plan.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section">Vulnerability assessment</h3>
+    <section class="card-grid">
+      <a class="page-card featured" href="results.html">
+        <div class="card-head"><h3>Results</h3><span class="chip blue">v0.2 draft</span></div>
+        <p>The draft vulnerability assessment: every asset scored by both vulnerability to hazards and criticality to the transportation network, with one tab per hazard.<i class="i" tabindex="0" data-tip="Overview tab: V_max per road, culvert, bridge, path, and transit hub, vulnerability by criticality, and the hotspot list. Hazard tabs: flooding (culverts and bridges, drainage area on click), wildfire (roads, paths, hubs, the 300 ft sampling footprint), landslide, debris flow, and avalanche. Reads data/processed/results written by scripts/publish_results.py.">i</i></p>
+        <ul><li>Overview: combined class, criticality, hotspots</li><li>Flooding, wildfire, landslide, debris flow, avalanche tabs</li><li>Maps, distributions, tables with CSV export</li></ul>
+        <span class="open">Open &rarr;</span>
+      </a>
+    </section>
+    <section class="card-grid compact" style="margin-top:.7rem;">
+      <a class="page-card compact" href="criticality-index.html">
+        <div class="card-head"><h3>Criticality</h3><span class="chip">live</span></div>
+        <p>Component 1: which roads matter most based on equity, traffic, detours, and access to critical places. Interactive sliders allow for adjustable weights to explore the impact of weighting variables differently (traffic, detour, trips, equity).<i class="i" tabindex="0" data-tip="The criticality assessment on the Overture street network: four sub-indices, adjustable weights, hazard filters, CSV export. Bridges and culverts inherit the road segment's class.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+      <a class="page-card compact" href="od-services-index.html">
+        <div class="card-head"><h3>Access to services</h3><span class="chip">live</span></div>
+        <p>The access-to-critical-locations factor of criticality: routed trips to evacuation, medical, shelter, school, and food destinations.<i class="i" tabindex="0" data-tip="Origin-destination routing in RA2CE on the street network; criticality factor 4.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+      <a class="page-card compact" href="scoring-rubrics.html">
+        <div class="card-head"><h3>Scoring rubrics</h3><span class="chip">v0.4</span></div>
+        <p>How every hazard-asset pair is scored: indicators, breaks, weights, defaults, and the 24 decisions open with the consultant.<i class="i" tabindex="0" data-tip="Interactive per-pair scoring on the consultant's half-point scale, rubric tables, the framework, the decisions list, and TRPA's departures from the Aug. 20 draft. Mirrors docs/SCORING_RUBRICS.md.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+    </section>
+
+    <h3 class="section">Data and evidence</h3>
+    <section class="card-grid compact">
+      <a class="page-card compact" href="reference-hub.html">
+        <div class="card-head"><h3>Reference hub</h3><span class="chip">v0.6</span></div>
+        <p>The 15 hazard-asset pairs, the data and model inventory, the framework, and the exposure dataset evaluation.<i class="i" tabindex="0" data-tip="Source-of-record tabs for pairs, inventory readiness, methods, and the hazard impact and sensitivity matrix.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+      <a class="page-card compact" href="climate-data.html">
+        <div class="card-head"><h3>Climate inputs</h3><span class="chip">v0.2</span></div>
+        <p>The climate projections and storm statistics behind the future horizons: sources, metrics, and the Atlas 14 depth-duration-frequency extract.<i class="i" tabindex="0" data-tip="LOCA2 and WRF from the cadcat archive, NOAA Atlas 14, and the decisions on horizons and scenarios.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+      <a class="page-card compact" href="historic-hazards.html">
+        <div class="card-head"><h3>Historic hazards</h3><span class="chip">v0.1</span></div>
+        <p>Where hazards have already happened: fire perimeters, mapped landslides, and earthquake epicenters.<i class="i" tabindex="0" data-tip="CAL FIRE perimeters with a year filter, the USGS landslide inventory, and USGS earthquake epicenters of magnitude 2.5 and over. The record the predictive surfaces are checked against.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+      <a class="page-card compact" href="tahoe-precip-events.html">
+        <div class="card-head"><h3>Storm events</h3><span class="chip">live</span></div>
+        <p>Recorded storms and the July 14, 2026 debris-flow event against the WRF one-hour intensity grid and the culvert layer.<i class="i" tabindex="0" data-tip="Storm events explorer with the embedded culvert layer and WRF 1-hr intensity grid; the hindcast for the debris-flow pairs.">i</i></p>
+        <span class="open">Open &rarr;</span>
+      </a>
+    </section>
+
+    <h3 class="section">Phasing</h3>
     <div class="panel">
       <div class="timeline">
         <div class="milestone done">
@@ -303,7 +337,7 @@
       </div>
     </div>
 
-    <h2 class="section">Workstream status</h2>
+    <h3 class="section">Vulnerability assessment status</h3>
     <div class="panel">
       <div class="toolbar">
         <button data-tablecsv="status-table" data-filename="PROTECT_Workstream_Status.csv">Export CSV</button>
@@ -328,7 +362,7 @@
       </table>
     </div>
 
-    <h2 class="section">How the assessment works</h2>
+    <h3 class="section">How the assessment works</h3>
     <div class="panel">
       <div class="flow">
         <span class="step">Source data<i class="i" tabindex="0" data-tip="Source layers and pipelines: the street network built from Overture data (the base network for criticality and RA2CE), climate projections and trigger-storm climatology, the compiled bridge and culvert layers, and the hazard exposure surfaces classed 0 to 3.">i</i></span><span class="arrow">&rarr;</span>
@@ -341,10 +375,14 @@
         <span class="step">2027 TRIP</span>
       </div>
     </div>
+    <h2 class="part" id="communications">Transportation communications strategy</h2>
+    <div class="panel empty">
+      <p>No pages yet. The intelligent transportation system needs assessment and project list, and the strategy for transit during an evacuation, go here.<i class="i" tabindex="0" data-tip="The draft revised scope calls this the Regional Emergency Communications and Transportation Plan: communication infrastructure (ITS needs, a prioritized ITS project list, and gaps for people who do not speak English or lack transportation) and transportation coordination (a transportation resource inventory and a transit evacuation strategy for zero-car households, seniors, people with disabilities, and low-income households).">i</i></p>
+    </div>
   </main>
 
   <footer>
-    Internal review draft, landing page v0.8 (each content page carries its own version chip). Hosted at <a href="https://trpa-agency.github.io/PROTECT/" target="_blank" rel="noopener">trpa-agency.github.io/PROTECT</a>; final home planned at data.trpa.gov/PROTECT.
+    Internal review draft, project pages index v0.9 (each content page carries its own version chip). Hosted at <a href="https://trpa-agency.github.io/PROTECT/" target="_blank" rel="noopener">trpa-agency.github.io/PROTECT</a>; final home planned at data.trpa.gov/PROTECT.
   </footer>
 
   <script>
