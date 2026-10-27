@@ -153,16 +153,25 @@
     .timeline .what{display:block;font-size:1.05rem;font-weight:700;margin-top:.2rem;line-height:1.35;}
     .timeline .here{display:inline-block;margin-top:.5rem;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:var(--trpa-orange);color:#fff;padding:.12rem .5rem;border-radius:999px;}
 
-    /* Explore the work: links into the analysis pages */
-    .explore-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:2rem;}
-    a.tool{display:flex;flex-direction:column;background:#fff;border:1px solid var(--gray-border);border-radius:10px;padding:1.3rem 1.4rem;text-decoration:none;color:var(--trpa-navy);transition:border-color .15s,box-shadow .15s;}
+    .components-note{text-align:center;margin-top:1.4rem;color:#2c4766;}
+
+    /* Explore the work: one block per part of the project, live pages plus "Coming" cards */
+    .part{margin-top:2.4rem;}
+    .part-name{font-size:1.15rem;padding-left:.7rem;border-left:4px solid var(--trpa-blue);margin-bottom:.9rem;}
+    .explore-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;}
+    .tool{display:flex;flex-direction:column;background:#fff;border:1px solid var(--gray-border);border-radius:10px;padding:1.3rem 1.4rem;text-decoration:none;color:var(--trpa-navy);}
+    a.tool{transition:border-color .15s,box-shadow .15s;}
     a.tool:hover{border-color:var(--trpa-blue);box-shadow:0 4px 16px rgba(0,59,113,.12);}
-    a.tool .head{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem;}
-    a.tool h3{flex:1;}
-    a.tool .chip{font-size:.66rem;font-weight:700;padding:.12rem .55rem;border-radius:999px;background:#fdf1e7;color:#a8530f;white-space:nowrap;}
-    a.tool p{font-size:.92rem;color:#2c4766;margin-bottom:.8rem;}
-    a.tool .open{margin-top:auto;font-size:.86rem;font-weight:700;color:var(--trpa-blue);}
-    .all-pages{margin-top:1.2rem;font-size:.92rem;}
+    .tool .head{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem;}
+    .tool h4{flex:1;font-size:1.05rem;font-weight:700;line-height:1.3;}
+    .tool .chip{font-size:.66rem;font-weight:700;padding:.12rem .55rem;border-radius:999px;background:#fdf1e7;color:#a8530f;white-space:nowrap;}
+    .tool .chip.live{background:#4A611814;color:var(--trpa-forest);}
+    .tool p{font-size:.92rem;color:#2c4766;margin-bottom:.8rem;}
+    .tool .open{margin-top:auto;font-size:.86rem;font-weight:700;color:var(--trpa-blue);}
+    .tool.soon{background:transparent;border-style:dashed;border-color:#c4ccd6;}
+    .tool.soon .chip{background:#e6eaf0;color:var(--gray-text);}
+    .tool.soon p{color:var(--gray-text);margin-bottom:0;}
+    .all-pages{margin-top:2rem;font-size:.92rem;}
 
     /* Community involvement: floating panel over a full-bleed photo */
     .involved{position:relative;min-height:90vh;display:flex;align-items:center;overflow:hidden;background:var(--trpa-deep);}
@@ -271,7 +280,7 @@
         <a href="#overview">Overview</a><a href="#goals">Goals</a><a href="#plan">The plan</a><a href="#schedule">Schedule</a><a href="#explore">Explore</a><a href="#involved">Get involved</a>
       </nav>
       <a class="cta" href="#survey">Take the survey</a>
-      <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html" class="on" aria-current="page">Home</a><a href="html/index.html">All pages</a></div><div class="g"><b>Results</b><a href="html/results.html">Results</a></div><div class="g"><b>Components</b><a href="html/criticality-index.html">Criticality</a><a href="html/od-services-index.html">Access to services</a></div><div class="g"><b>Method and data</b><a href="html/scoring-rubrics.html">Scoring rubrics</a><a href="html/reference-hub.html">Reference hub</a><a href="html/climate-data.html">Climate inputs</a></div><div class="g"><b>Evidence</b><a href="html/historic-hazards.html">Historic hazards</a><a href="html/tahoe-precip-events.html">Storm events</a></div><div class="g"><b>Workshop</b><a href="html/workshop-punchlist.html">Punch list</a><a href="html/workshop-feedback.html">Feedback</a></div></nav></details>
+      <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html" class="on" aria-current="page">Home</a><a href="html/index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="html/workshop-punchlist.html">Workshop 1 punch list</a><a href="html/workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="html/results.html">Results</a><a href="html/criticality-index.html">Criticality</a><a href="html/od-services-index.html">Access to services</a><a href="html/scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="html/reference-hub.html">Reference hub</a><a href="html/climate-data.html">Climate inputs</a><a href="html/historic-hazards.html">Historic hazards</a><a href="html/tahoe-precip-events.html">Storm events</a></div></nav></details>
     </div>
   </header>
 
@@ -319,6 +328,7 @@
             <p>Evaluates Intelligent Transportation Systems (ITS) and emergency communication tools to support improved partner coordination and traveler information during emergencies.</p>
           </article>
         </div>
+        <p class="components-note">Stakeholder engagement and a review of how the region has handled past emergencies feed both.</p>
       </div>
     </section>
 
@@ -375,45 +385,54 @@
       <div class="scrolly-media" aria-hidden="true">
         <figure data-step="0" class="on"><img src="html/img/home/plan-shoreline-aerial.jpg" alt="" loading="lazy" /></figure>
         <figure data-step="1"><img src="html/img/home/plan-engagement.jpg" alt="" loading="lazy" /></figure>
-        <figure data-step="2"><img src="html/img/home/plan-vulnerability.jpg" alt="" loading="lazy" /><span class="credit">Photo: TRPA photo archive</span></figure>
-        <figure data-step="3"><img src="html/img/home/plan-projects.jpg" alt="" loading="lazy" /><span class="credit">Photo: Luxuri Media</span></figure>
-        <figure data-step="4"><img src="html/img/home/plan-communications.jpg" alt="" loading="lazy" /><span class="credit">Photo: Tahoe Transportation District</span></figure>
+        <figure data-step="2"><img src="html/img/home/hazard-wildfire.jpg" alt="" loading="lazy" /><span class="credit">Photo: Sierra Sun</span></figure>
+        <figure data-step="3"><img src="html/img/home/plan-vulnerability.jpg" alt="" loading="lazy" /><span class="credit">Photo: TRPA photo archive</span></figure>
+        <figure data-step="4"><img src="html/img/home/plan-projects.jpg" alt="" loading="lazy" /><span class="credit">Photo: Luxuri Media</span></figure>
+        <figure data-step="5"><img src="html/img/home/plan-communications.jpg" alt="" loading="lazy" /><span class="credit">Photo: Tahoe Transportation District</span></figure>
       </div>
       <div class="scrolly-steps">
         <div class="step intro" data-step="0">
           <p class="kicker" style="color:var(--trpa-ice)">The plan</p>
           <h2>What Connecting Tahoe will include</h2>
-          <p>Four pieces of work, from listening to partners to a list of projects ready for funding.</p>
+          <p>Five pieces of work, from listening to partners to a list of projects ready for funding.</p>
         </div>
         <div class="step" data-step="1">
           <div class="step-card">
             <figure class="inline"><img src="html/img/home/plan-engagement.jpg" alt="Agency staff talking with the public at outdoor information booths" loading="lazy" /></figure>
-            <span class="num">Part 1</span>
+            <span class="num">Engagement</span>
             <h3>Stakeholder engagement</h3>
             <p>Interviews, workshops, and agency coordination.</p>
           </div>
         </div>
         <div class="step" data-step="2">
           <div class="step-card">
-            <figure class="inline"><img src="html/img/home/plan-vulnerability.jpg" alt="Partners reviewing a printed corridor map outdoors in the snow" loading="lazy" /></figure>
-            <span class="num">Part 2</span>
-            <h3>Risk-based vulnerability assessment</h3>
-            <p>Interactive mapping tools that identify vulnerable locations.</p>
-            <a class="more" href="html/results.html">Explore the draft results &rarr;</a>
+            <figure class="inline"><img src="html/img/home/hazard-wildfire.jpg" alt="Fire engines staged along a smoky residential street" loading="lazy" /></figure>
+            <span class="num">Lessons learned</span>
+            <h3>Lessons from past emergencies</h3>
+            <p>A review of how the region responded to the Angora, Tamarack, Caldor, and Davis fires and to major winter storms, with recommendations for next time.</p>
           </div>
         </div>
         <div class="step" data-step="3">
           <div class="step-card">
-            <figure class="inline"><img src="html/img/home/plan-projects.jpg" alt="Cyclists on a boardwalk path through a meadow" loading="lazy" /></figure>
-            <span class="num">Part 3</span>
-            <h3>Prioritized project list</h3>
-            <p>Recommended projects and investments to improve resilience.</p>
+            <figure class="inline"><img src="html/img/home/plan-vulnerability.jpg" alt="Partners reviewing a printed corridor map outdoors in the snow" loading="lazy" /></figure>
+            <span class="num">Resilience Improvement Plan</span>
+            <h3>Risk-based vulnerability assessment</h3>
+            <p>Interactive mapping tools that identify vulnerable locations and the pinch points in the transportation network.</p>
+            <a class="more" href="html/results.html">Explore the draft results &rarr;</a>
           </div>
         </div>
         <div class="step" data-step="4">
           <div class="step-card">
+            <figure class="inline"><img src="html/img/home/plan-projects.jpg" alt="Cyclists on a boardwalk path through a meadow" loading="lazy" /></figure>
+            <span class="num">Resilience Improvement Plan</span>
+            <h3>Prioritized project list</h3>
+            <p>Recommended projects and investments to improve resilience, with cost estimates and funding options.</p>
+          </div>
+        </div>
+        <div class="step" data-step="5">
+          <div class="step-card">
             <figure class="inline"><img src="html/img/home/plan-communications.jpg" alt="A transit bus on a lakeside highway" loading="lazy" /></figure>
-            <span class="num">Part 4</span>
+            <span class="num">Communications strategy</span>
             <h3>Transportation communications strategy</h3>
             <p>Recommendations for Intelligent Transportation Systems and communication tools that support emergency coordination.</p>
           </div>
@@ -438,25 +457,79 @@
     <section class="band tint" id="explore">
       <div class="wrap">
         <p class="kicker">Explore the work</p>
-        <h2>See the analysis as it develops</h2>
-        <p class="lede">These interactive drafts show how the vulnerability assessment works. They will change as partners review them.</p>
-        <div class="explore-grid">
-          <a class="tool" href="html/results.html">
-            <div class="head"><h3>Vulnerability results</h3><span class="chip">Draft</span></div>
-            <p>Which roads, bridges, culverts, paths, and transit centers are most exposed to flooding, wildfire, landslides, debris flows, and avalanches.</p>
-            <span class="open">Open the map &rarr;</span>
-          </a>
-          <a class="tool" href="html/criticality-index.html">
-            <div class="head"><h3>Which roads matter most</h3><span class="chip">Draft</span></div>
-            <p>How each road ranks on traffic, detour length, access to services, and equity, with weights you can adjust.</p>
-            <span class="open">Open the map &rarr;</span>
-          </a>
-          <a class="tool" href="html/historic-hazards.html">
-            <div class="head"><h3>Where hazards have happened</h3><span class="chip">Draft</span></div>
-            <p>Past wildfire perimeters, mapped landslides, and earthquakes across the basin.</p>
-            <span class="open">Open the map &rarr;</span>
-          </a>
+        <h2>See the work as it develops</h2>
+        <p class="lede">Each part of the project adds its pages here as the work moves forward. Drafts will change as partners review them.</p>
+
+        <!-- One block per part of the project, in scope order. A new page becomes an a.tool
+             card in its part and replaces the matching div.tool.soon card. -->
+        <div class="part" id="work-engagement">
+          <h3 class="part-name">Stakeholder engagement</h3>
+          <div class="explore-grid">
+            <a class="tool" href="#survey">
+              <div class="head"><h4>Public survey</h4><span class="chip live">Open</span></div>
+              <p>How extreme weather has affected your travel and how you prefer to get important information.</p>
+              <span class="open">Take the survey &rarr;</span>
+            </a>
+            <div class="tool soon">
+              <div class="head"><h4>Workshop and meeting materials</h4><span class="chip">Coming</span></div>
+              <p>Posted after each workshop and meeting.</p>
+            </div>
+          </div>
         </div>
+
+        <div class="part" id="work-lessons">
+          <h3 class="part-name">Lessons from past emergencies</h3>
+          <div class="explore-grid">
+            <div class="tool soon">
+              <div class="head"><h4>Review of past responses</h4><span class="chip">Coming</span></div>
+              <p>How the region responded to the Angora, Tamarack, Caldor, and Davis fires and to major winter storms, with recommendations.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="part" id="work-trip">
+          <h3 class="part-name">Resilience Improvement Plan</h3>
+          <div class="explore-grid">
+            <a class="tool" href="html/results.html">
+              <div class="head"><h4>Vulnerability results</h4><span class="chip">Draft</span></div>
+              <p>Which roads, bridges, culverts, paths, and transit centers are most exposed to flooding, wildfire, landslides, debris flows, and avalanches.</p>
+              <span class="open">Open the map &rarr;</span>
+            </a>
+            <a class="tool" href="html/criticality-index.html">
+              <div class="head"><h4>Which roads matter most</h4><span class="chip">Draft</span></div>
+              <p>How each road ranks on traffic, detour length, access to services, and equity, with weights you can adjust.</p>
+              <span class="open">Open the map &rarr;</span>
+            </a>
+            <a class="tool" href="html/historic-hazards.html">
+              <div class="head"><h4>Where hazards have happened</h4><span class="chip">Draft</span></div>
+              <p>Past wildfire perimeters, mapped landslides, and earthquakes across the basin.</p>
+              <span class="open">Open the map &rarr;</span>
+            </a>
+            <div class="tool soon">
+              <div class="head"><h4>Pinch points and priority zones</h4><span class="chip">Coming</span></div>
+              <p>Where hazards, heavy travel, and vulnerable neighborhoods overlap, to set where improvements come first.</p>
+            </div>
+            <div class="tool soon">
+              <div class="head"><h4>Priority projects and funding</h4><span class="chip">Coming</span></div>
+              <p>Resilience projects with cost estimates and funding options.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="part" id="work-communications">
+          <h3 class="part-name">Transportation communications strategy</h3>
+          <div class="explore-grid">
+            <div class="tool soon">
+              <div class="head"><h4>Communications and traffic systems</h4><span class="chip">Coming</span></div>
+              <p>Upgrades to traveler information and traffic management, with a prioritized project list.</p>
+            </div>
+            <div class="tool soon">
+              <div class="head"><h4>Transit in an evacuation</h4><span class="chip">Coming</span></div>
+              <p>How transit providers and community groups can move people who do not have a car.</p>
+            </div>
+          </div>
+        </div>
+
         <p class="all-pages">Methods, data sources, and workshop materials are on the <a href="html/index.html">project pages index</a>.</p>
       </div>
     </section>
