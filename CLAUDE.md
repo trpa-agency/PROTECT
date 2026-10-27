@@ -28,6 +28,16 @@ model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and strea
 every page; never describe a flood model as purchased or pending. The **Results page** (`html/results.html`, Oct. 10, 2026) is the front door for the assessment: one data-driven page with an Overview tab (every asset's V_max class, vulnerability by criticality, hotspots) and one tab per hazard (flooding with the drainage area on click, wildfire with the 300 ft sampling footprint layers and a segment-buffer click, landslide, debris flow, avalanche), each a config block in the page (`MODES`) that swaps data files, legends, renderers, charts, and table columns in one map, one grid, and two chart divs. It reads `data/processed/results/` written by `scripts/publish_results.py`; a hazard whose files are not published shows an empty state. The standalone hazard pages and the Phase 1 MVP map are archived. Every page carries a **Pages menu** at the right of its header (a native `details.pages` dropdown, Oct. 13, 2026; it replaced the separate site nav row) with five groups (Results; Components: the **Criticality Index app** (`html/criticality-index.html`, live, 18,253 segments) and the **OD Services Index** (`html/od-services-index.html`); Method and data: rubrics, reference hub, climate inputs; Evidence: historic hazards, storm events; Workshop: punch list, feedback). The landing page groups its cards the same way. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
 Jekyll skips underscore directories, so nothing in it is served by Pages.
 
+**Public home page (Oct. 26, 2026):** the repo root `index.html` is the project home, rebuilt from
+the Connecting Tahoe story map collection (story item `6b67742ea10b44a2aedc6cdee909b59e`; Survey123
+form `5f9c9adfb4c14f509937c6462d89fa65`, loaded in place on click). Images live in
+`html/img/home/` (resized, EXIF stripped). It is what `trpa-agency.github.io/PROTECT/` serves, and it is
+the intended target of `trpa.gov/resilienttransportation`, which is a 301 redirect on trpa.gov
+(today it points at the story map collection), not a GitHub custom domain. The page is written for
+the public: the story map's copy in house style, an Explore section linking the draft tools, and no
+task lists or open decisions. In every Pages menu, Home is `../index.html` and the old landing page
+`html/index.html` is "All pages".
+
 ## Project context
 
 - **Tool vision** (per `PROTECT_RiskIndexTool_Scoping_v0.1.docx`): a map-centric single-page app
@@ -84,6 +94,7 @@ The live readiness tracker is the Data and Model Inventory tab of `html/referenc
 
 ```
 PROTECT/
+├── index.html                       # public project home (Connecting Tahoe story rebuilt); images in html/img/home/
 ├── data/                            # input data, intermediate files
 ├── docs/                            # methodology, build notes, scoping archive
 ├── html/index.html                  # v0.7 landing page (page cards, Workshop 1 banner, phasing, workstream status; no CDN libs)
@@ -181,3 +192,5 @@ PROTECT/
 ```
 
 Or use the checked-in Claude Code preview config: `.claude/launch.json` (server name `protect`).
+That server roots at `html/`, so the root home page and every menu's Home link need `protect-root`
+(port 8012, repo root; pages at `/html/...`).
