@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT Results Guide | TRPA</title>
+  <meta name="description" content="Two-page printable guide to the PROTECT Results page: how every road, culvert, bridge, path, and transit hub got its vulnerability score, how to read the map, and a data dictionary of the fields in the popups, tables, and CSV exports." />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Open Sans (TRPA web font). No other libraries: this page prints. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:#0072CE; --trpa-navy:#003B71; --trpa-earth:#B47E00; --trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27; --trpa-olive:#B5A64C; --trpa-orange:#E87722; --trpa-purple:#7B6A8A;
+      --trpa-ice:#B4CBE8; --peach:#E8A05A; --gray-map:#cfd4da;
+      --gray-text:#5a6577; --gray-border:#DDDDDD; --page-bg:#f4f6f9; --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+
+    /* Header: the site's navy band */
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:54px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.35rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .header-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+    header.app-header .header-meta a{color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;}
+    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
+
+    /* Pages menu in the header */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+
+    /* Body */
+    main{max-width:1240px;margin:0 auto;padding:1.4rem 1.75rem 1rem;}
+    a{color:var(--trpa-blue);font-weight:600;}
+    .intro{display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1rem;}
+    .intro .lede{flex:1;min-width:280px;font-size:.96rem;max-width:95ch;}
+    .toolbar{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;}
+    .toolbar button{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.5rem .95rem;font-family:inherit;font-size:.84rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+    .toolbar button:hover{background:var(--trpa-blue);}
+    .toolbar .hint{font-size:.72rem;color:var(--gray-text);text-align:right;max-width:30ch;}
+    .draft{display:inline-block;background:#fdf6ee;border:1px solid var(--trpa-orange);color:#8a4410;font-size:.72rem;font-weight:700;border-radius:999px;padding:.1rem .6rem;vertical-align:1px;white-space:nowrap;margin-right:.3rem;}
+
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.3rem 0 .6rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    h2.sec small{font-weight:400;font-size:.8rem;color:var(--gray-text);margin-left:.5rem;}
+    p.lead{font-size:.88rem;color:var(--gray-text);max-width:100ch;margin-bottom:.7rem;}
+
+    /* Three steps */
+    .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem;margin-bottom:.9rem;}
+    .step{background:#fff;border-radius:8px;padding:.8rem 1rem .85rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
+    .step .k{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-text);}
+    .step h3{font-size:.95rem;font-weight:700;margin:.1rem 0 .3rem;}
+    .step p{font-size:.84rem;}
+    .formula{display:inline-block;background:#f0f4f9;border:1px solid #dbe5f0;border-radius:5px;padding:.05rem .45rem;font-size:.82rem;font-weight:600;}
+
+    /* Definitions grid */
+    .defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.4rem 1.4rem;margin-bottom:.4rem;}
+    .defs div{font-size:.84rem;padding:.3rem 0;border-bottom:1px dotted #d5dbe3;}
+    .defs b{color:var(--trpa-navy);}
+
+    /* Tables */
+    table.ref{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:.82rem;margin-bottom:.8rem;}
+    table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.5rem .7rem;font-weight:600;vertical-align:top;}
+    table.ref td{padding:.42rem .7rem;border-top:1px solid #eef0f3;vertical-align:top;}
+    table.ref tr:nth-child(even) td{background:#fafbfc;}
+    table.ref td.h{font-weight:700;}
+    table.ref tr.grp td{background:#eaf1f9;font-weight:700;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--trpa-navy);padding:.3rem .7rem;}
+    table.ref code{font-family:Consolas,'Courier New',monospace;font-size:.8em;background:#eef1f5;padding:0 .3em;border-radius:3px;white-space:nowrap;}
+    table.ref td.code{font-size:.8rem;}
+    table.hz td:first-child{font-weight:700;white-space:nowrap;}
+    table.hz .w{white-space:nowrap;color:var(--gray-text);font-size:.76rem;}
+
+    /* Reading the map */
+    .mapread{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.9rem;margin-bottom:.6rem;}
+    .mapread .card{background:#fff;border-radius:8px;padding:.75rem .95rem .8rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--trpa-blue);}
+    .mapread h3{font-size:.86rem;font-weight:700;margin-bottom:.35rem;}
+    .mapread ul{list-style:none;}
+    .mapread li{font-size:.82rem;padding:.14rem 0;}
+    .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:.25rem;border:1px solid rgba(0,0,0,.12);}
+    .sw.ln{height:4px;width:18px;border-radius:2px;vertical-align:2px;}
+    .sw.dot{border-radius:50%;}
+    .sw.dash{height:0;border:none;border-top:3px dashed var(--trpa-navy);width:18px;vertical-align:3px;}
+
+    .further{font-size:.88rem;margin:.4rem 0 .6rem;}
+    .url{display:none;}
+
+    footer.app-footer{max-width:1240px;margin:0 auto;padding:1rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer .foot-short{display:none;}
+
+    @media (max-width:860px){ .steps{grid-template-columns:1fr;} }
+    @media (max-width:700px){
+      table.ref{display:block;overflow-x:auto;}
+      .toolbar{align-items:flex-start;} .toolbar .hint{text-align:left;}
+    }
+
+    /* ---------- Print: letter, two pages (page 1 overview and map, page 2 dictionary) ---------- */
+    @media print {
+      @page { size: letter; margin: 0.38in 0.45in; }
+      html,body{background:#fff;color:#111;font-size:8pt;line-height:1.28;}
+      *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      header.app-header{background:none !important;color:var(--trpa-navy);border-bottom:1.5pt solid var(--trpa-navy);}
+      .header-content{max-width:none;padding:0 0 3pt;gap:8pt;flex-wrap:nowrap;}
+      .header-logo img{height:26pt;}
+      header.app-header .agency,header.app-header .header-sub{color:var(--trpa-navy);opacity:1;font-size:6.3pt;margin:0;}
+      header.app-header h1{font-size:12.5pt;color:var(--trpa-navy);}
+      header.app-header .version{background:none;color:var(--trpa-navy);border:1pt solid var(--trpa-navy);font-size:6.3pt;padding:1pt 5pt;}
+      details.pages,.toolbar{display:none !important;}
+      main{max-width:none;padding:0;}
+      .intro{margin:4pt 0 0;gap:0;}
+      .intro .lede{font-size:7.8pt;max-width:none;}
+      .draft{font-size:6.3pt;padding:0 4pt;}
+      h2.sec{font-size:9.5pt;margin:5pt 0 2.5pt;padding-bottom:1pt;border-bottom-width:1pt;break-after:avoid;page-break-after:avoid;}
+      h2.sec small{font-size:6.8pt;}
+      p.lead{font-size:6.8pt;margin-bottom:2pt;color:#333;}
+      .steps{gap:5pt;margin-bottom:3pt;}
+      .step{padding:3pt 6pt 4pt;box-shadow:none;border:.75pt solid #c9d1dc;border-top:2pt solid var(--trpa-blue);border-radius:3pt;break-inside:avoid;}
+      .step .k{font-size:5.6pt;} .step h3{font-size:8pt;margin:0 0 1pt;} .step p{font-size:7pt;}
+      .formula{font-size:7pt;padding:0 3pt;border-width:.5pt;}
+      .defs{grid-template-columns:1fr 1fr;gap:0 12pt;margin-bottom:0;}
+      .defs div{font-size:6.9pt;padding:1.3pt 0;border-bottom:.5pt dotted #c9d1dc;}
+      table.ref{font-size:6.6pt;box-shadow:none;border:.5pt solid #c9d1dc;border-radius:0;margin-bottom:3pt;line-height:1.2;}
+      table.ref th{padding:2pt 3.5pt;font-size:6.6pt;}
+      table.ref td{padding:1.4pt 3.5pt;border-top:.5pt solid #e3e7ec;}
+      table.ref tr.grp td{font-size:5.9pt;padding:1pt 3.5pt;letter-spacing:.04em;}
+      table.ref code{font-size:6.1pt;background:none;padding:0;}
+      table.ref td.code{font-size:6.1pt;}
+      table.hz .w{font-size:6.2pt;}
+      table.dict{font-size:6.2pt;line-height:1.17;}
+      table.dict td{padding:1.2pt 3.5pt;}
+      tr{break-inside:avoid;page-break-inside:avoid;}
+      thead{display:table-header-group;}
+      #dictionary{break-before:page;page-break-before:always;}
+      .mapread{grid-template-columns:repeat(3,minmax(0,1fr));gap:5pt;margin-bottom:2pt;}
+      .mapread .card{padding:2.5pt 5pt 3pt;box-shadow:none;border:.75pt solid #c9d1dc;border-left:2.5pt solid var(--trpa-blue);border-radius:3pt;break-inside:avoid;}
+      .mapread h3{font-size:7.2pt;margin-bottom:0;} .mapread li{font-size:6.5pt;padding:.3pt 0;line-height:1.24;}
+      .sw{width:7pt;height:7pt;margin-right:2pt;} .sw.ln{width:11pt;height:2.5pt;} .sw.dash{width:11pt;}
+      .further{font-size:6.9pt;margin:2pt 0;}
+      a{color:inherit;text-decoration:none;font-weight:600;}
+      .url{display:inline;}
+      footer.app-footer{max-width:none;padding:2pt 0 0;font-size:5.9pt;line-height:1.25;border-top:.5pt solid #c9d1dc;color:#444;}
+      footer.app-footer code{background:none;padding:0;}
+      footer.app-footer .foot-long{display:none;} footer.app-footer .foot-short{display:block;}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>PROTECT Results Guide</h1>
+        <div class="header-sub">Resilience plan (TRIP) &middot; How the Results page scores were made, and what each field means</div>
+      </div>
+      <div class="header-meta">
+        <span class="version">v0.1</span>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-punchlist.html">Workshop 1 punch list</a><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html" class="on" aria-current="page">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- 1. Purpose and status -->
+    <section class="intro">
+      <p class="lede">
+        <span class="draft">Draft for Workshop 1, Nov. 9, 2026</span>
+        This guide goes with the <a href="results.html">Results page</a> of the PROTECT vulnerability assessment: how every road,
+        culvert, bridge, path, and transit hub got its score, how to read the map, and what each field in the page's popups, tables,
+        and CSV exports means. The results are a draft for workshop review and will change as inputs are finalized (the contracted
+        fire and soil burn severity data, the USGS debris-flow model, the 2050 and 2080 horizons, and owner review of the culvert
+        records). The scores rank assets and raise questions; they are not design values.
+      </p>
+      <div class="toolbar">
+        <button type="button" onclick="window.print()">Print or save as PDF</button>
+        <div class="hint">Printing to PDF is the download: letter size, two pages. Choose Save as PDF as the destination.</div>
+      </div>
+    </section>
+
+    <!-- 2. How an asset gets a score -->
+    <h2 class="sec">How an asset gets a score <small>three steps, built on FHWA vulnerability assessment guidance</small></h2>
+    <div class="steps">
+      <div class="step">
+        <div class="k">Step 1</div>
+        <h3>Criticality: how much the asset matters</h3>
+        <p>Each road segment is scored on who depends on it (equity), traffic, the detour if it closed, and access to critical places,
+        then cut into quarters, 0 (lowest) to 3 (top). Culverts and bridges take the class of the road they carry. Criticality sits
+        beside vulnerability and is never multiplied into it.</p>
+      </div>
+      <div class="step">
+        <div class="k">Step 2</div>
+        <h3>Vulnerability: how likely the asset is to fail</h3>
+        <p>Fifteen hazard-asset pairs are screened as <span class="formula">Vulnerability = (Exposure x wE) + (Sensitivity x wS)</span>.
+        Exposure is how much of the hazard reaches the asset; sensitivity is how badly it would fare. Indicators score 0 to 3 and the
+        weights sum to 1 per pair, so a pair score is 0 to 3. Roads carry no sensitivity: a road's score is its exposure.</p>
+      </div>
+      <div class="step">
+        <div class="k">Step 3</div>
+        <h3>Disruption scenarios: what happens when it fails</h3>
+        <p>For places that are both critical and vulnerable, the RA2CE model (Deltares) runs event scenarios on the street network:
+        detours, travel time, access to key destinations, and people cut off. This step follows the workshop and is not on the
+        Results page yet.</p>
+      </div>
+    </div>
+    <div class="defs">
+      <div><b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over. Wildfire scores run 1 to 3 everywhere, so wildfire uses
+        Low under 2, Medium 2 to 2.5, High over 2.5.</div>
+      <div><b>Combined class.</b> An asset in several pairs carries its highest pair score (the popup names it as Highest hazard); its class is the
+        highest of its pair classes.</div>
+      <div><b>Hotspots.</b> High vulnerability on a road in the top criticality quarter. The Hotspots only switch narrows the Overview
+        to them.</div>
+      <div><b>Stand-in.</b> A dataset used in place of the one the method names, on the same breaks, until the named one arrives. The
+        debris-flow pairs are the stand-in pairs (fire severity for soil burn severity, and a drainage-size break that puts nearly every
+        basin at 3), so they stay out of the combined class; the "with stand-ins" fields include them.</div>
+      <div><b>Missing data.</b> An unobserved sensitivity input (most culvert conditions) takes the method's default, and Sensitivity
+        data reads partial or default.</div>
+      <div><b>Horizon.</b> Every score is historical (the <code>_hist</code> suffix in exports). The 2050 and 2080 columns come in
+        December.</div>
+    </div>
+
+    <!-- 3. Hazards table -->
+    <h2 class="sec">What each hazard is scored on</h2>
+    <table class="ref hz">
+      <thead><tr><th>Hazard</th><th>Assets scored</th><th>Exposure data (what reaches the asset)</th><th>Sensitivity inputs (how it would fare)</th><th>Weights</th></tr></thead>
+      <tbody>
+        <tr><td>Flooding</td><td>Roads, culverts, bridges, paths, transit hubs</td>
+          <td>FEMA 100-year zone (class 3), FEMA 500-year zone or a mapped stream (2), a small drainage line or, from the next run, a 20 m band around the FEMA zones (1); no flood depth model.
+            Roads: the highest class along the segment. Culverts: the highest anywhere in the drainage area, plus one where lake level
+            backs water up.</td>
+          <td>Culverts: basin debris potential (slope and land cover) and the storm-to-capacity ratio. Bridges (National Bridge
+            Inventory): waterway adequacy as exposure; channel condition, scour, span type, condition. Paths: paved or unpaved, slope.
+            Roads and hubs: none.</td>
+          <td class="w">Roads, hubs E 1.0<br>Culverts, bridges E 0.3, S 0.7<br>Paths E 0.7, S 0.3</td></tr>
+        <tr><td>Wildfire</td><td>Roads, paths, transit hubs</td>
+          <td>Sierra Nevada Regional Resource Kit annual burn probability (likelihood, 0.7) and TRPA most-likely fire severity (0.3)
+            within 300 ft; severity must cover at least 25 percent of the buffer. The contracted fire-behavior package replaces both
+            when delivered.</td>
+          <td>None: exposure only.</td>
+          <td class="w">E 1.0</td></tr>
+        <tr><td>Landslide</td><td>Roads, culverts, bridges</td>
+          <td>USGS 2024 landslide susceptibility (share of each 90 m cell that is prone: over 80 percent is 3, over 60 is 2, over 40 is
+            1) and the USGS landslide inventory (a recorded slide is 3). The precipitation-change term is 0 at the historical horizon,
+            so exposure tops out at 2.14.</td>
+          <td>Culverts: opening size, condition. Bridges: span type, condition, span length. Roads: none.</td>
+          <td class="w">Roads E 1.0<br>Culverts, bridges E 0.7, S 0.3</td></tr>
+        <tr><td>Debris flow</td><td>Roads, culverts, bridges</td>
+          <td>Mean slope (0.2) and drainage area (0.2) of the ground draining to the point, from the 2 m lidar DEM, and burn severity
+            (0.3) with the fire severity surface standing in for predicted soil burn severity. The USGS debris-flow model (Wildcat) is
+            reviewed for December.</td>
+          <td>Culverts: opening size, condition. Bridges: span type, condition, span length. Roads: none.</td>
+          <td class="w">Roads E 1.0<br>Culverts, bridges E 0.7, S 0.3</td></tr>
+        <tr><td>Avalanche</td><td>Roads</td>
+          <td>The slope tier covering the most ground uphill of the road within 1,000 ft (lidar DEM), raised one step where a TRPA
+            mapped avalanche zone lies within 1,000 ft. Closure likelihood, not damage.</td>
+          <td>None: exposure only.</td>
+          <td class="w">E 1.0</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 4. Reading the map -->
+    <h2 class="sec">Reading the map</h2>
+    <div class="mapread">
+      <div class="card">
+        <h3>Colors</h3>
+        <ul>
+          <li><span class="sw" style="background:#B4CBE8"></span>Low <span class="sw" style="background:#E87722"></span>Medium <span class="sw" style="background:#9C3E27"></span>High <span class="sw" style="background:#cfd4da"></span>not exposed (0) or not scored: the vulnerability and exposure classes on every tab.</li>
+          <li><span class="sw" style="background:#8DB6E2"></span><span class="sw" style="background:#4F93D8"></span><span class="sw" style="background:#0072CE"></span><span class="sw" style="background:#002B55"></span>Criticality quarter 0 to 3, light to dark (Overview).</li>
+          <li><span class="sw" style="background:#003B71"></span>100-year zone <span class="sw" style="background:#0072CE"></span>500-year or stream <span class="sw" style="background:#B4CBE8"></span>drainage line: flood exposure.</li>
+          <li><span class="sw" style="background:#B4CBE8"></span>passes with room <span class="sw" style="background:#0072CE"></span>passes <span class="sw" style="background:#E8A05A"></span>up to twice capacity <span class="sw" style="background:#E87722"></span>two to four times <span class="sw" style="background:#9C3E27"></span>over four times; white: record to confirm; gray: no check (Storm vs capacity).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Lines and symbols</h3>
+        <ul>
+          <li><span class="sw ln" style="background:#003B71"></span>Roads solid, <span class="sw dash"></span>paths dashed; <span class="sw dot" style="background:#003B71"></span>culverts circles, <span class="sw" style="background:#003B71"></span>bridges squares, transit hubs small squares.</li>
+          <li>Overview: line weight is the criticality quarter once zoomed in (thin lowest, thick top). Hotspots are thick red lines.</li>
+          <li>Culverts and bridges draw at 1:120,000 and closer, except on Flooding, where they draw at every scale.</li>
+          <li>Hazard surfaces (flood classes, burn probability, fire severity, susceptibility, avalanche zones) are optional layers, off by default.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Clicks and controls</h3>
+        <ul>
+          <li>Click any asset for its popup (the dictionary fields) and Add a workshop note.</li>
+          <li>Overview, Flooding, Landslide, Debris flow: click a culvert to draw its drainage area, orange for ground that drains straight to it, blue dashed for ground arriving through upstream culverts.</li>
+          <li>Wildfire: click a road or path to outline the 300 ft sampling buffer its score came from.</li>
+          <li>Flooding: Design storm swaps the capacity term between the 100-year storm (of record) and the 25-year. The filters (Hotspots only, High exposure only, Class 3 only, Flagged for owner review) narrow map and table together. Every table has Export CSV.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 5. Data dictionary -->
+    <h2 class="sec" id="dictionary">Data dictionary <small>the fields in the Results popups, tables, and CSV exports</small></h2>
+    <p class="lead">Label: the popup label, then the table header where it differs. Code: the column in the CSV export. A blank value means the asset is not scored for that pair.</p>
+    <table class="ref dict">
+      <thead><tr><th style="width:20%">Label on the page</th><th style="width:20%">Code in the export</th><th style="width:40%">What it means</th><th style="width:20%">Units or values</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="4">Every asset (Overview)</td></tr>
+        <tr><td class="h">Vulnerability (highest hazard); Highest hazard</td><td class="code"><code>V_max</code> <code>V_max_pair</code></td><td>The highest pair score across the asset's scored hazards (stand-in pairs left out), and the hazard that set it (shown by name on the page; the export carries the pair code).</td><td>0 to 3; pair code FL, WF, LS, DF, AV with R, C, B, AT, TC</td></tr>
+        <tr><td class="h">Class; Vulnerability class (highest pair)</td><td class="code"><code>V_class</code></td><td>The highest of the asset's pair classes, wildfire on its own breaks. Colors the Overview.</td><td>Low, Medium, High; blank not scored</td></tr>
+        <tr><td class="h">Vulnerability with the stand-in pairs; Highest hazard, with stand-ins</td><td class="code"><code>V_max_all</code> <code>V_max_all_pair</code></td><td>The same two readings with the debris-flow pairs included.</td><td>0 to 3; pair code</td></tr>
+        <tr><td class="h">Flooding V, Wildfire V, Landslide V, Debris flow V, Avalanche V</td><td class="code"><code>V_&lt;pair&gt;_hist</code>, as in <code>V_FLR_hist</code>, <code>V_FLC_hist</code>, <code>V_WFAT_hist</code></td><td>That hazard's vulnerability score for the asset. For roads it equals the exposure score.</td><td>0 to 3; <code>_hist</code> is the historical horizon</td></tr>
+        <tr><td class="h">Criticality quarter (3 = top); Criticality percentile</td><td class="code"><code>C_class</code> <code>criticality_pctl</code></td><td>Percentile: the road's rank among all segments on the Criticality Index at default weights. Quarter: that percentile cut at 25, 50, and 75; culverts and bridges inherit their road's. Provisional until the network lane sets its rule.</td><td>Quarter 0 lowest to 3 top; percentile 0 to 100</td></tr>
+        <tr><td class="h">Sensitivity data</td><td class="code"><code>S_source</code></td><td>Whether the sensitivity inputs were observed or defaulted.</td><td>full; partial (some defaults); default (all defaulted)</td></tr>
+        <tr><td class="h">Road; Type, Road type, Facility class; Segment; Miles; Length (m)</td><td class="code"><code>name</code> <code>class</code> <code>src_objectid</code> <code>miles</code> <code>seg_len_m</code></td><td>Name and class from the street network or path inventory; the segment id is the join key across the results files.</td><td>Text; id; miles; meters</td></tr>
+        <tr><td class="h">Length in class 1, 2, 3 (percent)</td><td class="code"><code>len_pct_c1</code> <code>len_pct_c2</code> <code>len_pct_c3</code></td><td>Share of the segment in each class: flood class (Flooding), burn likelihood (Wildfire), susceptibility (Landslide).</td><td>Percent of length</td></tr>
+
+        <tr class="grp"><td colspan="4">Flooding</td></tr>
+        <tr><td class="h">Flood exposure class; Flood exposure E (watershed), Flood E; Flood exposure at the point</td><td class="code"><code>E_FLR_hist</code> <code>E_FLC_hist</code> <code>E_FLC_pt</code></td><td>The highest flood class along the road, or anywhere in the culvert's drainage area (plus one where lake level backs water up); the point value is the class at the pipe.</td><td>0 none; 1 drainage line; 2 500-year zone or stream; 3 100-year zone</td></tr>
+        <tr><td class="h">Storm / capacity; Loading ratio, 100-yr and 25-yr</td><td class="code"><code>load_ratio_100</code> <code>load_ratio_25</code></td><td>Storm peak flow over what the crossing passes with water at the top of the opening. Above 1 it cannot pass the storm. Withheld where the size is suspect.</td><td>Ratio; map bands at 1, 2, and 4</td></tr>
+        <tr><td class="h">Q100, Q25 (cfs); Qcap (cfs), Capacity at the crown; Q method</td><td class="code"><code>q_event_100_cfs</code> <code>q_event_25_cfs</code> <code>q_cap_crossing_cfs</code> <code>q_method</code></td><td>Storm flow (Atlas 14 rainfall and land cover; USGS regression over 1 sq mi), capacity with barrels summed, and the method used.</td><td>Cubic feet per second</td></tr>
+        <tr><td class="h">Basin (ac), Contributing area (ac); Dia (in), Equivalent diameter; Crossing; Barrels; Material; Majority land cover</td><td class="code"><code>contrib_area_ac</code> <code>d_eq_in</code> <code>crossing_id</code> <code>barrels</code> <code>material_class</code> <code>basin_landcover</code></td><td>Drainage area to the crossing from the 2 m lidar DEM (drawn on click); opening as an equivalent round diameter; pipes within 10 m on one road are one crossing; material group; the basin's main land cover.</td><td>Acres; inches; id; count; metal, plastic, concrete, unknown; water, urban, trees, shrubs</td></tr>
+        <tr><td class="h">Flood sensitivity S; Flood vulnerability V, 100-yr storm; 25-yr storm; Vulnerability</td><td class="code"><code>S_FLC</code> <code>V_FLC_hist</code> <code>V_FLC_hist_q25</code></td><td>Culverts: debris potential and the ratio at equal weight; V = 0.3 E + 0.7 S. The 25-year reading rescores the ratio only and stays out of the combined class.</td><td>0 to 3</td></tr>
+        <tr><td class="h">Cond., Condition class; Condition source</td><td class="code"><code>cond_class</code> <code>cond_source</code></td><td>Latest inspection, on record for about one in five culverts; scored for landslide and debris flow, not flooding.</td><td>1 good, 2 fair, 3 poor; blank = fair assumed</td></tr>
+        <tr><td class="h">Flags: Tailwater, Size suspect, Ratio review, on mapped stream</td><td class="code"><code>tailwater_flag</code> <code>size_suspect</code> <code>ratio_review</code> <code>on_stream</code></td><td>The owner review list: shoreline outlet; recorded size cannot fit the basin (not scored); ratio above 20; within 10 m of a stream.</td><td>1 = yes</td></tr>
+        <tr><td class="h">Bridges: NBI structure; Waterway adequacy (item 71); Scour; Condition; Flood E, S, V</td><td class="code"><code>bridge_id</code> <code>waterway_eval</code> <code>scour_label</code> <code>bridge_condition_label</code> <code>E_FLB_hist</code> <code>S_FLB</code> <code>V_FLB_hist</code></td><td>National Bridge Inventory record. E: overtopping history (item 71, 0.2) and the flood class within 25 m (0.1). S: channel, scour (0.4), span type, condition.</td><td>Item 71: 0 severe to 9 remote, N not over water; labels; 0 to 3</td></tr>
+
+        <tr class="grp"><td colspan="4">Wildfire</td></tr>
+        <tr><td class="h">Wildfire exposure score; Exposure</td><td class="code"><code>E_WFR_hist</code> <code>E_WFAT_hist</code> <code>E_WFTC_hist</code></td><td>Likelihood at 0.7 plus severity at 0.3 within 300 ft. Equals the wildfire vulnerability score: no sensitivity term.</td><td>1.0 to 3.0; Low under 2, Medium 2 to 2.5, High over 2.5</td></tr>
+        <tr><td class="h">E1 burn probability class; Likelihood. E2 fire severity class; Severity</td><td class="code"><code>E_WFR_e1</code> <code>E_WFR_e2</code> (paths <code>_WFAT_</code>, hubs <code>_WFTC_</code>)</td><td>E1: annual burn probability, the highest class within 300 ft (Resource Kit, Pyrologix 2022). E2: most-likely fire severity, the highest class covering at least 25 percent of the buffer; stands in for flame length.</td><td>E1: 1 under 0.5 percent a year, 2 0.5 to 1, 3 over 1. E2: 0 nothing burnable, 1 low, 2 moderate, 3 high</td></tr>
+
+        <tr class="grp"><td colspan="4">Landslide</td></tr>
+        <tr><td class="h">Susceptibility class (E1); Class</td><td class="code"><code>E_LSR_e1</code> <code>E_LSC_e1</code> <code>E_LSB_e1</code></td><td>Share of the 90 m cell that is landslide-prone, or a recorded slide: along the road, within 25 m of a bridge, anywhere in a culvert's drainage.</td><td>0 under 40 percent; 1 40 to 60; 2 60 to 80; 3 over 80 or recorded</td></tr>
+        <tr><td class="h">Landslide exposure score; Exposure; Score at the pipe. Landslide vulnerability V; Vulnerability</td><td class="code"><code>E_LSR_hist</code> <code>E_LSC_hist</code> <code>E_LSB_hist</code> <code>E_LSC_pt</code> <code>V_LSR_hist</code> <code>V_LSC_hist</code> <code>V_LSB_hist</code></td><td>E: susceptibility at 0.5 plus the precipitation-change term at 0.2 (0 for now), scaled to 0 to 3; the point value is the class at the culvert. V: roads equal E; culverts and bridges 0.7 E + 0.3 S (opening size and condition; span type, condition, span length).</td><td>E 0 to 2.14 for now; V 0 to 3</td></tr>
+
+        <tr class="grp"><td colspan="4">Debris flow (stand-in pairs)</td></tr>
+        <tr><td class="h">Debris flow exposure; Exposure. Vulnerability V. Option</td><td class="code"><code>E_DFR_hist</code> <code>E_DFC_hist</code> <code>E_DFB_hist</code> <code>V_DFR_hist</code> <code>V_DFC_hist</code> <code>V_DFB_hist</code> <code>DF_option</code></td><td>E: slope 0.2, drainage size 0.2, burn severity 0.3, scaled to 0 to 3; culverts read their own drainage. V as for landslide. Option records the stand-in.</td><td>0 to 3, not in the combined class; option 1, 2, or proxy</td></tr>
+        <tr><td class="h">E1 slope class; Slope. E2 drainage size class; Drainage size. E3 burn severity class; Burn severity</td><td class="code"><code>E_DFR_e1</code> <code>E_DFR_e2</code> <code>E_DFR_e3</code>; <code>E_DFC_e1</code> <code>E_DFC_e2</code> <code>E_DFC_e3</code></td><td>Mean slope and size of the ground draining to the point (small and steep scores high); fire severity in place of soil burn severity.</td><td>E1 0 (0 to 5 percent) to 3 (over 30); E2 3 under 0.25 sq mi to 0 over 5; E3 0 to 3</td></tr>
+
+        <tr class="grp"><td colspan="4">Avalanche</td></tr>
+        <tr><td class="h">Avalanche score; Exposure; Vulnerability</td><td class="code"><code>E_AVR_hist</code> <code>V_AVR_hist</code></td><td>The slope tier, raised one step where a mapped zone is within 1,000 ft. No sensitivity term.</td><td>No zone 0, 1, 1.5, 2 by tier; zone 1, 2, 2.5, 3</td></tr>
+        <tr><td class="h">Dominant uphill slope tier; Mapped zone within 1,000 ft (1 = yes); Uphill ground within 1,000 ft (ha)</td><td class="code"><code>av_tier</code> <code>av_record</code> <code>uphill_ha</code></td><td>The slope class covering the most ground uphill of the road within 1,000 ft; whether a TRPA avalanche zone lies within 1,000 ft; the uphill area the tier was read from (zero: no steep ground above).</td><td>Tier 0 under 25 degrees, 1 25 to 30 or over 50, 2 30 to 35 or 45 to 50, 3 35 to 45; zone 1 yes; hectares</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 6. Further -->
+    <p class="further">Go further: the <a href="scoring-rubrics.html">Scoring rubrics</a> (every indicator, weight, break, and decision), the
+      <a href="reference-hub.html">Reference hub</a> (pairs, data and model inventory), and the
+      <a href="criticality-index.html">Criticality page</a> (step 1).
+      <span class="url">All at trpa-agency.github.io/PROTECT/html/.</span></p>
+
+  </main>
+
+  <footer class="app-footer">
+    <p class="foot-long">Results guide v0.1 (Oct. 27, 2026). Method of record: <code>docs/SCORING_RUBRICS.md</code> v0.7 (Oct. 21, 2026), built on the consultant's
+      draft Vulnerability Assessment Methodology (Aug. 20, 2026); pair definitions in <code>Hazard_Asset_Pairs.md</code> v0.8. Culverts from six jurisdictions
+      and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA; fire inputs from the Sierra Nevada Regional Resource Kit and
+      the TRPA Fire service; landslide susceptibility and inventory from USGS; terrain from the 2 m lidar DEM. Draft for Workshop 1.</p>
+    <p class="foot-short">Results guide v0.1 (Oct. 27, 2026). Method of record: <code>docs/SCORING_RUBRICS.md</code> v0.7 (Oct. 21, 2026) on the consultant's draft
+      Vulnerability Assessment Methodology (Aug. 20, 2026); pairs from <code>Hazard_Asset_Pairs.md</code> v0.8. Draft for Workshop 1.</p>
+  </footer>
+
+</body>
+</html>

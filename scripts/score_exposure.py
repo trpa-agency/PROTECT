@@ -573,14 +573,25 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
     if fl.get("nhd_flowlines"):
         nhd = fetch_rest_features(fl["nhd_flowlines"], crs, log)
         parts.append(gpd.GeoDataFrame({"hz_class": [1] * len(nhd)}, geometry=nhd.buffer(float(fl["stream_buffer_m"])).values, crs=crs))
+    # a band around the FEMA zones as class 1 (ICF review, Oct. 26, 2026: 10 to 30 m around the
+    # 500-year floodplain, for uncertainty in the mapped extent and for future expansion); the
+    # higher class wins where the band overlaps a zone or a stream buffer, so it covers only the
+    # ground just outside them
+    near = float(fl.get("near_zone_buffer_m", 0) or 0)
+    if near > 0:
+        fema = zones[zones["hz_class"] >= 2]
+        parts.append(gpd.GeoDataFrame({"hz_class": [1] * len(fema)}, geometry=fema.buffer(near).values, crs=crs))
+        log.info(f"{len(fema)} FEMA zone polygons buffered {near:g} m as class 1 (near a flood zone)")
     allp = gpd.GeoDataFrame(pd.concat(parts, ignore_index=True), geometry="geometry", crs=crs)
     surf = dissolve_classes(allp, crs)
     log.info("Classed flood surface, area by class (km2):\n"
              + (surf.groupby("hz_class").geometry.apply(lambda g: g.area.sum() / 1e6)).round(2).to_string())
 
+    near_label = f"within {near:g} m of a FEMA flood zone" if near > 0 else ""
+    nhd_label = "NHD flowline outside a zone" if fl.get("nhd_flowlines") else ""
     write_class_fc(surf, gdb, fl["class_fc"], "flood", {3: "1 percent (100-yr) flood zone",
                                                         2: "0.2 percent (500-yr) zone or mapped stream",
-                                                        1: "NHD flowline outside a zone"}, cfg, log)
+                                                        1: " or ".join(x for x in (near_label, nhd_label) if x) or "class 1 (unused)"}, cfg, log)
     return surf
 
 

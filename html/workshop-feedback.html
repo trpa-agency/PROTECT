@@ -120,6 +120,23 @@
     .stations button.active{background:var(--c,var(--trpa-blue));border-color:var(--c,var(--trpa-blue));color:#fff;}
     .stations button.active i{background:#fff;}
     .station-help{font-size:.74rem;color:var(--gray-text);line-height:1.4;}
+    /* map key: draft vulnerability class per asset for the selected station, same classes and colors as the Results page */
+    .legend{border:1px solid var(--gray-border);border-radius:8px;padding:.45rem .65rem .5rem;background:#fff;display:flex;flex-direction:column;gap:.2rem;font-size:.72rem;color:var(--trpa-navy);}
+    .lg-head{font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-text);margin-bottom:.1rem;}
+    .lg-classes{display:flex;flex-wrap:wrap;gap:.2rem .7rem;margin-bottom:.2rem;}
+    .lg-classes span{display:inline-flex;align-items:center;gap:.3rem;} .lg-classes i{width:11px;height:11px;border-radius:2px;display:inline-block;box-shadow:0 0 0 1px #9aa5b1 inset;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;line-height:1.35;} .lg-row em{color:var(--gray-text);font-style:normal;font-size:.68rem;}
+    .lg-shapes{flex:0 0 52px;display:inline-flex;align-items:center;justify-content:flex-start;gap:3px;}
+    .lg-line{width:14px;height:4px;border-radius:2px;display:inline-block;} .lg-line.dash{height:0;border-top:3px dashed;background:none !important;}
+    .lg-dot{width:11px;height:11px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-sq{width:10px;height:10px;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
+    .lg-dia{width:10px;height:10px;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;transform:rotate(45deg) scale(.85);}
+    .lg-note{width:13px;height:13px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;} .lg-note.hollow{background:#fff;border:2px solid var(--gray-muted);box-shadow:none;}
+    .lg-fill{width:16px;height:11px;border-radius:2px;display:inline-block;flex:0 0 auto;box-shadow:0 0 0 1px #9aa5b1 inset;}
+    .lg-fill.ramp{background:linear-gradient(90deg,#B4CBE8,#E87722,#9C3E27);}
+    /* step 3: the discussion questions */
+    .ask{font-size:.86rem;font-weight:700;line-height:1.4;color:var(--trpa-navy);border-left:3px solid var(--c,var(--trpa-blue));padding:.1rem 0 .1rem .6rem;}
+    .draft-line{font-size:.72rem;color:var(--gray-text);} .draft-line b{color:var(--trpa-navy);}
 
     .seg{display:flex;border-radius:6px;overflow:hidden;border:1px solid var(--gray-border);}
     .seg button{flex:1;border:none;background:#fff;cursor:pointer;font-family:var(--font);min-height:30px;font-size:.74rem;font-weight:600;color:var(--gray-text);padding:.3rem .3rem;transition:all 120ms;border-left:1px solid var(--gray-border);}
@@ -261,7 +278,7 @@
       <div class="right">
         <span class="badge">Workshop 1</span>
         <a href="#" id="aboutLink">How this works</a>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-punchlist.html">Workshop 1 punch list</a><a href="workshop-feedback.html" class="on" aria-current="page">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-punchlist.html">Workshop 1 punch list</a><a href="workshop-feedback.html" class="on" aria-current="page">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -275,6 +292,7 @@
           <h2 class="sec-title"><span class="sec-num">1</span> Hazard station</h2>
           <div class="stations" id="stations" role="radiogroup" aria-label="Hazard station"></div>
           <p class="station-help" id="stationHelp"></p>
+          <div class="legend" id="legend" aria-label="Map key"></div>
         </section>
 
         <section class="panel-sec">
@@ -287,24 +305,27 @@
           <div id="noteCard" class="note-card empty">Nothing selected yet. Click an asset on the map, or drop a pin.</div>
         </section>
 
-        <section class="panel-sec">
-          <h2 class="sec-title"><span class="sec-num">3</span> Your notes <span class="sec-count" id="noteCount"></span>
-            <button id="clearBtn" class="sec-tool" title="Remove all your notes and station answers from this browser">Clear</button>
-          </h2>
-          <ul class="nlist" id="noteList"></ul>
-          <details class="more" id="stationQ">
-            <summary>Station questions (once per hazard)</summary>
-            <label class="field">Do the draft results for <span id="sqHaz">this hazard</span> match what you expected? What is missing?
-              <textarea id="sqExpect" class="plain" rows="2" placeholder="What surprised you, what agrees, what is not on the map"></textarea>
-            </label>
-            <label class="field">What should the map tool show to help decisions?
-              <textarea id="sqTool" class="plain" rows="2" placeholder="Data, layers, or features that would help your agency"></textarea>
-            </label>
-          </details>
+        <section class="panel-sec" id="stationQ">
+          <h2 class="sec-title"><span class="sec-num">3</span> Discussion questions</h2>
+          <p class="ask" id="stationAsk"></p>
+          <p class="sec-help">Answer once per hazard station. Your answers are kept with the station and sent with your notes.</p>
+          <label class="field"><span>Do the draft results for <span id="sqHaz">this hazard</span> match what you expected? What is missing?</span>
+            <textarea id="sqExpect" class="plain" rows="2" placeholder="What surprised you, what agrees, what is not on the map"></textarea>
+          </label>
+          <label class="field"><span>What should the map tool show to help decisions?</span>
+            <textarea id="sqTool" class="plain" rows="2" placeholder="Data, layers, or features that would help your agency"></textarea>
+          </label>
         </section>
 
         <section class="panel-sec">
-          <h2 class="sec-title"><span class="sec-num">4</span> Who you are</h2>
+          <h2 class="sec-title"><span class="sec-num">4</span> Your notes <span class="sec-count" id="noteCount"></span>
+            <button id="clearBtn" class="sec-tool" title="Remove all your notes and station answers from this browser">Clear</button>
+          </h2>
+          <ul class="nlist" id="noteList"></ul>
+        </section>
+
+        <section class="panel-sec">
+          <h2 class="sec-title"><span class="sec-num">5</span> Who you are</h2>
           <div class="row">
             <label class="field" style="flex:1">Your name<input id="revName" type="text" class="plain" placeholder="First Last" autocomplete="name" /></label>
             <label class="field" style="flex:1">Agency<input id="revAgency" type="text" class="plain" list="agencyList" placeholder="Start typing" autocomplete="organization" /><datalist id="agencyList"></datalist></label>
@@ -377,8 +398,8 @@
     <div class="about">
       <p>This page replaces the sticky notes in the Workshop 1 vulnerability assessment activity. For each hazard station, mark the assets and places you think are vulnerable, rate your concern, and say why. The data team combines everyone's notes for the report-out and the Tahoe Resilience Improvement Plan (TRIP).</p>
       <ul>
-        <li><b>Stations.</b> The five hazards scored in the assessment: flooding, wildfire, landslide, debris flow, and avalanche. Picking a station turns on that hazard's draft exposure map; the layer list on the map lets you turn any layer on or off.</li>
-        <li><b>Assets.</b> Roads (the 18,253-segment street network), the 40 National Bridge Inventory bridges, the compiled culverts with a flow profile, transit routes, and bike and pedestrian paths. If what concerns you is not on the map, drop a pin.</li>
+        <li><b>Stations.</b> The five hazards scored in the assessment: flooding, wildfire, landslide, debris flow, and avalanche. Picking a station turns on that hazard's draft exposure map and colors every asset by its draft vulnerability class for that hazard (Low, Medium, High), the same classes and colors as the Results page; gray means not exposed or not scored for that hazard. The map key in the panel updates with the station, and the layer list on the map lets you turn any layer on or off.</li>
+        <li><b>Assets.</b> Roads (the 18,283-segment street network), the 40 National Bridge Inventory bridges, the compiled culverts with a flow profile, the eight transit hubs, transit routes, and bike and pedestrian paths, read from the same published results files as the Results page. If what concerns you is not on the map, drop a pin.</li>
         <li><b>Concern.</b> 1 is greatest concern, 3 is worth noting. Tick <em>Missing from the draft results</em> when the draft maps do not show something you know is vulnerable.</li>
         <li><b>Sending.</b> <em>Send my notes</em> posts to TRPA's ArcGIS Online with your name and agency; your email address is not sent, only a code made from it so your latest send replaces the earlier one. If sending fails, download the CSV of your notes and email it to the data team.</li>
         <li><b>Report out.</b> The <em>Everyone</em> and <em>Report out</em> tables combine sent and imported notes by asset, with the count of people who flagged it and their concern levels.</li>
@@ -394,10 +415,17 @@
     // ───────────────────────── Config ─────────────────────────
     const SVC = "https://maps.trpa.org/server/rest/services";
     const DATA = "../data/processed/results/";
+    // Assets come from the published results files the Results page reads (scripts/publish_results.py), so every
+    // asset carries its draft vulnerability scores. Roads: the clean street geometry joined on src_objectid to the
+    // roads_vulnerability table (the same V_* values as the per-hazard tables, checked Oct. 27, 2026). Paths are the
+    // 216 existing active transportation facilities (at_id = the service OBJECTID); transit hubs are the eight AGOL
+    // hubs (tc_id). Transit routes stay on the TRPA service as context; they are not scored.
     const URLS = {
-      roads:   "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_VA/FeatureServer/0",
+      roads:   DATA + "roads_geometry.geojson",
+      roadsV:  DATA + "roads_vulnerability.json",
       transit: SVC + "/Transportation/MapServer/5",
-      trails:  SVC + "/Transportation/MapServer/3",
+      trails:  DATA + "paths_wildfire.geojson",
+      hubs:    DATA + "transit_wildfire.geojson",
       bridges: DATA + "bridges_results.geojson",
       culverts: DATA + "culverts_results.geojson",
       flood:   SVC + "/Streams_and_Flood_Zone/MapServer/0",
@@ -410,15 +438,52 @@
       boundary: SVC + "/Boundaries/FeatureServer/4"
     };
     // The five scored hazards, as stations. `layers` are the draft exposure layers turned on at that station.
+    // `data` is what is mapped there, `ask` the station's discussion question (step 3); `help` reads
+    // "Data mapped: <data> <ask>". `field` names each asset's draft vulnerability score for the hazard, the
+    // field that colors the asset (an asset with no field here is not scored for the hazard and draws gray).
     const HAZARDS = [
-      { k: "flood",  s: "Flooding",    color: "#0072CE", layers: ["flood"],  help: "FEMA flood zones and stream crossings. Which roads, bridges, culverts, and paths flood or wash out?" },
-      { k: "fire",   s: "Wildfire",    color: "#9C3E27", layers: ["fire", "perims"], help: "Fire severity probability and past perimeters. Which roads, paths, and transit stops are at risk, or trap people when they burn?" },
-      { k: "slide",  s: "Landslide",   color: "#B47E00", layers: ["slides"], help: "Mapped landslides (USGS inventory). Where do slopes fail onto or under the road?" },
-      { k: "debris", s: "Debris flow", color: "#7B6A8A", layers: ["wepp"],   help: "Post-fire sediment yield by catchment (WEPP). No basin-wide debris-flow map exists yet, so your local knowledge matters most here." },
-      { k: "avy",    s: "Avalanche",   color: "#4A6118", layers: ["avy"],    help: "Mapped avalanche zones. Which road sections close, or should, when the hazard is high?" },
-      { k: "any",    s: "Any hazard",  color: "#5a6577", layers: [],         help: "No station: tag whichever hazards apply to the note." }
+      { k: "flood",  s: "Flooding",    color: "#0072CE", layers: ["flood"],  data: "FEMA flood zones and stream crossings.", ask: "Which roads, bridges, culverts, and paths flood or wash out?",
+        field: { roads: "V_FLR_hist", culverts: "V_FLC_hist", bridges: "V_FLB_hist", paths: "V_FLAT_hist", hubs: "V_FLTC_hist" } },
+      { k: "fire",   s: "Wildfire",    color: "#9C3E27", layers: ["fire", "perims"], data: "Fire severity probability and past perimeters.", ask: "Which roads, paths, and transit stops are at risk or leave people isolated if damaged?",
+        field: { roads: "V_WFR_hist", paths: "V_WFAT_hist", hubs: "V_WFTC_hist" } },
+      { k: "slide",  s: "Landslide",   color: "#B47E00", layers: ["slides"], data: "Mapped landslides (USGS inventory).", ask: "Where do slopes fail onto or under the road?",
+        field: { roads: "V_LSR_hist", culverts: "V_LSC_hist", bridges: "V_LSB_hist" } },
+      { k: "debris", s: "Debris flow", color: "#7B6A8A", layers: ["wepp"],   data: "Post-fire sediment yield by catchment (WEPP).", ask: "Which roads, culverts, and bridges sit below steep, burned drainages that could send debris? No basin-wide debris-flow map exists yet, so your local knowledge matters most here.",
+        field: { roads: "V_DFR_hist", culverts: "V_DFC_hist", bridges: "V_DFB_hist" } },
+      { k: "avy",    s: "Avalanche",   color: "#4A6118", layers: ["avy"],    data: "Mapped avalanche zones.", ask: "Which road sections close, or should, when the hazard is high?",
+        field: { roads: "V_AVR_hist" } },
+      { k: "any",    s: "Any hazard",  color: "#5a6577", layers: [],         data: "", ask: "No station: tag whichever hazards apply to the note.", field: null }
     ];
+    HAZARDS.forEach(h => { h.help = (h.data ? `Data mapped: ${h.data} ` : "") + h.ask; });
     const HZ = Object.fromEntries(HAZARDS.map(h => [h.k, h]));
+    // Draft vulnerability classes and colors, copied from the Results page (results.html VC_COL / VC_LEG):
+    // Low under 1, Medium 1 to under 2, High 2 and over; wildfire pairs Low 1 to under 2, Medium 2 to 2.5,
+    // High over 2.5. Exactly 0 is not exposed and draws gray, as does an asset with no score for the hazard.
+    const VC = { Low: "#B4CBE8", Medium: "#E87722", High: "#9C3E27", none: "#cfd4da" };
+    const VC_NOTE = { std: "Classes: Low under 1, Medium 1 to under 2, High 2 and over; 0 is not exposed.", fire: "Wildfire classes: Low 1 to under 2, Medium 2 to 2.5, High over 2.5." };
+    const vClassOf = (v, wf) => (v == null || isNaN(v)) ? null : wf ? (v > 2.5 ? "High" : v >= 2 ? "Medium" : v >= 1 ? "Low" : "none") : (+v === 0 ? "none" : v < 1 ? "Low" : v < 2 ? "Medium" : "High");
+    // one symbol maker per asset type; k is the class index 0 (gray) to 3 (High), used for line width and dot size
+    const ASSET_SYM = {
+      roads:    (c, k) => ({ type: "simple-line", color: c, width: [1.2, 1.8, 2.2, 2.6][k], cap: "round", join: "round" }),
+      paths:    (c, k) => ({ type: "simple-line", color: c, width: [1.6, 2, 2.4, 2.8][k], style: "short-dash", cap: "round" }),
+      culverts: (c, k) => ({ type: "simple-marker", style: "circle", color: c, size: [4, 5, 6, 7][k], outline: { color: [255, 255, 255, 0.9], width: 0.6 } }),
+      bridges:  (c, k) => ({ type: "simple-marker", style: "diamond", color: c, size: 11, outline: { color: [255, 255, 255, 1], width: 1 } }),
+      hubs:     (c, k) => ({ type: "simple-marker", style: "square", color: c, size: 9, outline: { color: [255, 255, 255, 1], width: 1 } })
+    };
+    const ASSET_LAYER = { roads: "roads", culverts: "culverts", bridges: "bridges", paths: "trails", hubs: "hubs" };
+    const ASSET_LABEL = { roads: "Roads", culverts: "Culverts", bridges: "Bridges (NBI)", paths: "Bike and pedestrian paths", hubs: "Transit hubs" };
+    const scoreExpr = (field) => `IIf(IsEmpty($feature.${field}), -1, $feature.${field})`;
+    function rendererFor(asset, k) {
+      const sym = ASSET_SYM[asset], h = HZ[k], field = h.field && h.field[asset];
+      if (k === "any") return { type: "unique-value", field: "V_class", defaultSymbol: sym(VC.none, 0), defaultLabel: "not scored",
+        uniqueValueInfos: [{ value: "Low", symbol: sym(VC.Low, 1) }, { value: "Medium", symbol: sym(VC.Medium, 2) }, { value: "High", symbol: sym(VC.High, 3) }] };
+      if (!field) return { type: "simple", symbol: sym(VC.none, 0) };
+      const br = k === "fire" ? [[-1.5, 0.999], [0.999, 1.999], [1.999, 2.5], [2.5, 3.1]] : [[-1.5, 0.0005], [0.0005, 0.999], [0.999, 1.999], [1.999, 3.1]];
+      return { type: "class-breaks", valueExpression: scoreExpr(field), classBreakInfos: br.map(([a, b], i) => ({ minValue: a, maxValue: b, symbol: sym([VC.none, VC.Low, VC.Medium, VC.High][i], i) })) };
+    }
+    // the draft exposure overlays, for the map key (service-rendered ramps point at the map Legend)
+    const OVERLAY = { flood: ["Flood zones (FEMA)", "rgba(0,114,206,.45)"], fire: ["Fire severity probability (ramp in the map Legend)", null], perims: ["Past fire perimeters (CAL FIRE)", "rgba(156,62,39,.35)"],
+      slides: ["Mapped landslides (USGS)", "rgba(180,126,0,.5)"], wepp: ["Post-fire sediment yield (WEPP) (ramp in the map Legend)", null], avy: ["Avalanche zones", "rgba(74,97,24,.5)"] };
     const ASSET_TYPES = { road: "Road segment", bridge: "Bridge", culvert: "Culvert", transit: "Transit route", trail: "Bike or pedestrian path", pin: "Place (pin)" };
     const CONCERN = { 1: "Greatest concern", 2: "Concern", 3: "Worth noting" };
     const AGENCIES = ["TRPA", "ICF", "Caltrans", "NDOT", "FHWA", "Placer County", "El Dorado County", "Washoe County", "Douglas County", "Carson City",
@@ -488,6 +553,7 @@
     let selected = null;                        // the note being edited (saved or not)
     let pinMode = false, activeTab = "mine", gridApi = null;
     let map, view, layers = {}, noteLayer, othersLayer, hl = null, Graphic, Point;
+    let roadIndex = [];                         // { oid, name, cls, up } per road segment, for Find a road
     const myKey = () => state.reviewer.email ? fnv(state.reviewer.email.trim().toLowerCase()) : "";
     const myNotes = () => Object.values(state.notes).sort((a, b) => (a.concern || 9) - (b.concern || 9) || (b.when || 0) - (a.when || 0));
 
@@ -495,15 +561,48 @@
     function renderStations() {
       $("stations").innerHTML = HAZARDS.map(h => `<button data-v="${h.k}" role="radio" aria-checked="${station === h.k}" class="${station === h.k ? "active" : ""}" style="--c:${h.color}" title="${escHtml(h.help)}"><i></i>${escHtml(h.s)}</button>`).join("");
       $("stationHelp").textContent = HZ[station].help;
+      $("stationAsk").textContent = HZ[station].ask; $("stationAsk").style.setProperty("--c", HZ[station].color);
       $("sqHaz").textContent = station === "any" ? "the assessment" : HZ[station].s.toLowerCase();
       const sq = state.station[station] || {}; $("sqExpect").value = sq.expect || ""; $("sqTool").value = sq.tool || "";
+      renderLegend();
     }
+    // Map key for the station: the class colors, each asset's symbol in the three classes (or gray when the
+    // asset is not scored for the hazard), the note markers, and the exposure overlays turned on.
+    function renderLegend() {
+      const h = HZ[station], wf = station === "fire";
+      const shape = (asset, c) => asset === "roads" ? `<span class="lg-line" style="background:${c}"></span>` : asset === "paths" ? `<span class="lg-line dash" style="border-color:${c}"></span>`
+        : asset === "culverts" ? `<span class="lg-dot" style="background:${c}"></span>` : asset === "bridges" ? `<span class="lg-dia" style="background:${c}"></span>` : `<span class="lg-sq" style="background:${c}"></span>`;
+      const rows = Object.keys(ASSET_SYM).map(asset => {
+        const scored = station === "any" || (h.field && h.field[asset]);
+        return scored ? `<div class="lg-row"><span class="lg-shapes">${["Low", "Medium", "High"].map(c => shape(asset, VC[c])).join("")}</span>${ASSET_LABEL[asset]}</div>`
+          : `<div class="lg-row"><span class="lg-shapes">${shape(asset, VC.none)}</span>${ASSET_LABEL[asset]} <em>not scored for this hazard</em></div>`;
+      });
+      $("legend").innerHTML = `<div class="lg-head" title="${escHtml(wf ? VC_NOTE.fire : VC_NOTE.std)}">Map key: draft vulnerability${station === "any" ? ", highest hazard" : ", " + escHtml(h.s.toLowerCase())}</div>
+        <div class="lg-classes">${["Low", "Medium", "High"].map(c => `<span><i style="background:${VC[c]}"></i>${c}</span>`).join("")}<span><i style="background:${VC.none}"></i>not exposed (0) or not scored</span></div>
+        ${rows.join("")}
+        <div class="lg-row" title="Transit routes are context only; turn them on under Layers on the map"><span class="lg-shapes"><span class="lg-line" style="background:#7B6A8A"></span></span>Transit routes <em>not scored</em></div>
+        <div class="lg-row"><span class="lg-shapes">${[1, 2, 3].map(c => `<span class="lg-note" style="background:var(--c${c})"></span>`).join("")}</span>Your notes and pins, concern 1 to 3</div>
+        <div class="lg-row"><span class="lg-shapes"><span class="lg-note hollow"></span></span>Notes from others</div>
+        ${h.layers.map(key => { const [label, c] = OVERLAY[key]; return `<div class="lg-row"><span class="lg-shapes"><span class="lg-fill${c ? "" : " ramp"}" style="${c ? `background:${c}` : ""}"></span></span>${label}</div>`; }).join("")}`;
+    }
+    function applyStationStyle() { for (const [asset, key] of Object.entries(ASSET_LAYER)) if (layers[key]) layers[key].renderer = rendererFor(asset, station); }
     function setStation(k) {
       station = k; state.current = k; saveLS(LS_KEY, state); renderStations();
       if (!layers.flood) return;
       const on = new Set(HZ[k].layers);
       for (const key of ["flood", "fire", "perims", "slides", "wepp", "avy"]) if (layers[key]) layers[key].visible = on.has(key);
-      if (selected && !selected.saved && selected.hazards.length === 0 && k !== "any") { selected.hazards = [k]; renderNoteCard(); }
+      applyStationStyle();
+      if (selected && !selected.saved && selected.hazards.length === 0 && k !== "any") { selected.hazards = [k]; }
+      if (selected) { selected.draft = draftFor(selected); renderNoteCard(); }
+    }
+    // The selected asset's draft score for the station, shown on the note card only (not saved or sent)
+    function draftFor(n) {
+      if (!n || !n.attrs || !n.asset) return "";
+      const h = HZ[station], a = n.attrs;
+      if (station === "any") return a.V_class ? `Draft result, highest hazard: <b>${escHtml(a.V_class)}</b>${a.V_max != null ? ` (${a.V_max})` : ""}` : "Draft result: not scored";
+      const field = h.field && h.field[n.asset]; if (!field) return `Draft result, ${escHtml(h.s.toLowerCase())}: not scored for this hazard`;
+      const v = a[field], c = vClassOf(v, station === "fire");
+      return `Draft result, ${escHtml(h.s.toLowerCase())}: <b>${c == null ? "not scored" : c === "none" ? "not exposed" : c}</b>${v != null && !isNaN(v) ? ` (score ${v})` : ""}`;
     }
     $("stations").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) setStation(b.dataset.v); });
     ["sqExpect", "sqTool"].forEach(id => $(id).addEventListener("change", () => {
@@ -525,7 +624,7 @@
       el.innerHTML = `
         <div class="nc-head"><div style="flex:1;min-width:0"><span class="type">${escHtml(ASSET_TYPES[n.type] || n.type)}</span>
           ${n.type === "pin" ? `<input id="ncName" type="text" class="plain" placeholder="Name this place, e.g. Cave Rock east portal" value="${escHtml(n.name === "Pinned place" ? "" : n.name)}" />` : `<h3>${escHtml(n.name)}</h3>`}
-          <div class="nc-sub">${escHtml(n.sub || "")}</div></div>
+          <div class="nc-sub">${escHtml(n.sub || "")}</div>${n.draft ? `<div class="draft-line">${n.draft}</div>` : ""}</div>
           <button class="nc-close" id="ncClose" title="Close" aria-label="Close">&times;</button></div>
         <label class="field">Concern
           <div class="seg concern" id="ncConcern" role="radiogroup" aria-label="Concern">${[1, 2, 3].map(c => `<button data-v="${c}" role="radio" aria-checked="${n.concern === c}" class="${n.concern === c ? "active" : ""}" title="${CONCERN[c]}">${c} ${c === 1 ? "greatest" : c === 2 ? "concern" : "noting"}</button>`).join("")}</div>
@@ -556,7 +655,7 @@
       if (!n.concern && !n.why.trim() && !n.missing) { toast("Give the note a concern level or a reason first.", 3500); return; }
       const rec = { key: n.key, type: n.type, id: n.id, name: n.name, sub: n.sub, lon: n.lon, lat: n.lat, hazards: n.hazards, concern: n.concern, why: n.why.trim(), missing: !!n.missing, when: Date.now() };
       state.notes[n.key] = rec; saveLS(LS_KEY, state);
-      selected = Object.assign({ saved: true }, rec, { hazards: [...rec.hazards] });
+      selected = Object.assign({ saved: true }, rec, { hazards: [...rec.hazards], asset: n.asset, attrs: n.attrs, draft: n.draft });
       renderNoteCard(); renderAll(); toast(`Saved: ${rec.name}`);
     }
     function removeNote(key) {
@@ -757,6 +856,8 @@
         const res = r.addResults && r.addResults[0];
         if (r.error || !res || !res.success) throw new Error((r.error && r.error.message) || (res && res.error && res.error.description) || "The server did not accept the notes.");
         $("sendDialog").open = false; toast(`Sent ${sub.notes.length} note${sub.notes.length === 1 ? "" : "s"} as ${whoLabel(sub.name, sub.agency)}.`, 5000);
+        // start the next note fresh: drop the selected asset or pin (and with it the concern, why, and missing flag on the card); sent notes stay in the list
+        select(null); setPinMode(false);
         setTimeout(() => loadRemote(true), 1200);
       } catch (e) { console.warn("Send failed:", e); $("sendErr").textContent = `Could not send: ${e.message} Try again, or download the CSV of your notes and email it.`; $("sendErr").hidden = false; go.loading = false; go.disabled = false; }
     });
@@ -781,15 +882,23 @@
     $("aboutLink").addEventListener("click", (e) => { e.preventDefault(); $("aboutDialog").open = true; });
 
     // ───────────────────────── Map ─────────────────────────
+    // Asset identity for a note. Ids follow the Results page's note links (results.html noteLink): roads "src:<src_objectid>",
+    // paths "at:<at_id>" (the service OBJECTID), hubs "tc:<tc_id>", culverts and bridges their own ids, so a note made from either
+    // page groups with the same asset. `asset` and `attrs` ride on the selection for the draft-score line; they are not saved or sent.
     function identify(g) {
       const a = g.attributes || {}, L = g.layer;
-      if (L === layers.roads) return { type: "road", id: String(a.segment_id ?? a.OBJECTID), name: a.name || "Unnamed road", sub: [a.class ? `${a.class} road` : "", a.Estimated_2024_AADT_Filled ? `about ${Math.round(a.Estimated_2024_AADT_Filled).toLocaleString()} vehicles a day` : "", `segment ${a.segment_id}`].filter(Boolean).join(" · ") };
-      if (L === layers.bridges) return { type: "bridge", id: String(a.bridge_id), name: `${a.facility_carried || "Bridge"} over ${a.feature_crossed || "crossing"}`, sub: [a.owner, a.year_built ? `built ${Math.round(a.year_built)}` : "", a.bridge_condition_label ? `${a.bridge_condition_label} condition` : "", `NBI ${a.bridge_id}`].filter(Boolean).join(" · ") };
-      if (L === layers.culverts) return { type: "culvert", id: String(a.culvert_id), name: `Culvert at ${a.road_name || "unnamed road"}`, sub: [a.jurisdiction, a.d_eq_in ? `${Math.round(a.d_eq_in)} in` : "", a.load_ratio_100 != null ? `100-year flow is ${Math.round(a.load_ratio_100 * 100)} percent of capacity` : "", a.cond_source === "rated" && a.cond_class != null ? `condition class ${a.cond_class}` : "condition not rated"].filter(Boolean).join(" · ") };
+      const mi = (m) => m ? `${(m / 1609.344).toFixed(2)} mi` : "";
+      const vc = a.V_class ? `vulnerability ${a.V_class}` : "";
+      if (L === layers.roads) return { type: "road", asset: "roads", attrs: a, id: a.src_objectid != null ? `src:${a.src_objectid}` : String(a.segment_id ?? a.OBJECTID), name: a.name || "Unnamed road", sub: [a.class ? `${a.class} road` : "", mi(a.seg_len_m), vc, `segment ${a.src_objectid ?? a.segment_id}`].filter(Boolean).join(" · ") };
+      if (L === layers.bridges) return { type: "bridge", asset: "bridges", attrs: a, id: String(a.bridge_id), name: `${a.facility_carried || "Bridge"} over ${a.feature_crossed || "crossing"}`, sub: [a.owner, a.year_built ? `built ${Math.round(a.year_built)}` : "", a.bridge_condition_label ? `${a.bridge_condition_label} condition` : "", `NBI ${a.bridge_id}`].filter(Boolean).join(" · ") };
+      if (L === layers.culverts) return { type: "culvert", asset: "culverts", attrs: a, id: String(a.culvert_id), name: `Culvert at ${a.road_name || "unnamed road"}`, sub: [a.jurisdiction, a.d_eq_in ? `${Math.round(a.d_eq_in)} in` : "", a.load_ratio_100 != null ? `100-year flow is ${Math.round(a.load_ratio_100 * 100)} percent of capacity` : "", a.cond_source === "rated" && a.cond_class != null ? `condition class ${a.cond_class}` : "condition not rated"].filter(Boolean).join(" · ") };
+      if (L === layers.hubs) return { type: "transit", asset: "hubs", attrs: a, id: `tc:${a.tc_id}`, name: `Transit hub ${a.tc_id}`, sub: ["transit center", vc].filter(Boolean).join(" · ") };
       if (L === layers.transit) return { type: "transit", id: String(a.ID ?? a.OBJECTID), name: a.ROUTE_NAME || `Route ${a.ROUTE_NUMBER || ""}`.trim(), sub: [a.PROVIDER, a.ROUTE_TYPE].filter(Boolean).join(" · ") };
-      if (L === layers.trails) return { type: "trail", id: String(a.OBJECTID), name: a.NAME || "Unnamed path", sub: [a.CLASS, a.MAINT_JURS, a.MILES ? `${(+a.MILES).toFixed(1)} mi` : ""].filter(Boolean).join(" · ") };
+      if (L === layers.trails) return { type: "trail", asset: "paths", attrs: a, id: a.at_id != null ? `at:${a.at_id}` : String(a.OBJECTID), name: a.name || a.NAME || "Unnamed path", sub: [a.class === "PED" ? "pedestrian facility" : a.class ? `Class ${a.class} facility` : (a.CLASS || ""), mi(a.seg_len_m) || (a.MILES ? `${(+a.MILES).toFixed(1)} mi` : ""), vc].filter(Boolean).join(" · ") };
       return null;
     }
+    // a fresh note for a clicked asset, carrying the draft score line for the card
+    function noteFor(idn, lon, lat) { const n = newNote(idn.type, idn.id, idn.name, idn.sub, lon, lat); n.asset = idn.asset; n.attrs = idn.attrs; n.draft = draftFor(n); return n; }
     require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/layers/GeoJSONLayer", "esri/layers/TileLayer", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/geometry/Point",
       "esri/widgets/Home", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Legend", "esri/widgets/BasemapToggle"],
       function (Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, G, P, Home, LayerList, Expand, Legend, BasemapToggle) {
@@ -804,13 +913,23 @@
         layers.slides = new FeatureLayer({ url: URLS.slides, title: "Mapped landslides (USGS)", visible: false, opacity: 0.6, renderer: fill([180, 126, 0], 0.4, 0.9), popupEnabled: false });
         layers.wepp = new FeatureLayer({ url: URLS.wepp, title: "Post-fire sediment yield (WEPP)", visible: false, opacity: 0.5, popupEnabled: false });
         layers.boundary = new FeatureLayer({ url: URLS.boundary, title: "TRPA boundary", renderer: { type: "simple", symbol: { type: "simple-fill", color: [0, 0, 0, 0], outline: { color: [0, 59, 113, 0.9], width: 1.2, style: "dash" } } }, popupEnabled: false, listMode: "hide" });
-        layers.roads = new FeatureLayer({ url: URLS.roads, title: "Roads (street network)", outFields: ["segment_id", "name", "class", "Estimated_2024_AADT_Filled"], definitionExpression: "In_Basin = 1 OR In_Basin IS NULL", renderer: line([0, 59, 113, 0.75], 1.4), popupEnabled: false });
-        layers.trails = new FeatureLayer({ url: URLS.trails, title: "Bike and pedestrian paths", outFields: ["OBJECTID", "NAME", "CLASS", "MAINT_JURS", "MILES"], renderer: line([74, 97, 24, 0.9], 2), popupEnabled: false });
-        layers.transit = new FeatureLayer({ url: URLS.transit, title: "Transit routes", outFields: ["OBJECTID", "ID", "PROVIDER", "ROUTE_NUMBER", "ROUTE_NAME", "ROUTE_TYPE"], renderer: line([123, 106, 138, 0.9], 2.4), visible: false, popupEnabled: false });
-        layers.culverts = new GeoJSONLayer({ url: URLS.culverts, title: "Culverts", outFields: ["*"], minScale: 150000, popupEnabled: false,
-          renderer: { type: "simple", symbol: { type: "simple-marker", style: "square", size: 6, color: [232, 119, 34, 0.9], outline: { color: [255, 255, 255, 0.9], width: 0.6 } } } });
-        layers.bridges = new GeoJSONLayer({ url: URLS.bridges, title: "Bridges (NBI)", outFields: ["*"], popupEnabled: false,
-          renderer: { type: "simple", symbol: { type: "simple-marker", style: "diamond", size: 11, color: [0, 114, 206, 0.95], outline: { color: [255, 255, 255, 1], width: 1 } } } });
+        // Assets: published results files, each colored by the station's draft vulnerability class (rendererFor)
+        layers.trails = new GeoJSONLayer({ url: URLS.trails, title: "Bike and pedestrian paths", outFields: ["*"], renderer: rendererFor("paths", station), popupEnabled: false });
+        layers.transit = new FeatureLayer({ url: URLS.transit, title: "Transit routes (not scored)", outFields: ["OBJECTID", "ID", "PROVIDER", "ROUTE_NUMBER", "ROUTE_NAME", "ROUTE_TYPE"], renderer: line([123, 106, 138, 0.9], 2.4), visible: false, popupEnabled: false });
+        layers.culverts = new GeoJSONLayer({ url: URLS.culverts, title: "Culverts", outFields: ["*"], minScale: 150000, renderer: rendererFor("culverts", station), popupEnabled: false });
+        layers.bridges = new GeoJSONLayer({ url: URLS.bridges, title: "Bridges (NBI)", outFields: ["*"], renderer: rendererFor("bridges", station), popupEnabled: false });
+        layers.hubs = new GeoJSONLayer({ url: URLS.hubs, title: "Transit hubs", outFields: ["*"], renderer: rendererFor("hubs", station), popupEnabled: false });
+        // Roads: the street geometry joined in memory on src_objectid to the vulnerability table, then handed to the
+        // SDK as a GeoJSONLayer from a blob URL (the Results page's roadLayer() approach). Added to the map once loaded.
+        async function loadRoads() {
+          const [gj, t] = await Promise.all([fetch(URLS.roads).then(r => { if (!r.ok) throw new Error(`roads_geometry ${r.status}`); return r.json(); }),
+            fetch(URLS.roadsV).then(r => r.ok ? r.json() : { columns: [], rows: [] }).catch(() => ({ columns: [], rows: [] }))]);
+          const byId = {}; t.rows.forEach(row => { const r = {}; t.columns.forEach((c, i) => { r[c] = row[i]; }); byId[String(r.src_objectid)] = r; });
+          const keep = ["V_FLR_hist", "V_WFR_hist", "V_LSR_hist", "V_DFR_hist", "V_AVR_hist", "V_max", "V_class", "C_class"];
+          roadIndex = gj.features.map(f => { const p = f.properties, v = byId[String(p.src_objectid)] || {}; keep.forEach(c => { p[c] = v[c] == null ? null : v[c]; }); return { oid: String(p.src_objectid), name: p.name || "", cls: p.class || "", up: (p.name || "").toUpperCase() }; });
+          const url = URL.createObjectURL(new Blob([JSON.stringify(gj)], { type: "application/geo+json" }));
+          return new GeoJSONLayer({ url, title: "Roads (street network)", outFields: ["*"], renderer: rendererFor("roads", station), popupEnabled: false });
+        }
         const noteRenderer = (hollow) => ({ type: "unique-value", field: "concern", defaultSymbol: { type: "simple-marker", size: 13, color: hollow ? [255, 255, 255, 0.5] : [138, 147, 162, 0.95], outline: { color: hollow ? [138, 147, 162, 1] : [255, 255, 255, 1], width: hollow ? 2 : 1.5 } },
           uniqueValueInfos: [1, 2, 3].map(c => ({ value: c, symbol: { type: "simple-marker", size: 14, color: hollow ? [255, 255, 255, 0.5] : [["156", "62", "39"], ["232", "119", "34"], ["180", "126", "0"]][c - 1].map(Number).concat(0.95), outline: { color: hollow ? [["156", "62", "39"], ["232", "119", "34"], ["180", "126", "0"]][c - 1].map(Number).concat(1) : [255, 255, 255, 1], width: hollow ? 2.2 : 1.5 } } })) });
         noteLayer = new GraphicsLayer({ title: "Your notes", listMode: "hide" });
@@ -820,7 +939,9 @@
         noteLayer.graphics.on("change", (e) => e.added.forEach(g => { g.symbol = symFor(noteRenderer(false), g.attributes.concern); }));
         othersLayer.graphics.on("change", (e) => e.added.forEach(g => { g.symbol = symFor(noteRenderer(true), g.attributes.concern); }));
 
-        map = new Map({ basemap: "gray-vector", layers: [layers.hill, layers.fire, layers.perims, layers.wepp, layers.slides, layers.flood, layers.avy, layers.boundary, layers.trails, layers.transit, layers.roads, layers.culverts, layers.bridges, othersLayer, noteLayer] });
+        map = new Map({ basemap: "gray-vector", layers: [layers.hill, layers.fire, layers.perims, layers.wepp, layers.slides, layers.flood, layers.avy, layers.boundary, layers.trails, layers.transit, layers.culverts, layers.bridges, layers.hubs, othersLayer, noteLayer] });
+        loadRoads().then(l => { layers.roads = l; map.add(l, map.layers.indexOf(layers.culverts)); })
+          .catch(err => { console.warn("Roads failed to load:", err); toast("The road network did not load. Reload the page, or drop a pin where your concern is.", 7000); });
         view = new MapView({ container: "viewDiv", map, center: [-120.04, 39.09], zoom: 10, popup: { autoOpenEnabled: false }, constraints: { snapToZoom: false } });
         view.when(() => {
           view.ui.add(new Home({ view }), "top-left");
@@ -834,7 +955,7 @@
           view.on("click", async (e) => {
             const pt = e.mapPoint, lon = +pt.longitude.toFixed(6), lat = +pt.latitude.toFixed(6);
             if (pinMode) { setPinMode(false); select(newNote("pin", `${lon},${lat}`, "Pinned place", `${lat}, ${lon}`, lon, lat)); return; }
-            const r = await view.hitTest(e, { include: [noteLayer, othersLayer, layers.bridges, layers.culverts, layers.transit, layers.trails, layers.roads] });
+            const r = await view.hitTest(e, { include: [noteLayer, othersLayer, layers.bridges, layers.hubs, layers.culverts, layers.transit, layers.trails, layers.roads].filter(Boolean) });
             const hit = r.results.find(x => x.graphic && x.graphic.layer);
             // Laptop trackpads miss 6-px squares; fall back to a small box query around the click
             const g = hit ? hit.graphic : await nearby(e, 9);
@@ -843,13 +964,13 @@
             if (g.layer === othersLayer) { const key = g.attributes.key; const mine = state.notes[key]; const src = otherLists().flatMap(l => l.notes[key] ? [l.notes[key]] : [])[0];
               select(mine ? Object.assign({ saved: true }, mine, { hazards: [...(mine.hazards || [])] }) : Object.assign({ saved: false }, src, { hazards: [...(src.hazards || [])], concern: null, why: "", missing: false, lon: src.lon, lat: src.lat }), null); return; }
             const idn = identify(g); if (!idn) { select(null); return; }
-            select(newNote(idn.type, idn.id, idn.name, idn.sub, lon, lat), g);
+            select(noteFor(idn, lon, lat), g);
           });
-          view.on("pointer-move", (e) => { if (pinMode) return; view.hitTest(e, { include: [noteLayer, layers.bridges, layers.culverts, layers.transit, layers.trails, layers.roads] }).then(r => { view.container.style.cursor = r.results.length ? "pointer" : "default"; }); });
+          view.on("pointer-move", (e) => { if (pinMode) return; view.hitTest(e, { include: [noteLayer, layers.bridges, layers.hubs, layers.culverts, layers.transit, layers.trails, layers.roads].filter(Boolean) }).then(r => { view.container.style.cursor = r.results.length ? "pointer" : "default"; }); });
         }).catch(err => console.warn("Map failed to load:", err));
       });
     async function nearby(e, px) {
-      const order = [layers.bridges, layers.culverts, layers.transit, layers.trails, layers.roads];
+      const order = [layers.bridges, layers.hubs, layers.culverts, layers.transit, layers.trails, layers.roads].filter(Boolean);
       const a = view.toMap({ x: e.x - px, y: e.y + px }), b = view.toMap({ x: e.x + px, y: e.y - px });
       if (!a || !b) return null;
       const ext = { type: "extent", xmin: Math.min(a.x, b.x), ymin: Math.min(a.y, b.y), xmax: Math.max(a.x, b.x), ymax: Math.max(a.y, b.y), spatialReference: view.spatialReference };
@@ -869,16 +990,20 @@
     $("findBtn").addEventListener("click", () => { $("findDialog").open = true; $("findList").innerHTML = ""; setTimeout(() => $("findInput").focus(), 200); });
     let findT = null;
     $("findInput").addEventListener("input", () => { clearTimeout(findT); findT = setTimeout(findRoads, 350); });
+    // Name search runs over the in-memory road index; the pick is then pulled from the layer so it can be highlighted
     async function findRoads() {
-      const q = $("findInput").value.trim(); if (q.length < 3 || !layers.roads) return;
-      const res = await layers.roads.queryFeatures({ where: `UPPER(name) LIKE '%${q.toUpperCase().replace(/'/g, "''")}%'`, outFields: ["segment_id", "name", "class", "Estimated_2024_AADT_Filled"], returnGeometry: true, outSpatialReference: view.spatialReference, num: 40, orderByFields: ["name"] }).catch(() => null);
+      const q = $("findInput").value.trim().toUpperCase(); if (q.length < 3) return;
+      if (!layers.roads || !roadIndex.length) { $("findList").innerHTML = `<li class="nrow" style="cursor:default;color:var(--gray-text)">The road network is still loading. Try again in a moment.</li>`; return; }
       const seen = new Set(), items = [];
-      for (const f of (res && res.features) || []) { const nm = f.attributes.name || "Unnamed road"; if (seen.has(nm)) continue; seen.add(nm); items.push(f); }
-      $("findList").innerHTML = items.length ? items.slice(0, 15).map((f, i) => `<li class="nrow" data-i="${i}"><div class="n-main"><b>${escHtml(f.attributes.name || "Unnamed road")}</b><small>${escHtml(f.attributes.class || "")} road</small></div></li>`).join("") : `<li class="nrow" style="cursor:default;color:var(--gray-text)">No road names match.</li>`;
-      $("findList").onclick = (e) => { const li = e.target.closest(".nrow[data-i]"); if (!li) return; const f = items[+li.dataset.i]; $("findDialog").open = false;
-        view.goTo({ target: f.geometry, zoom: 14 }, { duration: 500 }).catch(() => {}); const c = f.geometry.extent ? f.geometry.extent.center : f.geometry; const g = new Graphic({ geometry: f.geometry, attributes: f.attributes }); g.layer = layers.roads; const idn = identify(g);
+      for (const r of roadIndex) { if (!r.up || !r.up.includes(q) || seen.has(r.up)) continue; seen.add(r.up); items.push(r); }
+      items.sort((a, b) => a.name.localeCompare(b.name));
+      $("findList").innerHTML = items.length ? items.slice(0, 15).map((r, i) => `<li class="nrow" data-i="${i}"><div class="n-main"><b>${escHtml(r.name)}</b><small>${escHtml(r.cls)} road</small></div></li>`).join("") : `<li class="nrow" style="cursor:default;color:var(--gray-text)">No road names match.</li>`;
+      $("findList").onclick = async (e) => { const li = e.target.closest(".nrow[data-i]"); if (!li) return; const r = items[+li.dataset.i]; $("findDialog").open = false;
+        const res = await layers.roads.queryFeatures({ where: `src_objectid = '${r.oid.replace(/'/g, "''")}'`, outFields: ["*"], returnGeometry: true, outSpatialReference: view.spatialReference, num: 1 }).catch(() => null);
+        const f = res && res.features[0]; if (!f) { toast("Could not find that road on the map."); return; }
+        view.goTo({ target: f.geometry, zoom: 14 }, { duration: 500 }).catch(() => {}); const c = f.geometry.extent ? f.geometry.extent.center : f.geometry; f.layer = layers.roads; const idn = identify(f);
         const lon = c && c.longitude != null ? +c.longitude.toFixed(6) : null, lat = c && c.latitude != null ? +c.latitude.toFixed(6) : null;
-        select(newNote(idn.type, idn.id, idn.name, idn.sub, lon, lat), g); };
+        select(noteFor(idn, lon, lat), f); };
     }
 
     // ───────────────────────── Master list (print) ─────────────────────────

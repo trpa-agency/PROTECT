@@ -44,6 +44,8 @@ exposure:
     year_field: FLOOD_YEAR   # "100-year flood" / "500-year flood"
     streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
     stream_buffer_m: 10
+    near_zone_buffer_m: 20      # class 1 band around the FEMA zones (ICF review Oct. 26, 2026: 10 to 30 m around the
+                                # 500-year floodplain, for mapped-extent uncertainty and future expansion); 0 = off
     exclude_water_over_km2: 1   # the lake and large water bodies are not "a mapped stream"
     include_lake_zone: false    # FEMA maps the lake's 1 pct stillwater elevation as AE (478 km2): lake-stage
                                 # flooding is the high-lake-level pair, not adopted; false drops FEMA polygons
