@@ -32,7 +32,7 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
 
     header.app-header{background:var(--trpa-navy);color:#fff;}
-    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-content{max-width:1800px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
     .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
     .header-logo img{height:54px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
@@ -42,7 +42,9 @@
     header.app-header .header-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
     header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
 
-    main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    main{max-width:1800px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+
+    main p{max-width:56em;}   /* wide screens: the page widens, running text keeps a reading measure */
     .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
     .intro{margin-bottom:1.25rem;}
     .intro .lede{font-size:1rem;max-width:95ch;}
@@ -131,7 +133,20 @@
     .sitenav a{color:#003B71;text-decoration:none;font-weight:600;}
     .sitenav a:hover{color:#0072CE;}
     .sitenav a.on{color:#0072CE;}
-</style>
+    /* responsive pass (Oct. 29, 2026): a hidden tip no longer widens the page on phones */
+    .i::after{display:none;}
+    .i:hover::after,.i:focus::after{display:block;}
+    @media (max-width:700px){
+      .i::after{max-width:calc(100vw - 2rem);}
+      /* phones: one header row (logo, title, Pages), so the page starts on the first screen */
+      .header-content{padding:.5rem .9rem;gap:.6rem;flex-wrap:nowrap;}
+      .header-logo img{height:34px;}
+      header .agency,header .header-sub,header .version{display:none;}
+      header.app-header h1,header h1{font-size:1.02rem;line-height:1.25;}
+      header .header-meta{flex-shrink:0;}
+      main{padding-left:.9rem;padding-right:.9rem;}
+    }
+  </style>
   <style>
     /* Pages menu in the header (replaces the site nav row) */
     details.pages{position:relative;display:inline-block;}
@@ -161,7 +176,7 @@
       </div>
       <div class="header-meta">
         <span class="version">v0.6</span>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html" class="on" aria-current="page">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html" class="on" aria-current="page">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>

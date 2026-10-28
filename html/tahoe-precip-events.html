@@ -139,6 +139,19 @@
     .fs-on .fs-panel.fs-min{padding-bottom:0!important;overflow:hidden!important;}
     .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
     .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
+      /* responsive pass (Oct. 29, 2026): a hidden tip no longer widens the page on phones */
+    .i::after{display:none;}
+    .i:hover::after,.i:focus::after{display:block;}
+    @media (max-width:700px){
+      .i::after{max-width:calc(100vw - 2rem);}
+      .dashboard-header{padding:.5rem .9rem;gap:.5rem;}
+      .dashboard-header .header-logo img{height:34px;}
+      .dashboard-header .agency,.dashboard-header .header-sub{display:none;}
+      .dashboard-header h1{font-size:1.02rem;}
+      .dashboard-header > div:last-child{width:100%;min-width:0;}
+      .dashboard-header nav{overflow-x:auto;flex-wrap:nowrap;white-space:nowrap;min-width:0;flex:1 1 100%;}
+      .kpi-row,.dashboard-content{padding-left:.9rem;padding-right:.9rem;}
+    }
   </style>
 </head>
 <body>
@@ -154,7 +167,8 @@
     <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
       <nav style="display:flex;gap:.9rem;font-size:.8rem;font-weight:600;">
         <a href="index.html" style="color:#B4CBE8;text-decoration:none;">Home</a>
-        <a href="results.html" style="color:#B4CBE8;text-decoration:none;">Results</a><a href="results-guide.html">Results guide</a>
+        <a href="results.html" style="color:#B4CBE8;text-decoration:none;">Results</a>
+        <a href="results-guide.html" style="color:#B4CBE8;text-decoration:none;">Results guide</a>
         <a href="criticality-index.html" style="color:#B4CBE8;text-decoration:none;">Criticality Index</a>
         <a href="reference-hub.html" style="color:#B4CBE8;text-decoration:none;">Reference Hub</a>
         <a href="climate-data.html" style="color:#B4CBE8;text-decoration:none;">Climate Data</a>

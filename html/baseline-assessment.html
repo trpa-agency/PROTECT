@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT Baseline Assessment | TRPA</title>
+  <meta name="description" content="Summary of the draft Baseline Assessment and Incident Review for Connecting Tahoe: how transportation and communication held up in past emergencies, the key findings, and proposed actions for Workshop 1." />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Open Sans (TRPA web font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:#0072CE; --trpa-navy:#003B71; --trpa-earth:#B47E00; --trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27; --trpa-olive:#B5A64C; --trpa-orange:#E87722; --trpa-purple:#7B6A8A;
+      --trpa-ice:#B4CBE8; --gray-text:#5a6577; --gray-border:#DDDDDD; --page-bg:#f4f6f9; --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1800px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:54px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.35rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .header-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
+
+    main{max-width:1800px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    main p{max-width:56em;}   /* wide screens: the page widens, running text keeps a reading measure */
+    a{color:var(--trpa-blue);}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.84rem;margin-bottom:1.1rem;max-width:95ch;}
+    .lede{font-size:.98rem;max-width:95ch;margin-bottom:1rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.6rem 0 .6rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);scroll-margin-top:1rem;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+
+    /* Bottom line */
+    .bottom{background:#eaf3fb;border:1px solid var(--trpa-ice);border-left:5px solid var(--trpa-blue);border-radius:8px;padding:.9rem 1.2rem;margin:.2rem 0 1rem;max-width:95ch;font-size:.93rem;}
+    .bottom b{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--trpa-blue);margin-bottom:.2rem;}
+
+    .kpi-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
+    .kpi-card{background:#fff;border-radius:8px;padding:.8rem 1.05rem;flex:1;min-width:140px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
+    .kpi-card.next{border-top-color:var(--trpa-orange);}
+    .kpi-card .kpi-value{font-size:1.6rem;font-weight:700;line-height:1;}
+    .kpi-card .kpi-label{font-size:.76rem;color:var(--gray-text);margin-top:.35rem;}
+
+    /* Headline per focus area; a click filters the findings table */
+    .heads{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.7rem;margin-bottom:.6rem;}
+    a.head{display:block;background:#fff;border:1px solid var(--gray-border);border-left:4px solid var(--c,var(--trpa-blue));border-radius:8px;padding:.7rem .9rem;text-decoration:none;color:var(--trpa-navy);transition:box-shadow .15s,border-color .15s;}
+    a.head:hover{border-color:var(--trpa-blue);box-shadow:0 3px 12px rgba(0,59,113,.12);}
+    a.head .area{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--c,var(--trpa-blue));}
+    a.head p{font-size:.84rem;margin-top:.2rem;}
+
+    .toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.4rem 0 .7rem;}
+    .toolbar button.csv{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.45rem .85rem;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;margin-left:auto;}
+    .toolbar button.csv:hover{background:var(--trpa-blue);}
+    .seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--gray-border);border-radius:6px;overflow:hidden;background:#fff;}
+    .seg button{background:#fff;border:none;border-right:1px solid var(--gray-border);padding:.42rem .75rem;font-family:inherit;font-size:.79rem;font-weight:600;color:var(--trpa-navy);cursor:pointer;}
+    .seg button:last-child{border-right:none;}
+    .seg button:hover{background:#eaf3fb;}
+    .seg button.on{background:var(--trpa-navy);color:#fff;}
+
+    table.ref{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:.84rem;margin-bottom:.8rem;}
+    table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.55rem .75rem;font-weight:600;vertical-align:top;}
+    table.ref td{padding:.55rem .75rem;border-top:1px solid #eef0f3;vertical-align:top;}
+    table.ref tr:nth-child(even) td{background:#fafbfc;}
+    table.ref tr{scroll-margin-top:1rem;}
+    table.ref tr:target td{background:#fff3df !important;}
+    table.ref td.t b{display:block;font-size:.88rem;}
+    table.ref td.small{font-size:.8rem;color:var(--gray-text);}
+    .id{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.03em;color:#fff;background:var(--c,var(--trpa-navy));border-radius:4px;padding:.05rem .4rem;margin-bottom:.2rem;}
+    a.pill{display:inline-block;font-size:.72rem;font-weight:700;text-decoration:none;color:var(--trpa-blue);background:#eaf3fb;border:1px solid var(--trpa-ice);border-radius:999px;padding:.02rem .45rem;margin:0 .2rem .2rem 0;white-space:nowrap;}
+    a.pill:hover{background:var(--trpa-blue);color:#fff;}
+    .when{display:inline-block;font-size:.7rem;font-weight:700;border-radius:999px;padding:.05rem .5rem;white-space:nowrap;background:#e8efd9;color:var(--trpa-forest);}
+    .when.long{background:#f6ead0;color:#7a5600;}
+
+    details.block{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.5rem .95rem;margin-top:.8rem;max-width:110ch;}
+    details.block summary{font-size:.9rem;font-weight:700;cursor:pointer;padding:.3rem 0;list-style:none;display:flex;align-items:center;gap:.5rem;}
+    details.block summary::-webkit-details-marker{display:none;}
+    details.block summary::before{content:"";width:0;height:0;border-left:6px solid var(--trpa-blue);border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .15s;}
+    details.block[open] summary::before{transform:rotate(90deg);}
+    details.block .body{font-size:.86rem;padding:.3rem 0 .6rem;}
+    details.block .body p{margin:.35rem 0;}
+    details.block .body ul{margin:.3rem 0 .4rem 1.2rem;}
+    details.block .body li{margin:.2rem 0;}
+    details.block table.ref{font-size:.82rem;margin-top:.5rem;}
+
+    /* Hover/focus info affordance */
+    .i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;
+       background:var(--trpa-ice);color:var(--trpa-navy);font-size:.6rem;font-weight:700;font-style:normal;
+       cursor:help;position:relative;flex-shrink:0;vertical-align:1px;margin-left:.3rem;}
+    .i:hover,.i:focus{background:var(--trpa-blue);color:#fff;outline:none;}
+    .i::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+      background:var(--trpa-navy);color:#fff;padding:.55rem .75rem;border-radius:6px;font-size:.75rem;font-weight:400;
+      font-style:normal;line-height:1.45;width:max-content;max-width:min(260px,calc(100vw - 2rem));text-align:left;white-space:normal;text-transform:none;letter-spacing:0;
+      display:none;opacity:0;visibility:hidden;transition:opacity .12s;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.22);pointer-events:none;}
+    .i:hover::after,.i:focus::after{display:block;opacity:1;visibility:visible;}
+    .i.tip-right::after{left:auto;right:0;transform:none;}
+    .i.tip-left::after{left:0;right:auto;transform:none;}
+
+    footer.app-footer{max-width:1800px;margin:1.5rem auto 0;padding:1.1rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+
+    /* Phones: one header row, and text tables turn into labeled blocks */
+    @media (max-width:700px){
+      .header-content{padding:.5rem .9rem;gap:.6rem;flex-wrap:nowrap;}
+      .header-logo img{height:34px;}
+      header .agency,header .header-sub,header .version{display:none;}
+      header.app-header h1{font-size:1.02rem;line-height:1.25;}
+      header .header-meta{flex-shrink:0;}
+      main{padding-left:.9rem;padding-right:.9rem;}
+      table.stack thead{display:none;}
+      table.stack,table.stack tbody,table.stack tr,table.stack td{display:block;width:100%;}
+      table.stack tr{border-top:3px solid var(--page-bg);}
+      table.stack td{border-top:none;padding:.35rem .8rem;}
+      table.stack td[data-label]::before{content:attr(data-label);display:block;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-text);}
+      .toolbar button.csv{margin-left:0;}
+    }
+  </style>
+  <style>
+    /* Pages menu in the header (replaces the site nav row) */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Baseline Assessment</h1>
+        <div class="header-sub">Lessons from past emergencies &middot; How transportation and communication held up, and what to fix</div>
+      </div>
+      <div class="header-meta">
+        <span class="version">Draft</span>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html" class="on" aria-current="page">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="banner">Draft for Workshop 1, Nov. 9, 2026. This summarizes the consultant's draft report of Oct. 13, 2026; the report's recommendations are not written yet, so the actions here are proposed for discussion.</div>
+
+    <!-- ===================== Summary ===================== -->
+    <h2 class="sec" id="summary">Summary</h2>
+    <p class="lede">The baseline assessment looks at how transportation and communication held up in past emergencies, mostly the 2021 Caldor Fire and recent winter storms, and sets the starting point for the transportation communications strategy.<i class="i" tabindex="0" data-tip="Full title: Hazard and Emergency Response Baseline Assessment and Incident Review, by ICF for TRPA. It covers operations: coordination, communication, evacuation, technology, and preparedness. Physical risk to roads, bridges, and culverts is the vulnerability assessment's job.">i</i> It draws on more than 50 plans and studies and interviews with transit, public works, and emergency management staff.</p>
+
+    <div class="bottom">
+      <b>Bottom line</b>
+      The basin's emergency plans and command structure are sound, and the state transportation departments and county road crews fit into them well. What breaks down is everything around that structure: transit providers with no set role, information that moves through personal relationships and group texts, no traffic plan in place before an evacuation, equipment that fails when power and cell service go out, and visitors and people without a car who are hard to reach.
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-value">14</div><div class="kpi-label">key findings across five focus areas</div></div>
+      <div class="kpi-card"><div class="kpi-value">13</div><div class="kpi-label">organizations in four technical interviews</div></div>
+      <div class="kpi-card"><div class="kpi-value">20</div><div class="kpi-label">oral histories with responders and residents</div></div>
+      <div class="kpi-card next"><div class="kpi-value">14</div><div class="kpi-label">proposed actions for Workshop 1</div></div>
+    </div>
+
+    <div class="heads" id="heads"></div>
+
+    <!-- ===================== Findings ===================== -->
+    <h2 class="sec" id="findings">Key findings</h2>
+    <p class="lead">What works today and what is missing, for each finding in the draft. The numbers link to the proposed actions that answer it.</p>
+    <div class="toolbar">
+      <div class="seg" id="area-seg" role="group" aria-label="Filter by focus area"></div>
+      <button type="button" class="csv" data-tablecsv="findings-table" data-filename="PROTECT_BaselineAssessment_Findings.csv">Export CSV</button>
+    </div>
+    <table class="ref stack" id="findings-table">
+      <thead><tr><th style="width:24%">Finding</th><th style="width:30%">What is working</th><th style="width:36%">What is missing</th><th style="width:10%">Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- ===================== Recommendations ===================== -->
+    <h2 class="sec" id="actions">Proposed actions</h2>
+    <p class="lead">A starting list for the Workshop 1 discussion, drawn from what interviewees suggested and the gaps above.<i class="i" tabindex="0" data-tip="Near term means plans, agreements, training, and outreach that need little capital. Longer term means equipment, infrastructure, or new systems. Feeds says which product the action would land in: the transportation communications strategy, the Resilience Improvement Plan (TRIP) project list, or TRPA's parallel Transportation System Management and Operations (TSMO) Plan.">i</i> Partners will add to, merge, and rank them before they go into the report.</p>
+    <div class="toolbar">
+      <button type="button" class="csv" data-tablecsv="actions-table" data-filename="PROTECT_BaselineAssessment_ProposedActions.csv">Export CSV</button>
+    </div>
+    <table class="ref stack" id="actions-table">
+      <thead><tr><th style="width:4%">#</th><th style="width:50%">Proposed action</th><th style="width:16%">Answers</th><th style="width:10%">Timing</th><th style="width:20%">Feeds</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- ===================== Background (collapsed) ===================== -->
+    <h2 class="sec" id="background">Background</h2>
+
+    <details class="block">
+      <summary>Who does what in an emergency</summary>
+      <div class="body">
+        <p>Five groups of agencies share the work. Under the national incident command system, a unified command brings them together when an incident crosses jurisdictions.<i class="i" tabindex="0" data-tip="Field crews work under an incident command post; emergency operations centers handle resources and policy; a joint information center may coordinate public messages. In California, sheriffs, police, and CHP can order evacuations; the draft notes that in Nevada only the governor can order a mandatory evacuation. Either way, decisions are usually made with the unified command and fire officials.">i</i></p>
+        <div class="toolbar"><button type="button" class="csv" data-tablecsv="roles-table" data-filename="PROTECT_BaselineAssessment_Roles.csv">Export CSV</button></div>
+        <table class="ref stack" id="roles-table">
+          <thead><tr><th style="width:20%">Group</th><th style="width:45%">Role in an emergency</th><th style="width:35%">Examples</th></tr></thead>
+          <tbody>
+            <tr><td data-label="Group"><b>Emergency management</b></td><td data-label="Role">Leads coordination: runs emergency operations centers, sets priorities, and arranges shelters, staging areas, and transportation resources.</td><td data-label="Examples">Cal OES, Nevada Division of Emergency Management, county emergency managers</td></tr>
+            <tr><td data-label="Group"><b>Fire</b></td><td data-label="Role">Fights the fire, reports conditions, and with law enforcement recommends evacuation warnings and orders.</td><td data-label="Examples">CAL FIRE, Nevada Division of Forestry, U.S. Forest Service, Tahoe Fire and Fuels Team, local fire districts</td></tr>
+            <tr><td data-label="Group"><b>Law enforcement</b></td><td data-label="Role">Issues and carries out evacuation orders, controls traffic and access, and can request transit for people who need a ride.</td><td data-label="Examples">CHP, Nevada State Police, county sheriffs, local police</td></tr>
+            <tr><td data-label="Group"><b>Transportation operations</b></td><td data-label="Role">Run the evacuation highways and local roads: closures, traffic control, and road condition information.</td><td data-label="Examples">Caltrans, NDOT, county and city public works</td></tr>
+            <tr><td data-label="Group"><b>Transit and mobility</b></td><td data-label="Role">Move people without a car with buses, paratransit, and shuttles, under the direction of emergency officials.</td><td data-label="Examples">Tahoe Transportation District, TART, South Shore TMA, Truckee North Tahoe TMA, Mountaineer Transit</td></tr>
+          </tbody>
+        </table>
+        <p>School districts (bus fleets), resorts and hotels, social service and community groups, and utilities are key partners outside these five groups.</p>
+      </div>
+    </details>
+
+    <details class="block">
+      <summary>How the assessment was done</summary>
+      <div class="body">
+        <p>Findings are organized around five focus areas: transportation response coordination, transportation communication, evacuation planning and execution, technology, and community preparedness.</p>
+        <ul>
+          <li><b>Plans and studies.</b> More than 50 documents: hazard mitigation, emergency operations, and evacuation plans and studies, plus case studies from the basin and elsewhere.</li>
+          <li><b>Technical interviews.</b> Four group interviews, June 29 to July 24, 2026, with 13 organizations: the Tahoe Transportation District, South Shore TMA, Barton Health, Cal Poly, South Lake Tahoe Public Works, El Dorado County Engineering, Tahoe City PUD, Placer County OES and Public Works, TART, Mountaineer Transit, Truckee Public Works, and the Truckee North Tahoe TMA. Caltrans sent written input, and earlier TSMO Plan interviews with Caltrans and NDOT were used.</li>
+          <li><b>Oral histories.</b> 20 long-form interviews with first responders, emergency managers, community leaders, and residents in October 2026, still being added.</li>
+          <li><b>Surveys.</b> The project's public survey (results still being added) and Placer County's evacuation study survey.</li>
+        </ul>
+        <p><b>Limits.</b> After-action reports and incident data could not be obtained, so the findings rest mostly on interviews and describe what participants reported. Fire and law enforcement agencies were not in the four technical interviews, and freight has not been covered yet.</p>
+      </div>
+    </details>
+
+    <details class="block">
+      <summary>What is still to come in the report</summary>
+      <div class="body">
+        <ul>
+          <li>Best practices and case studies of winter storms and wildfire evacuations</li>
+          <li>Recommendations, performance measures to track them, and conclusions</li>
+          <li>Results from the public survey, the oral histories, and Workshop 1</li>
+          <li>The full list of sources</li>
+        </ul>
+        <p>The findings feed the transportation communications strategy and the TRIP project list; physical risk to roads, bridges, and culverts is covered in the <a href="results.html">vulnerability results</a>.</p>
+      </div>
+    </details>
+  </main>
+
+  <footer class="app-footer">Summary of ICF's draft Baseline Assessment and Incident Review (Oct. 13, 2026); proposed actions drafted by TRPA for discussion. Updated Oct. 28, 2026.</footer>
+
+  <script>
+  (function(){
+    // Focus areas: key, short label for filters, full name, color
+    const AREAS = [
+      {k:"CC",   label:"Cross-cutting", name:"Cross-cutting",                               c:"#7B6A8A"},
+      {k:"TRC",  label:"Coordination",  name:"Transportation response coordination",        c:"#003B71"},
+      {k:"TCE",  label:"Communication", name:"Transportation communication effectiveness",  c:"#0072CE"},
+      {k:"EPE",  label:"Evacuation",    name:"Evacuation planning and execution",           c:"#E87722"},
+      {k:"RUT",  label:"Technology",    name:"Role and use of technology",                  c:"#4A6118"},
+      {k:"CPPE", label:"Preparedness",  name:"Community preparedness and public engagement", c:"#9C3E27"}
+    ];
+    const AREA = Object.fromEntries(AREAS.map(a => [a.k, a]));
+
+    // One headline per focus area for the summary
+    const HEADS = {
+      CC:   "Thin staffing, turnover, and long commutes wear down every part of response, and no one keeps track of who will need a ride.",
+      TRC:  "Transit providers outside county government have no set role; in Caldor the Tahoe Transportation District helped evacuate people without being brought into emergency operations early.",
+      TCE:  "No single source tells residents and visitors what to do; alerts, closures, and transit updates come from different agencies, and some translated alerts did not match the English.",
+      EPE:  "Traffic is the biggest operational problem: in Caldor, outbound US 50 was gridlocked while the inbound lane and center turn lane sat mostly empty.",
+      RUT:  "Radios, cameras, signs, and signals depend on power and cell service that fail in fires and storms, and agencies' systems do not connect well.",
+      CPPE: "Most people know their route but fewer are ready to leave: in a Placer County survey, 84 percent knew possible routes and 44 percent felt fully prepared."
+    };
+
+    // Findings: the draft's 14, in its order. works / gap paraphrase the draft's key takeaways.
+    const FINDINGS = [
+      {id:"CC-1", a:"CC", title:"Too few staff, high turnover, and long commutes weaken emergency response.",
+       works:"Cross-training (Truckee office staff hold commercial licenses so they can drive buses), yearly snow and emergency training, and Placer County's winter task force, which sends a fire engine, plow, and utility crew together.",
+       gap:"Experience leaves with staff: two to three South Lake Tahoe employees remain who worked the Caldor Fire. Staff who live outside the basin can be cut off by storms; in February 2026 some city staff could not get in for one to two days.",
+       ev:"Interviews; Caltrans written input"},
+      {id:"CC-2", a:"CC", title:"People who need a ride are hard to count, reach, and track.",
+       works:"Transit providers, social service agencies, and community groups know many of these riders and have stepped in during past events.",
+       gap:"There is no shared list or tracking tool. In Caldor, the city tracked paratransit pickups in a spreadsheet, and buses arrived at homes already evacuated. About 15 percent of visitors have no car, and seasonal worker numbers swing widely.",
+       ev:"Interviews; Caldor case study (Cal Poly, 2024); Placer County evacuation study"},
+      {id:"TRC-1", a:"TRC", title:"Transit providers outside county government have no set emergency role.",
+       works:"Caltrans, NDOT, and county public works fit cleanly into the command structure, and TART, a Placer County service, is routinely called on.",
+       gap:"Independent providers such as the Tahoe Transportation District, the Truckee North Tahoe TMA, and Mountaineer Transit have no formal path into emergency operations. In Caldor, the district helped evacuate people but was not brought in early, which delayed support.",
+       ev:"Interviews; Caldor case study (Cal Poly, 2024)"},
+      {id:"TRC-2", a:"TRC", title:"Coordination runs on personal relationships more than written agreements.",
+       works:"Caltrans holds regular winter coordination meetings, and agencies share yards and help each other: TART and Douglas County supported the district's buses during Caldor.",
+       gap:"Agreements are hard to find, outdated, or vague on who pays and who maintains, and some coordination groups have gone quiet. Actions that cross the state line must go up through state channels.",
+       ev:"Interviews"},
+      {id:"TCE-1", a:"TCE", title:"Who passes transportation information to whom is not set for every partner.",
+       works:"Emergency operations centers, joint information centers, dispatch, public information officers, daily incident calls, and a regional group chat keep agencies informed; Caltrans and NDOT coordinate message signs across the state line.",
+       gap:"Independent providers have no defined place in the flow, and several groups writing their own emergency messages creates confusion. In Caldor, the district believed the evacuation was over before a nonprofit found more unhoused people who needed a ride.",
+       ev:"Interviews; Caldor case study (Cal Poly, 2024)"},
+      {id:"TCE-2", a:"TCE", title:"Residents and visitors have no single trusted source.",
+       works:"Agencies use alerts, road information, message signs, and social media, plus Tahoe Alerts, a guide to local alert sign-ups; Washoe County pre-writes alerts in English and Spanish.",
+       gap:"Information is spread across agencies and platforms, visitors rarely sign up for local alerts, lodging is not used for outreach, and some Spanish alerts did not match the English. In a Placer County survey, people most often named social media (52 percent), Watch Duty (50 percent), and friends and family (49 percent).",
+       ev:"Interviews; Placer County survey; 2023 study of socially vulnerable residents; TRPA Transportation Equity Study (2023)"},
+      {id:"EPE-1", a:"EPE", title:"Traffic management is the biggest operational problem.",
+       works:"Agencies already plan traffic control for big events, such as the Tahoe City Fourth of July plan written with CHP.",
+       gap:"No evacuation traffic plan is set ahead of time. In Caldor, outbound US 50 was gridlocked while the inbound lane and center turn lane sat mostly empty and signals stayed on normal timing; it is unclear who can order signal changes or contraflow.",
+       ev:"Interviews; Caldor observations; Placer County survey (41 percent of past evacuees named congestion)"},
+      {id:"EPE-2", a:"EPE", title:"Buses, shuttles, and trails could help evacuate people, but they are not one system.",
+       works:"The basin has public transit, paratransit, microtransit, resort shuttles, school buses, and shared-use paths that run beside main roads.",
+       gap:"These belong to different organizations with different rules, staff, and insurance. Wheelchair spaces cut capacity (three can drop a small bus from 11 riders to four or five), and there is no process for people who cannot board without help.",
+       ev:"Interviews; Caldor case study (Cal Poly, 2024)"},
+      {id:"EPE-3", a:"EPE", title:"Plans need to cover worse conditions than Caldor.",
+       works:"The 2024 Lake Tahoe Regional Evacuation Plan sets a regional framework, and the Tahoe Transportation District and Tahoe City PUD are writing their own tiered plans.",
+       gap:"Caldor came with days of warning, during summer break. Plans are not tested for no-notice events, blocked routes, school days, or peak visitor days, and stakeholders said a full basin-wide evacuation exercise has not been held in two to three years.",
+       ev:"Interviews; Lake Tahoe Regional Evacuation Plan (2024)"},
+      {id:"EPE-4", a:"EPE", title:"Staging and drop-off sites have to be able to move.",
+       works:"Agencies have named sites (Truckee uses its airport, with local vans feeding larger regional buses) and have shifted sites mid-event before.",
+       gap:"In Caldor, the district was told to take evacuees to the Douglas County Senior Center, then had to move them to Reno while short on drivers and buses. Backup sites are not always named in advance.",
+       ev:"Interviews"},
+      {id:"RUT-1", a:"RUT", title:"Radios, signals, and signs fail when power and cell service do.",
+       works:"Radio backup, some generators, and fiber are in place; Caltrans is laying fiber through the basin, and several agencies are looking at satellite phones.",
+       gap:"Cell dead spots, untested radio coverage on the West Shore, uneven backup power, and fiber that does not reach the Caltrans traffic center. Local agencies control few signals (South Lake Tahoe runs three), and California and Nevada use separate sign systems.",
+       ev:"Interviews; Caltrans written input"},
+      {id:"RUT-2", a:"RUT", title:"Agencies lack the data to see conditions and decide quickly.",
+       works:"Cameras, vehicle tracking, GIS dashboards, and mobile field reports already help confirm incidents.",
+       gap:"There is no regional inventory of traffic technology, fiber, and who owns or maintains it; winter traffic counts are hard to collect; and funding rules favor fixing old equipment over adding new.",
+       ev:"Interviews; Caltrans written input"},
+      {id:"CPPE-1", a:"CPPE", title:"Knowing the route is not the same as being ready to leave.",
+       works:"Many residents understand wildfire risk, keep supplies ready, and know their routes: 84 percent in a Placer County survey knew possible routes.",
+       gap:"Only 44 percent felt fully prepared. People want specifics rather than general advice, the cost of lodging, fuel, and lost work delays some, and campaigns focus on driving, so few know how to leave by bus or with pets.",
+       ev:"Placer County survey; 2023 study of socially vulnerable residents; Goddard (2024); interviews"},
+      {id:"CPPE-2", a:"CPPE", title:"Community groups are an underused resource.",
+       works:"Groups such as Sierra Community House, Sierra Senior Services, and the Tahoe Coalition for the Homeless are trusted messengers and helped during Caldor; TART works with Placer County Health and Human Services.",
+       gap:"What these groups know about homebound, older, and unhoused residents is not built into emergency plans, and the Transportation Advisory Committee forum has not met recently.",
+       ev:"Interviews; 2023 study of socially vulnerable residents; TRPA Transportation Equity Study (2023)"}
+    ];
+
+    // Proposed actions. f lists the findings each answers; the findings table derives its links from here.
+    const ACTIONS = [
+      {n:1,  t:"Give transit providers a formal emergency role",
+       d:"Write independent transit and mobility providers into the regional evacuation plan and county emergency plans, with a set activation trigger and a seat or liaison in the emergency operations center from the start.",
+       f:["TRC-1","TCE-1","EPE-2"], when:"Near term", feeds:"Communications strategy"},
+      {n:2,  t:"Write down who does what, and keep a standing group",
+       d:"Review existing mutual aid agreements and memorandums of understanding, fix the ones that are outdated or vague, keep a shared contact list and escalation steps, and restart a regular regional transportation operations group.",
+       f:["TRC-2","CC-1"], when:"Near term", feeds:"Communications strategy; TSMO Plan"},
+      {n:3,  t:"Map how transportation information moves",
+       d:"Chart who creates, checks, approves, and sends transportation information during an incident, and give agencies and operators one contact list or mass-text channel.",
+       f:["TCE-1","TCE-2"], when:"Near term", feeds:"Communications strategy"},
+      {n:4,  t:"Settle evacuation traffic control before the next fire",
+       d:"Agree in advance who can change signal timing, run contraflow, or open the center turn lane, test a transit-only lane, and keep a lane open for responders; write corridor plans like the Fourth of July plan.",
+       f:["EPE-1","RUT-1"], when:"Near term", feeds:"Communications strategy; TSMO Plan"},
+      {n:5,  t:"Exercise harder scenarios together",
+       d:"Run regular exercises across the state line with transit, public works, and law enforcement that test no-notice events, blocked routes, school days, and peak visitor days.",
+       f:["EPE-3","EPE-4","TRC-2"], when:"Near term", feeds:"Communications strategy"},
+      {n:6,  t:"Find and track people who need a ride",
+       d:"Set up data sharing, with privacy safeguards, among transit, social services, community groups, and employers of seasonal workers, and a real-time way to log pickup requests and confirm each one is done.",
+       f:["CC-2","EPE-2","CPPE-2"], when:"Near term", feeds:"Communications strategy"},
+      {n:7,  t:"Plan accessible capacity and backup sites",
+       d:"Inventory buses, paratransit, and shuttles with their wheelchair capacity, name primary and backup staging and drop-off sites, and set protocols with medical responders for people who cannot board alone.",
+       f:["EPE-2","EPE-4"], when:"Near term", feeds:"Communications strategy (transportation resource inventory)"},
+      {n:8,  t:"Give residents and visitors one trusted source",
+       d:"Simplify and promote Tahoe Alerts, reach visitors through lodging, short-term rentals, and visitor centers, and check every translated alert against the English version.",
+       f:["TCE-2","CPPE-1"], when:"Near term", feeds:"Communications strategy"},
+      {n:9,  t:"Show people how to leave without a car",
+       d:"Add transit, pickup points, pets, and costs to preparedness campaigns, which now focus on driving.",
+       f:["CPPE-1","EPE-2"], when:"Near term", feeds:"Communications strategy"},
+      {n:10, t:"Work through trusted community groups",
+       d:"Give community organizations, schools, faith groups, and employers a defined role in outreach and in finding people who need help, and bring back the Transportation Advisory Committee forum.",
+       f:["CPPE-2","CC-2","TCE-2"], when:"Near term", feeds:"Communications strategy"},
+      {n:11, t:"Back up field communications and power",
+       d:"Test radio coverage, add backup power at signals, signs, and fuel pumps, equip key staff with satellite phones, and finish the fiber link to the Caltrans traffic center.",
+       f:["RUT-1"], when:"Longer term", feeds:"TRIP project list; ITS needs assessment"},
+      {n:12, t:"Inventory traffic technology and who owns it",
+       d:"Build a regional inventory of signals, cameras, signs, fiber, and conduit with owners, maintenance, and data sharing, modeled on NDOT's asset maps, and budget the full life cost of new devices.",
+       f:["RUT-1","RUT-2"], when:"Near term", feeds:"ITS needs assessment; TSMO Plan"},
+      {n:13, t:"Keep people and experience in place",
+       d:"Expand cross-training and yearly emergency and incident command training, plan for staff who commute from outside the basin during storms, and copy joint crews like Placer County's winter task force.",
+       f:["CC-1","TRC-1"], when:"Near term", feeds:"Communications strategy"},
+      {n:14, t:"Check trails as backup routes",
+       d:"Assess shared-use paths beside main roads, such as the Meyers path along US 50, for emergency vehicles: width, bridges, and access through bollards.",
+       f:["EPE-2"], when:"Longer term", feeds:"TRIP project list"}
+    ];
+
+    const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    const byFinding = {};
+    ACTIONS.forEach(r => r.f.forEach(id => (byFinding[id] = byFinding[id] || []).push(r.n)));
+
+    // Summary headlines
+    document.getElementById("heads").innerHTML = AREAS.map(a =>
+      '<a class="head" href="#findings" data-area="'+a.k+'" style="--c:'+a.c+'"><div class="area">'+esc(a.label)+'</div><p>'+esc(HEADS[a.k])+'</p></a>').join("");
+
+    // Findings table
+    document.querySelector("#findings-table tbody").innerHTML = FINDINGS.map(f => {
+      const ar = AREA[f.a];
+      const acts = (byFinding[f.id] || []).map(n => '<a class="pill" href="#r-'+n+'">'+n+'</a>').join("");
+      return '<tr id="f-'+f.id+'" data-area="'+f.a+'">'
+        + '<td class="t" data-label="Finding"><span class="id" style="--c:'+ar.c+'">'+f.id+'</span><i class="i" tabindex="0" data-tip="'+esc(ar.name+". Evidence: "+f.ev+".")+'">i</i><b>'+esc(f.title)+'</b></td>'
+        + '<td data-label="What is working">'+esc(f.works)+'</td>'
+        + '<td data-label="What is missing">'+esc(f.gap)+'</td>'
+        + '<td data-label="Proposed actions">'+acts+'</td></tr>';
+    }).join("");
+
+    // Actions table
+    document.querySelector("#actions-table tbody").innerHTML = ACTIONS.map(r =>
+      '<tr id="r-'+r.n+'">'
+      + '<td data-label="#"><b>'+r.n+'</b></td>'
+      + '<td class="t" data-label="Proposed action"><b>'+esc(r.t)+'</b>'+esc(r.d)+'</td>'
+      + '<td data-label="Answers">'+r.f.map(id => '<a class="pill" href="#f-'+id+'">'+id+'</a>').join("")+'</td>'
+      + '<td data-label="Timing"><span class="when'+(r.when==="Longer term"?" long":"")+'">'+esc(r.when)+'</span></td>'
+      + '<td class="small" data-label="Feeds">'+esc(r.feeds)+'</td></tr>').join("");
+
+    // Focus-area filter
+    let area = "All";
+    function applyFilter(){
+      document.querySelectorAll("#findings-table tbody tr").forEach(tr => { tr.style.display = (area==="All" || tr.dataset.area===area) ? "" : "none"; });
+      const seg = document.getElementById("area-seg");
+      seg.innerHTML = [{k:"All",label:"All"}].concat(AREAS).map(a => '<button type="button" data-v="'+a.k+'" class="'+(a.k===area?"on":"")+'"'+(a.name?' title="'+esc(a.name)+'"':'')+'>'+esc(a.label)+'</button>').join("");
+    }
+    document.getElementById("area-seg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; area = b.dataset.v; applyFilter(); });
+    document.getElementById("heads").addEventListener("click", e => { const h = e.target.closest("a.head"); if (h) { area = h.dataset.area; applyFilter(); } });
+    // A link to a finding hidden by the filter clears the filter first
+    document.addEventListener("click", e => {
+      const a = e.target.closest('a.pill[href^="#f-"]'); if (!a) return;
+      const row = document.querySelector(a.getAttribute("href"));
+      if (row && row.style.display === "none") { area = "All"; applyFilter(); }
+    });
+    applyFilter();
+
+    // CSV export for the static tables (tooltip glyphs left out)
+    function cellText(c){ const k = c.cloneNode(true); k.querySelectorAll(".i").forEach(x => x.remove()); return k.textContent.trim().replace(/\s+/g," "); }
+    function tableToCsv(tableId){
+      return [...document.getElementById(tableId).querySelectorAll("tr")]
+        .map(tr => [...tr.querySelectorAll("th,td")].map(c => '"' + cellText(c).replaceAll('"','""') + '"').join(",")).join("\n");
+    }
+    document.querySelectorAll("button[data-tablecsv]").forEach(btn => btn.addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([tableToCsv(btn.dataset.tablecsv)], {type:"text/csv"})); a.download = btn.dataset.filename; a.click();
+    }));
+
+    // Flip tooltips that would otherwise run past a viewport edge
+    function placeTips(){
+      const w = document.documentElement.clientWidth, pad = 140;
+      document.querySelectorAll(".i").forEach(el => { const x = el.getBoundingClientRect().left; el.classList.toggle("tip-right", x > w - pad); el.classList.toggle("tip-left", x < pad); });
+    }
+    placeTips(); window.addEventListener("resize", placeTips);
+  })();
+  </script>
+  <script>
+    // Pages menu: close on an outside click or Escape
+    (function(){ const p = document.getElementById("pages"); if (!p) return;
+      document.addEventListener("click", e => { if (p.open && !p.contains(e.target)) p.open = false; });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") p.open = false; }); })();
+  </script>
+</body>
+</html>

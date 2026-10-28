@@ -68,7 +68,7 @@
     /* one sticky band: logo, title, hazard tabs, Draft chip, help, Pages menu */
     :root{--band-h:58px;--panel-w:300px;}
     header.band{position:sticky;top:0;z-index:40;background:var(--trpa-navy);color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.08);}
-    .band-in{max-width:1320px;margin:0 auto;padding:.45rem 1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .band-in{max-width:1800px;margin:0 auto;padding:.45rem 1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
     .band-logo{flex-shrink:0;line-height:0;}
     .band-logo img{height:40px;width:auto;display:block;}
     .band-title{flex-shrink:0;}
@@ -111,7 +111,8 @@
     dialog.help li{margin:.35rem 0;}
     dialog.help .tabnote{background:#eef4fb;border-left:3px solid var(--trpa-blue);padding:.5rem .7rem;border-radius:4px;font-size:.82rem;}
     dialog.help .ft{padding:0 1.1rem 1rem;text-align:right;}
-    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    main{max-width:1800px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    main p{max-width:56em;}   /* wide screens: the page widens, running text keeps a reading measure */
     .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
     .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
@@ -189,6 +190,7 @@
     .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
     .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
     .grid-wrap{width:100%;height:480px;}
+    .grid-wrap .ag-row{cursor:pointer;}   /* a row click finds the segment or culvert on the map */
     .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
       --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
     .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
@@ -239,6 +241,9 @@
     .fs-on .fs-panel.fs-min{padding-bottom:0!important;overflow:hidden!important;}
     .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
     .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
+      /* responsive pass (Oct. 29, 2026): a hidden tip no longer widens the page on phones */
+    .i::after{display:none;}
+    .i:hover::after,.i:focus::after{display:block;}
   </style>
 </head>
 <body>
@@ -259,7 +264,7 @@
         <span class="draft" id="draft-chip" tabindex="0" data-tip="Draft results for workshop review.">Draft</span>
         <button type="button" class="band-btn" id="help-btn" aria-haspopup="dialog"><span class="ic" aria-hidden="true">i</span><span class="lbl">How to use</span><span class="sr">How to use this page</span></button>
         <a class="band-btn" href="results-guide.html" title="Two-page guide: how the numbers were made and what each field means"><span class="lbl">Guide</span><span class="sr">Two-page printable guide</span></a>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -273,7 +278,7 @@
         <li><b>Read the classes.</b> Low is a score under 1, Medium 1 to under 2, High 2 and over; wildfire uses Low under 2, Medium 2 to 2.5, High over 2.5. Roads are solid lines, paths dashed, culverts dots, bridges squares, transit hubs small squares. Each hazard tab maps the assets that hazard scores.</li>
         <li><b>Click anything on the map</b> for its scores, each with its class and the hazard that set it. Click a culvert to draw the land that drains to it; click anywhere else to clear it.</li>
         <li><b>Make room for the map.</b> Drag the panel's edge to resize it, or use the arrows in its blue header to fold it away. The full-screen button on the map hides everything else and floats the panel over the map.</li>
-        <li><b>Scroll down</b> for charts, a searchable table you can export to CSV, how the numbers are made, and key numbers.</li>
+        <li><b>Scroll down</b> for charts, a searchable table you can export to CSV (click a row to find it on the map), how the numbers are made, and key numbers.</li>
         <li><b>Leave a comment</b> on any road, culvert, bridge, path, or hub: open its popup and choose Add a workshop note.</li>
         <li><b>Take it with you.</b> The <a href="results-guide.html">two-page guide</a> covers how the numbers were made and what every field means; print it or save it as a PDF.</li>
         <li><b>Other pages</b> are under Pages, at the right of the blue bar.</li>
@@ -483,6 +488,143 @@
         if (kind === "pair" || kind === "v") { ex.push({name:f, title:label, expression:kind === "pair" ? pairArcade(f) : vArcade(f)}); fi.push({fieldName:"expression/" + f, label}); }
         else fi.push(Object.assign({fieldName:f, label}, kind ? {format:kind} : {})); });
       return {title, expressionInfos:ex, content:[{type:"fields", fieldInfos:fi}]}; }
+
+    // ---------- popups: the answer first (Arcade) ----------
+    // Every asset popup opens with a visual block: the class and the hazard that sets it, the reason in one
+    // plain sentence, every scored hazard as a bar (Overview), and the road's criticality quarter. The
+    // field list follows as "Details and codes". Each tab's existing template is wrapped in switchMode.
+    const PAIRS_OF = {
+      roads:[["Flooding","V_FLR_hist","FL"],["Wildfire","V_WFR_hist","WF"],["Landslide","V_LSR_hist","LS"],["Avalanche","V_AVR_hist","AV"],["Debris flow","V_DFR_hist","DF"]],
+      paths:[["Flooding","V_FLAT_hist","FL"],["Wildfire","V_WFAT_hist","WF"]],
+      hubs:[["Flooding","V_FLTC_hist","FL"],["Wildfire","V_WFTC_hist","WF"]],
+      culverts:[["Flooding","V_FLC_hist","FL"],["Landslide","V_LSC_hist","LS"],["Debris flow","V_DFC_hist","DF"]],
+      bridges:[["Flooding","V_FLB_hist","FL"],["Landslide","V_LSB_hist","LS"],["Debris flow","V_DFB_hist","DF"]]};
+    const HZ_OF = {overview:null, flood:"FL", wildfire:"WF", landslide:"LS", debris_flow:"DF", avalanche:"AV"};
+    const HZ_NAME = {FL:"flooding", WF:"wildfire", LS:"landslide", DF:"debris flow", AV:"avalanche"};
+    const ARC_LIB = `
+      function fv(n) { if (HasKey($feature, n)) { return $feature[n]; } return null; }
+      function cls(v, wf) {
+        if (IsEmpty(v)) { return 'Not scored'; }
+        if (v == 0) { return 'Not exposed'; }
+        if (wf) { return When(v > 2.5, 'High', v >= 2, 'Medium', 'Low'); }
+        return When(v < 1, 'Low', v < 2, 'Medium', 'High');
+      }
+      function col(c) { return Decode(c, 'High', '${COL.brick}', 'Medium', '${COL.orange}', 'Low', '${COL.ice}', '#cfd4da'); }
+      function ink(c) { return Decode(c, 'High', '#ffffff', 'Medium', '#ffffff', '${COL.navy}'); }
+      function chip(c) { return '<span style="background-color:' + col(c) + ';color:' + ink(c) + ';font-weight:700;padding:2px 10px;border-radius:10px;">' + c + '</span>'; }
+      function lsText(e1, where) {
+        if (IsEmpty(e1)) { return 'Not scored for landslide.'; }
+        return Decode(Round(e1), 3, 'Over 80 percent of ' + where + ' is landslide-prone, or a landslide is on record there.',
+          2, '60 to 80 percent of ' + where + ' is landslide-prone.', 1, '40 to 60 percent of ' + where + ' is landslide-prone.',
+          'Under 40 percent of ' + where + ' is landslide-prone.');
+      }
+      function wfText(e1, e2, v) {
+        if (!IsEmpty(e1) && !IsEmpty(e2)) {
+          return 'Within 300 ft, the chance of fire is ' + Decode(Round(e1), 3, 'over 1 percent a year', 2, '0.5 to 1 percent a year', 'under 0.5 percent a year')
+            + ', and a fire would most likely burn at ' + Decode(Round(e2), 3, 'high', 2, 'moderate', 'low') + ' severity.';
+        }
+        if (IsEmpty(v)) { return 'Not scored for wildfire.'; }
+        if (v >= 2.7) { return 'The chance of fire nearby is over 1 percent a year, and a fire would most likely burn at high severity.'; }
+        if (v >= 2) { return 'The chance of fire nearby is 0.5 percent a year or more.'; }
+        if (v >= 1.6) { return 'Fire is unlikely nearby, but a fire would most likely burn at high severity.'; }
+        if (v >= 1.3) { return 'Fire is unlikely nearby, and a fire would most likely burn at moderate severity.'; }
+        return 'Fire is unlikely nearby, and a fire would most likely burn at low severity.';
+      }
+      var DF_TEXT = 'Scored from slope, drainage size, and a stand-in for burn severity, so it stays out of the overall class until the USGS model runs.';
+    `;
+    // the reason sentence for one hazard on one asset type, as Arcade statements that return a string;
+    // hz is the open tab, so length shares (len_pct_*) are read only on the hazard they belong to
+    function arcReason(asset, h, hz){
+      const fl = FLOOD_LBL(), f2 = streamsAt1() ? "Part of it lies in the FEMA 500-year flood zone." : "It crosses a mapped stream or the FEMA 500-year flood zone.";
+      const flLine = (eField, vField, pct) => `var e = fv('${eField}'); if (IsEmpty(e)) { e = fv('${vField}'); }
+        if (IsEmpty(e)) { return 'Not scored for flooding.'; }
+        if (e >= 3) { ${pct ? `var p = fv('len_pct_c3'); if (!IsEmpty(p) && p > 0) { return 'Part of it lies in a FEMA 100-year flood zone (' + Round(p) + ' percent of its length).'; }` : ""} return 'Part of it lies in a FEMA 100-year flood zone.'; }
+        if (e >= 2) { return '${f2}'; }
+        if (e >= 1) { return 'It crosses a mapped stream.'; }
+        return 'No mapped flood zone or stream along it.';`;
+      if (h === "DF") return "return DF_TEXT;";
+      if (asset === "roads") {
+        if (h === "FL") return flLine("E_FLR_hist", "V_FLR_hist", hz === "FL");
+        if (h === "WF") return "return wfText(fv('E_WFR_e1'), fv('E_WFR_e2'), fv('V_WFR_hist'));";
+        if (h === "LS") return `var e1 = fv('E_LSR_e1'); var v = fv('V_LSR_hist'); if (IsEmpty(e1) && !IsEmpty(v)) { e1 = Round(v * 1.4); }
+          return lsText(e1, 'the ground it touches');`;
+        if (h === "AV") return `var t = fv('av_tier'); var rec = fv('av_record'); var v = fv('V_AVR_hist');
+          if (HasKey($feature, 'av_tier')) { t = DefaultValue(t, 0);
+            return Decode(t, 3, 'The slope above it is mostly 35 to 45 degrees, the prime avalanche release band', 2, 'The slope above it is mostly 30 to 35 or 45 to 50 degrees',
+              1, 'The slope above it is mostly 25 to 30 or over 50 degrees', 'There is little steep ground above it') + IIf(rec == 1, ', and a mapped avalanche zone is within 1,000 ft.', '.'); }
+          if (IsEmpty(v)) { return 'Not scored for avalanche.'; }
+          if (v >= 2) { return 'Steep slopes rise above it, with a mapped avalanche zone nearby.'; }
+          if (v >= 1) { return 'Slopes above it can release avalanches.'; }
+          return 'No steep ground above it within 1,000 ft.';`;
+      }
+      if (asset === "paths") return h === "FL" ? flLine("E_FLAT_hist", "V_FLAT_hist", false) : "return wfText(fv('E_WFAT_e1'), fv('E_WFAT_e2'), fv('V_WFAT_hist'));";
+      if (asset === "hubs") return h === "FL" ? flLine("E_FLTC_hist", "V_FLTC_hist", false).replace(/Part of it lies/g, "It sits").replace("along it", "at the hub")
+        : "return wfText(fv('E_WFTC_e1'), fv('E_WFTC_e2'), fv('V_WFTC_hist'));";
+      if (asset === "culverts") {
+        // the storm-to-capacity sentence, then what reaches its drainage area (exposure is 0.3 of the score)
+        const zone = streamsAt1() ? "Decode(Round(e), 3, ' Its drainage area reaches a FEMA 100-year flood zone.', 2, ' Its drainage area reaches the FEMA 500-year zone.', 1, ' A mapped stream runs through its drainage area.', '')"
+          : "Decode(Round(e), 3, ' Its drainage area reaches a FEMA 100-year flood zone.', 2, ' A mapped stream or the FEMA 500-year zone is in its drainage area.', 1, ' A small drainage line feeds it.', '')";
+        if (h === "FL") return `var e = fv('E_FLC_hist'); var z = ''; if (!IsEmpty(e)) { z = ${zone}; }
+          if (fv('size_suspect') == 1) { return 'The recorded size cannot carry the water that arrives, so the record is being checked with the owner.' + z; }
+          var lr = fv('load_ratio_100');
+          if (IsEmpty(lr)) { return 'No capacity check: the pipe size or its drainage area is unknown.' + z; }
+          if (lr >= 1) { return 'The 100-year storm is ' + Text(lr, '#,##0.0') + ' times what the pipe can pass.' + z; }
+          return 'The pipe passes the 100-year storm, using ' + Round(lr * 100) + ' percent of its capacity.' + z;`;
+        if (h === "LS") return "return lsText(fv('E_LSC_e1'), 'the ground that drains to it');";
+      }
+      if (asset === "bridges") {
+        // NBI item 71, waterway adequacy, in the coding guide's plain terms
+        if (h === "FL") return `var w = Text(fv('waterway_eval'));
+          var t = Decode(w, '9', 'overtopping as remote', '8', 'overtopping as unlikely', '7', 'a slight chance of overtopping', '6', 'occasional overtopping of the approaches, with minor delays',
+            '5', 'occasional overtopping of the approaches, with significant delays', '4', 'occasional overtopping of the bridge and approaches', '3', 'frequent overtopping of the approaches',
+            '2', 'frequent overtopping of the bridge and approaches', '0', 'the bridge as closed', '');
+          if (t == '') { return 'Scored on the flood zone at the crossing; the inspection has no waterway rating.'; }
+          return 'The last inspection rates ' + t + ' (NBI item 71, code ' + w + ').';`;
+        if (h === "LS") return "return lsText(fv('E_LSB_e1'), 'the ground within 25 m');";
+      }
+      return "return '';";
+    }
+    function popupArcade(asset, hz){
+      const pairs = PAIRS_OF[asset], codes = [...new Set(pairs.map(p => p[2]))];
+      const reasonFn = "function reason(h) {\n" + codes.map(h => `if (h == '${h}') { ${arcReason(asset, h, hz)} }`).join("\n") + "\nreturn ''; }\n";
+      const crit = `var q = fv('C_class');
+        if (!IsEmpty(q)) { var bx = ''; for (var k = 0; k < 4; k++) { bx += '<span style="display:inline-block;width:12px;height:8px;margin-right:2px;border-radius:2px;background-color:' + IIf(k <= q, '${COL.blue}', '#dfe3e8') + ';"></span>'; }
+          html += '<div style="border-top:1px solid #e6e9ee;margin-top:9px;padding-top:7px;">Criticality&nbsp; ' + bx + ' ' + Decode(q, 3, 'top quarter, most critical', 2, 'upper middle quarter', 1, 'lower middle quarter', 'lowest quarter') + '</div>'; }`;
+      let body;
+      if (!hz) {
+        const rows = "[" + pairs.map(([l, f, h]) => `{l:'${l}', v:fv('${f}'), wf:${h === "WF"}, s:${h === "DF"}}`).join(", ") + "]";
+        body = `var vc = fv('V_class'); var pair = fv('V_max_pair'); var h = ''; if (!IsEmpty(pair)) { h = Left(pair, 2); }
+          var hn = Decode(h, 'FL', 'flooding', 'WF', 'wildfire', 'LS', 'landslide', 'DF', 'debris flow', 'AV', 'avalanche', '');
+          var html = '<div style="font-size:13px;line-height:1.45;">';
+          if (IsEmpty(vc) || hn == '') { html += '<div style="margin-bottom:8px;">' + chip(DefaultValue(vc, 'Not scored')) + '</div>'; }
+          else { html += '<div style="margin-bottom:4px;">' + chip(vc) + '&nbsp; <span style="font-size:14px;">from ' + hn + '</span></div><div style="color:#4b5563;margin-bottom:10px;">' + reason(h) + '</div>'; }
+          var rows = ${rows};
+          function byv(a, b) { if (a.s != b.s) { return IIf(a.s, 1, -1); } return DefaultValue(b.v, -1) - DefaultValue(a.v, -1); }   // the stand-in sorts last
+          rows = Sort(rows, byv);
+          html += '<div style="font-size:11px;color:#6b7280;margin-bottom:2px;">Every hazard scored for it, highest first</div><table style="width:100%;border-collapse:collapse;">';
+          for (var i in rows) { var r = rows[i]; var c = cls(r.v, r.wf); var w = 0; var val = 'not scored';
+            if (!IsEmpty(r.v)) { w = Max(2, Round(100 * r.v / 3)); val = 'not exposed'; if (r.v > 0) { val = Text(r.v, '#,##0.0') + ' ' + IIf(r.s, 'stand-in', c); } }
+            var fill = IIf(r.s, '#ffffff', col(c)); var edge = IIf(r.s, 'border:1px dashed ${COL.orange};', '');
+            html += '<tr><td style="padding:2px 8px 2px 0;white-space:nowrap;">' + r.l + '</td><td style="width:48%;padding:2px 0;"><div style="background-color:#eef0f3;height:8px;border-radius:4px;"><div style="width:' + w + '%;height:8px;border-radius:4px;background-color:' + fill + ';' + edge + '"></div></div></td><td style="padding:2px 0 2px 8px;text-align:right;white-space:nowrap;color:#4b5563;">' + val + '</td></tr>'; }
+          html += '</table>';`;
+      } else {
+        const pr = pairs.find(p => p[2] === hz) || pairs[0];
+        body = `var v = fv('${pr[1]}'); var c = cls(v, ${hz === "WF"});
+          var html = '<div style="font-size:13px;line-height:1.45;"><div style="margin-bottom:4px;">' + chip(c) + '&nbsp; <span style="font-size:14px;">for ${HZ_NAME[hz]}${hz === "DF" ? " (stand-in)" : ""}</span>' + IIf(IsEmpty(v), '', ' <span style="color:#6b7280;">score ' + Text(v, '#,##0.0') + ' of 3</span>') + '</div>';
+          html += '<div style="color:#4b5563;">' + reason('${hz}') + '</div>';`;
+      }
+      return ARC_LIB + reasonFn + body + "\n" + crit + "\nhtml += '</div>';\nreturn {type: 'text', text: html};";
+    }
+    // wrap a layer's popup: the visual block first, then its field list under "Details and codes"; on the
+    // Overview the per-hazard rows leave the list, since the bars carry them
+    const OV_DROP = /^(Flooding|Wildfire|Landslide|Avalanche|Debris flow)/;
+    function richPopup(asset, hz, tpl){
+      const content = (Array.isArray(tpl.content) ? tpl.content : []).map(c => { const o = c.clone ? c.clone() : Object.assign({}, c);
+        if (o.type === "fields") { o.title = "Details and codes"; if (!hz) o.fieldInfos = (o.fieldInfos || []).filter(fi => !OV_DROP.test(fi.label || "")); }
+        return o; });
+      return {title:tpl.title, outFields:["*"], expressionInfos:(tpl.expressionInfos || []).map(e => e.clone ? e.clone() : e),
+        content:[{type:"expression", expressionInfo:{expression:popupArcade(asset, hz), title:"Summary"}}].concat(content)};
+    }
     // legend for a three-class surface layer
     const surfLeg = labels => [["rgba(180,203,232,.6)", labels[0]], ["rgba(232,119,34,.5)", labels[1]], ["rgba(156,62,39,.55)", labels[2]]].map(([c, l]) => `<span class="lg-sw" style="background:${c}"></span> ${l}`).join(" &nbsp; ");
     // Overview statistics for a view: class shares by miles (roads, paths) or by count (culverts, bridges, hubs)
@@ -1099,7 +1241,32 @@
     // ---------- page state ----------
     let view, gridApi, current = null, ctx = null;
     const BASE_LAYERS = {};
-    agGrid.createGrid($("grid"), {columnDefs:[], rowData:[], defaultColDef:{sortable:true, resizable:true, filter:true}, onGridReady:e => { gridApi = e.api; }});
+    agGrid.createGrid($("grid"), {columnDefs:[], rowData:[], defaultColDef:{sortable:true, resizable:true, filter:true}, onGridReady:e => { gridApi = e.api; }, onRowClicked:e => zoomToRow(e.data)});
+
+    // a table row click scrolls back up to the map, zooms to that road segment or culvert, highlights
+    // it, and opens its popup (roads match on src_objectid, culverts on culvert_id)
+    let rowHl = null;
+    async function zoomToRow(r){
+      if (!r || !view || !ctx) return;
+      const isRoad = r.src_objectid != null, id = isRoad ? "roads" : "culverts", key = isRoad ? "src_objectid" : "culvert_id", layer = ctx.L[id];
+      if (!layer || r[key] == null) return;
+      try {
+        await layer.load();
+        const f = layer.fields.find(x => x.name === key), val = String(r[key]);
+        const lit = f && /integer|double|single|oid/i.test(f.type) ? val : "'" + val.replace(/'/g, "''") + "'";
+        const res = await layer.queryFeatures({where:key + " = " + lit, returnGeometry:true, outFields:["*"], outSpatialReference:view.spatialReference});
+        const g = res.features[0]; if (!g) return;
+        if (!layer.visible) { layer.visible = true; const tg = $("tg-" + id); if (tg) tg.checked = true; }
+        const band = (document.querySelector("header.band") || {}).offsetHeight || 0;
+        window.scrollTo({top:$("map-view").getBoundingClientRect().top + window.scrollY - band - 8, behavior:"smooth"});   // the map itself: under 900 px it sits below the panel
+        const pt = g.geometry.type === "point";
+        await view.goTo(pt ? {target:g.geometry, scale:Math.min(view.scale, 9000)} : g.geometry.extent.clone().expand(3), {duration:700}).catch(() => {});
+        if (!pt && view.scale < 6000) await view.goTo({center:view.center, scale:6000}, {duration:300}).catch(() => {});
+        if (rowHl) rowHl.remove();
+        rowHl = (await view.whenLayerView(layer)).highlight(g);
+        view.openPopup({features:[g], location:pt ? g.geometry : g.geometry.extent.center});
+      } catch (e) { console.warn("zoom to row", e); }
+    }
     $("qf").addEventListener("input", e => { if (gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
     $("export").addEventListener("click", () => { if (gridApi && current) gridApi.exportDataAsCsv({fileName:MODES[current].table.exportName}); });
 
@@ -1191,7 +1358,7 @@
       $("lead").innerHTML = mode.lead;
       $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
       $("foot").innerHTML = "Draft v0.3. " + mode.foot + " Internal review draft.";
-      $("table-title").textContent = mode.table.title; $("table-lead").textContent = mode.table.lead || ""; $("table-lead").hidden = !mode.table.lead;
+      $("table-title").textContent = mode.table.title; $("table-lead").textContent = (mode.table.lead ? mode.table.lead + " " : "") + "Click a row to find it on the map.";
       $("ch-a-title").textContent = mode.charts[0].title; $("ch-a-sub").textContent = mode.charts[0].sub;
       $("ch-b-title").textContent = mode.charts[1].title; $("ch-b-sub").textContent = mode.charts[1].sub;
       ["ch-a","ch-b"].forEach(id => Plotly.purge(id)); showChart("a"); renderMatrix(name);
@@ -1211,6 +1378,7 @@
       const made = await Promise.all(defs.map(d => Promise.resolve(d.make()).catch(e => { console.warn("layer", d.id, e); return null; })));
       if (current !== name) return;
       defs.forEach((d, i) => { const l = made[i]; if (!l) return; l.visible = d.checked; if (d.minScale) l.minScale = d.minScale; ctx.L[d.id] = l; ctx.layers.push(l);
+        if (l.popupTemplate && PAIRS_OF[d.id]) { try { l.popupTemplate = richPopup(d.id, HZ_OF[name], l.popupTemplate); } catch (e) { console.warn("popup", d.id, e); } }
         if (l.popupTemplate && NOTE_TYPES[d.id]) l.popupTemplate.actions = [{id:"note", title:"Add a workshop note", className:"esri-icon-comment"}]; });
       thinPaths(ctx.L.paths);
       // operational layers above hillshade (index 0) and below the boundary: insert after hillshade, keep polygons under points

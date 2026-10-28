@@ -592,6 +592,15 @@
     .fs-on .fs-panel.fs-min{padding-bottom:0!important;overflow:hidden!important;}
     .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
     .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
+      /* phones (Oct. 29, 2026): the panel stacks above the map instead of squeezing it */
+    @media (max-width:700px){
+      .app-body{flex-direction:column;}
+      .left-panel{width:100%;max-height:46vh;border-right:none;border-bottom:1px solid var(--border);}
+      .main-area{min-height:46vh;}
+      .hdr-title{font-size:13px;letter-spacing:.03em;}
+      .hdr-sub{display:none;}
+      .sym-bar{left:8px;right:8px;transform:none;overflow-x:auto;}
+    }
   </style>
 </head>
 <body>
