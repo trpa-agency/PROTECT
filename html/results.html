@@ -190,6 +190,7 @@
     .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
     .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
     .grid-wrap{width:100%;height:480px;}
+    .grid-wrap .ag-row{cursor:pointer;}   /* a row click finds the segment or culvert on the map */
     .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
       --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
     .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
@@ -277,7 +278,7 @@
         <li><b>Read the classes.</b> Low is a score under 1, Medium 1 to under 2, High 2 and over; wildfire uses Low under 2, Medium 2 to 2.5, High over 2.5. Roads are solid lines, paths dashed, culverts dots, bridges squares, transit hubs small squares. Each hazard tab maps the assets that hazard scores.</li>
         <li><b>Click anything on the map</b> for its scores, each with its class and the hazard that set it. Click a culvert to draw the land that drains to it; click anywhere else to clear it.</li>
         <li><b>Make room for the map.</b> Drag the panel's edge to resize it, or use the arrows in its blue header to fold it away. The full-screen button on the map hides everything else and floats the panel over the map.</li>
-        <li><b>Scroll down</b> for charts, a searchable table you can export to CSV, how the numbers are made, and key numbers.</li>
+        <li><b>Scroll down</b> for charts, a searchable table you can export to CSV (click a row to find it on the map), how the numbers are made, and key numbers.</li>
         <li><b>Leave a comment</b> on any road, culvert, bridge, path, or hub: open its popup and choose Add a workshop note.</li>
         <li><b>Take it with you.</b> The <a href="results-guide.html">two-page guide</a> covers how the numbers were made and what every field means; print it or save it as a PDF.</li>
         <li><b>Other pages</b> are under Pages, at the right of the blue bar.</li>
@@ -1103,7 +1104,32 @@
     // ---------- page state ----------
     let view, gridApi, current = null, ctx = null;
     const BASE_LAYERS = {};
-    agGrid.createGrid($("grid"), {columnDefs:[], rowData:[], defaultColDef:{sortable:true, resizable:true, filter:true}, onGridReady:e => { gridApi = e.api; }});
+    agGrid.createGrid($("grid"), {columnDefs:[], rowData:[], defaultColDef:{sortable:true, resizable:true, filter:true}, onGridReady:e => { gridApi = e.api; }, onRowClicked:e => zoomToRow(e.data)});
+
+    // a table row click scrolls back up to the map, zooms to that road segment or culvert, highlights
+    // it, and opens its popup (roads match on src_objectid, culverts on culvert_id)
+    let rowHl = null;
+    async function zoomToRow(r){
+      if (!r || !view || !ctx) return;
+      const isRoad = r.src_objectid != null, id = isRoad ? "roads" : "culverts", key = isRoad ? "src_objectid" : "culvert_id", layer = ctx.L[id];
+      if (!layer || r[key] == null) return;
+      try {
+        await layer.load();
+        const f = layer.fields.find(x => x.name === key), val = String(r[key]);
+        const lit = f && /integer|double|single|oid/i.test(f.type) ? val : "'" + val.replace(/'/g, "''") + "'";
+        const res = await layer.queryFeatures({where:key + " = " + lit, returnGeometry:true, outFields:["*"], outSpatialReference:view.spatialReference});
+        const g = res.features[0]; if (!g) return;
+        if (!layer.visible) { layer.visible = true; const tg = $("tg-" + id); if (tg) tg.checked = true; }
+        const band = (document.querySelector("header.band") || {}).offsetHeight || 0;
+        window.scrollTo({top:$("map-view").getBoundingClientRect().top + window.scrollY - band - 8, behavior:"smooth"});   // the map itself: under 900 px it sits below the panel
+        const pt = g.geometry.type === "point";
+        await view.goTo(pt ? {target:g.geometry, scale:Math.min(view.scale, 9000)} : g.geometry.extent.clone().expand(3), {duration:700}).catch(() => {});
+        if (!pt && view.scale < 6000) await view.goTo({center:view.center, scale:6000}, {duration:300}).catch(() => {});
+        if (rowHl) rowHl.remove();
+        rowHl = (await view.whenLayerView(layer)).highlight(g);
+        view.openPopup({features:[g], location:pt ? g.geometry : g.geometry.extent.center});
+      } catch (e) { console.warn("zoom to row", e); }
+    }
     $("qf").addEventListener("input", e => { if (gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
     $("export").addEventListener("click", () => { if (gridApi && current) gridApi.exportDataAsCsv({fileName:MODES[current].table.exportName}); });
 
@@ -1195,7 +1221,7 @@
       $("lead").innerHTML = mode.lead;
       $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
       $("foot").innerHTML = "Draft v0.3. " + mode.foot + " Internal review draft.";
-      $("table-title").textContent = mode.table.title; $("table-lead").textContent = mode.table.lead || ""; $("table-lead").hidden = !mode.table.lead;
+      $("table-title").textContent = mode.table.title; $("table-lead").textContent = (mode.table.lead ? mode.table.lead + " " : "") + "Click a row to find it on the map.";
       $("ch-a-title").textContent = mode.charts[0].title; $("ch-a-sub").textContent = mode.charts[0].sub;
       $("ch-b-title").textContent = mode.charts[1].title; $("ch-b-sub").textContent = mode.charts[1].sub;
       ["ch-a","ch-b"].forEach(id => Plotly.purge(id)); showChart("a"); renderMatrix(name);
