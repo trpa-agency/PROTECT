@@ -257,7 +257,7 @@
         <span class="draft" id="draft-chip" tabindex="0" data-tip="Draft results for workshop review.">Draft</span>
         <button type="button" class="band-btn" id="help-btn" aria-haspopup="dialog"><span class="ic" aria-hidden="true">i</span><span class="lbl">How to use</span><span class="sr">How to use this page</span></button>
         <a class="band-btn" href="results-guide.html" title="Two-page guide: how the numbers were made and what each field means"><span class="lbl">Guide</span><span class="sr">Two-page printable guide</span></a>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-punchlist.html">Workshop 1 punch list</a><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -594,7 +594,7 @@
         "<b>By miles.</b> Road and path figures on this page are shares of miles, not counts of segments, because segments differ in length: 21 percent of segments are High but 41 percent of road miles are.",
         "<b>Sensitivity data.</b> Roads carry no sensitivity (rubrics decision 25): each road pair's score is its exposure. Culverts without an inspection carry the fair default; the Sensitivity data field says which.",
         "<b>Not yet in.</b> Future horizons (2050, 2080), the contracted fire-behavior package, and any pair the hazard tabs mark as not published."],
-      foot:"Draft v0.3. Method: <code>docs/SCORING_RUBRICS.md</code> sections 1 to 6. Internal review draft."
+      foot:"Method: <code>docs/SCORING_RUBRICS.md</code> sections 1 to 6."
     };
 
     MODES.flood = {
@@ -1173,7 +1173,7 @@
       $("help-tab").textContent = HELP_TAB[name] || "";
       $("lead").innerHTML = mode.lead;
       $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
-      $("foot").innerHTML = "Draft v0.2. " + mode.foot + " Internal review draft.";
+      $("foot").innerHTML = "Draft v0.3. " + mode.foot + " Internal review draft.";
       $("table-title").textContent = mode.table.title; $("table-lead").textContent = mode.table.lead || ""; $("table-lead").hidden = !mode.table.lead;
       $("ch-a-title").textContent = mode.charts[0].title; $("ch-a-sub").textContent = mode.charts[0].sub;
       $("ch-b-title").textContent = mode.charts[1].title; $("ch-b-sub").textContent = mode.charts[1].sub;
