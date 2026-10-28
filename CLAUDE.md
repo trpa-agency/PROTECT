@@ -121,6 +121,7 @@ PROTECT/
 ├── html/_archive/                   # retired pages, not served by Pages (ARCHIVED.md lists why)
 ├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
 ├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
+├── print-maps/                      # print maps from one Pro template layout (arcpy.mp): config.yaml holds the project, exports, NDOT guard, and the sheet list; print_maps.py inspect | check | export | build; the .aprx stays on F:, PDFs in print-maps/outputs/ (gitignored)
 ├── scripts/                         # analysis scripts and notebooks (incl. ra2ce/)
 └── Hazard_Asset_Pairs.md            # plain-text source-of-record for pairs + framework
 ```

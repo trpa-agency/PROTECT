@@ -190,10 +190,14 @@ can follow by Oct. 9 while ICF reviews.
 
 ### 2.7 Print and screen maps (Nov. 2 to 4, print by Nov. 5)
 
-Made by hand in ArcGIS Pro, not scripted. One layout per hazard, two versions each (exposure
-only for the screen reveal, assets scored for the posters), plus two scenario maps. The code
-side only has to deliver clean scored layers with one shared High / Medium / Low field so the
-symbology is the same in every layout.
+Scripted from one template layout in ArcGIS Pro (Oct. 28, 2026): `print-maps/print_maps.py`
+sets each sheet's layers, extent, and text from the sheet list in `print-maps/config.yaml` and
+exports the posters and the screen PDFs; `build` writes a layout per sheet into a copy of the
+project for hand finishing. One layout per hazard, two versions each (exposure only for the
+screen reveal, assets scored for the posters), plus two scenario maps. The code side still has
+to deliver clean scored layers with one shared High / Medium / Low field so the symbology is the
+same in every layout, read from `PROTECT_curated.gdb` (the script will not export a sheet that
+shows NDOT rows).
 
 ---
 
