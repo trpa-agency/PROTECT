@@ -68,7 +68,7 @@
     /* one sticky band: logo, title, hazard tabs, Draft chip, help, Pages menu */
     :root{--band-h:58px;--panel-w:300px;}
     header.band{position:sticky;top:0;z-index:40;background:var(--trpa-navy);color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.08);}
-    .band-in{max-width:1320px;margin:0 auto;padding:.45rem 1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .band-in{max-width:1800px;margin:0 auto;padding:.45rem 1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
     .band-logo{flex-shrink:0;line-height:0;}
     .band-logo img{height:40px;width:auto;display:block;}
     .band-title{flex-shrink:0;}
@@ -111,7 +111,8 @@
     dialog.help li{margin:.35rem 0;}
     dialog.help .tabnote{background:#eef4fb;border-left:3px solid var(--trpa-blue);padding:.5rem .7rem;border-radius:4px;font-size:.82rem;}
     dialog.help .ft{padding:0 1.1rem 1rem;text-align:right;}
-    main{max-width:1320px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    main{max-width:1800px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    main p{max-width:56em;}   /* wide screens: the page widens, running text keeps a reading measure */
     .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
     h2.sec{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
     .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
@@ -239,6 +240,9 @@
     .fs-on .fs-panel.fs-min{padding-bottom:0!important;overflow:hidden!important;}
     .fs-on .fs-panel.fs-min .fs-head{margin-bottom:0;}
     .fs-on .fs-panel.fs-min > :not(.fs-head){display:none!important;}
+      /* responsive pass (Oct. 29, 2026): a hidden tip no longer widens the page on phones */
+    .i::after{display:none;}
+    .i:hover::after,.i:focus::after{display:block;}
   </style>
 </head>
 <body>

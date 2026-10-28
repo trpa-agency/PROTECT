@@ -32,7 +32,7 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
 
     header.app-header{background:var(--trpa-navy);color:#fff;}
-    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-content{max-width:1800px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
     .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
     .header-logo img{height:54px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
@@ -44,7 +44,9 @@
     header.app-header .header-meta a.cta{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.35rem .75rem;border-radius:6px;}
     header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
 
-    main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    main{max-width:1800px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+
+    main p{max-width:56em;}   /* wide screens: the page widens, running text keeps a reading measure */
     .intro{margin-bottom:1.1rem;}
     .intro .lede{font-size:.98rem;max-width:95ch;}
     .intro .lede a{color:var(--trpa-blue);font-weight:600;}
@@ -77,7 +79,7 @@
 
     /* Scoring layout */
     .score-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:1.1rem;align-items:start;}
-    @media (max-width:980px){.score-wrap{grid-template-columns:1fr;}}
+    @media (max-width:980px){.score-wrap{grid-template-columns:minmax(0,1fr);}}
     .pair-title{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin-bottom:.3rem;}
     .pair-title h3{font-size:1.1rem;font-weight:700;}
     .pair-title .w{font-size:.8rem;color:var(--gray-text);}
@@ -206,7 +208,20 @@
     .sitenav a{color:#003B71;text-decoration:none;font-weight:600;}
     .sitenav a:hover{color:#0072CE;}
     .sitenav a.on{color:#0072CE;}
-</style>
+    /* responsive pass (Oct. 29, 2026): a hidden tip no longer widens the page on phones */
+    .i::after{display:none;}
+    .i:hover::after,.i:focus::after{display:block;}
+    @media (max-width:700px){
+      .i::after{max-width:calc(100vw - 2rem);}
+      /* phones: one header row (logo, title, Pages), so the page starts on the first screen */
+      .header-content{padding:.5rem .9rem;gap:.6rem;flex-wrap:nowrap;}
+      .header-logo img{height:34px;}
+      header .agency,header .header-sub,header .version{display:none;}
+      header.app-header h1,header h1{font-size:1.02rem;line-height:1.25;}
+      header .header-meta{flex-shrink:0;}
+      main{padding-left:.9rem;padding-right:.9rem;}
+    }
+  </style>
   <style>
     /* Pages menu in the header (replaces the site nav row) */
     details.pages{position:relative;display:inline-block;}
@@ -257,7 +272,7 @@
       <div class="kpi-card"><div class="kpi-value">15</div><div class="kpi-label">Hazard-asset pairs with a rubric in v0.3: five hazards, five asset types<i class="i" tabindex="0" data-tip="Culverts and bridges under flooding, landslide, and debris flow; roads under all five hazards; active transport and transit centers under flooding and wildfire. All 15 pairs are covered on one scale, so every pair samples the same classed hazard surfaces.">i</i></div></div>
       <div class="kpi-card"><div class="kpi-value">0 to 3</div><div class="kpi-label">Score scale in half-point steps; indicator weights sum to 1.0 within each pair</div></div>
       <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Vulnerability classes: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (wildfire: under 2.0, 2.0 to 2.5, over 2.5)<i class="i" tabindex="0" data-tip="TRPA proposal (decision 9). Class breaks are held in config.yaml so that one change carries to every page and map layout.">i</i></div></div>
-      <div class="kpi-card"><div class="kpi-value">30</div><div class="kpi-label">Numbered notes: 24 adopted, 3 open, 3 resolved by the draft's tables</div></div>
+      <div class="kpi-card"><div class="kpi-value" id="dec-n">32</div><div class="kpi-label" id="dec-sum">Numbered notes: 25 adopted, 3 open, 3 resolved by the draft's tables, 1 withdrawn</div></div>
     </section>
 
     <calcite-tabs scale="m">
@@ -985,6 +1000,10 @@
 
     // ---------- DECISIONS ----------
     const DEC_ORDER = {Open:0, Adopted:1, Resolved:2, Withdrawn:3}, DEC_TAG = {Open:"proposal", Adopted:"decision", Resolved:"resolved", Withdrawn:"resolved"};
+    // the tile at the top counts from the array, so it cannot drift when a decision is added
+    (() => { const n = s => DECISIONS.filter(d => d[4] === s).length;
+      $("dec-n").textContent = DECISIONS.length;
+      $("dec-sum").textContent = "Numbered notes: " + n("Adopted") + " adopted, " + n("Open") + " open, " + n("Resolved") + " resolved by the draft's tables" + (n("Withdrawn") ? ", " + n("Withdrawn") + " withdrawn" : ""); })();
     $("dec-body").innerHTML = DECISIONS.slice().sort((a,b)=>(DEC_ORDER[a[4]]-DEC_ORDER[b[4]]) || (a[0]-b[0])).map(d => '<tr><td class="num">'+d[0]+'</td><td>'+esc(d[1])+'</td><td>'+esc(d[2])+'</td><td>'+esc(d[3])+'</td><td><span class="tag '+(DEC_TAG[d[4]]||"pending")+'" style="font-size:.66rem;font-weight:700;text-transform:uppercase;border-radius:999px;padding:.1rem .5rem;">'+esc(d[4])+'</span></td></tr>').join("");
 
     // ---------- CSV (static tables) ----------

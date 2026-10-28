@@ -163,6 +163,16 @@
       footer.app-footer code{background:none;padding:0;}
       footer.app-footer .foot-long{display:none;} footer.app-footer .foot-short{display:block;}
     }
+      @media (max-width:700px){
+      .i::after{max-width:calc(100vw - 2rem);}
+      /* phones: one header row (logo, title, Pages), so the page starts on the first screen */
+      .header-content{padding:.5rem .9rem;gap:.6rem;flex-wrap:nowrap;}
+      .header-logo img{height:34px;}
+      header .agency,header .header-sub,header .version{display:none;}
+      header.app-header h1,header h1{font-size:1.02rem;line-height:1.25;}
+      header .header-meta{flex-shrink:0;}
+      main{padding-left:.9rem;padding-right:.9rem;}
+    }
   </style>
 </head>
 <body>

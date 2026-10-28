@@ -28,7 +28,7 @@
     html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
 
     header.app-header{background:var(--trpa-navy);color:#fff;}
-    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-content{max-width:1800px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
     .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
     .header-logo img{height:54px;width:auto;display:block;}
     .header-text{flex:1;min-width:0;}
@@ -39,7 +39,9 @@
     header.app-header .header-meta a{color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;}
     header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
 
-    main{max-width:1240px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+    main{max-width:1800px;margin:0 auto;padding:1.5rem 1.75rem 1rem;}
+
+    main p{max-width:56em;}   /* wide screens: the page widens, running text keeps a reading measure */
     .intro .lede{font-size:.98rem;max-width:95ch;margin-bottom:1rem;}
     .intro .lede a{color:var(--trpa-blue);font-weight:600;}
 
@@ -102,7 +104,17 @@
     .sitenav a{color:#003B71;text-decoration:none;font-weight:600;}
     .sitenav a:hover{color:#0072CE;}
     .sitenav a.on{color:#0072CE;}
-</style>
+    @media (max-width:700px){
+      .i::after{max-width:calc(100vw - 2rem);}
+      /* phones: one header row (logo, title, Pages), so the page starts on the first screen */
+      .header-content{padding:.5rem .9rem;gap:.6rem;flex-wrap:nowrap;}
+      .header-logo img{height:34px;}
+      header .agency,header .header-sub,header .version{display:none;}
+      header.app-header h1,header h1{font-size:1.02rem;line-height:1.25;}
+      header .header-meta{flex-shrink:0;}
+      main{padding-left:.9rem;padding-right:.9rem;}
+    }
+  </style>
   <style>
     /* Pages menu in the header (replaces the site nav row) */
     details.pages{position:relative;display:inline-block;}
