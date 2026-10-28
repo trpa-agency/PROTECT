@@ -38,12 +38,14 @@ exposure:
   hazards_gdb: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_hazards.gdb   # classed surfaces, one fc per hazard
   horizon: hist            # field suffix; 2050 / 2080 columns are added in December
   point_buffer_m: 25       # bridges and transit centers: maximum within this distance
-  flood:                   # FL-C E1 values (decision 19): 1 pct zone 3, 0.2 pct zone or mapped stream 2, NHD flowline 1
+  flood:                   # FL-C E1 values (decisions 19, 32): 1 pct zone 3, 0.2 pct zone 2, mapped stream or NHD flowline 1
     zones_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/0
     zone_field: FLOOD_ZONE
     year_field: FLOOD_YEAR   # "100-year flood" / "500-year flood"
     streams_layer: https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1
     stream_buffer_m: 10
+    stream_class: 1             # decision 32 (Oct. 28, 2026): a mapped stream crossing scores 1, not 2 (was High on every road it touched)
+    near_zone_buffer_m: 0       # band around the FEMA zones scored 1 (ICF review Oct. 26, 2026); withdrawn Oct. 28 (decision 31), 0 = off
     exclude_water_over_km2: 1   # the lake and large water bodies are not "a mapped stream"
     include_lake_zone: false    # FEMA maps the lake's 1 pct stillwater elevation as AE (478 km2): lake-stage
                                 # flooding is the high-lake-level pair, not adopted; false drops FEMA polygons
