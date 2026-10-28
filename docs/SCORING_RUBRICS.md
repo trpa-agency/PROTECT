@@ -150,9 +150,8 @@ with HDS-5 (decisions 2 and 6). The option 2 scale is listed for reference.
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
 | E1 | **TRPA proposal** (decision 19): FEMA flood zone and stream crossing, in place of the draft's flood depth indicator. The lake's own 1 percent stillwater zone (AE over Lake Tahoe) is excluded: lake-stage flooding is the high-lake-level pair, not adopted (`exposure.flood.include_lake_zone`) | 0.30 | 1 percent zone (A, AE) | 3 | 0 | Maximum within 25 m of the crossing on the road |
-| | | | 0.2 percent zone (X500) or on a mapped TRPA stream | 2 | | |
-| | | | on an NHD flowline outside a zone | 1 | | |
-| | | | within 20 m of a FEMA zone, the near-zone band (decision 31) | 1 | | |
+| | | | 0.2 percent zone (X500) | 2 | | |
+| | | | on a mapped TRPA stream (10 m band) or an NHD flowline, outside a zone (decision 32) | 1 | | |
 | | | | no zone, no flowline | 0 | | |
 | E1 (draft, not applicable) | 100-yr flood depth over the road from a flood depth model, maximum of fluvial and pluvial. Listed for the record; no such dataset is being acquired | 0.30 | over 20 ft | 3 | | |
 | | | | over 12 to 20 ft | 2.5 | | |
@@ -360,8 +359,8 @@ the `Culverts` feature class beyond the profile:
 9. Bucket breaks (section 1.2) and the max-pair aggregation rule (section 1.4).
 10. Whether unsnapped forest-road culverts stay out of the rating.
 19. **TRPA decision (Oct. 21, 2026): flood exposure is FEMA flood zones and stream crossings
-    on every flood pair** (the FL-C E1 values: 1 percent zone 3, 0.2 percent zone or TRPA
-    stream 2, NHD flowline 1, none 0), at the full exposure weight for roads, active transport,
+    on every flood pair** (the FL-C E1 values: 1 percent zone 3, 0.2 percent zone 2, TRPA
+    stream or NHD flowline 1, none 0; the stream value was 2 until decision 32), at the full exposure weight for roads, active transport,
     and transit centers, with the culvert loading ratio carrying the hydraulic signal. No depth
     model is being acquired, so the draft's depth indicators have no dataset. Absorbs decision
     21; the horizon question is decision 29.
@@ -376,13 +375,23 @@ the `Culverts` feature class beyond the profile:
     No frequency factor on top of the table (section 2.4).
 30. Cumulative sort fields beside `V_max` (section 1.4): the number of pairs classed High and
     the sum of the pair scores. Not yet in the published layer.
-31. **TRPA decision (Oct. 27, 2026): a 20 m band around the FEMA flood zones scores 1 on every
-    flood pair** (`exposure.flood.near_zone_buffer_m`), taken from the consultant's Oct. 26
-    review of the results (10 to 30 m around the 500-year floodplain, for uncertainty in the
-    mapped extent and for expansion as the climate changes). It takes effect at the next flood
-    run; until then roads have no class 1, so no road scores Medium for flooding. The same
-    review concurred with the FEMA-zone and stream-crossing approach and with the NHD flowline
-    value of 1.
+31. **Withdrawn (Oct. 28, 2026): the 20 m band around the FEMA zones.** Adopted Oct. 27 from
+    the consultant's Oct. 26 review (10 to 30 m around the 500-year floodplain as exposure 1)
+    and never run. Withdrawn with decision 32: the review of the Results page showed that the
+    flood signal on roads was already too broad, and a band around every zone would widen it
+    again. `exposure.flood.near_zone_buffer_m` stays in the config at 0. The same review
+    concurred with the FEMA-zone and stream-crossing approach and with an NHD flowline at 1.
+32. **TRPA decision (Oct. 28, 2026): a stream crossing scores 1, not 2, on every flood pair**
+    (`exposure.flood.stream_class`). At 2 a crossing read High on every road pair, since roads
+    carry no sensitivity: 264 of the 287 High road miles (2,288 of 2,668 segments) were High only
+    because the segment touched the 10 m band around a mapped stream somewhere along its
+    length, so a 4.5-mile mountain road turned High end to end for one creek. The 500-year zone
+    accounted for 1.8 miles and the 100-year zone for 22. Scored at 1, a crossing reads Medium,
+    the FEMA zones keep 2 and 3, and the scale matches the consultant's reading of a stream
+    crossing (an NHD flowline) as exposure 1. Previewed on the Oct. 20 tables: High road miles
+    across all hazards drop from 41 to 26 percent and Medium rises from 9 to 25 percent; flood
+    alone leaves 23 High miles. Culverts and bridges take the new value too (E_FLC is the
+    highest class in the drainage area); takes effect at the next flood run.
 
 ---
 

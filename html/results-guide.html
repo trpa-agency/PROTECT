@@ -247,7 +247,7 @@
       <thead><tr><th>Hazard</th><th>Assets scored</th><th>Exposure data (what reaches the asset)</th><th>Sensitivity inputs (how it would fare)</th><th>Weights</th></tr></thead>
       <tbody>
         <tr><td>Flooding</td><td>Roads, culverts, bridges, paths, transit hubs</td>
-          <td>FEMA 100-year zone (class 3), FEMA 500-year zone or a mapped stream (2), a small drainage line or, from the next run, a 20 m band around the FEMA zones (1); no flood depth model.
+          <td>FEMA 100-year zone (class 3), FEMA 500-year zone (2), a mapped stream crossing (1, decision 32; it scored 2 before the Oct. 29 run); no flood depth model.
             Roads: the highest class along the segment. Culverts: the highest anywhere in the drainage area, plus one where lake level
             backs water up.</td>
           <td>Culverts: basin debris potential (slope and land cover) and the storm-to-capacity ratio. Bridges (National Bridge
@@ -288,7 +288,7 @@
         <ul>
           <li><span class="sw" style="background:#B4CBE8"></span>Low <span class="sw" style="background:#E87722"></span>Medium <span class="sw" style="background:#9C3E27"></span>High <span class="sw" style="background:#cfd4da"></span>not exposed (0) or not scored: the vulnerability and exposure classes on every tab.</li>
           <li><span class="sw" style="background:#8DB6E2"></span><span class="sw" style="background:#4F93D8"></span><span class="sw" style="background:#0072CE"></span><span class="sw" style="background:#002B55"></span>Criticality quarter 0 to 3, light to dark (Overview).</li>
-          <li><span class="sw" style="background:#003B71"></span>100-year zone <span class="sw" style="background:#0072CE"></span>500-year or stream <span class="sw" style="background:#B4CBE8"></span>drainage line: flood exposure.</li>
+          <li><span class="sw" style="background:#003B71"></span>100-year zone <span class="sw" style="background:#0072CE"></span>500-year zone <span class="sw" style="background:#B4CBE8"></span>stream crossing: flood exposure.</li>
           <li><span class="sw" style="background:#B4CBE8"></span>passes with room <span class="sw" style="background:#0072CE"></span>passes <span class="sw" style="background:#E8A05A"></span>up to twice capacity <span class="sw" style="background:#E87722"></span>two to four times <span class="sw" style="background:#9C3E27"></span>over four times; white: record to confirm; gray: no check (Storm vs capacity).</li>
         </ul>
       </div>
@@ -329,7 +329,7 @@
         <tr><td class="h">Length in class 1, 2, 3 (percent)</td><td class="code"><code>len_pct_c1</code> <code>len_pct_c2</code> <code>len_pct_c3</code></td><td>Share of the segment in each class: flood class (Flooding), burn likelihood (Wildfire), susceptibility (Landslide).</td><td>Percent of length</td></tr>
 
         <tr class="grp"><td colspan="4">Flooding</td></tr>
-        <tr><td class="h">Flood exposure class; Flood exposure E (watershed), Flood E; Flood exposure at the point</td><td class="code"><code>E_FLR_hist</code> <code>E_FLC_hist</code> <code>E_FLC_pt</code></td><td>The highest flood class along the road, or anywhere in the culvert's drainage area (plus one where lake level backs water up); the point value is the class at the pipe.</td><td>0 none; 1 drainage line; 2 500-year zone or stream; 3 100-year zone</td></tr>
+        <tr><td class="h">Flood exposure class; Flood exposure E (watershed), Flood E; Flood exposure at the point</td><td class="code"><code>E_FLR_hist</code> <code>E_FLC_hist</code> <code>E_FLC_pt</code></td><td>The highest flood class along the road, or anywhere in the culvert's drainage area (plus one where lake level backs water up); the point value is the class at the pipe.</td><td>0 none; 1 stream crossing; 2 500-year zone; 3 100-year zone</td></tr>
         <tr><td class="h">Storm / capacity; Loading ratio, 100-yr and 25-yr</td><td class="code"><code>load_ratio_100</code> <code>load_ratio_25</code></td><td>Storm peak flow over what the crossing passes with water at the top of the opening. Above 1 it cannot pass the storm. Withheld where the size is suspect.</td><td>Ratio; map bands at 1, 2, and 4</td></tr>
         <tr><td class="h">Q100, Q25 (cfs); Qcap (cfs), Capacity at the crown; Q method</td><td class="code"><code>q_event_100_cfs</code> <code>q_event_25_cfs</code> <code>q_cap_crossing_cfs</code> <code>q_method</code></td><td>Storm flow (Atlas 14 rainfall and land cover; USGS regression over 1 sq mi), capacity with barrels summed, and the method used.</td><td>Cubic feet per second</td></tr>
         <tr><td class="h">Basin (ac), Contributing area (ac); Dia (in), Equivalent diameter; Crossing; Barrels; Material; Majority land cover</td><td class="code"><code>contrib_area_ac</code> <code>d_eq_in</code> <code>crossing_id</code> <code>barrels</code> <code>material_class</code> <code>basin_landcover</code></td><td>Drainage area to the crossing from the 2 m lidar DEM (drawn on click); opening as an equivalent round diameter; pipes within 10 m on one road are one crossing; material group; the basin's main land cover.</td><td>Acres; inches; id; count; metal, plastic, concrete, unknown; water, urban, trees, shrubs</td></tr>

@@ -377,7 +377,14 @@
     const cache = {};
     const getJSON = url => cache[url] || (cache[url] = fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }));
     const rowsOf = url => getJSON(url).then(gj => gj.features.map(f => Object.assign({}, f.properties)));
-    const summary = () => getJSON(BASE + "summary.json").catch(() => ({}));
+    let SUMMARY = {};
+    const summary = () => getJSON(BASE + "summary.json").then(s => (SUMMARY = s || {})).catch(() => ({}));
+    // flood classes follow the published run: decision 32 moved a stream crossing from class 2 to 1
+    // (summary.flood_classes carries the surface's labels; runs before it keep streams in class 2)
+    const streamsAt1 = () => /stream/i.test(((SUMMARY.flood_classes || {})["1"]) || "");
+    const FLOOD_LBL = () => streamsAt1()
+      ? {3:"100-year zone", 2:"500-year zone", 1:"stream crossing", tip:"3 is a FEMA 100-year zone, 2 the FEMA 500-year zone, 1 a mapped stream crossing (the 10 m band along the lidar-derived streams), 0 none of those", sense:"Classes 3 and 2 are High, a stream crossing is Medium, and 0 is not exposed"}
+      : {3:"100-year zone", 2:"500-year zone or stream", 1:null, tip:"3 is a FEMA 100-year zone, 2 the FEMA 500-year zone or a mapped stream crossing (the 10 m band along the lidar-derived streams), 0 none of those; from the next flood run a stream crossing scores 1 (decision 32)", sense:"Classes 3 and 2 are High and 0 is not exposed, which is why the road map shows no Medium or Low until stream crossings move to 1"};
 
     // ---------- chart helpers ----------
     const LAYOUT = {font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified", paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"};
@@ -563,7 +570,7 @@
         {id:"hubs", label:"Transit hubs", checked:true, legend:`<span class="lg-sq" style="background:#5a6577;width:8px;height:8px"></span> small square`,
           make:() => new M.GeoJSONLayer({url:BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => sq(c, HUB_SIZE)),
             popupTemplate:vPopup("Transit hub {tc_id}", [["V_max", "Vulnerability (highest hazard)", {places:2}], ["V_max_pair", "Highest hazard", "pair"], ["V_class", "Class"], ["V_FLTC_hist", "Flooding", "v"], ["V_WFTC_hist", "Wildfire", "v"]])})},
-        {id:"notes", label:"Workshop notes", checked:true, tip:"Notes partners have sent from the feedback page, colored by concern (1 greatest). Open any asset's popup and choose Add a workshop note to add one.", legend:legendRows([[COL.brick,"1: greatest concern"],[COL.orange,"2: concern"],[COL.earth,"3: worth noting"]], "lg-dot"), make:() => notesLayer()}];
+        {id:"notes", label:"Workshop notes", checked:true, tip:"Notes partners have sent from the feedback page, drawn as purple speech bubbles numbered by concern (1 greatest) so they never read as an asset. Open any asset's popup and choose Add a workshop note to add one.", legend:`<div class="lg-row">${[1, 2, 3].map(c => bubbleImg(c)).join(" ")} the number is the concern, 1 greatest</div>`, make:() => notesLayer()}];
       },
       filters:[{id:"hot", label:"Hotspots only", tip:"High vulnerability on top-quarter criticality (roads), or High vulnerability (other assets).",
         apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "V_class = 'High' AND C_class = 3" : null; ["culverts","bridges","paths","hubs"].forEach(k => { if (L[k]) L[k].definitionExpression = on ? "V_class = 'High'" : null; }); }}],
@@ -593,7 +600,7 @@
         "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 2, Medium 2 to 2.5, High over 2.5, and an asset's class is the highest of its pair classes.",
         "<b>Why roads are never Low.</b> Wildfire likelihood is at least 1 everywhere with the Resource Kit data, so every segment's wildfire score, and with it its highest pair, is at least 1.",
         "<b>Criticality.</b> Kept separate from vulnerability and never multiplied into it: the criticality percentile cut into quarters, 3 being the most critical quarter of the network. It appears on the map in the Criticality view and in the Hotspots filter, and on its own page as the Criticality Assessment.",
-        "<b>By miles.</b> Road and path figures on this page are shares of miles, not counts of segments, because segments differ in length: 21 percent of segments are High but 41 percent of road miles are.",
+        "<b>By miles.</b> Road and path figures on this page are shares of miles, not counts of segments, because segments differ in length: one long mountain road weighs more than a dozen short town blocks.",
         "<b>Sensitivity data.</b> Roads carry no sensitivity (rubrics decision 25): each road pair's score is its exposure. Culverts without an inspection carry the fair default; the Sensitivity data field says which.",
         "<b>Not yet in.</b> Future horizons (2050, 2080), the contracted fire-behavior package, and any pair the hazard tabs mark as not published."],
       foot:"Method: <code>docs/SCORING_RUBRICS.md</code> sections 1 to 6."
@@ -627,13 +634,13 @@
       layers(){ return [
         // roads first, so they draw under the culvert and bridge points
         {id:"roads", label:"Roads, flood exposure class", checked:true,
-          tip:"FL-R: the highest flood class anywhere along the segment. 3 is a FEMA 100-year zone, 2 the 500-year zone or a mapped stream, 1 a band near the 500-year zone, 0 none of those. Roads carry no flood sensitivity, so this class is also the road's flooding vulnerability (3 and 2 are High, 1 is Medium, 0 is not exposed). The Design storm buttons below change the culverts only.",
-          legend:legendRows([[COL.navy,"3: 100-year zone"],[COL.blue,"2: 500-year zone or stream"],[COL.ice,"1: near a 500-year zone"],[COL.gray,"0: none"]], "lg-line"),
+          tip:"FL-R: the highest flood class anywhere along the segment. " + FLOOD_LBL().tip + ". Roads carry no flood sensitivity, so this class is also the road's flooding vulnerability. " + FLOOD_LBL().sense + ". The design storm buttons change the culverts only.",
+          legend:legendRows([[COL.navy,"3: " + FLOOD_LBL()[3]],[COL.blue,"2: " + FLOOD_LBL()[2]]].concat(FLOOD_LBL()[1] ? [[COL.ice,"1: " + FLOOD_LBL()[1]]] : []).concat([[COL.gray,"0: none"]]), "lg-line"),
           make:() => roadLayer("flood", {renderer:{type:"unique-value", valueExpression:"Text(Round(DefaultValue($feature.E_FLR_hist, 0)))",
               defaultSymbol:line(COL.gray, LINE_W[0]), uniqueValueInfos:[{value:"0", symbol:line(COL.gray, LINE_W[0])}, {value:"1", symbol:line(COL.ice, LINE_W[1])},
                 {value:"2", symbol:line(COL.blue, LINE_W[2])}, {value:"3", symbol:line(COL.navy, LINE_W[3])}]},
             popupTemplate:vPopup("{name}", [["class", "Road type"], ["E_FLR_hist", "Flood exposure class", {places:0}], ["V_FLR_hist", "Flooding vulnerability", "v"],
-              ["len_pct_c3", "Percent of length in a 100-year zone", {places:0}], ["len_pct_c2", "Percent of length in a 500-year zone or along a stream", {places:0}],
+              ["len_pct_c3", "Percent of length in a 100-year zone", {places:0}], ["len_pct_c2", "Percent of length in class 2 (" + FLOOD_LBL()[2] + ")", {places:0}],
               ["C_class", "Criticality quarter (3 = top)"], ["criticality_pctl", "Criticality percentile", {places:0}]])})},
         {id:"culverts", label:"Culverts (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"],
           popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"crossing_id", label:"Crossing"}, {fieldName:"barrels", label:"Barrels"},
@@ -648,8 +655,8 @@
           make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], renderer:breaksRenderer("E_FLB_hist", [{minValue:-1, maxValue:0.999, symbol:sq(COL.forest)}, {minValue:0.999, maxValue:1.999, symbol:sq(COL.orange)}, {minValue:1.999, maxValue:3.1, symbol:sq(COL.brick)}]),
             popupTemplate:{title:"{facility_carried} over {feature_crossed}", content:[{type:"fields", fieldInfos:[{fieldName:"bridge_id", label:"NBI structure"}, {fieldName:"owner", label:"Owner"}, {fieldName:"year_built", label:"Year built"}, {fieldName:"waterway_eval", label:"Waterway adequacy (item 71)"}, {fieldName:"scour_label", label:"Scour"},
               {fieldName:"bridge_condition_label", label:"Condition"}, {fieldName:"E_FLB_hist", label:"Flood exposure E", format:{places:2}}, {fieldName:"S_FLB", label:"Flood sensitivity S", format:{places:2}}, {fieldName:"V_FLB_hist", label:"Flood vulnerability V", format:{places:2}}, {fieldName:"V_class", label:"Class (highest pair)"}]}]}})},
-        {id:"flood", label:"Flood zones and streams, as scored", checked:false, tip:"The ground the flood scores read: FEMA 100-year zones (3), the 500-year zone and a 10 m band along the lidar-derived streams (2), and a band around the 500-year zone (1). The lake's own stillwater zone is excluded.",
-          legend:`<span class="lg-sw" style="background:rgba(0,59,113,.45)"></span> 3: 100-year zone &nbsp; <span class="lg-sw" style="background:rgba(0,114,206,.35)"></span> 2: 500-year zone or stream &nbsp; <span class="lg-sw" style="background:rgba(180,203,232,.5)"></span> 1: near a 500-year zone`,
+        {id:"flood", label:"Flood zones and streams, as scored", checked:false, tip:"The ground the flood scores read: " + FLOOD_LBL().tip + ". The lake's own stillwater zone is excluded.",
+          legend:`<span class="lg-sw" style="background:rgba(0,59,113,.45)"></span> 3: ${FLOOD_LBL()[3]} &nbsp; <span class="lg-sw" style="background:rgba(0,114,206,.35)"></span> 2: ${FLOOD_LBL()[2]}` + (FLOOD_LBL()[1] ? ` &nbsp; <span class="lg-sw" style="background:rgba(180,203,232,.5)"></span> 1: ${FLOOD_LBL()[1]}` : ""),
           make:() => new M.GeoJSONLayer({url:BASE + "flood_surface.geojson", title:"Flood zones and streams", visible:false, opacity:0.9, renderer:{type:"unique-value", field:"hz_class", uniqueValueInfos:[{value:3, symbol:fill([0,59,113],0.45)},{value:2, symbol:fill([0,114,206],0.35)},{value:1, symbol:fill([180,203,232],0.5)}]}, popupTemplate:{title:"Flood class {hz_class}", content:"{label}"}})},
         {id:"wshed", label:"Watersheds", checked:false, tip:"TRPA's watershed boundaries for context, named when zoomed in. Not part of the score; each culvert's own drainage area draws when you click it.",
           legend:`<span class="lg-sw" style="background:transparent;border:1.5px solid #003B71"></span> watershed boundary`, make:() => watershedLayer()}];
@@ -683,7 +690,7 @@
         "<b>Flags.</b> A small recorded pipe on a big drainage is a record to check, not a score; it is withheld and listed for the owner. A ratio above 20 is listed too.",
         "<b>Flood exposure.</b> The highest flood class anywhere in the culvert's drainage. The value at the pipe itself is in the popup for comparison.",
         "<b>Vulnerability.</b> Exposure at 0.3 plus sensitivity at 0.7: how much debris the basin can send and whether the pipe passes the " + RP + "-year storm. Condition is not scored for flooding: it is observed on about one in five culverts, so a condition term would default almost everywhere (decision 1).",
-        "<b>Roads.</b> Roads carry no flood sensitivity, so a road's flooding vulnerability is its exposure class: 3 in a FEMA 100-year zone, 2 in the 500-year zone or along a mapped stream, 1 in a band near the 500-year zone, 0 otherwise. Classes 3 and 2 are High, 1 is Medium, 0 is not exposed, which is why the road map shows no Low. The road's criticality quarter is in its popup and the table."]; },
+        "<b>Roads.</b> Roads carry no flood sensitivity, so a road's flooding vulnerability is its exposure class: " + FLOOD_LBL().tip + ". " + FLOOD_LBL().sense + ". A segment takes the highest class anywhere along it, so one crossing sets the whole segment. The road's criticality quarter is in its popup and the table."]; },
       foot:"Culvert inventories from six jurisdictions and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA. Method: <code>docs/SCORING_RUBRICS.md</code> 2.2 to 2.5."
     };
 
@@ -992,7 +999,15 @@
     }
     // notes already sent by partners, read from the public view and drawn by concern
     const NOTES_VIEW = "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_notes_read/FeatureServer/0";
-    const CONCERN_COL = {1:COL.brick, 2:COL.orange, 3:COL.earth};
+    // workshop notes draw as a purple speech bubble with the concern number, so a note never reads as
+    // an asset (the brick, orange, and gold dots it used were the High, Medium, and Low colors);
+    // the tail's tip sits on the noted place. Others' notes are hollow
+    const noteBubble = (concern, hollow) => {
+      const fill = hollow ? "#ffffff" : "#7B6A8A", ink = hollow ? "#7B6A8A" : "#ffffff";
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="26" viewBox="0 0 24 26"><path d="M4 1.5h16a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h-5.5L12 23.5 9.5 17.5H4A2.5 2.5 0 0 1 1.5 15V4A2.5 2.5 0 0 1 4 1.5z" fill="${fill}" stroke="${hollow ? "#7B6A8A" : "#ffffff"}" stroke-width="1.6"/>${concern ? `<text x="12" y="13.4" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="${ink}">${concern}</text>` : ""}</svg>`;
+      return { type: "picture-marker", url: "data:image/svg+xml;base64," + btoa(svg), width: "18px", height: "19.5px", yoffset: "9px" };
+    };
+    const bubbleImg = (concern, hollow) => `<img src="${noteBubble(concern, hollow).url}" width="14" height="15" alt="" style="vertical-align:-3px">`;
     async function notesLayer(){
       const layer = new M.GraphicsLayer({title:"Workshop notes", listMode:"hide"});
       try {
@@ -1002,7 +1017,7 @@
         (res.features || []).forEach(f => { let parsed = {}; try { parsed = JSON.parse(f.attributes.notes_json || "{}"); } catch (e) {}
           (parsed.notes || []).forEach(n => { if (n.lon == null || n.lat == null) return; const k = (f.attributes.reviewer_key || "") + "|" + n.key; if (seen[k]) return; seen[k] = 1;
             layer.add(new M.Graphic({geometry:{type:"point", longitude:n.lon, latitude:n.lat}, attributes:{name:n.name || "", type:n.type || "", concern:n.concern || null, why:n.why || "", hazards:(n.hazards || []).join(", "), agency:f.attributes.agency || "", missing:n.missing ? "yes" : "no"},
-              symbol:{type:"simple-marker", style:"circle", size:13, color:CONCERN_COL[n.concern] || "#8a93a2", outline:{color:[255,255,255,1], width:1.2}},
+              symbol:noteBubble(n.concern || null),
               popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"concern", label:"Concern (1 = greatest)"}, {fieldName:"hazards", label:"Hazards"}, {fieldName:"why", label:"Why"}, {fieldName:"agency", label:"From"}, {fieldName:"missing", label:"Missing from the draft results"}]}]}})); }); });
         layer.noteCount = layer.graphics.length;
       } catch (e) { console.warn("workshop notes", e); layer.noteCount = null; }
@@ -1182,8 +1197,10 @@
       ["ch-a","ch-b"].forEach(id => Plotly.purge(id)); showChart("a"); renderMatrix(name);
       $("qf").value = ""; if (gridApi) { gridApi.setGridOption("quickFilterText", ""); gridApi.setGridOption("columnDefs", mode.table.cols); gridApi.setGridOption("rowData", []); }
 
-      // summary-driven blocks
+      // summary-driven blocks (the notes repaint once the summary is in: the flood wording reads it)
       const s = await summary();
+      if (current !== name) return;
+      $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
       if (mode.storm && !mode.storm.ready(s, RP)) RP = mode.storm.options[0][0];
       const items = paintKpis(mode, s);   // Overview repaints its tiles (with the notes count) from onColor
 

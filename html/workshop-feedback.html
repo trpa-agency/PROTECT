@@ -535,6 +535,15 @@
     const hazKeys = (labels) => String(labels || "").split(/[,;]/).map(s => s.trim().toLowerCase()).map(s => (HAZARDS.find(h => h.s.toLowerCase() === s) || {}).k).filter(k => k && k !== "any");
     const concernOf = (v) => { const c = Math.round(+v); return c >= 1 && c <= 3 ? c : null; };
     const cBadge = (c) => c ? `<span class="cbadge c${c}" title="${CONCERN[c]}">${c}</span>` : `<span class="cbadge" title="No concern level">-</span>`;
+    // workshop notes draw as a purple speech bubble with the concern number, so a note never reads as
+    // an asset (the brick, orange, and gold dots it used were the High, Medium, and Low colors);
+    // the tail's tip sits on the noted place. Others' notes are hollow
+    const noteBubble = (concern, hollow) => {
+      const fill = hollow ? "#ffffff" : "#7B6A8A", ink = hollow ? "#7B6A8A" : "#ffffff";
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="26" viewBox="0 0 24 26"><path d="M4 1.5h16a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h-5.5L12 23.5 9.5 17.5H4A2.5 2.5 0 0 1 1.5 15V4A2.5 2.5 0 0 1 4 1.5z" fill="${fill}" stroke="${hollow ? "#7B6A8A" : "#ffffff"}" stroke-width="1.6"/>${concern ? `<text x="12" y="13.4" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="${ink}">${concern}</text>` : ""}</svg>`;
+      return { type: "picture-marker", url: "data:image/svg+xml;base64," + btoa(svg), width: "18px", height: "19.5px", yoffset: "9px" };
+    };
+    const bubbleImg = (concern, hollow) => `<img src="${noteBubble(concern, hollow).url}" width="14" height="15" alt="" style="vertical-align:-3px">`;
 
     // ───────────────────────── State ─────────────────────────
     // notes: { key: { key, type, id, name, sub, lon, lat, hazards:[k], concern, why, missing, when } }
@@ -583,8 +592,8 @@
         <div class="lg-classes">${["Low", "Medium", "High"].map(c => `<span><i style="background:${VC[c]}"></i>${c}</span>`).join("")}<span><i style="background:${VC.none}"></i>not exposed (0) or not scored</span></div>
         ${rows.join("")}
         <div class="lg-row" title="Transit routes are context only; turn them on under Layers on the map"><span class="lg-shapes"><span class="lg-line" style="background:#7B6A8A"></span></span>Transit routes <em>not scored</em></div>
-        <div class="lg-row"><span class="lg-shapes">${[1, 2, 3].map(c => `<span class="lg-note" style="background:var(--c${c})"></span>`).join("")}</span>Your notes and pins, concern 1 to 3</div>
-        <div class="lg-row"><span class="lg-shapes"><span class="lg-note hollow"></span></span>Notes from others</div>
+        <div class="lg-row"><span class="lg-shapes">${[1, 2, 3].map(c => bubbleImg(c)).join("")}</span>Your notes and pins, by concern (1 greatest)</div>
+        <div class="lg-row"><span class="lg-shapes">${bubbleImg(1, true)}</span>Notes from others</div>
         ${h.layers.map(key => { const [label, c] = OVERLAY[key]; return `<div class="lg-row"><span class="lg-shapes"><span class="lg-fill${c ? "" : " ramp"}" style="${c ? `background:${c}` : ""}"></span></span>${label}</div>`; }).join("")}`;
     }
     function applyStationStyle() { for (const [asset, key] of Object.entries(ASSET_LAYER)) if (layers[key]) layers[key].renderer = rendererFor(asset, station); }
@@ -932,8 +941,8 @@
           const url = URL.createObjectURL(new Blob([JSON.stringify(gj)], { type: "application/geo+json" }));
           return new GeoJSONLayer({ url, title: "Roads (street network)", outFields: ["*"], renderer: rendererFor("roads", station), popupEnabled: false });
         }
-        const noteRenderer = (hollow) => ({ type: "unique-value", field: "concern", defaultSymbol: { type: "simple-marker", size: 13, color: hollow ? [255, 255, 255, 0.5] : [138, 147, 162, 0.95], outline: { color: hollow ? [138, 147, 162, 1] : [255, 255, 255, 1], width: hollow ? 2 : 1.5 } },
-          uniqueValueInfos: [1, 2, 3].map(c => ({ value: c, symbol: { type: "simple-marker", size: 14, color: hollow ? [255, 255, 255, 0.5] : [["156", "62", "39"], ["232", "119", "34"], ["180", "126", "0"]][c - 1].map(Number).concat(0.95), outline: { color: hollow ? [["156", "62", "39"], ["232", "119", "34"], ["180", "126", "0"]][c - 1].map(Number).concat(1) : [255, 255, 255, 1], width: hollow ? 2.2 : 1.5 } } })) });
+        const noteRenderer = (hollow) => ({ type: "unique-value", field: "concern", defaultSymbol: noteBubble(null, hollow),
+          uniqueValueInfos: [1, 2, 3].map(c => ({ value: c, symbol: noteBubble(c, hollow) })) });
         noteLayer = new GraphicsLayer({ title: "Your notes", listMode: "hide" });
         othersLayer = new GraphicsLayer({ title: "Notes from others", listMode: "show" });
         // GraphicsLayers take per-graphic symbols, so apply the renderer by hand

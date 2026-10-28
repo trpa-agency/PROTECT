@@ -578,6 +578,10 @@ def main() -> None:
         "notes": ["Public jurisdictions only; the restricted state DOT export is excluded at the row level.",
                   "Draft screening values for workshop review; the loading ratio ranks crossings and is not a design number."],
     }
+    # the flood surface's own class labels, so the Results page legends follow the run that is
+    # published (decision 32 moved the stream band from class 2 to class 1)
+    summary["flood_classes"] = {str(int(c)): str(l) for c, l in
+                                flood.drop_duplicates("hz_class")[["hz_class", "label"]].itertuples(index=False)}
     log.info(json.dumps(summary["culverts"], indent=1)[:800])
     if args.dry_run:
         log.info("Dry run; nothing written")

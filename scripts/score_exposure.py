@@ -4,9 +4,9 @@ Two jobs, both config-driven (config.yaml `exposure:`):
 
   1. Build the classed hazard surface in the hazards geodatabase (exposure.hazards_gdb), so
      every pair in both lanes samples the same classes. Flood today: the FEMA flood zones and
-     the mapped streams classed on the FL-C E1 values (1 percent zone 3, 0.2 percent zone or a
-     mapped stream 2, NHD flowline outside a zone 1 when a flowline layer is configured,
-     otherwise 0). Wildfire (decision 22): two indicator surfaces, E1 the burn probability
+     the mapped streams classed on the FL-C E1 values (1 percent zone 3, 0.2 percent zone 2, a
+     mapped stream or an NHD flowline outside a zone 1, otherwise 0; decision 32 moved the
+     stream band from 2 to 1, exposure.flood.stream_class). Wildfire (decision 22): two indicator surfaces, E1 the burn probability
      raster classed on the draft's breaks (over 1 percent 3, over 0.5 to 1 percent 2, over 0 to
      0.5 percent 1) and E2 the TRPA most-likely fire severity polygons (Low 1, Moderate 2,
      High 3; the contracted flame-length raster replaces it on 4 and 8 ft breaks when set),
@@ -565,18 +565,21 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
         if len(kept_big):
             log.info(f"{len(kept_big)} FEMA floodplain polygon(s) over {cap / 1e6:g} km2 kept (not on the lake): "
                      f"{[round(a / 1e6, 1) for a in kept_big.area]} km2")
-    sb = gpd.GeoDataFrame({"hz_class": [2] * len(streams)}, geometry=streams.buffer(float(fl["stream_buffer_m"])).values, crs=crs)
+    # decision 32 (Oct. 28, 2026): a stream crossing is class 1, not 2. At 2 it read High on every
+    # road pair (no road sensitivity), and 264 of the 287 High road miles came from the stream
+    # band alone, a whole segment turning High for one crossing
+    sc = int(fl.get("stream_class", 1))
+    sb = gpd.GeoDataFrame({"hz_class": [sc] * len(streams)}, geometry=streams.buffer(float(fl["stream_buffer_m"])).values, crs=crs)
     log.info(f"{len(streams)} stream polygons (water bodies over {fl.get('exclude_water_over_km2', 1.0)} km2 excluded) "
-             f"buffered {fl['stream_buffer_m']} m as class 2")
+             f"buffered {fl['stream_buffer_m']} m as class {sc}")
 
     parts = [zones[["hz_class", "geometry"]], sb]
     if fl.get("nhd_flowlines"):
         nhd = fetch_rest_features(fl["nhd_flowlines"], crs, log)
         parts.append(gpd.GeoDataFrame({"hz_class": [1] * len(nhd)}, geometry=nhd.buffer(float(fl["stream_buffer_m"])).values, crs=crs))
-    # a band around the FEMA zones as class 1 (ICF review, Oct. 26, 2026: 10 to 30 m around the
-    # 500-year floodplain, for uncertainty in the mapped extent and for future expansion); the
-    # higher class wins where the band overlaps a zone or a stream buffer, so it covers only the
-    # ground just outside them
+    # optional band around the FEMA zones as class 1 (ICF review, Oct. 26, 2026, suggested 10 to
+    # 30 m around the 500-year floodplain). Withdrawn Oct. 28, 2026 (decision 31): config 0 = off.
+    # The higher class wins where a band overlaps a zone or a stream buffer
     near = float(fl.get("near_zone_buffer_m", 0) or 0)
     if near > 0:
         fema = zones[zones["hz_class"] >= 2]
@@ -589,9 +592,11 @@ def build_flood_surface(cfg: dict, log, overwrite: bool) -> gpd.GeoDataFrame:
 
     near_label = f"within {near:g} m of a FEMA flood zone" if near > 0 else ""
     nhd_label = "NHD flowline outside a zone" if fl.get("nhd_flowlines") else ""
-    write_class_fc(surf, gdb, fl["class_fc"], "flood", {3: "1 percent (100-yr) flood zone",
-                                                        2: "0.2 percent (500-yr) zone or mapped stream",
-                                                        1: " or ".join(x for x in (near_label, nhd_label) if x) or "class 1 (unused)"}, cfg, log)
+    stream_label = "mapped stream"
+    lab = {3: "1 percent (100-yr) flood zone", 2: "0.2 percent (500-yr) zone", 1: ""}
+    lab[sc] = " or ".join(x for x in (lab[sc], stream_label) if x)
+    lab[1] = " or ".join(x for x in (lab[1], near_label, nhd_label) if x) or "class 1 (unused)"
+    write_class_fc(surf, gdb, fl["class_fc"], "flood", lab, cfg, log)
     return surf
 
 
