@@ -568,7 +568,7 @@
               {fieldName:"len_pct_c3", label:"Percent of length in a 100-year zone", format:{places:0}},
               {fieldName:"len_pct_c2", label:"Percent of length in a 500-year zone or along a stream", format:{places:0}},
               {fieldName:"C_class", label:"Criticality quarter (3 = top)"}, {fieldName:"criticality_pctl", label:"Criticality percentile", format:{places:0}}]}]}})},
-        {id:"culverts", label:"Culverts (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"],
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts (scored)", checked:true, make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"],
           popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"crossing_id", label:"Crossing"}, {fieldName:"barrels", label:"Barrels"},
             {fieldName:"d_eq_in", label:"Equivalent diameter (in)", format:{places:1}}, {fieldName:"material_class", label:"Material"}, {fieldName:"contrib_area_ac", label:"Contributing area (ac)", format:{places:1, digitSeparator:true}},
             {fieldName:"basin_landcover", label:"Majority land cover"}, {fieldName:"q_method", label:"Event flow method"}, {fieldName:"q_event_100_cfs", label:"Q100 (cfs)", format:{places:1}}, {fieldName:"q_cap_crossing_cfs", label:"Capacity at the crown (cfs)", format:{places:1}},
