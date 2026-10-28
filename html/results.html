@@ -165,7 +165,8 @@
     .layer-panel h3 .i{text-transform:none;letter-spacing:normal;}
     #map-view{flex:1;min-width:0;height:100%;}
     .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
-    .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;}
+    .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;min-width:0;}
+    #mx{overflow-x:auto;}
     .chart h3{font-size:.85rem;font-weight:700;margin:.2rem .4rem .1rem;}
     .chart .sub{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .3rem;}
     /* chart tabs: the two distributions share one card */
@@ -221,6 +222,7 @@
       header.band .tabs{order:5;flex-basis:100%;overflow-x:auto;flex-wrap:nowrap;}
       header.band .tabs a{padding:.45rem .7rem;}
       .band-btn .lbl{display:none;}
+      a.band-btn{display:none;}   /* the Guide link has no icon; on phones it lives in How to use and Pages */
       .band-btn{padding:.22rem;}
       .charts{grid-template-columns:1fr;}
       .toolbar .qf{min-width:0;flex-basis:100%;}
@@ -493,7 +495,7 @@
       const tiles = [[pct, "of road miles High" + lbl], [fmt(r.High), "road miles High" + lbl]];
       if (o.value === "vmax") tiles.push([fmt(r.hotN), "High vulnerability on top-criticality roads"], [fmt(r.hotMiles), "miles of those"]);
       [["culverts", "culverts High"], ["bridges", "bridges High"], ["paths", "path miles High"], ["hubs", "transit hubs High"]].forEach(([id, l]) => { const s = st[id]; tiles.push([s ? fmt(s.High, id === "paths" ? 1 : 0) : "-", s ? l + lbl : l.replace(" High", "") + ": no pair" + lbl]); });
-      const nl = ctx && ctx.L.notes; if (nl && nl.noteCount != null) tiles.push([fmt(nl.noteCount), "workshop notes sent so far", COL.purple]);
+      const nl = ctx && ctx.L.notes; if (nl && nl.noteCount != null) tiles.push([fmt(nl.noteCount), "workshop note" + (nl.noteCount === 1 ? "" : "s") + " sent so far", COL.purple]);
       $("kpis").innerHTML = kpiTiles(tiles); }
     function assetClassChart(div, st){ const groups = Object.keys(OV_LABEL).filter(id => st[id] && st[id].total);
       const traces = ["Low", "Medium", "High"].map(vc => ({type:"bar", name:vc, x:groups.map(id => OV_LABEL[id]), marker:{color:VC_COL[vc]}, y:groups.map(id => 100 * (st[id][vc] || 0) / st[id].total),
@@ -1183,8 +1185,7 @@
       // summary-driven blocks
       const s = await summary();
       if (mode.storm && !mode.storm.ready(s, RP)) RP = mode.storm.options[0][0];
-      const items = paintKpis(mode, s);
-      if (name === "overview") setTimeout(() => { const nl = ctx && ctx.L.notes; if (nl && nl.noteCount != null && items) $("kpis").insertAdjacentHTML("beforeend", `<div class="kpi" style="border-top-color:${COL.purple}"><div class="v">${fmt(nl.noteCount)}</div><div class="l">workshop notes sent so far</div></div>`); }, 1500);
+      const items = paintKpis(mode, s);   // Overview repaints its tiles (with the notes count) from onColor
 
       // map: drop the previous mode's layers, add this one's
       if (ctx) { ctx.layers.forEach(l => view.map.remove(l)); ctx.extraLayers.forEach(l => view.map.remove(l)); if (ctx.clickHandle) ctx.clickHandle.remove(); }

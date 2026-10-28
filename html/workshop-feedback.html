@@ -222,9 +222,11 @@
     @media (max-width:900px){
       header .right a{display:none;}
       #appBody{flex-direction:column;}
-      #sidePanel{flex:0 0 auto;max-height:46vh;border-right:none;border-bottom:1px solid var(--gray-border);}
+      /* phones: a one-line header and a shorter panel and drawer, so the map keeps about 300 px */
+      header .agency, header .header-sub, header .badge{display:none;}
+      #sidePanel{flex:0 0 auto;max-height:38vh;border-right:none;border-bottom:1px solid var(--gray-border);}
       #panelToggle{display:none;}
-      #drawer{height:38%;}
+      #drawer{height:30%;min-height:110px;}
       .stations{grid-template-columns:repeat(3,1fr);}
     }
       /* site nav: five groups */
@@ -389,7 +391,7 @@
 
   <calcite-dialog id="findDialog" modal heading="Find a road" width-scale="s">
     <div>
-      <input id="findInput" type="text" class="plain" placeholder="Road name, e.g. Emerald Bay" />
+      <input id="findInput" type="text" class="plain" placeholder="Road name, e.g. Emerald Bay" aria-label="Road name" />
       <ul class="nlist" id="findList" style="margin-top:.5rem;max-height:40vh;overflow:auto"></ul>
     </div>
   </calcite-dialog>
@@ -532,7 +534,7 @@
     const hazLabel = (keys) => (keys || []).map(k => (HZ[k] || {}).s || k).join(", ");
     const hazKeys = (labels) => String(labels || "").split(/[,;]/).map(s => s.trim().toLowerCase()).map(s => (HAZARDS.find(h => h.s.toLowerCase() === s) || {}).k).filter(k => k && k !== "any");
     const concernOf = (v) => { const c = Math.round(+v); return c >= 1 && c <= 3 ? c : null; };
-    const cBadge = (c) => c ? `<span class="cbadge c${c}" title="${CONCERN[c]}">${c}</span>` : `<span class="cbadge" title="No concern level">–</span>`;
+    const cBadge = (c) => c ? `<span class="cbadge c${c}" title="${CONCERN[c]}">${c}</span>` : `<span class="cbadge" title="No concern level">-</span>`;
 
     // ───────────────────────── State ─────────────────────────
     // notes: { key: { key, type, id, name, sub, lon, lat, hazards:[k], concern, why, missing, when } }
