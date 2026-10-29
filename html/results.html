@@ -186,6 +186,8 @@
     table.matrix th.rh i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.35rem;vertical-align:-1px;}
     table.matrix td{font-weight:700;}
     table.matrix .mx-pct{font-size:.66rem;color:var(--gray-text);font-weight:400;}
+    table.matrix thead th.mx-span{font-weight:400;font-size:.72rem;color:var(--trpa-ice);border-bottom:1px solid rgba(180,203,232,.35);}
+    table.matrix thead .mx-q{font-size:.64rem;font-weight:400;color:var(--trpa-ice);}
     #mx-note{font-size:.72rem;color:var(--gray-text);margin:0 .4rem .5rem;}
     .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
     .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
@@ -395,7 +397,8 @@
       : {3:"100-year zone", 2:"500-year zone or stream", 1:null, tip:"3 is a FEMA 100-year zone, 2 the FEMA 500-year zone or a mapped stream crossing (the 10 m band along the lidar-derived streams), 0 none of those; from the next flood run a stream crossing scores 1 (decision 32)", sense:"Classes 3 and 2 are High and 0 is not exposed, which is why the road map shows no Medium or Low until stream crossings move to 1"};
 
     // ---------- chart helpers ----------
-    const LAYOUT = {font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified", paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)"};
+    const LAYOUT = {font:{family:"Open Sans",size:11,color:"#003B71"}, hovermode:"x unified", paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)",
+      hoverlabel:{bgcolor:"#ffffff", bordercolor:"#cfd4da", font:{family:"Open Sans", size:11, color:"#003B71"}}};   // a white hover box on every chart; the unified label is otherwise see-through
     function barBands(div, bands, miles, counts, colors, xTitle, yTitle){
       Plotly.newPlot(div, [{type:"bar", x:bands, y:bands.map(b => miles[b] || 0), marker:{color:bands.map(b => colors[b])},
         customdata:bands.map(b => counts[b] || 0), hovertemplate:"%{y:.1f} " + yTitle + " (%{customdata} segments)<extra></extra>"}],
@@ -811,8 +814,16 @@
       charts:[
         {title:"Storm vs capacity, by pipe size", get sub(){ return "Above 1, the " + RP + "-year storm exceeds the pipe. Log scale."; }, async draw(div){
           const rows = await rowsOf(BASE + "culverts_results.geojson"); const classes = ["small","medium","large","major"]; const lr = "load_ratio_" + RP;
-          Plotly.newPlot(div, classes.map(c => ({type:"box", name:c, x:rows.filter(r => r.size_class===c && r[lr]!=null && r[lr]>0).map(r=>r[lr]), marker:{color:{small:COL.brick,medium:COL.orange,large:COL.blue,major:COL.navy}[c]}, boxpoints:false, orientation:"h", hovertemplate:"%{x:.2f}<extra>%{fullData.name}</extra>"})),
-            Object.assign({}, LAYOUT, {margin:{l:60,r:10,t:10,b:40}, showlegend:false, xaxis:{type:"log", title:"Loading ratio (" + RP + "-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true}, shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}]}), {displayModeBar:false, responsive:true}); }},
+          const SIZE_COL = {small:COL.brick, medium:COL.orange, large:COL.blue, major:COL.navy};
+          const xs = c => rows.filter(r => r.size_class===c && r[lr]!=null && r[lr]>0).map(r=>r[lr]);
+          const med = a => { const s = a.slice().sort((p, q) => p - q), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+          // the boxes draw without hover; one invisible point per box at its median carries a single plain line
+          const boxes = classes.map(c => ({type:"box", name:c, x:xs(c), marker:{color:SIZE_COL[c]}, boxpoints:false, orientation:"h", hoverinfo:"skip"}));
+          const tips = classes.filter(c => xs(c).length).map(c => { const a = xs(c), over = a.filter(v => v >= 1).length;
+            return {type:"scatter", mode:"markers", x:[med(a)], y:[c], marker:{size:18, color:"rgba(0,0,0,0)"}, showlegend:false,
+              hovertemplate:`<b>${c[0].toUpperCase() + c.slice(1)} pipes</b><br>Typical ratio ${fmt(med(a), 2)}<br>${fmt(over)} of ${fmt(a.length)} (${fmt(100 * over / a.length)} percent) cannot pass the ${RP}-year storm<extra></extra>`}; });
+          Plotly.newPlot(div, boxes.concat(tips),
+            Object.assign({}, LAYOUT, {margin:{l:60,r:10,t:10,b:40}, showlegend:false, hovermode:"closest", xaxis:{type:"log", title:"Loading ratio (" + RP + "-yr)", gridcolor:"#eef0f3"}, yaxis:{automargin:true}, shapes:[{type:"line",x0:1,x1:1,y0:0,y1:1,yref:"paper",line:{color:"#9C3E27",dash:"dot",width:1.2}}]}), {displayModeBar:false, responsive:true}); }},
         {title:"Flood exposure by jurisdiction", sub:"Share of each jurisdiction's culverts in each flood class", async draw(div){
           const rows = await rowsOf(BASE + "culverts_results.geojson"); const jur = [...new Set(rows.map(r=>r.jurisdiction))].sort();
           stackedShare(div, jur, ["0","1","2","3"], {"0":COL.gray,"1":COL.ice,"2":COL.blue,"3":COL.navy}, rows, r => r.jurisdiction, r => String(Math.round(r.E_FLC_hist)), r => 1, "percent of culverts", "culverts"); }}],
@@ -1082,11 +1093,14 @@
       const rows = MX_ROWS.filter(([r]) => r !== "Not exposed" || cols.some(c => m[r + "|" + c]));
       const cell = (r, c) => { const n = m[r + "|" + c] || 0, pct = m.n ? n / m.n * 100 : 0;
         return `<td style="background:rgba(0,114,206,${(Math.min(pct, 40) / 40 * 0.35).toFixed(3)})">${asset === "roads" ? fmt(n) : n.toLocaleString()}<div class="mx-pct">${pct.toFixed(1)}%</div></td>`; };
-      $("mx").innerHTML = `<table class="matrix"><thead><tr><th>Vulnerability</th>${cols.map(c => `<th>${c === "none" ? "No quarter" : "Quarter " + c}</th>`).join("")}</tr></thead><tbody>`
+      // columns read as criticality in words, least to most critical, with the quarter number small beneath
+      const MX_COL = {0:"Least critical", 1:"Less critical", 2:"More critical", 3:"Most critical"};
+      $("mx").innerHTML = `<table class="matrix"><thead><tr><th rowspan="2">Vulnerability</th><th colspan="${cols.length}" class="mx-span">How critical the road is to the network &rarr;</th></tr>`
+        + `<tr>${cols.map(c => c === "none" ? `<th>No matching road</th>` : `<th>${MX_COL[c]}<div class="mx-q">quarter ${c}</div></th>`).join("")}</tr></thead><tbody>`
         + rows.map(([r, col]) => `<tr><th class="rh"><i style="background:${col}"></i>${r}</th>${cols.map(c => cell(r, c)).join("")}</tr>`).join("") + "</tbody></table>";
       const unit = asset === "roads" ? "road miles" : MX_LABEL[asset].toLowerCase();
-      $("mx-note").textContent = `${fmt(m.n)} ${unit}; ${asset === "roads" ? "miles" : "count"} and percent of the total in each cell. Quarter 3 is the most critical quarter of the road network`
-        + (asset !== "roads" ? `; ${unit} take the quarter of the road they carry` : "")
+      $("mx-note").textContent = `${fmt(m.n)} ${unit}; ${asset === "roads" ? "miles" : "count"} and percent of the total in each cell. Roads are split into four equal quarters by how critical they are to the network`
+        + (asset !== "roads" ? `; ${unit} take the criticality of the road they carry` : "")
         + (cols.includes("none") ? "; no quarter means no matching road segment" : "")
         + (rows.some(([r]) => r === "Not exposed") ? "; not exposed means a score of 0" : "")
         + (m.skipped ? `; ${m.skipped.toLocaleString()} not scored are left out` : "") + ".";
