@@ -3,7 +3,7 @@
     python print-maps/print_maps.py inspect        # maps, layers, layouts, elements, bookmarks in the project
     python print-maps/print_maps.py check          # resolve every sheet against the project; nothing is exported
     python print-maps/print_maps.py export         # every enabled sheet, every export it names
-    python print-maps/print_maps.py export --only 01 02 --exports screen
+    python print-maps/print_maps.py export --only sr28 --exports screen   # one corridor, screen PDFs only
     python print-maps/print_maps.py build          # a copy of the project with a layout per sheet, to finish by hand
 
 Run with ArcGIS Pro's Python (arcgispro-py3) while signed in to Pro, so arcpy has a license. The
@@ -55,7 +55,37 @@ def load_cfg() -> dict:
     cfg = yaml.safe_load((HERE / "config.yaml").read_text(encoding="utf-8"))
     root = REPO / "config.yaml"
     cfg["_root"] = yaml.safe_load(root.read_text(encoding="utf-8")) if root.exists() else {}
+    made, cfg["_matrix_errors"] = expand_matrix(cfg)
+    cfg["sheets"] = made + list(cfg.get("sheets") or [])
     return cfg
+
+
+def expand_matrix(cfg: dict) -> tuple[list[dict], list[str]]:
+    """Sheets for every corridor x hazard x version in each sheet_matrix entry, ids <corridor>_<hazard>_<version>."""
+    cors, hzs, vers = cfg.get("corridors") or {}, cfg.get("hazards") or {}, cfg.get("versions") or {}
+    out, errs = [], []
+    for i, mx in enumerate(cfg.get("sheet_matrix") or [], 1):
+        cs, hs, vs = mx.get("corridors") or list(cors), mx.get("hazards") or list(hzs), mx.get("versions") or list(vers)
+        missing = [f"{kind} '{k}'" for kind, keys, tbl in (("corridor", cs, cors), ("hazard", hs, hzs), ("version", vs, vers))
+                   for k in keys if k not in tbl]
+        if missing:
+            errs.append(f"sheet_matrix entry {i}: no {', '.join(missing)}")
+            continue
+        for c in cs:
+            for h in hs:
+                for v in vs:
+                    cor, hz, ver = cors[c], hzs[h], vers[v]
+                    names = {"corridor": cor.get("label", c), "hazard": hz.get("label", h)}
+                    s = {"id": f"{c}_{h}_{v}", **names,
+                         **{k: val for k, val in ver.items() if k not in ("legend", "assets")},
+                         "legend": fill(ver.get("legend", "{hazard}"), names),
+                         "layers": list(hz.get("exposure") or []) + (list(hz.get("assets") or []) if ver.get("assets") else [])}
+                    if cor.get("title"):
+                        s["text"] = {"Title": cor["title"]}
+                    if cor.get("bookmark"):
+                        s["extent"] = {"bookmark": cor["bookmark"]}
+                    out.append(s)
+    return out, errs
 
 
 def get_logger(cfg: dict) -> logging.Logger:
@@ -76,7 +106,7 @@ def get_logger(cfg: dict) -> logging.Logger:
 
 def validate(cfg: dict, only: list[str] | None, export_names: list[str] | None) -> list[str]:
     """Config errors that need no project open."""
-    errs, ids = [], [s.get("id") for s in cfg.get("sheets", [])]
+    errs, ids = list(cfg.get("_matrix_errors") or []), [s.get("id") for s in cfg.get("sheets", [])]
     exdefs = cfg.get("exports", {})
     if any(not i for i in ids):
         errs.append("every sheet needs an id")
@@ -502,7 +532,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=["inspect", "check", "export", "build"])
     ap.add_argument("--aprx", help="the Pro project (overrides project.aprx; CURRENT inside Pro)")
-    ap.add_argument("--only", nargs="+", metavar="ID", help="sheets by id or number prefix (01 matches 01_...)")
+    ap.add_argument("--only", nargs="+", metavar="ID", help="sheets by id or prefix (sr28, sr28_wildfire)")
     ap.add_argument("--exports", nargs="+", metavar="NAME", help="only these exports (names in config exports:)")
     ap.add_argument("--allow-restricted", action="store_true",
                     help="after NDOT sign-off: export restricted rows, to paths.restricted_outputs only")

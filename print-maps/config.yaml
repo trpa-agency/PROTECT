@@ -32,10 +32,9 @@ exports:
     options: {}
 
 # Applies to every sheet; a sheet's own keys win. text keys are text element names on the layout;
-# values take {title}, {legend}, {id}, {date} (house style, Oct. 28, 2026), anything in tokens, and
-# any other plain field of the sheet. The template's Title holds the place and Legend Title the
-# hazard; Title is left as authored until a sheet sets text: {Title: ...}. elements turns layout
-# elements on or off by name.
+# values take {legend}, {corridor}, {hazard}, {id}, {date} (house style, Oct. 28, 2026), anything in
+# tokens, and any other plain field of the sheet. The template's Title holds the corridor (set from
+# corridors: below) and Legend Title the hazard. elements turns layout elements on or off by name.
 # managed: the layers a sheet's layers list controls. Inside them, what a sheet lists turns on and
 # the rest turns off; every layer outside them (hillshade, water, county, highway, boundaries,
 # labels, basemap) stays as authored in the template. Without managed, a sheet's list is the whole map.
@@ -63,7 +62,55 @@ restricted:
   check_required_datasets: [Culverts, CulvertCondition, CulvertCrossings, CulvertWatersheds, CulvertProfile]
   check_required_sources: []
 
-# The sheet list: one entry per printed map. id names the output file (--only 01 matches 01_...).
+
+# The sheets. Each corridor gets every hazard in its sheet_matrix entry, in each version, as one sheet
+# with id <corridor>_<hazard>_<version> (--only sr28 runs one corridor, --only sr28_wildfire one hazard).
+# corridors: title is the layout's Title text exactly (\r\n is a line break); bookmark is a bookmark in
+#   TRPA Standard Layers that frames the corridor (blank keeps the template's extent, which is SR 28).
+# hazards: label fills {hazard}; exposure is the classed surface; assets join it on the assets version.
+#   Layer names are as they read in PROTECT_analysis.aprx (Oct. 13, 2026).
+# versions: legend fills Legend Title; assets: true adds the hazard's asset layers; any other key (exports)
+#   passes to the sheet.
+# sheet_matrix: one entry per block of the list; a corridor that needs fewer hazards gets its own entry.
+corridors:
+  sr28:
+    label: SR 28
+    title: "State Route 28 \r\nCorridor\n\n"
+    bookmark: ""
+hazards:
+  flooding:
+    label: Flooding
+    exposure: [Hazard_Flood_Class]
+    assets: [Road, Bridge, Culvert]
+  wildfire:
+    label: Wildfire
+    exposure: [Hazard_Wildfire_BurnProb]
+    assets: [Road]
+  landslide:
+    label: Landslide
+    exposure: [Hazard_Landslide_Class]
+    assets: [Road, Bridge, Culvert]
+  debris_flow:
+    label: Debris Flow
+    exposure: [Hazard_DebrisFlow_Slope]    # slope term only; Hazard_DebrisFlow_Area is the drainage-size term
+    assets: [Road, Bridge, Culvert]
+  avalanche:
+    label: Avalanche
+    exposure: [Hazard_Avalanche_Cells]
+    assets: [Road]
+versions:
+  exposure:
+    legend: "{hazard} Exposure"
+    exports: [poster, screen]
+  assets:
+    legend: "{hazard} Exposure and Assets"
+    assets: true
+sheet_matrix:
+  - corridors: [sr28]
+    hazards: [flooding, wildfire, landslide, debris_flow, avalanche]
+    versions: [exposure, assets]
+
+# Sheets written out in full, after the generated ones. The keys a sheet can carry:
 # layers: what shows within managed (or the whole map without it). Parent groups turn on with a listed
 # layer, and every layer inside a listed group turns on. Leave layers out to keep the map as authored.
 # map: the Pro map for the main frame (default: whatever the template frame shows).
@@ -72,56 +119,18 @@ restricted:
 # frames: other map frames on the layout, {frame name: {map, layers, extent}}, for an inset. Each frame
 # on a sheet needs its own Pro map, since layer visibility belongs to the map.
 # enabled: false keeps a sheet out of a full run (--only still exports it).
-#
-# Seeded from the Workshop 1 print-map spec (html/workshop-punchlist.html) with the layer names in
-# PROTECT_analysis.aprx as of Oct. 13, 2026. Not in the map yet: vulnerability-classed asset layers
-# (Bridge, Culvert, and Road draw one plain symbol), active transport, transit centers, scenario layers,
-# one combined debris-flow surface, and a basin bookmark (every sheet keeps the SR 28 view).
+# Not in the map yet: vulnerability-classed asset layers (Bridge, Culvert, and Road draw one plain
+# symbol), active transport, transit centers, and scenario layers.
 sheets:
-  - id: 01_flooding_exposure
-    legend: Flooding Exposure
-    layers: [Hazard_Flood_Class]
-    exports: [poster, screen]
-  - id: 02_flooding_assets
-    legend: Flooding Exposure and Assets
-    layers: [Hazard_Flood_Class, Road, Bridge, Culvert]
-  - id: 03_wildfire_exposure
-    legend: Wildfire Burn Probability
-    layers: [Hazard_Wildfire_BurnProb]
-    exports: [poster, screen]
-  - id: 04_wildfire_assets
-    legend: Wildfire Exposure and Assets
-    layers: [Hazard_Wildfire_BurnProb, Road]
-  - id: 05_landslide_exposure
-    legend: Landslide Susceptibility
-    layers: [Hazard_Landslide_Class]
-    exports: [poster, screen]
-  - id: 06_landslide_assets
-    legend: Landslide Exposure and Assets
-    layers: [Hazard_Landslide_Class, Road, Bridge, Culvert]
-  - id: 07_debris_flow_exposure
-    legend: Debris Flow Exposure
-    layers: [Hazard_DebrisFlow_Slope]      # slope term only; Hazard_DebrisFlow_Area is the drainage-size term
-    exports: [poster, screen]
-  - id: 08_debris_flow_assets
-    legend: Debris Flow Exposure and Assets
-    layers: [Hazard_DebrisFlow_Slope, Road, Bridge, Culvert]
-  - id: 09_avalanche_exposure
-    legend: Avalanche Terrain
-    layers: [Hazard_Avalanche_Cells]
-    exports: [poster, screen]
-  - id: 10_avalanche_assets
-    legend: Avalanche Exposure and Assets
-    layers: [Hazard_Avalanche_Cells, Road]
-  - id: 11_scenario_1
+  - id: scenario_1
     legend: "Scenario 1: SR-89 West Shore Wildfire Closure"
     layers: [Scenario 1]
     enabled: false         # no scenario layers in the map yet
-  - id: 12_scenario_2
+  - id: scenario_2
     legend: Scenario 2
     layers: [Scenario 2]
     enabled: false         # location and hazard not decided
-  - id: 13_criticality
+  - id: criticality
     legend: Criticality
     layers: [Criticality]
     enabled: false         # if time allows: the context sheet at the entrance
