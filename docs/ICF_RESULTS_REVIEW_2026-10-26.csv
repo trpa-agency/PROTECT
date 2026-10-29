@@ -1,0 +1,64 @@
+﻿Page,Raised by,Comment or change,What we did,Status
+Criticality,ICF,Retitle; are the weights final?,"Titled Criticality Assessment. Default weights stated as the method, with three example uses; sliders moved into a collapsed ""Test other weights"".",Done
+Criticality,ICF,"""Criticality"" option should read ""Overall criticality""",Renamed,Done
+Criticality,ICF,"Traffic, detour, and access views show two classes, not four; map real values","Detour now in miles and access in residents routed, four classes each. Traffic is only published as a volume class, so it is grouped and labeled that way.",Done
+Criticality,ICF,"Call it ""criticality score""","Kept score and class distinct; the class is now ""criticality quarter"" everywhere","Declined, renamed"
+Criticality,ICF,Miles chart shows two bars,"Now four bars, matching the legend",Done
+Criticality,ICF,"""Segments that tie"" unclear",Rewritten in plain words,Done
+Criticality,ICF,Too busy: drop the normalization choice; hazard filter only on overall,Normalization choice removed. Hazard filter kept on every view.,Partly
+Rubrics,ICF,Flood approach and stream crossing as 1 make sense,Agreement recorded,Recorded
+Rubrics,ICF,Add a 10 to 30 m band around the 500-year zone as exposure 1,"Adopted as decision 31, then withdrawn: it would widen flood exposure that was already too broad. Decision 32 scores a stream crossing 1 instead, the consultant's own reading.",Declined; decision 32 needs server run
+Rubrics,ICF,"Embankment condition as a landslide road sensitivity, if DOTs have it",Recorded; depends on the DOT condition request,Recorded
+Rubrics,ICF,"Landslide, debris flow, and avalanche methods consistent",Agreement recorded,Recorded
+Results,ICF,"""Priority"" unclear next to criticality and hotspots","Now ""Highest vulnerability"", color only; Hotspots is the one place the two combine",Done
+Results,ICF,Debris flow Medium or High almost everywhere,Stand-in kept out of the overall class and explained on the page; revisit with the USGS model,Recorded
+Results,ICF,Boundary slivers included on purpose?,"Yes, the network is used as built",Recorded
+Results,ICF,Too many controls; downloadable 2-pager,"Panels trimmed, tabs kept. Two-page Results guide added, linked from the header, How to use, and Pages.",Partly
+Results,ICF,Overview views recolor roads only,Every view recolors every asset; assets a hazard does not score go gray,Done
+Results,ICF,Show exposure and sensitivity parts in popups,"Popups now lead with class, cause, and a plain reason, with the parts under Details",Done
+Results,ICF,"No legend for roads, paths, and hubs",Symbol key added for each layer,Done
+Results,ICF,Culvert drainage area stays after deselect,Clears on any other click or when culverts are turned off,Done
+Results,ICF,"Priority map: classes only, no line weight",Done with the rename,Done
+Results,ICF,Culvert tooltip as a full sentence,Rewritten as a full sentence,Done
+Results,ICF,"What is ""Set by""?","Now ""Highest hazard"", shown by name",Done
+Results,ICF,Popup scores lack classes,Every score shows its class,Done
+Results,ICF,Put class cutoffs near the top,Under every legend and in How to use,Done
+Results,ICF,Apache Ave has three paths,Three real facilities in the source data; offset geometry flagged to the network lane,Recorded
+Results,ICF,Only eight transit hubs; add maintenance facilities?,Not changed; question for the transportation team,Open
+Results,ICF,Criticality view mixes in vulnerability; drop criticality?,Other assets go gray in that view; criticality kept for Hotspots,Partly
+Results,ICF,Report road shares by miles,"Key numbers, charts, and matrix are all by miles",Done
+Results,ICF,Remove criticality from the summary charts,Asset chart is vulnerability only; one hotspot chart kept,Partly
+Results,ICF,Charts and key numbers should follow the selected hazard,"They redraw for the chosen hazard, by miles",Done
+Results,ICF,Flooding roads only High or not exposed,Cause explained on the page; decision 32 creates Medium,Done; needs server run
+Results,ICF,Storm buttons do not change roads,"Now ""Culverts: design storm"", under the culvert views",Done
+Results,ICF,Culverts: show final vulnerability only,Vulnerability is the default; flood-exposure button dropped; storm vs capacity kept,Partly
+Results,ICF,"Rename ""Classed flood surface""","Now ""Flood zones and streams, as scored""",Done
+Results,ICF,Will every asset be mapped for every hazard?,Each tab maps the assets that hazard scores,Recorded
+Results,ICF,Can licensed fire data be shown publicly?,Layers shown now are public; contracted package to be checked before use,Open
+Results,ICF,Wildfire legends missing,Added,Done
+Results,ICF,Landslide and debris flow toggles unclear,"One view each, with headings that name the assets",Done
+Results,ICF,Debris flow exposure close to vulnerability for culverts,"Expected, since culvert sensitivity is mostly default values",Recorded
+Results,ICF,Avalanche slope tier missing roads,Roads with no slope above draw as tier 0,Done
+Results,ICF,Avalanche has no vulnerability view,Added as the default,Done
+Feedback,ICF,Add a legend,Map key added to the panel,Done
+Feedback,ICF,"""Data mapped:"" label; reword the wildfire question",Done as written,Done
+Feedback,ICF,How would people spot what is missing?,Assets colored by the station's vulnerability class,Done
+Feedback,ICF,"Questions as step 3; drop ""Your notes""","Questions are step 3; Your notes kept, since it holds Send",Partly
+Feedback,ICF,Clear the form after sending,"Done, and tested with a real send",Done
+"Method, all flood pages",TRPA,Stream crossing scores 1 instead of 2 (decision 32),264 of 287 High road miles came from crossings alone. Legends switch automatically after the run.,Done in code; needs server run
+"Results, Feedback",TRPA,Workshop notes drawn as purple speech bubbles,They no longer look like High culverts,Done
+Results,TRPA,Clicking a table row finds it on the map,"Zooms to it, highlights it, and opens its popup",Done
+Results,TRPA,Popups rebuilt,"Class chip, the hazard behind it, a plain reason, hazard bars, criticality meter",Done
+Results,TRPA,Criticality table columns in words; white chart hovers; one-line pipe hover,Least to Most critical with the quarter beneath; every hover box white; storm-vs-capacity hover shows one line per pipe size,"Done (c559c07, not pushed)"
+Results,TRPA,"Duplicate ""notes sent"" tile; draft version",Duplicate removed; version fixed,Done
+"Results, Criticality",TRPA,Criticality colors,Switched to a thermal ramp on a dark basemap,Done
+All pages,TRPA,Wide screens and phones,Pages widen to 1800 px on big screens; one-row headers on phones; no sideways scroll,Done
+"Feedback, OD services",TRPA,Phone layouts,Feedback map no longer collapses; OD panel stacks above its map,Done
+Rubrics,TRPA,Page had stopped loading,Missing comma fixed; the decision count now updates itself,Done
+Punch list,TRPA,Internal tracker in the public menus,Removed from all menus; reachable from one link on All pages,Done
+References (new),TRPA,"Glossary, data dictionary, and sources",New page; the data dictionary moved out of the Results guide,Done
+Baseline Assessment (new),TRPA,Lessons from past emergencies,"Summary of the consultant's draft report, with proposed actions",Done
+"Storm events, OD services",TRPA,Site navigation,Now carry the site-wide Pages menu,Done
+Feedback,TRPA,Data and note IDs,Assets load from the published results; note IDs match the Results page; debris-flow station has a question,Done
+Culvert data,TRPA,Restricted NDOT data,Fields that could reveal NDOT's restricted data are withheld at shared crossings,Done
+Site,TRPA,What the public site serves,"Only the pages and their data, no internal docs",Done
