@@ -39,7 +39,8 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from va_common import REPO, clean, fetch_basin, get_logger, load_cfg, target_crs, to_dt
+from va_common import (REPO, clean, fetch_basin, get_logger, load_cfg, restricted_crossings, target_crs, to_dt,
+                       withhold_pooled)
 
 SQM_PER_ACRE = 4046.8564
 SQM_PER_KM2 = 1e6
@@ -423,7 +424,9 @@ def culverts_fields() -> list:
             "culvert, whose drainage area is withheld.", values="X plus five digits",
             used="results.html (popup, table, drainage area on click); score_exposure.py (watershed sampling)",
             length=12),
-        Fld("barrels", "SHORT", "Barrels", "Number of culverts in the crossing.", values="1 or more",
+        Fld("barrels", "SHORT", "Barrels", "Number of culverts in the crossing. Null where the crossing includes a "
+            "restricted-jurisdiction culvert, as are q_cap_crossing_cfs, the loading ratios, and ratio_review.",
+            values="1 or more",
             used="results.html (popup); culvert_profile.py (crossing capacity)"),
         Fld("material", "TEXT", "Material (as recorded)",
             "Pipe material as the agency recorded it, in words or as a code.",
@@ -484,10 +487,12 @@ def culverts_fields() -> list:
             units="cubic feet per second", used="results.html (popup, table)"),
         Fld("q_cap_crossing_cfs", "DOUBLE", "Crossing capacity (cfs)",
             "Flow the crossing can pass with water at the top of the opening (FHWA HDS-5 inlet control, 2 percent slope "
-            "assumed), summed over all barrels.", units="cubic feet per second", used="results.html (popup, table)"),
+            "assumed), summed over all barrels. Null where a barrel is restricted-jurisdiction.",
+            units="cubic feet per second", used="results.html (popup, table)"),
         Fld("load_ratio_100", "DOUBLE", "Loading ratio, 100-year",
             "q_event_100_cfs divided by q_cap_crossing_cfs. Above 1, the 100-year flow is more than the crossing can "
-            "pass. Null where size, watershed, or flow is missing, or where size_suspect is 1.", units="ratio",
+            "pass. Null where size, watershed, or flow is missing, where size_suspect is 1, or where a barrel in the "
+            "crossing is restricted-jurisdiction.", units="ratio",
             used="results.html (popup, table, chart, KPIs); workshop-feedback.html; make_pro_maps.py; "
                  "score_vulnerability.py (FL-C S2)"),
         Fld("cond_class", "SHORT", "Condition class",
@@ -515,7 +520,8 @@ def culverts_fields() -> list:
             "in. The loading ratio is left null and the record goes to the owner to confirm.", values="0, 1",
             used="results.html (popup, owner-review filter, KPI)"),
         Fld("ratio_review", "SHORT", "Ratio review",
-            "1 if load_ratio_100 is over 20. The culvert is still scored and is listed for the owner to confirm.",
+            "1 if load_ratio_100 is over 20. The culvert is still scored and is listed for the owner to confirm. "
+            "Null where the loading ratio is withheld for a restricted-jurisdiction barrel.",
             values="0, 1", used="results.html (popup, owner-review filter)"),
         Fld("profile_completeness", "TEXT", "Profile completeness",
             "Whether size, drainage area, and condition are all known (full), some are (partial), or none are "
@@ -1286,11 +1292,12 @@ def build_culverts(ds, cfg, ctx, log):
     cols = _src_cols(ds, skip={"C_class"}) + ["scored", "feature_type"]
     cul = _read(cfg["paths"]["analysis_gdb"], a["culverts_fc"], columns=cols).to_crs(target_crs(cfg))
     n0 = len(cul)
+    mixed = restricted_crossings(cul, ctx["restricted"]) if ctx["restricted"] else set()
     cul = cul[cul["scored"] == 1]
     if ctx["restricted"]:
         drop = cul["jurisdiction"].isin(ctx["restricted"])
         log.info(f"{int(drop.sum())} scored restricted culverts excluded")
-        cul = cul[~drop]
+        cul = withhold_pooled(cul[~drop].copy(), mixed, log)
     log.info(f"Culverts: {len(cul)} of {n0} rows kept (scored, public)" if ctx["restricted"] else
              f"Culverts: {len(cul)} of {n0} rows kept (scored)")
     from culvert_profile import clean_span_rise

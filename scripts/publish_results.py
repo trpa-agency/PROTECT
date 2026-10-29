@@ -7,7 +7,9 @@ summary JSON for the page KPIs.
     python scripts/publish_results.py --dry-run  # counts only
 
 Everything written here is served by GitHub Pages, so the restricted jurisdiction (NDOT) is
-excluded at the row level, never aggregated in, and the file names carry no restricted name.
+excluded at the row level, never aggregated in, and the file names carry no restricted name. A
+public culvert that shares its crossing with an NDOT culvert keeps its row but not the fields
+pooled over the crossing's barrels (va_common.CROSSING_POOLED and the loading ratios).
 The flood surface is simplified to 5 m for size. Run on the server (reads the geodatabases).
 """
 
@@ -21,7 +23,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from va_common import REPO, get_logger, load_cfg, read_streets, target_crs
+from va_common import REPO, get_logger, load_cfg, read_streets, restricted_crossings, target_crs, withhold_pooled
 
 CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "parent_segment_id", "crossing_id",
                 "barrels", "span_in", "d_eq_in", "size_class", "material_class", "contrib_area_ac",
@@ -367,7 +369,7 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
             r[c] = None
     r = r[[c for c in V_ROAD_COLS if c in r.columns] + ["geometry"]]
     for c in r.columns:
-        if c.startswith(("V_", "criticality")) and c not in ("V_max_pair", "V_class"):
+        if c.startswith(("V_", "criticality")) and c not in ("V_max_pair", "V_class", "V_max_all_pair", "V_class_all"):
             r[c] = pd.to_numeric(r[c], errors="coerce").round(2)
     write_road_geometry(st, key, out_dir, log)
     _json_rows(pd.DataFrame(r.drop(columns=["geometry"] + [c for c in ("name", "class", "seg_len_m") if c in r.columns])), out_dir / "roads_vulnerability.json", log)
@@ -514,8 +516,12 @@ def main() -> None:
     from culvert_profile import clean_span_rise
     from score_exposure import bridge_exposure_source, exposure_source
     cul = pyogrio.read_dataframe(gdb, layer=a["culverts_fc"])
+    # crossings with a restricted barrel, found before those rows are dropped (scored or not)
+    from culvert_profile import restricted_jurisdictions
+    mixed = restricted_crossings(cul, restricted_jurisdictions(cfg) | {"NDOT"})
     cul = cul[cul["scored"] == 1] if "scored" in cul.columns else cul
     cul = public_only(cul, cfg, log).copy()
+    cul = withhold_pooled(cul, mixed, log)
     # derived from the stored fields so the files are right whatever the layer holds: the layer keeps the
     # delivered sizes, and E_source on layers scored before exposure_source reflects only the last pair run
     cul["span_in"], cul["rise_in"] = clean_span_rise(cul, cfg["profile"])

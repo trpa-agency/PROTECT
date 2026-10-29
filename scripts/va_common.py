@@ -82,6 +82,31 @@ def dedupe_ids(s: pd.Series) -> pd.Series:
     return s.where(counts == 0, s + "-" + (counts + 1).astype(str))
 
 
+# Culvert fields pooled over every barrel in a crossing. Where a public culvert shares its crossing
+# with a restricted (NDOT) culvert they carry the restricted barrel's count and capacity, and the
+# public barrel's own size would let anyone subtract it back out, so public copies withhold them.
+CROSSING_POOLED = ("barrels", "q_cap_crossing_cfs", "ratio_review")   # plus every load_ratio_<rp>
+
+
+def restricted_crossings(cul: pd.DataFrame, restricted: set[str]) -> set[str]:
+    """crossing_id of every crossing with a restricted culvert in it. Pass the culverts before the
+    restricted rows are dropped. A row counts by jurisdiction or by the '<jurisdiction>|' id prefix,
+    so a blank or renamed jurisdiction still marks its crossing."""
+    hit = cul["jurisdiction"].isin(restricted) | cul["culvert_id"].astype(str).str.startswith(
+        tuple(f"{j}|" for j in restricted))
+    return set(cul.loc[hit & cul["crossing_id"].notna(), "crossing_id"].astype(str))
+
+
+def withhold_pooled(cul: pd.DataFrame, crossings: set[str], log: logging.Logger) -> pd.DataFrame:
+    """Null the CROSSING_POOLED fields and every load_ratio_<rp> on rows in `crossings`."""
+    m = cul["crossing_id"].astype(str).isin(crossings)
+    cols = [c for c in cul.columns if c in CROSSING_POOLED or c.startswith("load_ratio_")]
+    for c in cols:
+        cul[c] = cul[c].where(~m)
+    log.info(f"{int(m.sum())} public culverts share a crossing with a restricted culvert: {', '.join(cols)} withheld")
+    return cul
+
+
 def line_rep_point(geom, how: str = "midpoint"):
     """Collapse a (Multi)LineString to a representative Point (same rule as the culvert notebook)."""
     from shapely.geometry import MultiLineString, Point

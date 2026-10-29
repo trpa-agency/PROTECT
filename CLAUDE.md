@@ -94,7 +94,10 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   derived from it at the asset level, under the repo (`data/processed` is git-tracked and
   served by GitHub Pages), into `outputs/`, onto any html page, or into a public REST service.
   Segment-level aggregates are allowed but must be attributed to NDOT and reviewed by NDOT
-  before publication. The `.gitignore` blocks `*ndot*` as a backstop.
+  before publication. The `.gitignore` blocks `*ndot*` as a backstop. A public culvert that shares
+  its crossing with an NDOT culvert publishes without the fields pooled over the crossing's barrels
+  (`va_common.CROSSING_POOLED` and the loading ratios, Oct. 28, 2026): those let the NDOT barrel's
+  capacity be subtracted back out.
 
 The live readiness tracker is the Data and Model Inventory tab of `html/reference-hub.html`.
 

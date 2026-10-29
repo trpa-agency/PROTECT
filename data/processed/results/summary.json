@@ -3,10 +3,10 @@
  "culverts": {
   "scored_public": 5096,
   "full_profile": 858,
-  "with_ratio": 3901,
-  "ratio_over_1": 1408,
+  "with_ratio": 3891,
+  "ratio_over_1": 1406,
   "ratio_median": 0.49,
-  "ratio_p90": 4.84,
+  "ratio_p90": 4.9,
   "size_suspect": 93,
   "ratio_review": 354,
   "tailwater": 128,
@@ -29,10 +29,10 @@
   "headline_rp": 100,
   "storms": {
    "100": {
-    "with_ratio": 3901,
-    "ratio_over_1": 1408,
+    "with_ratio": 3891,
+    "ratio_over_1": 1406,
     "ratio_median": 0.49,
-    "ratio_p90": 4.84,
+    "ratio_p90": 4.9,
     "V_FLC_median": 1.05,
     "V_FLC_class": {
      "Medium": 2416,
@@ -41,10 +41,10 @@
     }
    },
    "25": {
-    "with_ratio": 3901,
-    "ratio_over_1": 1157,
+    "with_ratio": 3891,
+    "ratio_over_1": 1155,
     "ratio_median": 0.35,
-    "ratio_p90": 3.4,
+    "ratio_p90": 3.41,
     "V_FLC_median": 1.02,
     "V_FLC_class": {
      "Medium": 2386,
