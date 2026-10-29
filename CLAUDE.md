@@ -64,7 +64,10 @@ dashed "Coming" cards for what is not built yet), and no task lists or open deci
   dashboard stack (Calcite + ArcGIS Maps SDK + Plotly + AG Grid).
 - **Hosting / visibility**: GitHub Pages for now (`trpa-agency.github.io/PROTECT`); final home is
   `data.trpa.gov/PROTECT`. Internal review draft only - do NOT commit raw internal source docs
-  (xlsx/docx/pptx) or publish broadly yet.
+  (xlsx/docx/pptx) or publish broadly yet. `_config.yml` (Oct. 28, 2026) limits the site to
+  `index.html`, `html/`, and `data/processed/results/`; Pages had been rendering every `.md`
+  (this file and `docs/`) as a web page. A new top-level folder or a new file under `data/` is
+  served unless it is added to the `exclude` list. The repo itself is public on GitHub either way.
 
 ## Data sources (TRPA REST)
 

@@ -1,0 +1,29 @@
+# GitHub Pages (Jekyll) build settings.
+#
+# Pages publishes the whole repo by default, and its optional-front-matter plugin renders every
+# .md file as a web page, so working notes, CLAUDE.md, and raw source files were all reachable by
+# URL. The site is only index.html, html/, and data/processed/results/ (what the pages fetch);
+# everything else stays in the repo but off the site. Underscore and dot folders (html/_archive,
+# html/_dev, .claude) are already skipped by Jekyll.
+#
+# A new top-level folder or a new file under data/ is served unless it is added here.
+
+exclude:
+  - CLAUDE.md
+  - README.md
+  - Hazard_Asset_Pairs.md
+  - config.yaml
+  - docs
+  - scripts
+  - notebooks
+  - climate
+  - debris-flow
+  - print-maps
+  - data/PROTECT_Hazard_Asset_Pairs_KR.xlsx
+  - data/runoff_coefficients_rawls1981.csv
+  - data/processed/culverts.gpkg
+  - data/processed/culvert_condition.parquet
+  # raw internal source docs never belong on the site (CLAUDE.md: internal review draft)
+  - "*.xlsx"
+  - "*.docx"
+  - "*.pptx"
