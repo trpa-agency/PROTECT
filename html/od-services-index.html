@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Origin Destination Index for Services &middot; PROTECT</title>
-  <meta name="description" content="Which Lake Tahoe roads people use to reach emergency shelters, medical facilities, law enforcement, and the way out of the basin, scored from RA2CE-routed origin-destination trips on the street network."/>
+  <meta name="description" content="Which Lake Tahoe roads people use to reach emergency shelters, medical facilities, law enforcement, schools, fresh food, and the way out of the basin, scored from RA2CE-routed origin-destination trips on the street network."/>
   <link rel="icon" type="image/x-icon" href="favicon.ico"/>
 
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css"/>
@@ -231,7 +231,7 @@
       font-size: 10px; color: var(--text-dim);
     }
     .norm-btns { display: flex; gap: 6px; }
-    .norm-btn, .map-btn {
+    .map-btn {
       flex: 1;
       font-family: var(--font-display);
       font-size: 10px; font-weight: 700;
@@ -242,8 +242,8 @@
       border-radius: 5px; padding: 7px 4px;
       cursor: pointer; transition: all .15s;
     }
-    .norm-btn:hover, .map-btn:hover { border-color: var(--navy); color: var(--navy); }
-    .norm-btn.active, .map-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .map-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .map-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 
     /* trip-ranking switch shares the norm-btn shape, accented in teal */
     .rank-btn {
@@ -263,52 +263,6 @@
       margin-top: 7px;
       font-size: 10px; color: var(--text-dim); line-height: 1.45;
     }
-
-    /* ── hazard exposure filter ── */
-    .haz-bar {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-      background: var(--panel-dk);
-      flex-shrink: 0;
-    }
-    .haz-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .haz-btn {
-      font-family: var(--font-display);
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      border: 1.5px solid var(--border);
-      background: var(--panel);
-      color: var(--text-mid);
-      border-radius: 5px; padding: 7px 4px;
-      cursor: pointer; transition: all .15s;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-    }
-    .haz-btn:hover { border-color: var(--hz-color, var(--navy)); color: var(--hz-color, var(--navy)); }
-    .haz-btn.active {
-      background: var(--hz-color, var(--navy));
-      border-color: var(--hz-color, var(--navy));
-      color: #fff;
-    }
-    .haz-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; background: var(--hz-color, var(--text-dim)); }
-    .haz-btn.active .haz-swatch { background: rgba(255,255,255,0.85); }
-
-    .haz-thresh { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--border); }
-    .haz-thresh.hidden { display: none; }
-    .haz-thresh-row { display: flex; align-items: center; gap: 8px; }
-    .haz-thresh-lbl {
-      font-size: 9px; font-weight: 600;
-      color: var(--text-dim);
-      letter-spacing: 0.08em; text-transform: uppercase;
-      width: 74px; flex-shrink: 0;
-    }
-    .haz-thresh-val {
-      font-family: var(--font-display);
-      font-size: 15px; font-weight: 700;
-      color: var(--hz-slide);
-      width: 30px; text-align: right; flex-shrink: 0;
-    }
-    .haz-count { margin-top: 8px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
-    .haz-count strong { color: var(--navy); font-weight: 700; }
 
     .cards-scroll {
       flex: 1; overflow-y: auto;
@@ -540,46 +494,24 @@
       text-transform: uppercase;
     }
 
-    /* ── SYMBOLOGY TOGGLE BAR ── */
-    .sym-bar {
-      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-      z-index: 50;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 8px;
-      display: flex; align-items: center; gap: 6px;
-      box-shadow: 0 2px 12px rgba(0,59,113,0.14);
-    }
-    .sym-lbl {
+    /* ── MAP VIEW LIST (sidebar): the index, then one row per destination ── */
+    .view-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .view-btn {
       font-family: var(--font-display);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.12em;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      padding: 0 6px 0 2px;
-      border-right: 1px solid var(--border);
-      margin-right: 2px;
-      white-space: nowrap;
-    }
-    .sym-btn {
-      font-family: var(--font-display);
-      font-size: 11px; font-weight: 700;
+      font-size: 10px; font-weight: 700;
       letter-spacing: 0.05em; text-transform: uppercase;
       border: 1.5px solid var(--border);
-      background: transparent;
+      background: var(--panel);
       color: var(--text-mid);
-      border-radius: 6px;
-      padding: 8px 13px;
-      cursor: pointer;
-      transition: all .15s;
-      display: flex; align-items: center; gap: 5px;
-      white-space: nowrap;
+      border-radius: 5px; padding: 7px 6px;
+      cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; gap: 6px; text-align: left;
     }
-    .sym-btn:hover { border-color: var(--sym-color, var(--navy)); color: var(--sym-color, var(--navy)); background: var(--panel-dk); }
-    .sym-btn.active { color: #fff; border-color: var(--sym-color, var(--navy)); background: var(--sym-color, var(--navy)); }
-    .sym-btn .sym-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; background: var(--sym-color, var(--text-dim)); }
-    .sym-btn.active .sym-swatch { background: rgba(255,255,255,0.85); }
+    .view-btn.wide { grid-column: 1 / -1; justify-content: center; }
+    .view-btn:hover { border-color: var(--sym-color, var(--navy)); color: var(--sym-color, var(--navy)); }
+    .view-btn.active { color: #fff; border-color: var(--sym-color, var(--navy)); background: var(--sym-color, var(--navy)); }
+    .view-btn .sym-swatch { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; background: var(--sym-color, var(--text-dim)); }
+    .view-btn.active .sym-swatch { background: rgba(255,255,255,0.85); }
       /* full screen map: the panel beside the map floats over it as a collapsible legend (same controls) */
     .fs-on{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;background:#fff;display:block!important;z-index:1000;}
     .fs-on .fs-map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;border-radius:0!important;}
@@ -631,48 +563,9 @@
     </div>
 
     <div class="norm-bar">
-      <span class="norm-lbl">Normalization<button class="info-btn" data-info="norm"></button></span>
-      <div class="norm-btns">
-        <button class="norm-btn active" data-norm="log">Log Z</button>
-        <button class="norm-btn" data-norm="zscore">Z-Score</button>
-        <button class="norm-btn" data-norm="minmax">Min-Max</button>
-      </div>
-      <div class="norm-note" id="norm-note">
-        Most roads carry few trips and a handful carry very many, so the default is log Z: the natural log of trips plus one, then z-scored.
-      </div>
-    </div>
-
-    <div class="haz-bar">
-      <span class="norm-lbl">Hazard Exposure Filter<button class="info-btn" data-info="hazard"></button></span>
-      <div class="haz-btns">
-        <button class="haz-btn active" data-haz="none" style="--hz-color: var(--navy)">
-          <span class="haz-swatch"></span>All Segments
-        </button>
-        <button class="haz-btn" data-haz="flood" style="--hz-color: var(--hz-flood)">
-          <span class="haz-swatch"></span>Flood Zone
-        </button>
-        <button class="haz-btn" data-haz="fire" style="--hz-color: var(--hz-fire)">
-          <span class="haz-swatch"></span>High-severity fire
-        </button>
-        <button class="haz-btn" data-haz="landslide" style="--hz-color: var(--hz-slide)">
-          <span class="haz-swatch"></span>Landslide
-        </button>
-      </div>
-
-      <div class="haz-thresh hidden" id="haz-thresh">
-        <div class="haz-thresh-row">
-          <span class="haz-thresh-lbl">Mean at or above</span>
-          <input type="range" id="haz-slider" min="0" max="81" step="1" value="22" style="flex:1">
-          <span class="haz-thresh-val" id="haz-slider-val">22</span>
-        </div>
-      </div>
-
-      <div class="haz-count" id="haz-count">Showing all segments</div>
-    </div>
-
-    <div class="norm-bar">
-      <span class="norm-lbl">Map</span>
-      <div class="norm-btns">
+      <span class="norm-lbl">Map View<button class="info-btn" data-info="view"></button></span>
+      <div class="view-btns" id="view-btns"></div>
+      <div class="norm-btns" style="margin-top:6px">
         <button class="map-btn" id="hillshade-btn">Terrain (hillshade)</button>
       </div>
     </div>
@@ -685,97 +578,7 @@
         <span class="wsum-val" id="wsum">1.00</span>
       </div>
 
-      <!-- ── EMERGENCY SHELTERS ── -->
-      <div class="si-card" id="card-shelters" style="--si-color: var(--green)">
-        <div class="si-head" onclick="toggleCard('shelters')">
-          <div class="si-dot"></div>
-          <span class="si-name">Emergency Shelters</span>
-          <button class="info-btn" data-info="shelters"></button>
-          <span class="si-badge" id="sidisp-shelters">0.25</span>
-          <span class="chevron">&#9660;</span>
-        </div>
-        <div class="si-body">
-          <div class="si-wt-row">
-            <span class="si-wt-label">Weight</span>
-            <input type="range" id="siw-shelters" min="0" max="1" step="0.01" value="0.25" style="flex:1">
-            <span class="si-wt-val" id="siwv-shelters">0.25</span>
-          </div>
-          <div class="si-meta">
-            <span class="si-field" id="field-shelters">traffic_emergency_shelters</span>
-            <button class="invert-pill off" id="inv-shelters">INV</button>
-          </div>
-          <div class="si-stat" id="stat-shelters"></div>
-        </div>
-      </div>
-
-      <!-- ── MEDICAL FACILITIES ── -->
-      <div class="si-card" id="card-medical" style="--si-color: var(--red)">
-        <div class="si-head" onclick="toggleCard('medical')">
-          <div class="si-dot"></div>
-          <span class="si-name">Medical Facilities</span>
-          <button class="info-btn" data-info="medical"></button>
-          <span class="si-badge" id="sidisp-medical">0.25</span>
-          <span class="chevron">&#9660;</span>
-        </div>
-        <div class="si-body">
-          <div class="si-wt-row">
-            <span class="si-wt-label">Weight</span>
-            <input type="range" id="siw-medical" min="0" max="1" step="0.01" value="0.25" style="flex:1">
-            <span class="si-wt-val" id="siwv-medical">0.25</span>
-          </div>
-          <div class="si-meta">
-            <span class="si-field" id="field-medical">traffic_medical_facilities</span>
-            <button class="invert-pill off" id="inv-medical">INV</button>
-          </div>
-          <div class="si-stat" id="stat-medical"></div>
-        </div>
-      </div>
-
-      <!-- ── LAW ENFORCEMENT ── -->
-      <div class="si-card" id="card-law" style="--si-color: var(--blue)">
-        <div class="si-head" onclick="toggleCard('law')">
-          <div class="si-dot"></div>
-          <span class="si-name">Law Enforcement</span>
-          <button class="info-btn" data-info="law"></button>
-          <span class="si-badge" id="sidisp-law">0.25</span>
-          <span class="chevron">&#9660;</span>
-        </div>
-        <div class="si-body">
-          <div class="si-wt-row">
-            <span class="si-wt-label">Weight</span>
-            <input type="range" id="siw-law" min="0" max="1" step="0.01" value="0.25" style="flex:1">
-            <span class="si-wt-val" id="siwv-law">0.25</span>
-          </div>
-          <div class="si-meta">
-            <span class="si-field" id="field-law">traffic_law_enforcement</span>
-            <button class="invert-pill off" id="inv-law">INV</button>
-          </div>
-          <div class="si-stat" id="stat-law"></div>
-        </div>
-      </div>
-
-      <!-- ── EVACUATION ── -->
-      <div class="si-card" id="card-evac" style="--si-color: var(--orange)">
-        <div class="si-head" onclick="toggleCard('evac')">
-          <div class="si-dot"></div>
-          <span class="si-name">Evacuation</span>
-          <button class="info-btn" data-info="evac"></button>
-          <span class="si-badge" id="sidisp-evac">0.25</span>
-          <span class="chevron">&#9660;</span>
-        </div>
-        <div class="si-body">
-          <div class="si-wt-row">
-            <span class="si-wt-label">Weight</span>
-            <input type="range" id="siw-evac" min="0" max="1" step="0.01" value="0.25" style="flex:1">
-            <span class="si-wt-val" id="siwv-evac">0.25</span>
-          </div>
-          <div class="si-meta">
-            <span class="si-field" id="field-evac">traffic_evacuation</span>
-            <button class="invert-pill off" id="inv-evac">INV</button>
-          </div>
-          <div class="si-stat" id="stat-evac"></div>
-        </div>
-      </div>
+      <div id="dest-cards"></div>
 
     </div><!-- /cards-scroll -->
 
@@ -792,26 +595,6 @@
   <!-- ── MAP ─────────────────────────────────────────────── -->
   <div class="main-area">
     <div id="viewDiv"></div>
-
-    <div class="sym-bar">
-      <span class="sym-lbl">Map View</span>
-      <button class="sym-btn active" data-sym="od" style="--sym-color: var(--navy)">
-        <span class="sym-swatch" style="background:linear-gradient(90deg,#2c7bb6,#d7191c)"></span>
-        OD Index
-      </button>
-      <button class="sym-btn" data-sym="shelters" style="--sym-color: var(--green)">
-        <span class="sym-swatch"></span>Shelters
-      </button>
-      <button class="sym-btn" data-sym="medical" style="--sym-color: var(--red)">
-        <span class="sym-swatch"></span>Medical
-      </button>
-      <button class="sym-btn" data-sym="law" style="--sym-color: var(--blue)">
-        <span class="sym-swatch"></span>Law Enf.
-      </button>
-      <button class="sym-btn" data-sym="evac" style="--sym-color: var(--orange)">
-        <span class="sym-swatch"></span>Evacuation
-      </button>
-    </div>
 
     <div class="map-legend">
       <div class="legend-title"><span id="legend-title-text">OD Services Index</span><button class="info-btn" data-info="od"></button></div>
@@ -838,21 +621,53 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
   //  Each field holds the residents routed over the segment on
   //  trips bound for that destination type. One field per index
   //  component, each normalized on its own before weighting.
+  //  The six sets match OD_AVG_ANALYSES in Streets_Network_Clean.
   // ═══════════════════════════════════════════════════════
   const DESTS = [
-    { key: "shelters", label: "Emergency Shelters", short: "Shelters",   base: "emergency_shelters", color: "#4a7729",
-      ramp: { lo: "#e8efe1", mid: "#6b9c46", hi: "#2f4d18" } },
-    { key: "medical",  label: "Medical Facilities", short: "Medical",    base: "medical_facilities", color: "#B03A1A",
-      ramp: { lo: "#f8e3dc", mid: "#cf5a38", hi: "#6e2110" } },
-    { key: "law",      label: "Law Enforcement",    short: "Law Enf.",   base: "law_enforcement",    color: "#0072CE",
-      ramp: { lo: "#dcebf8", mid: "#3f9bdd", hi: "#00406f" } },
-    { key: "evac",     label: "Evacuation",         short: "Evacuation", base: "evacuation",         color: "#E87722",
-      ramp: { lo: "#fbe6d3", mid: "#f0913f", hi: "#8c4a06" } }
+    { key: "shelters", label: "Emergency Shelters", short: "Shelters",   base: "emergency_shelters", color: "#4a7729" },
+    { key: "medical",  label: "Medical Facilities", short: "Medical",    base: "medical_facilities", color: "#B03A1A" },
+    { key: "law",      label: "Law Enforcement",    short: "Law Enf.",   base: "law_enforcement",    color: "#0072CE" },
+    { key: "evac",     label: "Evacuation",         short: "Evacuation", base: "evacuation",         color: "#E87722" },
+    { key: "schools",  label: "Schools",            short: "Schools",    base: "schools",            color: "#6A4C93" },
+    { key: "food",     label: "Fresh Food",         short: "Fresh Food", base: "fresh_food",         color: "#007681" }
   ];
+
+  // Sidebar: one weight card and one map-view button per destination
+  document.getElementById("dest-cards").innerHTML = DESTS.map(d => {
+    const w = (1 / DESTS.length).toFixed(2);
+    return `
+      <div class="si-card" id="card-${d.key}" style="--si-color: ${d.color}">
+        <div class="si-head" onclick="toggleCard('${d.key}')">
+          <div class="si-dot"></div>
+          <span class="si-name">${d.label}</span>
+          <button class="info-btn" data-info="${d.key}"></button>
+          <span class="si-badge" id="sidisp-${d.key}">${w}</span>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="si-body">
+          <div class="si-wt-row">
+            <span class="si-wt-label">Weight</span>
+            <input type="range" id="siw-${d.key}" min="0" max="1" step="0.01" value="${w}" style="flex:1">
+            <span class="si-wt-val" id="siwv-${d.key}">${w}</span>
+          </div>
+          <div class="si-meta">
+            <span class="si-field" id="field-${d.key}">traffic_${d.base}</span>
+            <button class="invert-pill off" id="inv-${d.key}">INV</button>
+          </div>
+          <div class="si-stat" id="stat-${d.key}"></div>
+        </div>
+      </div>`;
+  }).join("");
+
+  document.getElementById("view-btns").innerHTML =
+    `<button class="view-btn wide active" data-sym="od" style="--sym-color: var(--navy)">
+       <span class="sym-swatch"></span>OD Services Index</button>`
+    + DESTS.map(d => `<button class="view-btn" data-sym="${d.key}" style="--sym-color: ${d.color}">
+       <span class="sym-swatch"></span>${d.short}</button>`).join("");
 
   // ═══════════════════════════════════════════════════════
   //  TRIP RANKING FAMILIES
-  //  Same four destinations, two trip families from one routing run.
+  //  Same six destinations, two trip families from one routing run.
   //  Both families are loaded up front so the switch is instant.
   // ═══════════════════════════════════════════════════════
   const RANKINGS = {
@@ -865,89 +680,56 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
   const OD_RAMP = { lo: "#2c7bb6", mid: "#ffffbf", hi: "#d7191c" };
 
   const BASE          = "../data/processed/results/";
-  const HAZARD_FIELDS = ["in_flood_zone", "high_sev_fire", "landslide_mean"];
+  const HAZARD_FIELDS = ["in_flood_zone", "high_sev_fire", "landslide_mean"];   // popup and export only
 
   // Field for a destination under the active ranking, e.g. prioritarian_evacuation
   const fieldOf   = d => `${rankMode}_${d.base}`;
   const ALL_FIELDS = Object.keys(RANKINGS).flatMap(r => DESTS.map(d => `${r}_${d.base}`));
   const activeFields = () => DESTS.map(fieldOf);
 
-  // ═══════════════════════════════════════════════════════
-  //  HAZARD FILTERS (one at a time)
-  // ═══════════════════════════════════════════════════════
-  const HAZARDS = {
-    none:      { label: "all segments" },
-    flood:     { label: "in a flood zone",
-                 where: () => "in_flood_zone = 1",
-                 test:  a => a.in_flood_zone === 1 },
-    fire:      { label: "in a high-severity fire area",
-                 where: () => "high_sev_fire = 1",
-                 test:  a => a.high_sev_fire === 1 },
-    landslide: { label: "landslide exposure",
-                 where: () => `landslide_mean >= ${landslideThreshold}`,
-                 test:  a => a.landslide_mean != null && a.landslide_mean >= landslideThreshold }
-  };
-
   // ── State ────────────────────────────────────────────────
-  const weights = { shelters: 0.25, medical: 0.25, law: 0.25, evac: 0.25 };
-  const invertFlags = { shelters: false, medical: false, law: false, evac: false };
+  const weights     = Object.fromEntries(DESTS.map(d => [d.key, 1 / DESTS.length]));
+  const invertFlags = Object.fromEntries(DESTS.map(d => [d.key, false]));
 
-  let   rankMode          = "traffic"; // "traffic" | "prioritarian"
-  let   normMode          = "log";     // "log" | "zscore" | "minmax"
-  const statsByMode       = {};        // mode -> field -> { mean, std, min, max }
-  const rawSummary        = {};        // field -> { min, max, mean, zeroPct }
-  let   allFeatures       = [];
+  let   rankMode    = "traffic"; // "traffic" | "prioritarian"
+  let   stats       = null;      // field -> { mean, std } of ln(trips + 1)
+  const rawSummary  = {};        // field -> { min, max, mean, zeroPct }
+  let   allFeatures = [];
   let   featureLayer;
-  let   currentSym        = "od";      // "od" | dest key
-  let   activeHazard      = "none";
-  let   landslideThreshold = 22;
-
-  const NORM_NOTES = {
-    log:    "Most roads carry few trips and a handful carry very many, so the default is log Z: the natural log of trips plus one, then z-scored.",
-    zscore: "Z-scores the raw trip counts. A few very busy roads dominate, so most of the network looks flat.",
-    minmax: "Rescales each field to 0 to 1 by its own lowest and highest value. The busiest roads push everything else close to zero."
-  };
+  let   currentSym  = "od";      // "od" | dest key
 
   // ═══════════════════════════════════════════════════════
-  //  NORMALIZATION
-  //  transform() then (value - offset) / scale, so one code path
-  //  serves all three modes in JS and in Arcade.
+  //  NORMALIZATION (log Z)
+  //  Most roads carry few trips and a handful carry very many,
+  //  so each field is ln(trips + 1), then z-scored.
   // ═══════════════════════════════════════════════════════
-  const transform = v => normMode === "log" ? Math.log(v + 1) : v;
-
-  function computeStats(mode) {
-    if (statsByMode[mode]) return statsByMode[mode];
-    const prev = normMode;
-    normMode = mode;
-    const out = {};
+  function computeStats() {
+    if (stats) return stats;
+    stats = {};
     ALL_FIELDS.forEach(field => {
       const vals = allFeatures
         .map(f => f.attributes[field])
         .filter(v => v != null && !isNaN(v))
-        .map(transform);
-      if (!vals.length) { out[field] = { mean: 0, std: 1, min: 0, max: 1 }; return; }
+        .map(v => Math.log(v + 1));
+      if (!vals.length) { stats[field] = { mean: 0, std: 1 }; return; }
       const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
       const std  = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length) || 1;
-      out[field] = { mean, std, min: Math.min(...vals), max: Math.max(...vals) };
+      stats[field] = { mean, std };
     });
-    normMode = prev;
-    statsByMode[mode] = out;
-    return out;
+    return stats;
   }
 
   function normParams(field) {
-    const st = computeStats(normMode)[field] || { mean: 0, std: 1, min: 0, max: 1 };
-    return normMode === "minmax"
-      ? { offset: st.min,  scale: (st.max - st.min) || 1 }
-      : { offset: st.mean, scale: st.std || 1 };
+    const st = computeStats()[field] || { mean: 0, std: 1 };
+    return { offset: st.mean, scale: st.std || 1 };
   }
 
-  // Nulls are excluded by the layer's definitionExpression; if one slips
-  // through it is treated as zero trips, matching the Arcade expression.
+  // Nulls are excluded on load; if one slips through it is treated
+  // as zero trips, matching the Arcade expression.
   function normValue(field, raw) {
     const p = normParams(field);
     const v = (raw != null && !isNaN(raw)) ? raw : 0;
-    return (transform(v) - p.offset) / p.scale;
+    return (Math.log(v + 1) - p.offset) / p.scale;
   }
 
   // ═══════════════════════════════════════════════════════
@@ -988,8 +770,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     const f = fieldOf(d);
     const p = normParams(f);
     const raw = `IIf(IsEmpty($feature.${f}), 0, $feature.${f})`;
-    const t   = normMode === "log" ? `Log(${raw} + 1)` : `(${raw})`;
-    const n   = `((${t} - ${p.offset}) / ${p.scale})`;
+    const n   = `((Log(${raw} + 1) - ${p.offset}) / ${p.scale})`;
     return invertFlags[key] ? `(-1 * ${n})` : n;
   }
 
@@ -1069,16 +850,6 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     });
   });
 
-  document.querySelectorAll(".norm-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      normMode = btn.dataset.norm;
-      document.querySelectorAll(".norm-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      document.getElementById("norm-note").textContent = NORM_NOTES[normMode];
-      updateMap();
-    });
-  });
-
   window.toggleCard = key => document.getElementById(`card-${key}`).classList.toggle("collapsed");
 
   // ═══════════════════════════════════════════════════════
@@ -1100,14 +871,16 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
              <code>POPULATION</code> count. A segment's value is <strong>the number of residents
              whose route to that service runs over it</strong>: people, not vehicles. High values
              mark roads that a large share of service access depends on.</p>
-             <p>The index puts each of the four destination types on a common scale (normalized
-             on its own) and combines them into one weighted score.</p>${SRC}`
+             <p>The index puts each of the six destination types on a common scale and combines
+             them into one weighted score. Each field is scaled as <code>ln(trips + 1)</code>,
+             then z-scored (standard deviations from the mean), because the typical segment
+             carries no trips while the busiest carries tens of thousands.</p>${SRC}`
     },
     weights: {
       title: "Destination weights",
       body: `<p>Each destination's scaled (normalized) score is multiplied by its weight, and the
-             four are added up to make the OD Services Index.</p>
-             <p>The weights can be changed. Moving one rescales the other three so the total stays
+             six are added up to make the OD Services Index.</p>
+             <p>The weights can be changed. Moving one rescales the other five so the total stays
              at 1.00. The <code>INV</code> pill flips a destination's sign, so heavy use lowers
              the index instead of raising it.</p>`
     },
@@ -1155,29 +928,27 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
              <p>Comparing the two rankings shows where equity weighting changes which roads
              matter.</p>${SRC}`
     },
-    norm: {
-      title: "Normalization",
-      body: `<p>Each field is put on a common scale (normalized) before weighting so the four
-             destinations can be compared.</p>
-             <p><strong>Log Z</strong> takes <code>ln(trips + 1)</code> and then z-scores it
-             (expresses each value as standard deviations from the mean). It is the default
-             because trip counts are very lopsided (right-skewed): the typical (median) segment
-             carries no trips, while the busiest carries tens of thousands.</p>
-             <p><strong>Z-Score</strong> uses the raw counts, so a few main roads dominate and most
-             of the network looks flat. <strong>Min-Max</strong> rescales each field to 0 to 1 on
-             its own range, which the extreme maximums squeeze.</p>
-             <p>Colors always change at the 5th, 50th, and 95th percentile of the resulting
-             score.</p>`
+    schools: {
+      title: "Schools",
+      body: `<p>Trips from every neighborhood to the 21 schools in the basin (TRPA school
+             locations).</p>
+             <p>People are split among schools, with nearer schools getting more
+             (<strong>gravity routing</strong>, by distance decay), rather than all sent to the
+             closest one.</p>${SRC}`
     },
-    hazard: {
-      title: "Hazard exposure filter",
-      body: `<p>The filter limits the map to roads exposed to one hazard at a time.</p>
-             <p><strong>Flood zone</strong> and <strong>high-severity fire</strong> are yes-or-no
-             (0 or 1) flags on each segment. <strong>Landslide</strong> is an average
-             susceptibility score from 0 to 81, filtered by an adjustable cutoff (default 22,
-             the 75th percentile, so the top quarter of segments).</p>
-             <p>Scores and colors always come from the full network, so a segment keeps the
-             same color whether or not a filter is on.</p>`
+    food: {
+      title: "Fresh Food",
+      body: `<p>Trips from every neighborhood to the 33 grocery stores and other fresh food
+             locations in the basin (TRPA fresh food locations).</p>
+             <p>People are split among locations by distance (<strong>gravity routing</strong>),
+             since most neighborhoods have more than one store within a short drive.</p>${SRC}`
+    },
+    view: {
+      title: "Map view",
+      body: `<p><strong>OD Services Index</strong> colors each road by the weighted score across
+             all six destinations. Each destination button colors roads by trips to that
+             destination alone.</p>
+             <p>Colors change at the 5th, 50th, and 95th percentile of the score shown.</p>`
     }
   };
 
@@ -1236,7 +1007,6 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     const scoreStyle = `font-size:15px;font-weight:700;color:#0072CE;`;
     const nStyle     = `color:#7a90aa;font-size:11px;`;
     const metaStyle  = `color:#7a90aa;font-size:11px;margin-bottom:6px;`;
-    const nLabel     = normMode === "minmax" ? "n" : "z";
     const tripWord   = rankMode === "prioritarian" ? "weighted trips" : "trips";
 
     let html = `<div style="${style}">`;
@@ -1259,7 +1029,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
         html += `<div style="color:${d.color};font-weight:700;">${d.label}${inv} `
              +  `<span style="font-weight:400;font-size:11px;color:#7a90aa;">(wt=${weights[d.key].toFixed(2)})</span></div>`;
         html += `<div style="padding-left:10px;color:#3a5278;">${raw} ${tripWord} `
-             +  `<span style="${nStyle}">(${nLabel}=${normValue(f, attrs[f]).toFixed(2)}, `
+             +  `<span style="${nStyle}">(z=${normValue(f, attrs[f]).toFixed(2)}, `
              +  `score ${destScore(d.key, attrs).toFixed(2)})</span></div>`;
       });
     } else {
@@ -1271,7 +1041,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
            +  `<span style="${scoreStyle};color:${d.color};">${destScore(d.key, attrs).toFixed(3)}</span></div>`;
       html += `<hr style="${hrStyle}">`;
       html += `<div>${rankMode === "prioritarian" ? "Weighted trips" : "Routed trips"}: <strong>${raw}</strong> `
-           +  `<span style="${nStyle}">(${nLabel}=${normValue(f, attrs[f]).toFixed(2)})</span></div>`;
+           +  `<span style="${nStyle}">(z=${normValue(f, attrs[f]).toFixed(2)})</span></div>`;
     }
 
     html += `</div>`;
@@ -1284,14 +1054,14 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
   function updateMap() {
     if (!featureLayer || !allFeatures.length) return;
     const d      = DESTS.find(x => x.key === currentSym);
-    const ramp   = currentSym === "od" ? OD_RAMP : d.ramp;
+    const ramp   = OD_RAMP;   // one ramp for the index and every destination
     const stops  = rampStops();
     const arcade = buildArcade();
 
     featureLayer.renderer = {
       type: "simple",
       // Uniform line weight: score is encoded by color only.
-      symbol: { type: "simple-line", width: 2, cap: "round", join: "round" },
+      symbol: { type: "simple-line", width: 1, cap: "round", join: "round" },
       visualVariables: [{
         type: "color",
         valueExpression: arcade,
@@ -1309,7 +1079,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     document.getElementById("legend-cbar").style.background =
       `linear-gradient(to right, ${ramp.lo} 0%, ${ramp.mid} 50%, ${ramp.hi} 100%)`;
     document.getElementById("legend-note").textContent =
-      `Colors change at the 5th, 50th, and 95th percentile of the ${normMode === "log" ? "log" : normMode === "minmax" ? "min-max" : "z-scored"} score.`;
+      "Colors change at the 5th, 50th, and 95th percentile of the score.";
 
     featureLayer.popupTemplate = {
       title: "{name}",
@@ -1325,66 +1095,13 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     };
   }
 
-  document.querySelectorAll(".sym-btn").forEach(btn => {
+  document.querySelectorAll(".view-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentSym = btn.dataset.sym;
-      document.querySelectorAll(".sym-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       updateMap();
     });
-  });
-
-  // ═══════════════════════════════════════════════════════
-  //  HAZARD FILTER
-  //  Scores and ramp breaks always come from the full network, so a
-  //  segment keeps the same color whether or not a filter is on.
-  // ═══════════════════════════════════════════════════════
-  function filteredFeatures() {
-    const hz = HAZARDS[activeHazard];
-    return hz && hz.test ? allFeatures.filter(f => hz.test(f.attributes)) : allFeatures;
-  }
-
-  function applyHazardFilter() {
-    const hz = HAZARDS[activeHazard];
-    if (featureLayer) {
-      featureLayer.definitionExpression = hz.where ? `${WHERE} AND ${hz.where()}` : WHERE;
-    }
-
-    document.getElementById("haz-thresh").classList.toggle("hidden", activeHazard !== "landslide");
-    document.getElementById("haz-slider-val").textContent = landslideThreshold;
-
-    if (!allFeatures.length) return;
-
-    const countEl = document.getElementById("haz-count");
-    const headEl  = document.getElementById("feat-count");
-
-    if (activeHazard === "none") {
-      countEl.textContent = "Showing all segments";
-      headEl.textContent  = `${allFeatures.length.toLocaleString()} segments`;
-    } else {
-      const n    = filteredFeatures().length;
-      const pct  = (100 * n / allFeatures.length).toFixed(1);
-      const what = activeHazard === "landslide"
-        ? `with a landslide mean of ${landslideThreshold} or higher`
-        : hz.label;
-      countEl.innerHTML  = `Showing <strong>${n.toLocaleString()}</strong> of `
-                         + `${allFeatures.length.toLocaleString()} segments ${what} (${pct} percent)`;
-      headEl.textContent = `${n.toLocaleString()} of ${allFeatures.length.toLocaleString()} segments`;
-    }
-  }
-
-  document.querySelectorAll(".haz-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      activeHazard = btn.dataset.haz;
-      document.querySelectorAll(".haz-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      applyHazardFilter();
-    });
-  });
-
-  document.getElementById("haz-slider").addEventListener("input", e => {
-    landslideThreshold = parseInt(e.target.value, 10);
-    applyHazardFilter();
   });
 
   // ═══════════════════════════════════════════════════════
@@ -1450,7 +1167,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     renderFieldStats();
     syncSliders();
     updateMap();
-    applyHazardFilter();
+    document.getElementById("feat-count").textContent = `${allFeatures.length.toLocaleString()} segments`;
     document.getElementById("exportBtn").disabled = false;
     document.getElementById("loading").style.display = "none";
   }).catch(err => {
@@ -1469,17 +1186,9 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     rankMode = "traffic";
     document.querySelectorAll(".rank-btn").forEach(b => b.classList.toggle("active", b.dataset.rank === "traffic"));
     document.getElementById("rank-note").textContent = RANKINGS.traffic.note;
-    normMode = "log";
-    document.querySelectorAll(".norm-btn").forEach(b => b.classList.toggle("active", b.dataset.norm === "log"));
-    document.getElementById("norm-note").textContent = NORM_NOTES.log;
     renderFieldStats();
-    activeHazard = "none";
-    landslideThreshold = 22;
-    document.getElementById("haz-slider").value = 22;
-    document.querySelectorAll(".haz-btn").forEach(b => b.classList.toggle("active", b.dataset.haz === "none"));
     syncSliders();
     updateMap();
-    applyHazardFilter();
   });
 
   document.getElementById("applyBtn").addEventListener("click", updateMap);
@@ -1489,18 +1198,13 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
   // ═══════════════════════════════════════════════════════
   document.getElementById("exportBtn").addEventListener("click", () => {
     if (!allFeatures.length) return;
-    const rowsIn = filteredFeatures();
-    const suffix = normMode === "minmax" ? "norm" : normMode === "log" ? "logz" : "z";
-    const hazTag = activeHazard === "none" ? "none"
-                 : activeHazard === "landslide" ? `landslide_mean>=${landslideThreshold}`
-                 : activeHazard;
 
     const fields = activeFields();
-    const header = ["OBJECTID","segment_id","name","class", ...HAZARD_FIELDS, "hazard_filter"];
+    const header = ["OBJECTID","segment_id","name","class", ...HAZARD_FIELDS];
     fields.forEach(f => header.push(`${f}_trips`));
-    fields.forEach(f => header.push(`${f}_${suffix}`));
+    fields.forEach(f => header.push(`${f}_logz`));
     DESTS.forEach(d => header.push(`${d.key}_score`));
-    header.push("od_services_index", "ranking", "normalization");
+    header.push("od_services_index", "ranking");
     DESTS.forEach(d => header.push(`wt_${d.key}`));
     DESTS.forEach(d => header.push(`inverted_${d.key}`));
 
@@ -1510,14 +1214,14 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
     };
 
     const rows = [header.join(",")];
-    rowsIn.forEach(feat => {
+    allFeatures.forEach(feat => {
       const a = feat.attributes;
       const row = [a.OBJECTID, a.segment_id, a.name, a.class,
-                   ...HAZARD_FIELDS.map(f => a[f] != null ? a[f] : ""), hazTag].map(q);
+                   ...HAZARD_FIELDS.map(f => a[f] != null ? a[f] : "")].map(q);
       fields.forEach(f => row.push(a[f] != null ? a[f] : ""));
       fields.forEach(f => row.push(normValue(f, a[f]).toFixed(6)));
       DESTS.forEach(d => row.push(destScore(d.key, a).toFixed(6)));
-      row.push(calcOD(a).toFixed(6), rankMode, normMode);
+      row.push(calcOD(a).toFixed(6), rankMode);
       DESTS.forEach(d => row.push(weights[d.key].toFixed(4)));
       DESTS.forEach(d => row.push(invertFlags[d.key] ? "1" : "0"));
       rows.push(row.join(","));
