@@ -51,8 +51,10 @@
     .kpi-card .kpi-value{font-size:1.6rem;font-weight:700;line-height:1;}
     .kpi-card .kpi-label{font-size:.76rem;color:var(--gray-text);margin-top:.35rem;}
 
-    /* Headline per focus area; a click filters the findings table */
-    .heads{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.7rem;margin-bottom:.6rem;}
+    /* Headline per focus area; a click filters the findings table. Three across so six cards make two even rows */
+    .heads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin-bottom:.6rem;}
+    @media (max-width:980px){ .heads{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    @media (max-width:600px){ .heads{grid-template-columns:1fr;} }
     a.head{display:block;background:#fff;border:1px solid var(--gray-border);border-left:4px solid var(--c,var(--trpa-blue));border-radius:8px;padding:.7rem .9rem;text-decoration:none;color:var(--trpa-navy);transition:box-shadow .15s,border-color .15s;}
     a.head:hover{border-color:var(--trpa-blue);box-shadow:0 3px 12px rgba(0,59,113,.12);}
     a.head .area{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--c,var(--trpa-blue));}
@@ -80,6 +82,22 @@
     a.pill:hover{background:var(--trpa-blue);color:#fff;}
     .when{display:inline-block;font-size:.7rem;font-weight:700;border-radius:999px;padding:.05rem .5rem;white-space:nowrap;background:#e8efd9;color:var(--trpa-forest);}
     .when.long{background:#f6ead0;color:#7a5600;}
+    table.ref td.t .d{display:block;font-size:.8rem;color:var(--gray-text);margin-top:.1rem;}
+
+    /* Findings: the headline shows; a click opens what works and what is missing */
+    details.f > summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:.5rem;}
+    details.f > summary::-webkit-details-marker{display:none;}
+    details.f > summary::before{content:"";flex-shrink:0;width:0;height:0;border-left:6px solid var(--trpa-blue);border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .15s;align-self:center;}
+    details.f[open] > summary::before{transform:rotate(90deg);}
+    details.f > summary b{font-size:.88rem;}
+    details.f > summary:hover b{color:var(--trpa-blue);}
+    details.f .id{margin-bottom:0;flex-shrink:0;}
+    .wm{display:grid;grid-template-columns:1fr 1fr;gap:.4rem 1.2rem;margin:.5rem 0 .2rem 1.1rem;}
+    .wm h4{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-text);margin-bottom:.1rem;}
+    .wm .ev{grid-column:1 / -1;font-size:.76rem;color:var(--gray-text);}
+    button.ghost{background:#fff;color:var(--trpa-navy);border:1px solid var(--gray-border);border-radius:6px;padding:.42rem .75rem;font-family:inherit;font-size:.79rem;font-weight:600;cursor:pointer;}
+    button.ghost:hover{background:#eaf3fb;}
+    @media (max-width:700px){ .wm{grid-template-columns:1fr;margin-left:0;} }
 
     details.block{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.5rem .95rem;margin-top:.8rem;max-width:110ch;}
     details.block summary{font-size:.9rem;font-weight:700;cursor:pointer;padding:.3rem 0;list-style:none;display:flex;align-items:center;gap:.5rem;}
@@ -152,13 +170,13 @@
       </div>
       <div class="header-meta">
         <span class="version">Draft</span>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html" class="on" aria-current="page">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html" class="on" aria-current="page">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
 
   <main>
-    <div class="banner">Draft for Workshop 1, Nov. 9, 2026. This summarizes the consultant's draft report of Oct. 13, 2026; the report's recommendations are not written yet, so the actions here are proposed for discussion.</div>
+    <div class="banner">Draft for Workshop 1, Nov. 9, 2026: a summary of the consultant's Oct. 13 draft, whose recommendations are not written yet, so the actions here are proposals.</div>
 
     <!-- ===================== Summary ===================== -->
     <h2 class="sec" id="summary">Summary</h2>
@@ -166,7 +184,7 @@
 
     <div class="bottom">
       <b>Bottom line</b>
-      The basin's emergency plans and command structure are sound, and the state transportation departments and county road crews fit into them well. What breaks down is everything around that structure: transit providers with no set role, information that moves through personal relationships and group texts, no traffic plan in place before an evacuation, equipment that fails when power and cell service go out, and visitors and people without a car who are hard to reach.
+      The basin's emergency plans and command structure are sound, and the road agencies fit into them well. What breaks down is around them: transit with no set role, information passed by personal contacts and group texts, no evacuation traffic plan, equipment that fails without power or cell service, and people without a car who are hard to reach.
     </div>
 
     <div class="kpi-row">
@@ -180,21 +198,22 @@
 
     <!-- ===================== Findings ===================== -->
     <h2 class="sec" id="findings">Key findings</h2>
-    <p class="lead">What works today and what is missing, for each finding in the draft. The numbers link to the proposed actions that answer it.</p>
+    <p class="lead">Open a finding for what works today and what is missing. The numbers link to the proposed actions that answer it.</p>
     <div class="toolbar">
       <div class="seg" id="area-seg" role="group" aria-label="Filter by focus area"></div>
-      <button type="button" class="csv" data-tablecsv="findings-table" data-filename="PROTECT_BaselineAssessment_Findings.csv">Export CSV</button>
+      <button type="button" class="ghost" id="expand-all" aria-pressed="false">Open all</button>
+      <button type="button" class="csv" id="findings-csv">Export CSV</button>
     </div>
     <table class="ref stack" id="findings-table">
-      <thead><tr><th style="width:24%">Finding</th><th style="width:30%">What is working</th><th style="width:36%">What is missing</th><th style="width:10%">Actions</th></tr></thead>
+      <thead><tr><th>Finding</th><th style="width:14%">Actions</th></tr></thead>
       <tbody></tbody>
     </table>
 
     <!-- ===================== Recommendations ===================== -->
     <h2 class="sec" id="actions">Proposed actions</h2>
-    <p class="lead">A starting list for the Workshop 1 discussion, drawn from what interviewees suggested and the gaps above.<i class="i" tabindex="0" data-tip="Near term means plans, agreements, training, and outreach that need little capital. Longer term means equipment, infrastructure, or new systems. Feeds says which product the action would land in: the transportation communications strategy, the Resilience Improvement Plan (TRIP) project list, or TRPA's parallel Transportation System Management and Operations (TSMO) Plan.">i</i> Partners will add to, merge, and rank them before they go into the report.</p>
+    <p class="lead">A starting list for Workshop 1, drawn from interviewees' suggestions and the gaps above.<i class="i" tabindex="0" data-tip="Near term means plans, agreements, training, and outreach that need little capital. Longer term means equipment, infrastructure, or new systems. Feeds says which product the action would land in: the transportation communications strategy, the Resilience Improvement Plan (TRIP) project list, or TRPA's parallel Transportation System Management and Operations (TSMO) Plan.">i</i> Partners will add to, merge, and rank them before the report.</p>
     <div class="toolbar">
-      <button type="button" class="csv" data-tablecsv="actions-table" data-filename="PROTECT_BaselineAssessment_ProposedActions.csv">Export CSV</button>
+      <button type="button" class="csv" id="actions-csv">Export CSV</button>
     </div>
     <table class="ref stack" id="actions-table">
       <thead><tr><th style="width:4%">#</th><th style="width:50%">Proposed action</th><th style="width:16%">Answers</th><th style="width:10%">Timing</th><th style="width:20%">Feeds</th></tr></thead>
@@ -268,12 +287,12 @@
 
     // One headline per focus area for the summary
     const HEADS = {
-      CC:   "Thin staffing, turnover, and long commutes wear down every part of response, and no one keeps track of who will need a ride.",
-      TRC:  "Transit providers outside county government have no set role; in Caldor the Tahoe Transportation District helped evacuate people without being brought into emergency operations early.",
-      TCE:  "No single source tells residents and visitors what to do; alerts, closures, and transit updates come from different agencies, and some translated alerts did not match the English.",
-      EPE:  "Traffic is the biggest operational problem: in Caldor, outbound US 50 was gridlocked while the inbound lane and center turn lane sat mostly empty.",
-      RUT:  "Radios, cameras, signs, and signals depend on power and cell service that fail in fires and storms, and agencies' systems do not connect well.",
-      CPPE: "Most people know their route but fewer are ready to leave: in a Placer County survey, 84 percent knew possible routes and 44 percent felt fully prepared."
+      CC:   "Thin staffing and turnover wear down response, and no one tracks who will need a ride.",
+      TRC:  "Transit providers outside county government have no set role in an emergency.",
+      TCE:  "No single source tells residents and visitors what to do.",
+      EPE:  "Traffic is the biggest problem: in Caldor, outbound US 50 jammed while the inbound lanes sat empty.",
+      RUT:  "Radios, signs, and signals fail when power and cell service do.",
+      CPPE: "Most people know their route, but in one survey only 44 percent felt ready to leave."
     };
 
     // Findings: the draft's 14, in its order. works / gap paraphrase the draft's key takeaways.
@@ -390,14 +409,14 @@
     document.getElementById("heads").innerHTML = AREAS.map(a =>
       '<a class="head" href="#findings" data-area="'+a.k+'" style="--c:'+a.c+'"><div class="area">'+esc(a.label)+'</div><p>'+esc(HEADS[a.k])+'</p></a>').join("");
 
-    // Findings table
+    // Findings table: headline in the summary, what works and what is missing inside
     document.querySelector("#findings-table tbody").innerHTML = FINDINGS.map(f => {
       const ar = AREA[f.a];
       const acts = (byFinding[f.id] || []).map(n => '<a class="pill" href="#r-'+n+'">'+n+'</a>').join("");
       return '<tr id="f-'+f.id+'" data-area="'+f.a+'">'
-        + '<td class="t" data-label="Finding"><span class="id" style="--c:'+ar.c+'">'+f.id+'</span><i class="i" tabindex="0" data-tip="'+esc(ar.name+". Evidence: "+f.ev+".")+'">i</i><b>'+esc(f.title)+'</b></td>'
-        + '<td data-label="What is working">'+esc(f.works)+'</td>'
-        + '<td data-label="What is missing">'+esc(f.gap)+'</td>'
+        + '<td data-label="Finding"><details class="f"><summary><span class="id" style="--c:'+ar.c+'" title="'+esc(ar.name)+'">'+f.id+'</span><b>'+esc(f.title)+'</b></summary>'
+        + '<div class="wm"><div><h4>What is working</h4>'+esc(f.works)+'</div><div><h4>What is missing</h4>'+esc(f.gap)+'</div>'
+        + '<div class="ev">'+esc(ar.name)+'. Evidence: '+esc(f.ev)+'.</div></div></details></td>'
         + '<td data-label="Proposed actions">'+acts+'</td></tr>';
     }).join("");
 
@@ -405,7 +424,7 @@
     document.querySelector("#actions-table tbody").innerHTML = ACTIONS.map(r =>
       '<tr id="r-'+r.n+'">'
       + '<td data-label="#"><b>'+r.n+'</b></td>'
-      + '<td class="t" data-label="Proposed action"><b>'+esc(r.t)+'</b>'+esc(r.d)+'</td>'
+      + '<td class="t" data-label="Proposed action"><b>'+esc(r.t)+'</b><span class="d">'+esc(r.d)+'</span></td>'
       + '<td data-label="Answers">'+r.f.map(id => '<a class="pill" href="#f-'+id+'">'+id+'</a>').join("")+'</td>'
       + '<td data-label="Timing"><span class="when'+(r.when==="Longer term"?" long":"")+'">'+esc(r.when)+'</span></td>'
       + '<td class="small" data-label="Feeds">'+esc(r.feeds)+'</td></tr>').join("");
@@ -419,13 +438,27 @@
     }
     document.getElementById("area-seg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; area = b.dataset.v; applyFilter(); });
     document.getElementById("heads").addEventListener("click", e => { const h = e.target.closest("a.head"); if (h) { area = h.dataset.area; applyFilter(); } });
-    // A link to a finding hidden by the filter clears the filter first
+    // A link to a finding clears a filter that hides it and opens it
     document.addEventListener("click", e => {
       const a = e.target.closest('a.pill[href^="#f-"]'); if (!a) return;
       const row = document.querySelector(a.getAttribute("href"));
-      if (row && row.style.display === "none") { area = "All"; applyFilter(); }
+      if (!row) return;
+      if (row.style.display === "none") { area = "All"; applyFilter(); }
+      row.querySelector("details.f").open = true;
     });
     applyFilter();
+
+    // Open all / close all findings
+    const allBtn = document.getElementById("expand-all");
+    allBtn.addEventListener("click", () => {
+      const open = allBtn.getAttribute("aria-pressed") !== "true";
+      document.querySelectorAll("#findings-table details.f").forEach(d => { d.open = open; });
+      allBtn.setAttribute("aria-pressed", open); allBtn.textContent = open ? "Close all" : "Open all";
+    });
+    // Printing shows every finding in full
+    let printOpened = [];
+    window.addEventListener("beforeprint", () => { printOpened = [...document.querySelectorAll("details.f:not([open])")]; printOpened.forEach(d => { d.open = true; }); });
+    window.addEventListener("afterprint", () => { printOpened.forEach(d => { d.open = false; }); });
 
     // CSV export for the static tables (tooltip glyphs left out)
     function cellText(c){ const k = c.cloneNode(true); k.querySelectorAll(".i").forEach(x => x.remove()); return k.textContent.trim().replace(/\s+/g," "); }
@@ -433,10 +466,21 @@
       return [...document.getElementById(tableId).querySelectorAll("tr")]
         .map(tr => [...tr.querySelectorAll("th,td")].map(c => '"' + cellText(c).replaceAll('"','""') + '"').join(",")).join("\n");
     }
-    document.querySelectorAll("button[data-tablecsv]").forEach(btn => btn.addEventListener("click", () => {
+    function download(text, filename){
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([tableToCsv(btn.dataset.tablecsv)], {type:"text/csv"})); a.download = btn.dataset.filename; a.click();
-    }));
+      a.href = URL.createObjectURL(new Blob([text], {type:"text/csv"})); a.download = filename; a.click();
+    }
+    document.querySelectorAll("button[data-tablecsv]").forEach(btn => btn.addEventListener("click", () => download(tableToCsv(btn.dataset.tablecsv), btn.dataset.filename)));
+    // Findings and actions export from the page data, one column per field
+    const toCsv = rows => rows.map(r => r.map(v => '"' + String(v).replaceAll('"','""') + '"').join(",")).join("\n");
+    document.getElementById("findings-csv").addEventListener("click", () => download(toCsv(
+      [["Finding","Focus area","Headline","What is working","What is missing","Evidence","Proposed actions"]].concat(
+      FINDINGS.map(f => [f.id, AREA[f.a].name, f.title, f.works, f.gap, f.ev, (byFinding[f.id] || []).join("; ")]))),
+      "PROTECT_BaselineAssessment_Findings.csv"));
+    document.getElementById("actions-csv").addEventListener("click", () => download(toCsv(
+      [["#","Proposed action","Description","Answers","Timing","Feeds"]].concat(
+      ACTIONS.map(r => [r.n, r.t, r.d, r.f.join("; "), r.when, r.feeds]))),
+      "PROTECT_BaselineAssessment_ProposedActions.csv"));
 
     // Flip tooltips that would otherwise run past a viewport edge
     function placeTips(){

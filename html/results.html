@@ -142,7 +142,7 @@
     .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
     .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.2rem 0 .6rem;}
     .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--trpa-navy);margin-top:.35rem;}
-    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;}
+    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;box-shadow:0 0 0 1px rgba(4,35,51,.18);}
     .lg-dot{flex:0 0 14px;height:14px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
     .lg-sq{flex:0 0 12px;height:12px;border:1px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;}
     .lg-sw{flex:0 0 18px;height:11px;border-radius:2px;display:inline-block;}
@@ -264,7 +264,7 @@
         <span class="draft" id="draft-chip" tabindex="0" data-tip="Draft results for workshop review.">Draft</span>
         <button type="button" class="band-btn" id="help-btn" aria-haspopup="dialog"><span class="ic" aria-hidden="true">i</span><span class="lbl">How to use</span><span class="sr">How to use this page</span></button>
         <a class="band-btn" href="results-guide.html" title="Two-page guide: how the numbers were made and what each field means"><span class="lbl">Guide</span><span class="sr">Two-page printable guide</span></a>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -365,8 +365,11 @@
     const fmt = (n, d=0) => (n == null || isNaN(n) ? "-" : Number(n).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d}));
     const COL = {ice:"#B4CBE8", blue:"#0072CE", navy:"#003B71", peach:"#E8A05A", orange:"#E87722", brick:"#9C3E27", gray:"#cfd4da",
                  forest:"#4A6118", sand:"#E8C77A", tan:"#E0C68A", earth:"#B47E00", purple:"#7B6A8A"};
-    // criticality quarters 0 to 3: one blue hue, the lightest still visible on the gray basemap
-    const CRIT_RAMP = ["#8DB6E2", "#4F93D8", "#0072CE", "#002B55"];
+    // criticality quarters 0 to 3 on the Phosphor thermal ramp (joshuastevens.net/phosphor, OKLab) at four even steps,
+    // dark (lowest) to bright (highest), the same ramp as criticality-index.html. Criticality views draw on the dark
+    // gray basemap (setBase), where the bright top quarter stands out; every other view keeps the light gray basemap.
+    const CRIT_RAMP = ["#042333", "#6E4694", "#F37D4D", "#E8FA5B"];
+    const BOUND_LINE = {light:[0,59,113,0.95], dark:[180,203,232,0.9]};
     const MI = 1609.344;
     const $ = id => document.getElementById(id);
     const esc = s => String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -587,8 +590,8 @@
     function popupArcade(asset, hz){
       const pairs = PAIRS_OF[asset], codes = [...new Set(pairs.map(p => p[2]))];
       const reasonFn = "function reason(h) {\n" + codes.map(h => `if (h == '${h}') { ${arcReason(asset, h, hz)} }`).join("\n") + "\nreturn ''; }\n";
-      const crit = `var q = fv('C_class');
-        if (!IsEmpty(q)) { var bx = ''; for (var k = 0; k < 4; k++) { bx += '<span style="display:inline-block;width:12px;height:8px;margin-right:2px;border-radius:2px;background-color:' + IIf(k <= q, '${COL.blue}', '#dfe3e8') + ';"></span>'; }
+      const crit = `var q = fv('C_class'); var cr = [${CRIT_RAMP.map(c => "'" + c + "'").join(", ")}];
+        if (!IsEmpty(q)) { var bx = ''; for (var k = 0; k < 4; k++) { bx += '<span style="display:inline-block;width:12px;height:8px;margin-right:2px;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(4,35,51,.18);background-color:' + IIf(k <= q, cr[k], '#dfe3e8') + ';"></span>'; }
           html += '<div style="border-top:1px solid #e6e9ee;margin-top:9px;padding-top:7px;">Criticality&nbsp; ' + bx + ' ' + Decode(q, 3, 'top quarter, most critical', 2, 'upper middle quarter', 1, 'lower middle quarter', 'lowest quarter') + '</div>'; }`;
       let body;
       if (!hz) {
@@ -683,7 +686,7 @@
       colorBy:[
         {value:"vmax", label:"Highest vulnerability", default:true, fields:OV_FIELDS.vmax, renderer:ovRend(OV_FIELDS.vmax), legend:legendRows(VC_LEG, "lg-line"),
           note:"Each asset's class from whichever hazard scores it highest. Turn on Hotspots only to narrow the map to High vulnerability on the most critical roads.", noteTip:"Vulnerability class from the highest scored pair, the debris-flow stand-in pairs left out. An asset's class is the highest of its pair classes, so it can differ from the class of the highest score where wildfire's breaks apply."},
-        {value:"crit", label:"Criticality", fields:null, renderer:Object.assign(ovRend({}), {roads:critRenderer()}), legend:legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line"),
+        {value:"crit", label:"Criticality", fields:null, dark:true, renderer:Object.assign(ovRend({}), {roads:critRenderer()}), legend:legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line"),
           note:"How much each road matters to the network, from the Criticality Assessment at its default weights, cut into quarters. Criticality is scored on roads; the other assets are gray in this view.", noteTip:"Criticality percentile cut at 25, 50, and 75, the same quarters as the Criticality Assessment page. Kept separate from vulnerability; the Hotspots filter is where the two are read together."},
         {value:"FLR", label:"Flooding", fields:OV_FIELDS.FLR, renderer:ovRend(OV_FIELDS.FLR), legend:legendRows(VC_LEG, "lg-line"), note:"Flooding vulnerability. Scored for roads, paths, culverts, bridges, and transit hubs."},
         {value:"WFR", label:"Wildfire", fields:OV_FIELDS.WFR, renderer:ovRend(OV_FIELDS.WFR), legend:legendRows(WF_LEG.concat([[COL.gray, "not scored"]]), "lg-line"), note:"Wildfire vulnerability. Scored for roads, paths, and transit hubs; culverts and bridges are gray (no pair)."},
@@ -1304,6 +1307,15 @@
       return items;
     }
 
+    // dark gray basemap for criticality views, light gray for the rest; imagery picked with the toggle is left alone
+    function setBase(dark){
+      if (!view || !view.map || !view.map.basemap) return;
+      const id = view.map.basemap.id;
+      if (id !== "gray-vector" && id !== "dark-gray-vector") return;
+      if ((id === "dark-gray-vector") !== dark) view.map.basemap = dark ? "dark-gray-vector" : "gray-vector";
+      BASE_LAYERS.bound.renderer = {type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:BOUND_LINE[dark ? "dark" : "light"], width:2}}};
+    }
+
     // color-by buttons, legend, and renderers; keep is the view to leave selected on a repaint
     function paintColor(mode, keep){
       const cb = mode.colorBy || [];
@@ -1311,7 +1323,7 @@
       // one view only: the heading names it and there are no buttons to press
       const heading = cb.length === 1 ? (mode.colorHeading || "Colored by") + " " + cb[0].label.toLowerCase() : (mode.colorHeading || "Colored by");
       $("panel-color").innerHTML = cb.length ? `<h3>${esc(heading)}</h3><div class="cb" id="color-by"${cb.length === 1 ? ' hidden' : ""}>${cb.map((o, i) => `<button type="button" data-v="${o.value}"${i === sel ? ' class="on"' : ""}>${esc(o.label)}</button>`).join("")}</div><div id="legend"></div>` : "";
-      const applyColor = o => { Object.entries(o.renderer || {}).forEach(([id, r]) => { if (ctx.L[id]) ctx.L[id].renderer = r; });
+      const applyColor = o => { setBase(!!o.dark); Object.entries(o.renderer || {}).forEach(([id, r]) => { if (ctx.L[id]) ctx.L[id].renderer = r; });
         if (o.field) Object.entries(o.field).forEach(([id, f]) => { if (!ctx.L[id]) return; ctx.L[id].renderer = (f === "C_class") ? critRenderer() : vClassRenderer(f, (c,k) => line(c, LINE_W[k], id === "paths")); });
         thinPaths(ctx.L.paths);
         $("legend").innerHTML = (o.legend || "") + (o.note ? `<p class="note">${esc(o.note)}${o.noteTip ? tip(o.noteTip) : ""}</p>` : "") + (mode.classNote ? `<p class="note">${esc(mode.classNote)}</p>` : "");
@@ -1321,6 +1333,7 @@
           if (o.roadsOnly) { if (l.__vis == null) l.__vis = l.visible; l.visible = false; }
           else if (l.__vis != null) { l.visible = l.__vis; l.__vis = null; }
           if (tg) tg.checked = l.visible; }); };
+      if (!cb.length) setBase(false);
       if (cb.length) { applyColor(cb[sel]); $("color-by").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { $("color-by").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); const o = cb.find(x => x.value === b.dataset.v); if (o) applyColor(o); })); }
     }
 
