@@ -99,7 +99,7 @@
     .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
     .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.3rem 0 .6rem;}
     .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--trpa-navy);margin-top:.35rem;}
-    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;}
+    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;box-shadow:0 0 0 1px rgba(4,35,51,.18);}
     .sw{appearance:none;-webkit-appearance:none;width:30px;height:16px;border-radius:999px;background:#c9d1da;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s;outline:none;}
     .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
     .sw:checked{background:var(--trpa-blue);} .sw:checked::after{left:16px;}
@@ -226,7 +226,7 @@
       </div>
       <div class="right">
         <span class="chip">v0.4 draft</span>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html" class="on" aria-current="page">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html" class="on" aria-current="page">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -291,7 +291,7 @@
         <li><b>Access to critical services:</b> residents of 2,201 hexagons routed by travel time to basin exits, law enforcement, medical facilities, emergency shelters, schools, and fresh food locations, averaged over 100 routing runs with small random variation in travel time so near-equal routes share the trips. The mean across the six destination types is grouped into 10 Jenks classes for the score. The map's access view shows the mean itself, in residents routed.</li>
         <li><b>Equity:</b> for each segment, the highest count among the census block groups it crosses of households below the poverty line, residents who speak English less than well, households with no vehicle, and residents with a disability; the four are weighted equally by default.</li>
         <li><b>Combining:</b> each variable is converted to a z-score across all segments: its distance from the mean, in standard deviations.<i class="i" tabindex="0" data-tip="Min-max scaling (0 to 1) was considered and set aside. Z-score is the method, and with the default weights it reproduces the published criticality_score.">i</i> A sub-index is the weighted sum of its variables, and the score is the weighted sum of the sub-indices. Weights are rebalanced to total 1 as a slider moves. Invert flips a variable so that lower values score higher.</li>
-        <li><b>Quarters and colors:</b> each segment is ranked against every other under the current weights and cut into quarters at the 25th, 50th, and 75th percentiles: criticality quarter 0 (lowest) to 3 (top), the same rule the Results page uses. When many segments share the same value they share a rank, so a quarter can hold more or fewer than a quarter of the segments. The traffic, detour length, and access views color the map by the input itself at fixed breaks (stated in each legend), because those inputs are class scores that sit at the lowest class on most segments, and rank quarters would collapse to two colors. Colors run navy (lowest) to gold (highest); there is no red, because these are relative ranks, not hazard. A hazard filter changes what is shown, never the scores or the quarters.</li>
+        <li><b>Quarters and colors:</b> each segment is ranked against every other under the current weights and cut into quarters at the 25th, 50th, and 75th percentiles: criticality quarter 0 (lowest) to 3 (top), the same rule the Results page uses. When many segments share the same value they share a rank, so a quarter can hold more or fewer than a quarter of the segments. The traffic, detour length, and access views color the map by the input itself at fixed breaks (stated in each legend), because those inputs are class scores that sit at the lowest class on most segments, and rank quarters would collapse to two colors. Colors run dark (lowest) to bright (highest) on the Phosphor thermal ramp, drawn on a dark basemap so the most critical roads stand out. A hazard filter changes what is shown, never the scores or the quarters.</li>
         <li><b>Hazards:</b> FEMA flood zones (100- and 500-year), areas with a higher probability of high-severity wildfire, and the USGS landslide susceptibility mean along the segment. Hazard exposure is kept separate from criticality; the Results page reads the two together.</li>
       </ul>
     </details>
@@ -339,8 +339,10 @@
       state.norm = "zscore";
     }
 
-    // four map classes, navy (lowest) to gold (highest), no reds: relative ranks and inputs, not hazard
-    const RAMP = ["#003B71", "#6FA3DA", "#E2BF6E", "#A86F00"];
+    // four map classes on the Phosphor thermal ramp (joshuastevens.net/phosphor, OKLab), sampled at four
+    // even steps, which land on its 1st, 3rd, 5th, and 7th control colors: dark (lowest) to bright (highest).
+    // Same ramp as CRIT_RAMP on results.html; keep the two in step.
+    const RAMP = ["#042333", "#6E4694", "#F37D4D", "#E8FA5B"];
     const COLOR_BY = [{v:"crit", label:"Overall criticality"}, ...SUBS.map(s => ({v:s.key, label:s.label}))];
     // How each "colored by" view cuts segments into its four classes. Overall criticality and equity
     // are rank quarters of the computed value (tie-aware, computeBreaks). Traffic, detour, and access
@@ -353,7 +355,7 @@
     const QUARTER_NAMES = ["0: lowest quarter, least critical", "1", "2", "3: top quarter, most critical"];
     const VIEWS = {
       crit:{name:"Overall criticality score", kind:"quarter", unit:"quarter", labels:QUARTER_NAMES,
-        note:"Overall criticality score under the current weights, ranked against every segment and cut into quarters at the 25th, 50th, and 75th percentiles (the Results page's criticality quarter). Gold is more critical, navy less."},
+        note:"Overall criticality score under the current weights, ranked against every segment and cut into quarters at the 25th, 50th, and 75th percentiles (the Results page's criticality quarter). Brighter is more critical."},
       traffic:{name:"Traffic", kind:"bins", unit:"class", field:"AADT_Jenks_Score", breaks:[1.5, 3.5, 6.5],
         labels:["Volume class 1 (lowest)", "Volume classes 2 to 3", "Volume classes 4 to 6", "Volume classes 7 to 10 (highest)"],
         note:"Modeled daily traffic volume class, 1 (lowest) to 10 (highest), in natural breaks and grouped in four for the map. This is a volume class, not a quarter: most segments are local streets in class 1. Only the class is published."},
@@ -364,7 +366,7 @@
         labels:["No residents routed", "Under 10 residents", "10 to 100 residents", "100 or more residents"],
         note:"Residents routed over the segment to basin exits, emergency services, schools, and food, as the mean of the six destination types. None routed is its own class; the other breaks sit near the tertiles of segments that carry routed residents."},
       equity:{name:"Equity sub-index", kind:"quarter", unit:"quarter", labels:["0: lowest quarter", "1", "2", "3: top quarter"], range:true,
-        note:"Equity sub-index under the current variable weights (the four counts as z-scores, combined), ranked against every segment and cut into quarters; each row shows the sub-index range in that quarter. Gold is higher need, navy lower."}};
+        note:"Equity sub-index under the current variable weights (the four counts as z-scores, combined), ranked against every segment and cut into quarters; each row shows the sub-index range in that quarter. Brighter is higher need."}};
     const curView = () => VIEWS[state.color];
     const HAZARDS = [
       {v:"none", label:"All", where:null, test:() => true},
@@ -430,6 +432,7 @@
     const classOf = r => { const vw = curView(); return vw.kind === "bins" ? binClass(vw, r) : cutClass(cuts, valueOf(r)); };
     const nClasses = () => 4;
     const classColor = k => RAMP[k];
+    const BAR_EDGE = {color:"rgba(4,35,51,.45)", width:1};   // keeps the pale top class visible on white
     const classLabel = k => curView().labels[k];
     function legendHTML(){
       const vw = curView(), n = nClasses(), counts = Array(n).fill(0), lo = Array(n).fill(Infinity), hi = Array(n).fill(-Infinity);
@@ -451,15 +454,15 @@
       $("ch-a-sub").textContent = state.color === "crit"
         ? "Street miles in each criticality quarter under the current weights" + flt + "."
         : "Street miles in each " + what + flt + ", the same classes as the map legend.";
-      Plotly.react("ch-a", [{type:"bar", x:labs, y:miles, marker:{color:labs.map((_, k) => classColor(k))}, customdata:segs,
+      Plotly.react("ch-a", [{type:"bar", x:labs, y:miles, marker:{color:labs.map((_, k) => classColor(k)), line:BAR_EDGE}, customdata:segs,
         hovertemplate:"%{y:.1f} miles (%{customdata} segments)<extra></extra>"}],
-        Object.assign({}, LAYOUT, {margin:{l:50,r:10,t:10,b:70}, xaxis:{tickangle:-20}, yaxis:{title:"miles", gridcolor:"#eef0f3"}}), {displayModeBar:false, responsive:true});
+        Object.assign({}, LAYOUT, {margin:{l:50,r:10,t:10,b:70}, xaxis:{tickangle:-20, type:"category"}, yaxis:{title:"miles", gridcolor:"#eef0f3"}}), {displayModeBar:false, responsive:true});
       const types = [...new Set(shown.map(r => r.class || "unknown"))];
       const mi = t => shown.filter(r => (r.class || "unknown") === t).reduce((s, r) => s + r.miles, 0);
       const groups = types.sort((a, b) => mi(b) - mi(a)).slice(0, 8);
       $("ch-b-title").textContent = what.charAt(0).toUpperCase() + what.slice(1) + " by road type";
       $("ch-b-sub").textContent = "Share of each road type's miles in each " + what + " (the eight longest road types shown).";
-      const traces = [...Array(n).keys()].map(k => ({type:"bar", name:labs[k], x:groups, marker:{color:classColor(k)},
+      const traces = [...Array(n).keys()].map(k => ({type:"bar", name:labs[k], x:groups, marker:{color:classColor(k), line:BAR_EDGE},
         y:groups.map(g => { const sub = shown.filter(r => (r.class || "unknown") === g); const tot = sub.reduce((s, r) => s + r.miles, 0) || 1;
           return 100 * sub.filter(r => r._cls === k).reduce((s, r) => s + r.miles, 0) / tot; }),
         hovertemplate:"%{y:.1f} percent of miles<extra>" + labs[k] + "</extra>"}));
@@ -614,8 +617,8 @@
       function(Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, CC, Home, BasemapToggle){
       CustomContent = CC;
       hill = new TileLayer({url:"https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer", title:"Hillshade", visible:false, opacity:0.55, blendMode:"multiply"});
-      bound = new FeatureLayer({url:BOUND_URL, title:"TRPA boundary", renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.95], width:2}}}, popupEnabled:false});
-      const map = new Map({basemap:"gray-vector", layers:[hill, bound]});
+      bound = new FeatureLayer({url:BOUND_URL, title:"TRPA boundary", renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[180,203,232,0.9], width:2}}}, popupEnabled:false});
+      const map = new Map({basemap:"dark-gray-vector", layers:[hill, bound]});   // dark: the thermal ramp runs dark to bright
       view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false}, popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
       view.ui.add(new Home({view}), "top-left");
       view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
