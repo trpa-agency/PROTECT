@@ -126,6 +126,21 @@
 
     .hdr-r { display: flex; align-items: center; gap: 18px; }
 
+    /* Pages menu: same markup and look as every other page's header */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+
     .live-badge {
       display: flex; align-items: center; gap: 6px;
       font-size: 10px; font-weight: 700;
@@ -599,6 +614,7 @@
       .main-area{min-height:46vh;}
       .hdr-title{font-size:13px;letter-spacing:.03em;}
       .hdr-sub{display:none;}
+      #feat-count,.live-badge{display:none;}   /* leaves room for the Pages menu */
       .sym-bar{left:8px;right:8px;transform:none;overflow-x:auto;}
     }
   </style>
@@ -620,6 +636,7 @@
   <div class="hdr-r">
     <span id="feat-count">Loading&hellip;</span>
     <div class="live-badge"><div class="live-dot"></div>Live</div>
+    <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html" class="on" aria-current="page">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
   </div>
 </div>
 
@@ -1542,6 +1559,12 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
   });
 
 });
+</script>
+<script>
+  // Pages menu: close on an outside click or Escape
+  (function(){ const p = document.getElementById("pages"); if (!p) return;
+    document.addEventListener("click", e => { if (p.open && !p.contains(e.target)) p.open = false; });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") p.open = false; }); })();
 </script>
 </body>
 </html>

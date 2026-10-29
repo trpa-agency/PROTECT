@@ -64,7 +64,10 @@ dashed "Coming" cards for what is not built yet), and no task lists or open deci
   dashboard stack (Calcite + ArcGIS Maps SDK + Plotly + AG Grid).
 - **Hosting / visibility**: GitHub Pages for now (`trpa-agency.github.io/PROTECT`); final home is
   `data.trpa.gov/PROTECT`. Internal review draft only - do NOT commit raw internal source docs
-  (xlsx/docx/pptx) or publish broadly yet.
+  (xlsx/docx/pptx) or publish broadly yet. `_config.yml` (Oct. 28, 2026) limits the site to
+  `index.html`, `html/`, and `data/processed/results/`; Pages had been rendering every `.md`
+  (this file and `docs/`) as a web page. A new top-level folder or a new file under `data/` is
+  served unless it is added to the `exclude` list. The repo itself is public on GitHub either way.
 
 ## Data sources (TRPA REST)
 
@@ -94,7 +97,10 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   derived from it at the asset level, under the repo (`data/processed` is git-tracked and
   served by GitHub Pages), into `outputs/`, onto any html page, or into a public REST service.
   Segment-level aggregates are allowed but must be attributed to NDOT and reviewed by NDOT
-  before publication. The `.gitignore` blocks `*ndot*` as a backstop.
+  before publication. The `.gitignore` blocks `*ndot*` as a backstop. A public culvert that shares
+  its crossing with an NDOT culvert publishes without the fields pooled over the crossing's barrels
+  (`va_common.CROSSING_POOLED` and the loading ratios, Oct. 28, 2026): those let the NDOT barrel's
+  capacity be subtracted back out.
 
 The live readiness tracker is the Data and Model Inventory tab of `html/reference-hub.html`.
 

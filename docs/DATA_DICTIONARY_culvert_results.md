@@ -7,7 +7,7 @@
 **Refresh cadence:** On demand. The profile reruns when the inventory, the DEM conditioning, or the hydrology parameters change (`scripts/culvert_profile.py`); exposure reruns when a hazard surface changes (`scripts/score_exposure.py`); the published files follow (`scripts/publish_results.py`)
 **Coordinate system:** NAD 1983 UTM Zone 10N (EPSG:26910) in the geodatabases; WGS 84 (EPSG:4326) in the published GeoJSON
 **Spatial extent:** Lake Tahoe Basin (TRPA boundary, about 501 sq mi)
-**Restricted data:** The state DOT (NDOT) rows exist only in the geodatabase and the restricted QA folder on F:. Every CSV under `outputs/` and every file under `data/processed/results/` excludes them at the row level.
+**Restricted data:** The state DOT (NDOT) rows exist only in the geodatabase and the restricted QA folder on F:. Every CSV under `outputs/` and every file under `data/processed/results/` excludes them at the row level. A public culvert that shares its crossing with an NDOT culvert keeps its row in `data/processed/results/` and the curated geodatabase, but `barrels`, `q_cap_crossing_cfs`, the loading ratios, and `ratio_review` are null there, because they pool the NDOT barrel (`va_common.CROSSING_POOLED`).
 
 This dictionary covers six datasets that read together:
 

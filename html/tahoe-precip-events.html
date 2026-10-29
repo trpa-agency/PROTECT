@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Precipitation Event Explorer | TRPA PROTECT Task 3</title>
+  <title>Storm Events | PROTECT | TRPA</title>
   <meta name="description" content="Debris-flow trigger storm reconstruction, frequency analysis, WEPP sediment runs, and culvert screening for the Lake Tahoe Region, for the PROTECT vulnerability assessment." />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
@@ -71,6 +71,20 @@
     .dashboard-header h1 { font-size:1.4rem; font-weight:700; margin:0; line-height:1.25; }
     .dashboard-header .header-sub { color:#B4CBE8; font-size:.85rem; }
     .draft-chip { background:var(--trpa-orange); color:#fff; font-size:0.72rem; font-weight:700; letter-spacing:0.04em; padding:4px 10px; border-radius:12px; text-transform:uppercase; }
+    /* Pages menu: same markup and look as every other page's header */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
     .kpi-row { display:flex; gap:1rem; padding:1.25rem 2rem 0.25rem; flex-wrap:wrap; }
     .kpi-card { background:#fff; border-radius:8px; padding:1rem 1.25rem; flex:1; min-width:170px; box-shadow:0 1px 3px rgba(0,0,0,0.08); border-top:3px solid var(--trpa-blue); }
     .kpi-card .kpi-value { font-size:1.7rem; font-weight:700; }
@@ -119,9 +133,8 @@
     .csv-row{display:flex;justify-content:flex-end;margin:.2rem 0 .4rem;}
     .csv-btn{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.4rem .8rem;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer;}
     .csv-btn:hover{background:var(--trpa-blue);}
-    /* Phone widths: nav wraps, the tab strip and reference tables scroll inside themselves */
+    /* Phone widths: the tab strip and reference tables scroll inside themselves */
     @media (max-width:700px){
-      .dashboard-header nav{flex-wrap:wrap;}
       calcite-tab-nav{overflow-x:auto;}
       table.wcref{display:block;overflow-x:auto;white-space:nowrap;}
     }
@@ -149,7 +162,7 @@
       .dashboard-header .agency,.dashboard-header .header-sub{display:none;}
       .dashboard-header h1{font-size:1.02rem;}
       .dashboard-header > div:last-child{width:100%;min-width:0;}
-      .dashboard-header nav{overflow-x:auto;flex-wrap:nowrap;white-space:nowrap;min-width:0;flex:1 1 100%;}
+      .dashboard-header details.pages{margin-left:auto;}   /* keep the right-anchored menu on screen when the row wraps */
       .kpi-row,.dashboard-content{padding-left:.9rem;padding-right:.9rem;}
     }
   </style>
@@ -162,20 +175,11 @@
     <div class="header-text">
       <div class="agency">Tahoe Regional Planning Agency</div>
       <h1>Precipitation Event Explorer for Debris-Flow Trigger Storms</h1>
-      <div class="header-sub">PROTECT Task 3 &middot; Trigger storms, frequency, and the debris-flow chain</div>
+      <div class="header-sub">Tahoe Resilience Improvement Plan &middot; trigger storms, frequency, and the debris-flow chain</div>
     </div>
     <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-      <nav style="display:flex;gap:.9rem;font-size:.8rem;font-weight:600;">
-        <a href="index.html" style="color:#B4CBE8;text-decoration:none;">Home</a>
-        <a href="results.html" style="color:#B4CBE8;text-decoration:none;">Results</a>
-        <a href="results-guide.html" style="color:#B4CBE8;text-decoration:none;">Results guide</a>
-        <a href="criticality-index.html" style="color:#B4CBE8;text-decoration:none;">Criticality Index</a>
-        <a href="reference-hub.html" style="color:#B4CBE8;text-decoration:none;">Reference Hub</a>
-        <a href="climate-data.html" style="color:#B4CBE8;text-decoration:none;">Climate Data</a>
-        <a href="scoring-rubrics.html" style="color:#B4CBE8;text-decoration:none;">Scoring Rubrics</a>
-        <a href="historic-hazards.html" style="color:#B4CBE8;text-decoration:none;">Historic Hazards</a>
-      </nav>
       <div class="draft-chip">Internal draft, projections pending review</div>
+      <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html" class="on" aria-current="page">Storm events</a></div></nav></details>
     </div>
   </div>
 
@@ -988,6 +992,12 @@
       a.download = btn.dataset.filename; a.click();
     }));
   })();
+</script>
+<script>
+  // Pages menu: close on an outside click or Escape
+  (function(){ const p = document.getElementById("pages"); if (!p) return;
+    document.addEventListener("click", e => { if (p.open && !p.contains(e.target)) p.open = false; });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") p.open = false; }); })();
 </script>
 </body>
 </html>
