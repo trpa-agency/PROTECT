@@ -1,14 +1,14 @@
 {
- "generated": "2026-10-15",
+ "generated": "2026-10-20",
  "culverts": {
   "scored_public": 5096,
   "full_profile": 858,
-  "with_ratio": 3901,
-  "ratio_over_1": 1896,
-  "ratio_median": 0.9,
-  "ratio_p90": 8.75,
+  "with_ratio": 3891,
+  "ratio_over_1": 1406,
+  "ratio_median": 0.49,
+  "ratio_p90": 4.9,
   "size_suspect": 93,
-  "ratio_review": 450,
+  "ratio_review": 354,
   "tailwater": 128,
   "regression": 114,
   "E_FLC": {
@@ -26,21 +26,48 @@
    "City of South Lake Tahoe": 32,
    "Douglas County": 4
   },
+  "headline_rp": 100,
+  "storms": {
+   "100": {
+    "with_ratio": 3891,
+    "ratio_over_1": 1406,
+    "ratio_median": 0.49,
+    "ratio_p90": 4.9,
+    "V_FLC_median": 1.05,
+    "V_FLC_class": {
+     "Medium": 2416,
+     "Low": 2224,
+     "High": 456
+    }
+   },
+   "25": {
+    "with_ratio": 3891,
+    "ratio_over_1": 1155,
+    "ratio_median": 0.35,
+    "ratio_p90": 3.41,
+    "V_FLC_median": 1.02,
+    "V_FLC_class": {
+     "Medium": 2386,
+     "Low": 2323,
+     "High": 387
+    }
+   }
+  },
   "vulnerability": {
-   "V_FLC_median": 1.15,
+   "V_FLC_median": 1.05,
    "V_FLC_class": {
-    "Medium": 2555,
-    "Low": 1947,
-    "High": 594
+    "Medium": 2416,
+    "Low": 2224,
+    "High": 456
    },
    "V_class": {
-    "High": 1864,
-    "Medium": 1850,
-    "Low": 1382
+    "High": 1834,
+    "Medium": 1764,
+    "Low": 1498
    },
    "V_max_pair": {
-    "LSC": 2970,
-    "FLC": 2126
+    "LSC": 3277,
+    "FLC": 1819
    },
    "S_source": {
     "partial": 4219,
@@ -48,13 +75,12 @@
     "default": 31
    },
    "high_by_jurisdiction": {
-    "El Dorado County": 196,
-    "Caltrans": 158,
-    "Washoe County": 156,
-    "TRPA Legacy (provisional)": 48,
-    "Placer County": 29,
-    "City of South Lake Tahoe": 6,
-    "Douglas County": 1
+    "El Dorado County": 142,
+    "Washoe County": 128,
+    "Caltrans": 113,
+    "TRPA Legacy (provisional)": 47,
+    "Placer County": 20,
+    "City of South Lake Tahoe": 6
    }
   }
  },
@@ -883,19 +909,19 @@
   },
   "culverts": {
    "V_class": {
-    "High": 1864,
-    "Medium": 1850,
-    "Low": 1382
+    "High": 1834,
+    "Medium": 1764,
+    "Low": 1498
    },
    "V_max_pair": {
-    "LSC": 2970,
-    "FLC": 2126
+    "LSC": 3277,
+    "FLC": 1819
    },
    "pair_class": {
     "FLC": {
-     "Medium": 2555,
-     "Low": 1947,
-     "High": 594
+     "Medium": 2416,
+     "Low": 2224,
+     "High": 456
     },
     "LSC": {
      "Low": 2411,

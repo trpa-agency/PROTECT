@@ -1,6 +1,10 @@
 # Secrets / credentials
 .env
 
+# Personal Claude Code permissions (paths and allow rules for one machine). The shared
+# .claude/settings.json is tracked and applies to everyone who opens the repo.
+.claude/settings.local.json
+
 # Procurement-sensitive working file - NOT for the public Pages site.
 # GitHub Pages serves the repo, so anything committed under data/ is reachable by URL.
 data/vendors.csv

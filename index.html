@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connecting Tahoe: Strengthening Transportation Resilience | TRPA</title>
+  <meta name="description" content="Connecting Tahoe is a regional plan led by the Tahoe Regional Planning Agency to find where the Lake Tahoe transportation system is most vulnerable to wildfire, winter storms, flooding, and other extreme weather, and to prioritize improvements." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Connecting Tahoe: Strengthening Transportation Resilience" />
+  <meta property="og:description" content="A regional plan to make Lake Tahoe's transportation system safer and more reliable in the face of wildfire, winter storms, flooding, and other extreme weather." />
+  <meta property="og:image" content="https://trpa-agency.github.io/PROTECT/html/img/home/hero-shoreline-winter.jpg" />
+  <link rel="icon" type="image/x-icon" href="html/favicon.ico" />
+
+  <!-- Project home page (rebuilt from the Connecting Tahoe story map collection, Oct. 2026).
+       Dependency-light like the hub: Open Sans only, no Calcite, AG Grid, Plotly, or ArcGIS. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:#0072CE; --trpa-navy:#003B71; --trpa-deep:#002B55; --trpa-orange:#E87722;
+      --trpa-forest:#4A6118; --trpa-ice:#B4CBE8; --gray-text:#5a6577; --gray-border:#DDDDDD;
+      --page-bg:#f4f6f9; --white:#fff; --bar-h:64px; --wrap:1180px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--white);line-height:1.6;}
+    img{display:block;max-width:100%;}
+    a{color:var(--trpa-blue);}
+    section[id]{scroll-margin-top:var(--bar-h);}
+    .skip{position:absolute;left:-999px;top:.5rem;background:#fff;color:var(--trpa-navy);padding:.5rem .8rem;border-radius:6px;z-index:2000;}
+    .skip:focus{left:.5rem;}
+    .wrap{max-width:var(--wrap);margin:0 auto;padding:0 1.75rem;}
+
+    /* Top bar: one sticky navy band, same logo-on-navy treatment as the rest of the site */
+    header.topbar{position:sticky;top:0;z-index:1000;background:var(--trpa-navy);color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.08);}
+    .bar{max-width:var(--wrap);margin:0 auto;height:var(--bar-h);padding:0 1.75rem;display:flex;align-items:center;gap:1rem;}
+    .bar .logo{flex-shrink:0;line-height:0;}
+    .bar .logo img{height:42px;width:auto;}
+    .bar .brand{display:flex;flex-direction:column;text-decoration:none;color:#fff;line-height:1.15;flex-shrink:0;}
+    .bar .brand .agency{color:var(--trpa-ice);font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+    .bar .brand .name{font-size:1.08rem;font-weight:700;}
+    nav.sections{display:flex;gap:.2rem;margin-left:auto;}
+    nav.sections a{color:#fff;text-decoration:none;font-size:.84rem;font-weight:600;padding:.35rem .65rem;border-radius:6px;opacity:.88;white-space:nowrap;}
+    nav.sections a:hover{opacity:1;background:rgba(255,255,255,.1);}
+    nav.sections a.on{opacity:1;box-shadow:inset 0 -2px 0 var(--trpa-ice);border-radius:0;}
+    .bar .cta{background:var(--trpa-blue);color:#fff;text-decoration:none;font-size:.82rem;font-weight:700;padding:.42rem .85rem;border-radius:6px;white-space:nowrap;flex-shrink:0;}
+    .bar .cta:hover{background:#005CA8;}
+
+    /* Hero: the story map cover, full bleed */
+    .hero{position:relative;min-height:calc(100vh - var(--bar-h));min-height:calc(100svh - var(--bar-h));display:flex;align-items:flex-end;color:#fff;overflow:hidden;background:var(--trpa-deep);}
+    .hero > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 40%;}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,43,85,.2) 0%,rgba(0,43,85,.12) 28%,rgba(0,43,85,.6) 55%,rgba(0,43,85,.9) 100%);}
+    .hero-text{text-shadow:0 1px 12px rgba(0,30,60,.35);}
+    .hero-text{position:relative;z-index:1;max-width:var(--wrap);width:100%;margin:0 auto;padding:0 1.75rem 4.5rem;}
+    .hero .eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);}
+    .hero h1{font-size:clamp(2.6rem,7vw,5rem);font-weight:800;line-height:1.02;letter-spacing:-.01em;margin:.35rem 0 .3rem;}
+    .hero .sub{font-size:clamp(1.15rem,2.4vw,1.6rem);font-weight:600;color:#fff;}
+    .hero .lede{max-width:40rem;font-size:1.05rem;margin:.9rem 0 1.6rem;color:#eef4fb;}
+    .actions{display:flex;gap:.75rem;flex-wrap:wrap;}
+    .btn{display:inline-flex;align-items:center;gap:.45rem;font:700 .95rem 'Open Sans',sans-serif;text-decoration:none;padding:.72rem 1.2rem;border-radius:8px;border:2px solid transparent;cursor:pointer;}
+    .btn.primary{background:var(--trpa-blue);color:#fff;}
+    .btn.primary:hover{background:#005CA8;}
+    .btn.ghost{color:#fff;border-color:rgba(255,255,255,.75);background:rgba(0,43,85,.25);}
+    .btn.ghost:hover{background:rgba(255,255,255,.14);border-color:#fff;}
+    .btn.outline{color:var(--trpa-blue);border-color:var(--trpa-blue);background:#fff;}
+    .btn.outline:hover{background:#eef4fb;}
+    .scroll-cue{position:absolute;z-index:1;left:50%;bottom:1.2rem;width:28px;height:28px;margin-left:-14px;border-right:2px solid rgba(255,255,255,.8);border-bottom:2px solid rgba(255,255,255,.8);transform:rotate(45deg);animation:cue 2.2s ease-in-out infinite;}
+    @keyframes cue{0%,100%{transform:translateY(0) rotate(45deg);opacity:.85;}50%{transform:translateY(6px) rotate(45deg);opacity:.4;}}
+
+    /* Shared section rhythm */
+    .band{padding:5rem 0;}
+    .band.tint{background:var(--page-bg);}
+    .kicker{font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--trpa-blue);margin-bottom:.35rem;}
+    h2{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;line-height:1.2;margin-bottom:.9rem;}
+    h3{font-size:1.1rem;font-weight:700;line-height:1.3;}
+    .center{text-align:center;}
+    .lede{font-size:1.08rem;color:#2c4766;}
+    .center.lede{max-width:46rem;margin:0 auto;}
+    .credit{font-size:.72rem;color:var(--gray-text);}
+
+    /* Sidecar: text beside a full-height image (the story map's docked panel) */
+    .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:80vh;}
+    .split-text{display:flex;flex-direction:column;justify-content:center;padding:4.5rem clamp(1.75rem,5vw,5rem);}
+    .split-text > *{max-width:34rem;}
+    .split-text p{margin:0 0 1rem;font-size:1.02rem;}
+    .split-text p.fund{font-size:.9rem;color:var(--gray-text);border-left:3px solid var(--trpa-ice);padding-left:.85rem;}
+    .split-media{position:relative;min-height:340px;}
+    .split-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+    .split.reverse .split-media{order:-1;}
+    .split.reverse .split-text{background:var(--page-bg);}
+
+    /* Two components */
+    .two-up{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:2rem;}
+    .component{background:#fff;border:1px solid var(--gray-border);border-top:5px solid var(--trpa-blue);border-radius:10px;padding:1.6rem 1.7rem;}
+    .component + .component{border-top-color:var(--trpa-navy);}
+    .component .num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--trpa-navy);color:#fff;font-weight:800;margin-bottom:.8rem;}
+    .component h3{font-size:1.2rem;margin-bottom:.45rem;}
+    .component p{color:#2c4766;}
+
+    /* Goals */
+    ul.goals{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:2.2rem;}
+    ul.goals li{background:#fff;border:1px solid var(--gray-border);border-radius:10px;padding:1.3rem 1.3rem 1.2rem;font-weight:700;font-size:1.02rem;line-height:1.35;display:flex;gap:.9rem;align-items:flex-start;}
+    ul.goals svg{flex-shrink:0;width:38px;height:38px;padding:7px;border-radius:9px;background:#eaf3fb;stroke:var(--trpa-blue);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+    /* Objectives and the hazard gallery */
+    .obj-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:3rem;align-items:start;}
+    ol.objectives{list-style:none;counter-reset:obj;}
+    ol.objectives li{counter-increment:obj;position:relative;padding:0 0 1.1rem 3.1rem;font-size:1.04rem;}
+    ol.objectives li::before{content:counter(obj);position:absolute;left:0;top:-.1rem;width:2.1rem;height:2.1rem;border-radius:50%;border:2px solid var(--trpa-blue);color:var(--trpa-blue);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.95rem;}
+    .hazards{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+    .hazards figure{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:#dfe6ee;}
+    .hazards img{width:100%;height:100%;object-fit:cover;}
+    .hazards figcaption{position:absolute;left:0;right:0;bottom:0;padding:1.6rem .8rem .55rem;background:linear-gradient(180deg,transparent,rgba(0,30,60,.85));color:#fff;display:flex;justify-content:space-between;align-items:flex-end;gap:.5rem;}
+    .hazards figcaption b{font-size:1rem;}
+    .hazards figcaption span{font-size:.68rem;opacity:.85;}
+    .hazards-note{font-size:.85rem;color:var(--gray-text);margin-top:.6rem;}
+
+    /* What the plan includes: sticky image, steps scroll past (the story map's slideshow sidecar) */
+    .scrolly{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);background:var(--trpa-deep);color:#fff;}
+    .scrolly-media{position:sticky;top:var(--bar-h);height:calc(100vh - var(--bar-h));overflow:hidden;}
+    .scrolly-media figure{position:absolute;inset:0;opacity:0;transition:opacity .6s ease;}
+    .scrolly-media figure.on{opacity:1;}
+    .scrolly-media img{width:100%;height:100%;object-fit:cover;}
+    .scrolly-media .credit{position:absolute;right:.8rem;bottom:.6rem;color:#fff;background:rgba(0,30,60,.55);padding:.15rem .5rem;border-radius:4px;}
+    .scrolly-steps{padding:0 clamp(1.5rem,4vw,3.5rem);}
+    .step{min-height:85vh;display:flex;flex-direction:column;justify-content:center;padding:3rem 0;}
+    .step:first-child{min-height:calc(100vh - var(--bar-h));}
+    .step-card{background:#fff;color:var(--trpa-navy);border-radius:12px;padding:1.7rem 1.8rem;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:.45;transform:translateY(8px);transition:opacity .4s,transform .4s;}
+    .step.on .step-card{opacity:1;transform:none;}
+    .step-card .num{font-size:.76rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--trpa-blue);}
+    .step-card h3{font-size:1.35rem;margin:.25rem 0 .5rem;}
+    .step-card p{color:#2c4766;}
+    .step-card a.more{display:inline-block;margin-top:.8rem;font-weight:700;text-decoration:none;}
+    .step-card a.more:hover{text-decoration:underline;}
+    .step.intro h2{color:#fff;font-size:clamp(1.8rem,3.6vw,2.6rem);}
+    .step.intro p{color:var(--trpa-ice);font-size:1.08rem;max-width:28rem;}
+    .step figure.inline{display:none;}
+
+    /* Schedule */
+    ol.timeline{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:2.4rem;position:relative;}
+    ol.timeline li{position:relative;padding:1.9rem 1.2rem 0 0;}
+    ol.timeline li::before{content:"";position:absolute;top:.55rem;left:0;right:0;height:4px;background:var(--trpa-ice);}
+    ol.timeline li::after{content:"";position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--trpa-ice);}
+    ol.timeline li.done::before{background:var(--trpa-forest);}
+    ol.timeline li.done::after{border-color:var(--trpa-forest);background:var(--trpa-forest);}
+    ol.timeline li.now::before{background:linear-gradient(90deg,var(--trpa-orange) 0 45%,var(--trpa-ice) 45%);}
+    ol.timeline li.now::after{border-color:var(--trpa-orange);box-shadow:0 0 0 5px rgba(232,119,34,.22);}
+    .timeline .when{display:block;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-text);}
+    .timeline li.done .when{color:var(--trpa-forest);}
+    .timeline li.now .when{color:var(--trpa-orange);}
+    .timeline .what{display:block;font-size:1.05rem;font-weight:700;margin-top:.2rem;line-height:1.35;}
+    .timeline .here{display:inline-block;margin-top:.5rem;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:var(--trpa-orange);color:#fff;padding:.12rem .5rem;border-radius:999px;}
+
+    .components-note{text-align:center;margin-top:1.4rem;color:#2c4766;}
+
+    /* Explore the work: one block per part of the project, live pages plus "Coming" cards */
+    .part{margin-top:2.4rem;}
+    .part-name{font-size:1.15rem;padding-left:.7rem;border-left:4px solid var(--trpa-blue);margin-bottom:.9rem;}
+    .explore-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;}
+    .tool{display:flex;flex-direction:column;background:#fff;border:1px solid var(--gray-border);border-radius:10px;padding:1.3rem 1.4rem;text-decoration:none;color:var(--trpa-navy);}
+    a.tool{transition:border-color .15s,box-shadow .15s;}
+    a.tool:hover{border-color:var(--trpa-blue);box-shadow:0 4px 16px rgba(0,59,113,.12);}
+    .tool .head{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem;}
+    .tool h4{flex:1;font-size:1.05rem;font-weight:700;line-height:1.3;}
+    .tool .chip{font-size:.66rem;font-weight:700;padding:.12rem .55rem;border-radius:999px;background:#fdf1e7;color:#a8530f;white-space:nowrap;}
+    .tool .chip.live{background:#4A611814;color:var(--trpa-forest);}
+    .tool p{font-size:.92rem;color:#2c4766;margin-bottom:.8rem;}
+    .tool .open{margin-top:auto;font-size:.86rem;font-weight:700;color:var(--trpa-blue);}
+    .tool.soon{background:transparent;border-style:dashed;border-color:#c4ccd6;}
+    .tool.soon .chip{background:#e6eaf0;color:var(--gray-text);}
+    .tool.soon p{color:var(--gray-text);margin-bottom:0;}
+    .all-pages{margin-top:2rem;font-size:.92rem;}
+
+    /* Community involvement: floating panel over a full-bleed photo */
+    .involved{position:relative;min-height:90vh;display:flex;align-items:center;overflow:hidden;background:var(--trpa-deep);}
+    .involved > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+    .involved .wrap{position:relative;z-index:1;width:100%;}
+    .involved .panel{background:#fff;border-radius:12px;padding:2rem 2.1rem;max-width:30rem;box-shadow:0 12px 36px rgba(0,0,0,.3);}
+    .involved .panel p{margin-bottom:1rem;}
+    .involved .panel h3{font-size:1rem;margin-bottom:.4rem;}
+    .involved .panel ul{margin:0 0 1.4rem 1.2rem;}
+    .involved .panel li{margin:.2rem 0;}
+
+    /* Survey: click to load the Survey123 form in place */
+    .survey{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:3rem;align-items:start;}
+    .survey-frame{position:relative;border-radius:12px;overflow:hidden;background:var(--trpa-deep);aspect-ratio:4/3;border:1px solid var(--gray-border);}
+    .survey-frame > img{width:100%;height:100%;object-fit:cover;opacity:.8;}
+    .survey-frame .btn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:1.05rem;padding:.9rem 1.5rem;}
+    .survey-frame.loaded{aspect-ratio:auto;height:min(85vh,900px);background:#fff;}
+    .survey-frame iframe{width:100%;height:100%;border:0;display:block;}
+    .survey-intro p{margin-bottom:1rem;font-size:1.04rem;}
+    .survey-intro .newtab{font-size:.9rem;}
+
+    /* Stay informed and footer */
+    .informed{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2rem;align-items:center;}
+    .informed p{max-width:42rem;font-size:1.04rem;}
+    .contact{background:#fff;border:1px solid var(--gray-border);border-left:5px solid var(--trpa-blue);border-radius:8px;padding:1rem 1.3rem;font-size:.95rem;}
+    .contact b{display:block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-text);}
+    .logos{background:#fff;border-top:1px solid var(--gray-border);padding:2rem 0;}
+    .logos img{width:min(520px,100%);margin:0 auto;}
+    footer.site{background:var(--trpa-navy);color:var(--trpa-ice);font-size:.84rem;padding:1.4rem 0;}
+    footer.site .wrap{display:flex;gap:1rem 2rem;flex-wrap:wrap;justify-content:space-between;align-items:center;}
+    footer.site a{color:#fff;font-weight:600;}
+
+    /* Pages menu in the header (same markup and styles as every content page) */
+    details.pages{position:relative;display:inline-block;flex-shrink:0;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+
+    /* Narrower screens: section links drop out of the bar, sidecars and the scrolly stack */
+    @media (max-width:1060px){
+      nav.sections{display:none;}
+      .bar .cta{margin-left:auto;}
+    }
+    @media (max-width:860px){
+      .band{padding:3.5rem 0;}
+      .split,.two-up,.obj-grid,.survey,.informed{grid-template-columns:1fr;}
+      .split{min-height:0;}
+      .split-media{min-height:0;aspect-ratio:3/2;}
+      .split.reverse .split-media{order:0;}
+      .split-text{padding:2.5rem 1.75rem;}
+      ul.goals{grid-template-columns:1fr 1fr;}
+      .explore-grid{grid-template-columns:1fr;}
+      .scrolly{grid-template-columns:1fr;}
+      .scrolly-media{display:none;}
+      .step,.step:first-child{min-height:0;padding:2rem 0;}
+      .step:first-child{padding-top:3.5rem;}
+      .step:last-child{padding-bottom:3.5rem;}
+      .step-card{opacity:1;transform:none;padding:0;overflow:hidden;}
+      .step-card > :not(figure){margin-left:1.4rem;margin-right:1.4rem;}
+      .step-card > :last-child{margin-bottom:1.4rem;}
+      .step figure.inline{display:block;margin-bottom:1.1rem;aspect-ratio:3/2;}
+      .step figure.inline img{width:100%;height:100%;object-fit:cover;}
+      ol.timeline{grid-template-columns:1fr;gap:0;}
+      ol.timeline li{padding:0 0 1.6rem 2.2rem;}
+      ol.timeline li::before{top:0;bottom:0;left:7px;right:auto;width:4px;height:auto;}
+      ol.timeline li.now::before{background:linear-gradient(180deg,var(--trpa-orange) 0 45%,var(--trpa-ice) 45%);}
+      .involved{min-height:0;padding:40vh 0 2rem;}
+      .involved .panel{padding:1.5rem 1.4rem;}
+    }
+    @media (max-width:560px){
+      .bar{padding:0 1rem;gap:.6rem;}
+      .bar .brand .agency{display:none;}
+      .bar .logo img{height:36px;}
+      .bar .cta{padding:.38rem .6rem;font-size:.76rem;}
+      .wrap,.hero-text{padding-left:1rem;padding-right:1rem;}
+      .split-text{padding:2.2rem 1rem;}
+      ul.goals,.hazards{grid-template-columns:1fr;}
+    }
+    @media (max-width:440px){
+      .bar .brand{display:none;}
+    }
+    @media (prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto;}
+      .scroll-cue{animation:none;}
+      .scrolly-media figure,.step-card{transition:none;}
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="bar">
+      <a class="logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="html/trpa-logo-color.png" alt="TRPA" /></a>
+      <a class="brand" href="#top"><span class="agency">Tahoe Regional Planning Agency</span><span class="name">Connecting Tahoe</span></a>
+      <nav class="sections" aria-label="Sections">
+        <a href="#overview">Overview</a><a href="#goals">Goals</a><a href="#plan">The plan</a><a href="#schedule">Schedule</a><a href="#explore">Explore</a><a href="#involved">Get involved</a>
+      </nav>
+      <a class="cta" href="#survey">Take the survey</a>
+      <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="index.html" class="on" aria-current="page">Home</a><a href="html/index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="html/workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="html/baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="html/results.html">Results</a><a href="html/results-guide.html">Results guide</a><a href="html/criticality-index.html">Criticality</a><a href="html/od-services-index.html">Access to services</a><a href="html/scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="html/references.html">References</a><a href="html/reference-hub.html">Reference hub</a><a href="html/climate-data.html">Climate inputs</a><a href="html/historic-hazards.html">Historic hazards</a><a href="html/tahoe-precip-events.html">Storm events</a></div></nav></details>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <img src="html/img/home/hero-shoreline-winter.jpg" alt="Aerial view of a snowy Lake Tahoe shoreline with a road and homes among the pines" fetchpriority="high" />
+      <div class="hero-text">
+        <p class="eyebrow">Lake Tahoe Basin</p>
+        <h1>Connecting Tahoe</h1>
+        <p class="sub">Strengthening Transportation Resilience</p>
+        <p class="lede">A regional plan to make Tahoe's roads, transit, and travel information safer and more reliable through wildfire, winter storms, flooding, and other extreme weather.</p>
+        <div class="actions">
+          <a class="btn primary" href="#overview">Read the overview</a>
+          <a class="btn ghost" href="#survey">Take the 3-minute survey</a>
+        </div>
+      </div>
+      <a class="scroll-cue" href="#overview" aria-label="Scroll to the overview"></a>
+    </section>
+
+    <section class="split" id="overview">
+      <div class="split-text">
+        <p class="kicker">Project overview</p>
+        <h2>A regional plan for a more resilient transportation system</h2>
+        <p>Connecting Tahoe: Strengthening Transportation Resilience is a regional planning effort to help coordinate regional evacuation planning, strengthen key evacuation routes through corridor resilience projects, and improve transportation and communications infrastructure in the face of growing threats.</p>
+        <p>Led by the Tahoe Regional Planning Agency, the plan will identify transportation vulnerabilities and prioritize improvements to help partners of the Lake Tahoe transportation system better adapt to pressures created by wildfires, winter storms, flooding, and other extreme weather events. The plan will support partners in creating safer, more reliable travel through strengthened infrastructure, improved emergency communications, and enhanced coordination among agencies.</p>
+        <p class="fund">This effort is funded through the U.S. Department of Transportation Promoting Resilient Operations for Transformative, Efficient, and Cost-saving Transportation (PROTECT) Program.</p>
+      </div>
+      <figure class="split-media"><img src="html/img/home/overview-transit-snow.jpg" alt="A TART shuttle stopped on a plowed mountain road between snowbanks" loading="lazy" /></figure>
+    </section>
+
+    <section class="band tint" id="components">
+      <div class="wrap">
+        <p class="kicker center">Two parts, one plan</p>
+        <h2 class="center">The project has two main components</h2>
+        <div class="two-up">
+          <article class="component">
+            <span class="num">1</span>
+            <h3>Transportation Resilience Improvement Plan (TRIP)</h3>
+            <p>Identifies transportation vulnerabilities and prioritizes projects and strategies to improve long-term resilience.</p>
+          </article>
+          <article class="component">
+            <span class="num">2</span>
+            <h3>Transportation Communications Strategy</h3>
+            <p>Evaluates Intelligent Transportation Systems (ITS) and emergency communication tools to support improved partner coordination and traveler information during emergencies.</p>
+          </article>
+        </div>
+        <p class="components-note">Stakeholder engagement and a review of how the region has handled past emergencies feed both.</p>
+      </div>
+    </section>
+
+    <section class="split reverse" id="why">
+      <figure class="split-media"><img src="html/img/home/why-transit-stop.jpg" alt="Riders stepping off a TART bus at a transit stop" loading="lazy" /></figure>
+      <div class="split-text">
+        <p class="kicker">Why it matters</p>
+        <h2>Long-term investments that also help in an emergency</h2>
+        <p>Connecting Tahoe is not an evacuation or emergency plan. It identifies risks and develops long-term strategies and investments that support safer, more reliable transportation systems. These improvements can also strengthen emergency response and evacuation efforts when needed.</p>
+        <p>The Tahoe Basin is vulnerable to wildfires, heavy snow and winter storms, flooding, landslides, and other extreme weather events. Transportation disruptions during these events can affect residents, visitors, emergency responders, and the regional economy. The plan will help identify where the transportation system is most vulnerable and what improvements are needed to increase resilience.</p>
+      </div>
+    </section>
+
+    <section class="band" id="goals">
+      <div class="wrap">
+        <p class="kicker center">Goals</p>
+        <h2 class="center">What the plan aims to do</h2>
+        <ul class="goals">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Improve safety</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4C10 4 5 9 5 15c0 2 .7 3.6 1.6 5C14 20 20 14 20 4z"/><path d="M4 21c3-4 6-7 10-10"/></svg>Reduce greenhouse gas emissions</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h15l-3.5-3.5"/><path d="M20 16H5l3.5 3.5"/></svg>Enhance mobility</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18"/><path d="M6 20v-6"/><path d="M11 20V9"/><path d="M16 20v-9"/><path d="M5 9l5-4 4 3 5-4"/></svg>Improve prosperity</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3L5 21"/><path d="M16 3l3 18"/><path d="M12 4v3"/><path d="M12 11v3"/><path d="M12 18v2"/></svg>Preserve the sustainability of the existing transportation system</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.5 6h7"/><path d="M7.2 8.2l3.6 7.4"/><path d="M16.8 8.2l-3.6 7.4"/></svg>Provide a dynamic, reliable, and efficient transportation system</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="band tint" id="objectives">
+      <div class="wrap obj-grid">
+        <div>
+          <p class="kicker">Key objectives</p>
+          <h2>Where the work is focused</h2>
+          <ol class="objectives">
+            <li>Improve system resilience to natural hazards and travel impacts.</li>
+            <li>Identify critical transportation vulnerabilities.</li>
+            <li>Develop long-term resilience strategies and priority projects.</li>
+            <li>Support enhanced emergency coordination and communication across agencies and jurisdictions.</li>
+          </ol>
+        </div>
+        <div>
+          <div class="hazards">
+            <figure><img src="html/img/home/hazard-wildfire.jpg" alt="Fire engines staged along a smoky residential street" loading="lazy" /><figcaption><b>Wildfire</b><span>Photo: Sierra Sun</span></figcaption></figure>
+            <figure><img src="html/img/home/hazard-winter-storm.jpg" alt="A pickup on a plowed road between walls of snow" loading="lazy" /><figcaption><b>Winter storms</b><span>Photo: SF Gate</span></figcaption></figure>
+            <figure><img src="html/img/home/hazard-flooding.jpg" alt="Floodwater across a main street in a Tahoe town" loading="lazy" /><figcaption><b>Flooding</b><span>Photo: Lake Tahoe News</span></figcaption></figure>
+            <figure><img src="html/img/home/hazard-rockslide.jpg" alt="Crews and a loader clearing rockfall from a lakeside highway" loading="lazy" /><figcaption><b>Rockslides</b><span>Photo: SF Gate</span></figcaption></figure>
+          </div>
+          <p class="hazards-note">The Tahoe area is prone to wildfire, blizzards, floods, and rockslides.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="scrolly" id="plan">
+      <div class="scrolly-media" aria-hidden="true">
+        <figure data-step="0" class="on"><img src="html/img/home/plan-shoreline-aerial.jpg" alt="" loading="lazy" /></figure>
+        <figure data-step="1"><img src="html/img/home/plan-engagement.jpg" alt="" loading="lazy" /></figure>
+        <figure data-step="2"><img src="html/img/home/hazard-wildfire.jpg" alt="" loading="lazy" /><span class="credit">Photo: Sierra Sun</span></figure>
+        <figure data-step="3"><img src="html/img/home/plan-vulnerability.jpg" alt="" loading="lazy" /><span class="credit">Photo: TRPA photo archive</span></figure>
+        <figure data-step="4"><img src="html/img/home/plan-projects.jpg" alt="" loading="lazy" /><span class="credit">Photo: Luxuri Media</span></figure>
+        <figure data-step="5"><img src="html/img/home/plan-communications.jpg" alt="" loading="lazy" /><span class="credit">Photo: Tahoe Transportation District</span></figure>
+      </div>
+      <div class="scrolly-steps">
+        <div class="step intro" data-step="0">
+          <p class="kicker" style="color:var(--trpa-ice)">The plan</p>
+          <h2>What Connecting Tahoe will include</h2>
+          <p>Five pieces of work, from listening to partners to a list of projects ready for funding.</p>
+        </div>
+        <div class="step" data-step="1">
+          <div class="step-card">
+            <figure class="inline"><img src="html/img/home/plan-engagement.jpg" alt="Agency staff talking with the public at outdoor information booths" loading="lazy" /></figure>
+            <span class="num">Engagement</span>
+            <h3>Stakeholder engagement</h3>
+            <p>Interviews, workshops, and agency coordination.</p>
+          </div>
+        </div>
+        <div class="step" data-step="2">
+          <div class="step-card">
+            <figure class="inline"><img src="html/img/home/hazard-wildfire.jpg" alt="Fire engines staged along a smoky residential street" loading="lazy" /></figure>
+            <span class="num">Lessons learned</span>
+            <h3>Lessons from past emergencies</h3>
+            <p>A review of how the region responded to the Angora, Tamarack, Caldor, and Davis fires and to major winter storms, with recommendations for next time.</p>
+          </div>
+        </div>
+        <div class="step" data-step="3">
+          <div class="step-card">
+            <figure class="inline"><img src="html/img/home/plan-vulnerability.jpg" alt="Partners reviewing a printed corridor map outdoors in the snow" loading="lazy" /></figure>
+            <span class="num">Resilience Improvement Plan</span>
+            <h3>Risk-based vulnerability assessment</h3>
+            <p>Interactive mapping tools that identify vulnerable locations and the pinch points in the transportation network.</p>
+            <a class="more" href="html/results.html">Explore the draft results &rarr;</a>
+          </div>
+        </div>
+        <div class="step" data-step="4">
+          <div class="step-card">
+            <figure class="inline"><img src="html/img/home/plan-projects.jpg" alt="Cyclists on a boardwalk path through a meadow" loading="lazy" /></figure>
+            <span class="num">Resilience Improvement Plan</span>
+            <h3>Prioritized project list</h3>
+            <p>Recommended projects and investments to improve resilience, with cost estimates and funding options.</p>
+          </div>
+        </div>
+        <div class="step" data-step="5">
+          <div class="step-card">
+            <figure class="inline"><img src="html/img/home/plan-communications.jpg" alt="A transit bus on a lakeside highway" loading="lazy" /></figure>
+            <span class="num">Communications strategy</span>
+            <h3>Transportation communications strategy</h3>
+            <p>Recommendations for Intelligent Transportation Systems and communication tools that support emergency coordination.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="schedule">
+      <div class="wrap">
+        <p class="kicker">Schedule</p>
+        <h2>From engagement to a final plan in 2027</h2>
+        <!-- data-from and data-to (YYYY-MM) set which phase is marked done or current -->
+        <ol class="timeline">
+          <li data-from="2026-03" data-to="2026-08"><span class="when">Spring to summer 2026</span><span class="what">Stakeholder engagement and data collection</span></li>
+          <li data-from="2026-09" data-to="2027-05"><span class="when">Fall 2026 to spring 2027</span><span class="what">Analysis and plan development</span></li>
+          <li data-from="2027-06" data-to="2027-09"><span class="when">Mid to late 2027</span><span class="what">Draft plan and strategy</span></li>
+          <li data-from="2027-10" data-to="2027-12"><span class="when">Late 2027</span><span class="what">Final plan</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band tint" id="explore">
+      <div class="wrap">
+        <p class="kicker">Explore the work</p>
+        <h2>See the work as it develops</h2>
+        <p class="lede">Each part of the project adds its pages here as the work moves forward. Drafts will change as partners review them.</p>
+
+        <!-- One block per part of the project, in scope order. A new page becomes an a.tool
+             card in its part and replaces the matching div.tool.soon card. -->
+        <div class="part" id="work-engagement">
+          <h3 class="part-name">Stakeholder engagement</h3>
+          <div class="explore-grid">
+            <a class="tool" href="#survey">
+              <div class="head"><h4>Public survey</h4><span class="chip live">Open</span></div>
+              <p>How extreme weather has affected your travel and how you prefer to get important information.</p>
+              <span class="open">Take the survey &rarr;</span>
+            </a>
+            <div class="tool soon">
+              <div class="head"><h4>Workshop and meeting materials</h4><span class="chip">Coming</span></div>
+              <p>Posted after each workshop and meeting.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="part" id="work-lessons">
+          <h3 class="part-name">Lessons from past emergencies</h3>
+          <div class="explore-grid">
+            <div class="tool soon">
+              <div class="head"><h4>Review of past responses</h4><span class="chip">Coming</span></div>
+              <p>How the region responded to the Angora, Tamarack, Caldor, and Davis fires and to major winter storms, with recommendations.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="part" id="work-trip">
+          <h3 class="part-name">Resilience Improvement Plan</h3>
+          <div class="explore-grid">
+            <a class="tool" href="html/results.html">
+              <div class="head"><h4>Vulnerability results</h4><span class="chip">Draft</span></div>
+              <p>Which roads, bridges, culverts, paths, and transit centers are most exposed to flooding, wildfire, landslides, debris flows, and avalanches.</p>
+              <span class="open">Open the map &rarr;</span>
+            </a>
+            <a class="tool" href="html/criticality-index.html">
+              <div class="head"><h4>Which roads matter most</h4><span class="chip">Draft</span></div>
+              <p>How each road ranks on traffic, detour length, access to services, and equity, with weights you can adjust.</p>
+              <span class="open">Open the map &rarr;</span>
+            </a>
+            <a class="tool" href="html/historic-hazards.html">
+              <div class="head"><h4>Where hazards have happened</h4><span class="chip">Draft</span></div>
+              <p>Past wildfire perimeters, mapped landslides, and earthquakes across the basin.</p>
+              <span class="open">Open the map &rarr;</span>
+            </a>
+            <div class="tool soon">
+              <div class="head"><h4>Pinch points and priority zones</h4><span class="chip">Coming</span></div>
+              <p>Where hazards, heavy travel, and vulnerable neighborhoods overlap, to set where improvements come first.</p>
+            </div>
+            <div class="tool soon">
+              <div class="head"><h4>Priority projects and funding</h4><span class="chip">Coming</span></div>
+              <p>Resilience projects with cost estimates and funding options.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="part" id="work-communications">
+          <h3 class="part-name">Transportation communications strategy</h3>
+          <div class="explore-grid">
+            <div class="tool soon">
+              <div class="head"><h4>Communications and traffic systems</h4><span class="chip">Coming</span></div>
+              <p>Upgrades to traveler information and traffic management, with a prioritized project list.</p>
+            </div>
+            <div class="tool soon">
+              <div class="head"><h4>Transit in an evacuation</h4><span class="chip">Coming</span></div>
+              <p>How transit providers and community groups can move people who do not have a car.</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="all-pages">Definitions and data sources are on the <a href="html/references.html">References page</a>; methods and workshop materials are on the <a href="html/index.html">project pages index</a>.</p>
+      </div>
+    </section>
+
+    <section class="involved" id="involved">
+      <img src="html/img/home/involved-community-event.jpg" alt="" loading="lazy" />
+      <div class="wrap">
+        <div class="panel">
+          <p class="kicker">Get involved</p>
+          <h2>Community involvement</h2>
+          <p>Community and stakeholder input, including comments from residents, workers, emergency responders, and others who have experienced transportation challenges during emergencies, will be essential to the planning process.</p>
+          <h3>Opportunities to participate include:</h3>
+          <ul>
+            <li>Community workshops</li>
+            <li>Online survey</li>
+            <li>Public review and opportunity to comment on draft recommendations</li>
+          </ul>
+          <a class="btn primary" href="#survey">Take the survey</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="survey">
+      <div class="wrap survey">
+        <div class="survey-intro">
+          <p class="kicker">Public survey</p>
+          <h2>Tell us about your experience</h2>
+          <p>Share how extreme weather has affected your travel, the transportation challenges you have faced, and how you prefer to get important information. The survey takes about three minutes, and you can enter a gift card raffle when you finish.</p>
+          <p class="newtab"><a id="survey-newtab" href="#" target="_blank" rel="noopener">Open the survey in a new tab</a></p>
+        </div>
+        <div class="survey-frame" id="survey-frame">
+          <img src="html/img/home/survey-corridor-aerial.jpg" alt="" loading="lazy" />
+          <button class="btn primary" id="survey-start" type="button">Start the survey</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="band tint" id="stay-informed">
+      <div class="wrap informed">
+        <div>
+          <p class="kicker">Stay informed</p>
+          <h2>Follow the plan</h2>
+          <p>Project updates, meeting materials, and opportunities to provide feedback will be posted on this webpage throughout the planning process.</p>
+        </div>
+        <div class="contact">
+          <b>Contact</b>
+          Tahoe Regional Planning Agency<br />
+          <a href="https://www.trpa.gov/contact/" target="_blank" rel="noopener">trpa.gov/contact</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="logos"><img src="html/img/home/partner-logos.png" alt="Tahoe Regional Planning Agency and Lake Tahoe Transportation and Sustainable Recreation" loading="lazy" /></div>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>Funded through the U.S. Department of Transportation PROTECT Program.</span>
+      <span><a href="html/index.html">All project pages</a> &nbsp;&middot;&nbsp; <a href="https://www.trpa.gov" target="_blank" rel="noopener">trpa.gov</a></span>
+    </div>
+  </footer>
+
+  <script>
+    // Survey123 form from the story map collection (item 5f9c9adfb4c14f509937c6462d89fa65).
+    // Loaded on click so every visit does not pull the Survey123 app.
+    const SURVEY = {
+      share: "https://survey123.arcgis.com/share/5f9c9adfb4c14f509937c6462d89fa65?portalUrl=https://trpa.maps.arcgis.com",
+      embed: "https://survey123.arcgis.com/share/5f9c9adfb4c14f509937c6462d89fa65?portalUrl=https://trpa.maps.arcgis.com&embed=fullscreen&hide=footer,theme"
+    };
+    document.getElementById("survey-newtab").href = SURVEY.share;
+    document.getElementById("survey-start").addEventListener("click", () => {
+      const frame = document.getElementById("survey-frame");
+      const iframe = document.createElement("iframe");
+      iframe.src = SURVEY.embed;
+      iframe.title = "Connecting Tahoe public survey";
+      iframe.allow = "geolocation";
+      frame.replaceChildren(iframe);
+      frame.classList.add("loaded");
+    });
+
+    // Schedule: mark finished phases and the current one from today's date.
+    (function(){
+      const now = new Date(), ym = now.getFullYear() * 12 + now.getMonth();
+      const toYm = s => { const [y, m] = s.split("-").map(Number); return y * 12 + (m - 1); };
+      document.querySelectorAll("ol.timeline li").forEach(li => {
+        const from = toYm(li.dataset.from), to = toYm(li.dataset.to);
+        if (ym > to) li.classList.add("done");
+        else if (ym >= from) {
+          li.classList.add("now");
+          li.insertAdjacentHTML("beforeend", '<span class="here">We are here</span>');
+        }
+      });
+    })();
+
+    // The plan: swap the sticky image as each step reaches the middle of the screen.
+    (function(){
+      const figs = document.querySelectorAll(".scrolly-media figure");
+      const steps = document.querySelectorAll(".scrolly-steps .step");
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          const n = e.target.dataset.step;
+          steps.forEach(s => s.classList.toggle("on", s === e.target));
+          figs.forEach(f => f.classList.toggle("on", f.dataset.step === n));
+        });
+      }, { rootMargin: "-45% 0px -45% 0px" });
+      steps.forEach(s => io.observe(s));
+    })();
+
+    // Section links: underline the section in view.
+    (function(){
+      const links = [...document.querySelectorAll("nav.sections a")];
+      const byId = Object.fromEntries(links.map(a => [a.hash.slice(1), a]));
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          links.forEach(a => a.classList.remove("on"));
+          if (byId[e.target.id]) byId[e.target.id].classList.add("on");
+        });
+      }, { rootMargin: "-50% 0px -50% 0px" });
+      document.querySelectorAll("main section[id]").forEach(s => io.observe(s));
+    })();
+
+    // Pages menu: close on an outside click or Escape
+    (function(){ const p = document.getElementById("pages"); if (!p) return;
+      document.addEventListener("click", e => { if (p.open && !p.contains(e.target)) p.open = false; });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") p.open = false; }); })();
+  </script>
+</body>
+</html>

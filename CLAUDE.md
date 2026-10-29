@@ -4,18 +4,25 @@ Project-specific overlay on `Documents\GitHub\CLAUDE.md`. Slim by design.
 
 ## What this repo does
 
-Home for **PROTECT** Task 3 work. PROTECT = FHWA *Promoting Resilient Operations for Transformative,
-Efficient, and Cost-saving Transportation* grant. Task 3 = Resilience Improvement Plan; 3.2 =
-Risk-Based Vulnerability Assessment; **3.3 = Interactive Risk Index Mapping Tool** (this repo's
-deliverable).
+The website for the whole **PROTECT** grant (public name Connecting Tahoe), not only the
+vulnerability assessment. PROTECT = FHWA *Promoting Resilient Operations for Transformative,
+Efficient, and Cost-saving Transportation* grant. The draft revised scope (Oct. 2026) has four
+parts, and the site is organized by them in scope order: Task 1 **stakeholder engagement**; 2a
+**lessons from past emergencies** (response audit of the Angora, Tamarack, Caldor, and Davis fires
+and winter storms); 2b the **Tahoe Resilience Improvement Plan (TRIP)** (review of existing plans,
+risk index ratings = the vulnerability assessment, pinch points and priority zones, projects and
+funding strategy, additional needs); Task 3 the **Regional Emergency Communications and
+Transportation Plan** (public name: transportation communications strategy). TRPA leads TRIP with
+ICF. The older numbering (Task 3 = RIP, 3.2 = VA, 3.3 = mapping tool) survives in some docs and
+tooltips; page copy uses names, not task numbers, until the scope is final.
 
 The assessment follows a **three-step approach built on FHWA VAST guidance**: (1) criticality, (2) a
 system-wide indicator screening of 15 hazard-asset pairs scored as
 **Vulnerability = (Exposure x wE) + (Sensitivity x wS)** on 0-3 indicator scores with weights set
 per pair (ICF draft VA Methodology, Aug. 20, 2026; rubrics in `docs/SCORING_RUBRICS.md`), with
 criticality carried separately rather than as a multiplier, and (3) RA2CE disruption scenarios.
-Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: a landing page (`html/index.html`, v0.8,
-links every page with status, a Workshop 1 banner, and phasing); the **Workshop 1 punch list**
+Do not reintroduce Asset Value or Adaptive Capacity as sub-indices. Current artifacts: the project pages index (`html/index.html`, v0.9,
+a section per part of the grant scope, the TRIP work plan table, a Workshop 1 banner, and phasing); the **Workshop 1 punch list**
 (`html/workshop-punchlist.html`: one dated task table with status in the page data, decisions
 open, the print-map spec; it replaced `docs/WORKSHOP1_PUNCHLIST.md` on Oct. 8, 2026, and the
 scripts, data paths, and references moved to the appendix of `docs/WORKSHOP1_BUILD_PLAN.md`); a reference hub (`html/reference-hub.html`, v0.6) with
@@ -25,8 +32,19 @@ Rubrics page** (`html/scoring-rubrics.html`, v0.4: interactive per-pair scoring 
 on the consultant's half-point scale, rubric tables, framework, 24 decisions, and the list of
 TRPA departures from the Aug. 20 draft; mirrors `docs/SCORING_RUBRICS.md`). **No flood depth
 model is being acquired (Oct. 8, 2026):** flood exposure is FEMA zones and stream crossings on
-every page; never describe a flood model as purchased or pending. The **Results page** (`html/results.html`, Oct. 10, 2026) is the front door for the assessment: one data-driven page with an Overview tab (every asset's V_max class, vulnerability by criticality, hotspots) and one tab per hazard (flooding with the drainage area on click, wildfire with the 300 ft sampling footprint layers and a segment-buffer click, landslide, debris flow, avalanche), each a config block in the page (`MODES`) that swaps data files, legends, renderers, charts, and table columns in one map, one grid, and two chart divs. It reads `data/processed/results/` written by `scripts/publish_results.py`; a hazard whose files are not published shows an empty state. The standalone hazard pages and the Phase 1 MVP map are archived. Every page carries a **Pages menu** at the right of its header (a native `details.pages` dropdown, Oct. 13, 2026; it replaced the separate site nav row) with five groups (Results; Components: the **Criticality Index app** (`html/criticality-index.html`, live, 18,253 segments) and the **OD Services Index** (`html/od-services-index.html`); Method and data: rubrics, reference hub, climate inputs; Evidence: historic hazards, storm events; Workshop: punch list, feedback). The landing page groups its cards the same way. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
+every page; never describe a flood model as purchased or pending. The **Results page** (`html/results.html`, Oct. 10, 2026) is the front door for the assessment: one data-driven page with an Overview tab (every asset's V_max class, vulnerability by criticality, hotspots) and one tab per hazard (flooding with the drainage area on click, wildfire with the 300 ft sampling footprint layers and a segment-buffer click, landslide, debris flow, avalanche), each a config block in the page (`MODES`) that swaps data files, legends, renderers, charts, and table columns in one map, one grid, and two chart divs. It reads `data/processed/results/` written by `scripts/publish_results.py`; a hazard whose files are not published shows an empty state. The standalone hazard pages and the Phase 1 MVP map are archived. Every page carries a **Pages menu** at the right of its header (a native `details.pages` dropdown, Oct. 13, 2026; it replaced the separate site nav row), grouped by part of the grant scope since Oct. 26, 2026: Home and All pages; Engagement (Workshop 1 punch list, workshop feedback); Lessons from past emergencies (the **Baseline Assessment** summary, `html/baseline-assessment.html`, Oct. 28, 2026: ICF's Oct. 13 draft Baseline Assessment and Incident Review, its 14 findings, and 14 TRPA-proposed actions in page data `FINDINGS` and `ACTIONS`; the report's recommendations section is still empty, so the actions are labeled proposed); Resilience plan (TRIP) (Results, the **Criticality Index app** (`html/criticality-index.html`, live, 18,253 segments), the **OD Services Index** (`html/od-services-index.html`), scoring rubrics); TRIP data and evidence (the **References** page, `html/references.html`, Oct. 28, 2026: glossary, the Results data dictionary moved out of the Results guide, and sources with metadata links, all in page data `GLOSSARY` and `SOURCES` plus the static dictionary table; reference hub, climate inputs, historic hazards, storm events). The communications strategy gets a menu group when its first page lands. **Adding a page for any part:** put it in `html/` with the standard header, add it to its group in every page's menu (same markup on all pages, `class="on"` on its own link), add a card in its part on `html/index.html`, and replace the matching dashed "Coming" card on the root home page. URLs of existing pages do not change. Retired pages live in `html/_archive/` (see `ARCHIVED.md` there);
 Jekyll skips underscore directories, so nothing in it is served by Pages.
+
+**Public home page (Oct. 26, 2026):** the repo root `index.html` is the project home, rebuilt from
+the Connecting Tahoe story map collection (story item `6b67742ea10b44a2aedc6cdee909b59e`; Survey123
+form `5f9c9adfb4c14f509937c6462d89fa65`, loaded in place on click). Images live in
+`html/img/home/` (resized, EXIF stripped). It is what `trpa-agency.github.io/PROTECT/` serves, and it is
+the intended target of `trpa.gov/resilienttransportation`, which is a 301 redirect on trpa.gov
+(today it points at the story map collection), not a GitHub custom domain. The page is written for
+the public: the story map's copy in house style (plus a lessons-from-past-emergencies step from the
+draft scope), an Explore section with one block per part of the grant scope (live pages as cards,
+dashed "Coming" cards for what is not built yet), and no task lists or open decisions. In every Pages menu, Home is `../index.html` and the old landing page
+`html/index.html` is "All pages".
 
 ## Project context
 
@@ -46,7 +64,10 @@ Jekyll skips underscore directories, so nothing in it is served by Pages.
   dashboard stack (Calcite + ArcGIS Maps SDK + Plotly + AG Grid).
 - **Hosting / visibility**: GitHub Pages for now (`trpa-agency.github.io/PROTECT`); final home is
   `data.trpa.gov/PROTECT`. Internal review draft only - do NOT commit raw internal source docs
-  (xlsx/docx/pptx) or publish broadly yet.
+  (xlsx/docx/pptx) or publish broadly yet. `_config.yml` (Oct. 28, 2026) limits the site to
+  `index.html`, `html/`, and `data/processed/results/`; Pages had been rendering every `.md`
+  (this file and `docs/`) as a web page. A new top-level folder or a new file under `data/` is
+  served unless it is added to the `exclude` list. The repo itself is public on GitHub either way.
 
 ## Data sources (TRPA REST)
 
@@ -76,7 +97,10 @@ inspect). Append `/<ServiceName>/<MapServer|FeatureServer>`; confirm the layer i
   derived from it at the asset level, under the repo (`data/processed` is git-tracked and
   served by GitHub Pages), into `outputs/`, onto any html page, or into a public REST service.
   Segment-level aggregates are allowed but must be attributed to NDOT and reviewed by NDOT
-  before publication. The `.gitignore` blocks `*ndot*` as a backstop.
+  before publication. The `.gitignore` blocks `*ndot*` as a backstop. A public culvert that shares
+  its crossing with an NDOT culvert publishes without the fields pooled over the crossing's barrels
+  (`va_common.CROSSING_POOLED` and the loading ratios, Oct. 28, 2026): those let the NDOT barrel's
+  capacity be subtracted back out.
 
 The live readiness tracker is the Data and Model Inventory tab of `html/reference-hub.html`.
 
@@ -84,9 +108,11 @@ The live readiness tracker is the Data and Model Inventory tab of `html/referenc
 
 ```
 PROTECT/
+├── index.html                       # public project home (Connecting Tahoe story rebuilt); images in html/img/home/
 ├── data/                            # input data, intermediate files
 ├── docs/                            # methodology, build notes, scoping archive
-├── html/index.html                  # v0.7 landing page (page cards, Workshop 1 banner, phasing, workstream status; no CDN libs)
+├── html/index.html                  # v0.9 project pages index: a section per scope part, TRIP work plan, Workshop 1 banner, phasing, VA status; no CDN libs
+├── html/references.html             # glossary, Results data dictionary, sources with metadata links; no CDN libs
 ├── html/reference-hub.html          # v0.6 reference hub incl. data + model inventory (Calcite + AG Grid)
 ├── html/scoring-rubrics.html        # v0.4 interactive rubrics (score an asset, rubric tables, framework, decisions, departures)
 ├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
@@ -96,12 +122,14 @@ PROTECT/
 ├── html/results.html                # the Results page: Overview + one tab per hazard (data-driven MODES config)
 ├── html/criticality-index.html      # criticality app, Results-page format (18,285 segments, adjustable weights; reads data/processed/results/roads_geometry.geojson + roads_criticality.json)
 ├── html/od-services-index.html      # OD access-to-services index (criticality factor 4); reads roads_od.json + roads_geometry.geojson (publish_results.py, clean street layer), no longer the PROTECT_VA service
+├── html/baseline-assessment.html    # summary of ICF's draft Baseline Assessment (findings, proposed actions, roles); no CDN libs
 ├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)
 ├── html/climate-data.html           # v0.2 climate inputs page (sources, metrics, Atlas 14 DDF, decisions)
 ├── html/tahoe-precip-events.html    # storm events + debris-flow explorer (CDN libs, embedded culverts + WRF I1h grid)
 ├── html/_archive/                   # retired pages, not served by Pages (ARCHIVED.md lists why)
 ├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
 ├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
+├── print-maps/                      # print maps from one Pro template layout (arcpy.mp): config.yaml holds the project, exports, NDOT guard, and the sheet list; print_maps.py inspect | check | export | build; the .aprx stays on F:, PDFs in print-maps/outputs/ (gitignored)
 ├── scripts/                         # analysis scripts and notebooks (incl. ra2ce/)
 └── Hazard_Asset_Pairs.md            # plain-text source-of-record for pairs + framework
 ```
@@ -111,6 +139,11 @@ PROTECT/
 - **Dashboard stack**: single-file HTML, CDN libraries. Calcite Components (shell/tabs), AG Grid
   (tables), TRPA brand (Open Sans, TRPA Blue / Navy). Pair the `trpa-dashboard-stack` and
   `trpa-brand` skills. No build tools.
+- **Criticality quarters use the Phosphor thermal ramp (Oct. 28, 2026):** `#042333`, `#6E4694`, `#F37D4D`, `#E8FA5B`
+  (quarter 0 to 3; joshuastevens.net/phosphor control colors, OKLab, four even steps), `RAMP` on
+  `criticality-index.html` and `CRIT_RAMP` on `results.html`, kept in step. Criticality maps draw on the
+  `dark-gray-vector` basemap (the pale top quarter vanishes on light gray) with the boundary in TRPA Ice;
+  `results.html` swaps basemaps per view (`setBase`). Bars and legend swatches get a thin dark edge.
 - **Headers = navy / Dark Blue (`#003B71`), white text.** Standardize the page header bar and all
   table headers on navy: AG Grid (`--ag-header-background-color: var(--trpa-navy)`) and static tables
   (`table.ref`, `table.matrix`). TRPA Blue (`#0072CE`) is the accent against navy (the version chip,
@@ -181,3 +214,5 @@ PROTECT/
 ```
 
 Or use the checked-in Claude Code preview config: `.claude/launch.json` (server name `protect`).
+That server roots at `html/`, so the root home page and every menu's Home link need `protect-root`
+(port 8012, repo root; pages at `/html/...`).

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTECT Results Guide | TRPA</title>
+  <meta name="description" content="Printable guide to the PROTECT Results page: how every road, culvert, bridge, path, and transit hub got its vulnerability score and how to read the map. The data dictionary is on the References page." />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Open Sans (TRPA web font). No other libraries: this page prints. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --trpa-blue:#0072CE; --trpa-navy:#003B71; --trpa-earth:#B47E00; --trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27; --trpa-olive:#B5A64C; --trpa-orange:#E87722; --trpa-purple:#7B6A8A;
+      --trpa-ice:#B4CBE8; --peach:#E8A05A; --gray-map:#cfd4da;
+      --gray-text:#5a6577; --gray-border:#DDDDDD; --page-bg:#f4f6f9; --white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+
+    /* Header: the site's navy band */
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1240px;margin:0 auto;width:100%;padding:.9rem 1.75rem 1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:54px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.35rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.83rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .header-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+    header.app-header .header-meta a{color:var(--trpa-ice);text-decoration:none;font-size:.8rem;font-weight:600;white-space:nowrap;}
+    header.app-header .version{background:var(--trpa-blue);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;}
+
+    /* Pages menu in the header */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+
+    /* Body */
+    main{max-width:1240px;margin:0 auto;padding:1.4rem 1.75rem 1rem;}
+    a{color:var(--trpa-blue);font-weight:600;}
+    .intro{display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1rem;}
+    .intro .lede{flex:1;min-width:280px;font-size:.96rem;max-width:95ch;}
+    .toolbar{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;}
+    .toolbar button{background:var(--trpa-navy);color:#fff;border:none;border-radius:6px;padding:.5rem .95rem;font-family:inherit;font-size:.84rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+    .toolbar button:hover{background:var(--trpa-blue);}
+    .toolbar .hint{font-size:.72rem;color:var(--gray-text);text-align:right;max-width:30ch;}
+    .draft{display:inline-block;background:#fdf6ee;border:1px solid var(--trpa-orange);color:#8a4410;font-size:.72rem;font-weight:700;border-radius:999px;padding:.1rem .6rem;vertical-align:1px;white-space:nowrap;margin-right:.3rem;}
+
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.3rem 0 .6rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);}
+    h2.sec small{font-weight:400;font-size:.8rem;color:var(--gray-text);margin-left:.5rem;}
+    p.lead{font-size:.88rem;color:var(--gray-text);max-width:100ch;margin-bottom:.7rem;}
+
+    /* Three steps */
+    .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem;margin-bottom:.9rem;}
+    .step{background:#fff;border-radius:8px;padding:.8rem 1rem .85rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
+    .step .k{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-text);}
+    .step h3{font-size:.95rem;font-weight:700;margin:.1rem 0 .3rem;}
+    .step p{font-size:.84rem;}
+    .formula{display:inline-block;background:#f0f4f9;border:1px solid #dbe5f0;border-radius:5px;padding:.05rem .45rem;font-size:.82rem;font-weight:600;}
+
+    /* Definitions grid */
+    .defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.4rem 1.4rem;margin-bottom:.4rem;}
+    .defs div{font-size:.84rem;padding:.3rem 0;border-bottom:1px dotted #d5dbe3;}
+    .defs b{color:var(--trpa-navy);}
+
+    /* Tables */
+    table.ref{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:.82rem;margin-bottom:.8rem;}
+    table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.5rem .7rem;font-weight:600;vertical-align:top;}
+    table.ref td{padding:.42rem .7rem;border-top:1px solid #eef0f3;vertical-align:top;}
+    table.ref tr:nth-child(even) td{background:#fafbfc;}
+    table.ref td.h{font-weight:700;}
+    table.ref tr.grp td{background:#eaf1f9;font-weight:700;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--trpa-navy);padding:.3rem .7rem;}
+    table.ref code{font-family:Consolas,'Courier New',monospace;font-size:.8em;background:#eef1f5;padding:0 .3em;border-radius:3px;white-space:nowrap;}
+    table.ref td.code{font-size:.8rem;}
+    table.hz td:first-child{font-weight:700;white-space:nowrap;}
+    table.hz .w{white-space:nowrap;color:var(--gray-text);font-size:.76rem;}
+
+    /* Reading the map */
+    .mapread{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.9rem;margin-bottom:.6rem;}
+    .mapread .card{background:#fff;border-radius:8px;padding:.75rem .95rem .8rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--trpa-blue);}
+    .mapread h3{font-size:.86rem;font-weight:700;margin-bottom:.35rem;}
+    .mapread ul{list-style:none;}
+    .mapread li{font-size:.82rem;padding:.14rem 0;}
+    .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:.25rem;border:1px solid rgba(0,0,0,.12);}
+    .sw.ln{height:4px;width:18px;border-radius:2px;vertical-align:2px;}
+    .sw.dot{border-radius:50%;}
+    .sw.dash{height:0;border:none;border-top:3px dashed var(--trpa-navy);width:18px;vertical-align:3px;}
+
+    .further{font-size:.88rem;margin:.4rem 0 .6rem;}
+    .url{display:none;}
+
+    footer.app-footer{max-width:1240px;margin:0 auto;padding:1rem 1.75rem 2.5rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code{background:#eef1f5;padding:1px 5px;border-radius:3px;}
+    footer.app-footer .foot-short{display:none;}
+
+    @media (max-width:860px){ .steps{grid-template-columns:1fr;} }
+    @media (max-width:700px){
+      table.ref{display:block;overflow-x:auto;}
+      .toolbar{align-items:flex-start;} .toolbar .hint{text-align:left;}
+    }
+
+    /* ---------- Print: letter, one page (the data dictionary moved to references.html) ---------- */
+    @media print {
+      @page { size: letter; margin: 0.3in 0.45in; }
+      html,body{background:#fff;color:#111;font-size:8pt;line-height:1.28;}
+      *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      header.app-header{background:none !important;color:var(--trpa-navy);border-bottom:1.5pt solid var(--trpa-navy);}
+      .header-content{max-width:none;padding:0 0 3pt;gap:8pt;flex-wrap:nowrap;}
+      .header-logo img{height:26pt;}
+      header.app-header .agency,header.app-header .header-sub{color:var(--trpa-navy);opacity:1;font-size:6.3pt;margin:0;}
+      header.app-header h1{font-size:12.5pt;color:var(--trpa-navy);}
+      header.app-header .version{background:none;color:var(--trpa-navy);border:1pt solid var(--trpa-navy);font-size:6.3pt;padding:1pt 5pt;}
+      details.pages,.toolbar{display:none !important;}
+      main{max-width:none;padding:0;}
+      .intro{margin:4pt 0 0;gap:0;}
+      .intro .lede{font-size:7.8pt;max-width:none;}
+      .draft{font-size:6.3pt;padding:0 4pt;}
+      h2.sec{font-size:9.5pt;margin:5pt 0 2.5pt;padding-bottom:1pt;border-bottom-width:1pt;break-after:avoid;page-break-after:avoid;}
+      h2.sec small{font-size:6.8pt;}
+      p.lead{font-size:6.8pt;margin-bottom:2pt;color:#333;}
+      .steps{gap:5pt;margin-bottom:3pt;}
+      .step{padding:3pt 6pt 4pt;box-shadow:none;border:.75pt solid #c9d1dc;border-top:2pt solid var(--trpa-blue);border-radius:3pt;break-inside:avoid;}
+      .step .k{font-size:5.6pt;} .step h3{font-size:8pt;margin:0 0 1pt;} .step p{font-size:7pt;}
+      .formula{font-size:7pt;padding:0 3pt;border-width:.5pt;}
+      .defs{grid-template-columns:1fr 1fr;gap:0 12pt;margin-bottom:0;}
+      .defs div{font-size:6.9pt;padding:1.3pt 0;border-bottom:.5pt dotted #c9d1dc;}
+      table.ref{font-size:6.6pt;box-shadow:none;border:.5pt solid #c9d1dc;border-radius:0;margin-bottom:3pt;line-height:1.2;}
+      table.ref th{padding:2pt 3.5pt;font-size:6.6pt;}
+      table.ref td{padding:1.4pt 3.5pt;border-top:.5pt solid #e3e7ec;}
+      table.ref tr.grp td{font-size:5.9pt;padding:1pt 3.5pt;letter-spacing:.04em;}
+      table.ref code{font-size:6.1pt;background:none;padding:0;}
+      table.ref td.code{font-size:6.1pt;}
+      table.hz .w{font-size:6.2pt;}
+      tr{break-inside:avoid;page-break-inside:avoid;}
+      thead{display:table-header-group;}
+      .mapread{grid-template-columns:repeat(3,minmax(0,1fr));gap:5pt;margin-bottom:2pt;}
+      .mapread .card{padding:2.5pt 5pt 3pt;box-shadow:none;border:.75pt solid #c9d1dc;border-left:2.5pt solid var(--trpa-blue);border-radius:3pt;break-inside:avoid;}
+      .mapread h3{font-size:7.2pt;margin-bottom:0;} .mapread li{font-size:6.5pt;padding:.3pt 0;line-height:1.24;}
+      .sw{width:7pt;height:7pt;margin-right:2pt;} .sw.ln{width:11pt;height:2.5pt;} .sw.dash{width:11pt;}
+      .further{font-size:6.9pt;margin:2pt 0;}
+      a{color:inherit;text-decoration:none;font-weight:600;}
+      .url{display:inline;}
+      footer.app-footer{max-width:none;padding:2pt 0 0;font-size:5.9pt;line-height:1.25;border-top:.5pt solid #c9d1dc;color:#444;}
+      footer.app-footer code{background:none;padding:0;}
+      footer.app-footer .foot-long{display:none;} footer.app-footer .foot-short{display:block;}
+    }
+      @media (max-width:700px){
+      .i::after{max-width:calc(100vw - 2rem);}
+      /* phones: one header row (logo, title, Pages), so the page starts on the first screen */
+      .header-content{padding:.5rem .9rem;gap:.6rem;flex-wrap:nowrap;}
+      .header-logo img{height:34px;}
+      header .agency,header .header-sub,header .version{display:none;}
+      header.app-header h1,header h1{font-size:1.02rem;line-height:1.25;}
+      header .header-meta{flex-shrink:0;}
+      main{padding-left:.9rem;padding-right:.9rem;}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>PROTECT Results Guide</h1>
+        <div class="header-sub">Resilience plan (TRIP) &middot; How the Results page scores were made, and how to read the map</div>
+      </div>
+      <div class="header-meta">
+        <span class="version">v0.1</span>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html" class="on" aria-current="page">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- 1. Purpose and status -->
+    <section class="intro">
+      <p class="lede">
+        <span class="draft">Draft for Workshop 1, Nov. 9, 2026</span>
+        How each road, culvert, bridge, path, and transit hub on the <a href="results.html">Results page</a> got its score, and how to
+        read the map. The scores are a draft that ranks assets and raises questions; they are not design values.
+      </p>
+      <div class="toolbar">
+        <button type="button" onclick="window.print()">Print or save as PDF</button>
+        <div class="hint">Letter size, one page. Choose Save as PDF to download.</div>
+      </div>
+    </section>
+
+    <!-- 2. How an asset gets a score -->
+    <h2 class="sec">How an asset gets a score <small>three steps, built on FHWA vulnerability assessment guidance</small></h2>
+    <div class="steps">
+      <div class="step">
+        <div class="k">Step 1</div>
+        <h3>Criticality: how much the asset matters</h3>
+        <p>Each road segment is scored on traffic, the detour if it closed, access to critical places, and who depends on it (equity),
+        then cut into quarters, 0 (lowest) to 3 (top). Culverts and bridges take their road's class. Criticality sits beside
+        vulnerability, never multiplied into it.</p>
+      </div>
+      <div class="step">
+        <div class="k">Step 2</div>
+        <h3>Vulnerability: how likely the asset is to fail</h3>
+        <p>Fifteen hazard-asset pairs are screened as <span class="formula">Vulnerability = (Exposure x wE) + (Sensitivity x wS)</span>.
+        Exposure is how much of the hazard reaches the asset, sensitivity how badly it would fare; both score 0 to 3 and the weights
+        sum to 1. Roads have no sensitivity term, so a road's score is its exposure.</p>
+      </div>
+      <div class="step">
+        <div class="k">Step 3</div>
+        <h3>Disruption scenarios: what happens when it fails</h3>
+        <p>For places both critical and vulnerable, the RA2CE model (Deltares) runs closures on the street network: detours, travel
+        time, access to key destinations, and people cut off. It follows the workshop and is not on the Results page yet.</p>
+      </div>
+    </div>
+    <div class="defs">
+      <div><b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over. Wildfire scores run 1 to 3 everywhere, so wildfire uses
+        Low under 2, Medium 2 to 2.5, High over 2.5.</div>
+      <div><b>Combined class.</b> An asset in several pairs carries its highest pair score (the popup names it as Highest hazard); its class is the
+        highest of its pair classes.</div>
+      <div><b>Hotspots.</b> High vulnerability on a road in the top criticality quarter. The Hotspots only switch narrows the Overview
+        to them.</div>
+      <div><b>Stand-in.</b> A dataset used in place of the one the method names until it arrives. The debris-flow pairs rest on
+        stand-ins (fire severity for soil burn severity, and a drainage-size break that puts nearly every basin at 3), so they stay
+        out of the combined class; the "with stand-ins" fields include them.</div>
+      <div><b>Missing data.</b> An unobserved sensitivity input (most culvert conditions) takes the method's default; Sensitivity
+        data then reads partial or default.</div>
+      <div><b>Horizon.</b> Every score is historical (the <code>_hist</code> suffix in exports). The 2050 and 2080 columns come in
+        December.</div>
+    </div>
+
+    <!-- 3. Hazards table -->
+    <h2 class="sec">What each hazard is scored on</h2>
+    <table class="ref hz">
+      <thead><tr><th>Hazard</th><th>Assets scored</th><th>Exposure data (what reaches the asset)</th><th>Sensitivity inputs (how it would fare)</th><th>Weights</th></tr></thead>
+      <tbody>
+        <tr><td>Flooding</td><td>Roads, culverts, bridges, paths, transit hubs</td>
+          <td>FEMA 100-year zone (class 3), FEMA 500-year zone (2), a mapped stream crossing (1); no flood depth model.
+            Roads: the highest class along the segment. Culverts: the highest anywhere in the drainage area, plus one where lake level
+            backs water up.</td>
+          <td>Culverts: basin debris potential (slope and land cover) and the storm-to-capacity ratio. Bridges (National Bridge
+            Inventory): waterway adequacy as exposure; channel condition, scour, span type, condition. Paths: paved or unpaved, slope.
+            Roads and hubs: none.</td>
+          <td class="w">Roads, hubs E 1.0<br>Culverts, bridges E 0.3, S 0.7<br>Paths E 0.7, S 0.3</td></tr>
+        <tr><td>Wildfire</td><td>Roads, paths, transit hubs</td>
+          <td>Sierra Nevada Regional Resource Kit annual burn probability (likelihood, 0.7) and TRPA most-likely fire severity (0.3)
+            within 300 ft; severity must cover at least 25 percent of the buffer. The contracted fire-behavior package replaces both
+            when delivered.</td>
+          <td>None: exposure only.</td>
+          <td class="w">E 1.0</td></tr>
+        <tr><td>Landslide</td><td>Roads, culverts, bridges</td>
+          <td>USGS 2024 landslide susceptibility (share of each 90 m cell that is prone: over 80 percent is 3, over 60 is 2, over 40 is
+            1) and the USGS landslide inventory (a recorded slide is 3). The precipitation-change term is 0 at the historical horizon,
+            so exposure tops out at 2.14.</td>
+          <td>Culverts: opening size, condition. Bridges: span type, condition, span length. Roads: none.</td>
+          <td class="w">Roads E 1.0<br>Culverts, bridges E 0.7, S 0.3</td></tr>
+        <tr><td>Debris flow</td><td>Roads, culverts, bridges</td>
+          <td>Mean slope (0.2) and drainage area (0.2) of the ground draining to the point, from the 2 m lidar DEM, and burn severity
+            (0.3) with the fire severity surface standing in for predicted soil burn severity. The USGS debris-flow model (Wildcat) is
+            reviewed for December.</td>
+          <td>Culverts: opening size, condition. Bridges: span type, condition, span length. Roads: none.</td>
+          <td class="w">Roads E 1.0<br>Culverts, bridges E 0.7, S 0.3</td></tr>
+        <tr><td>Avalanche</td><td>Roads</td>
+          <td>The slope tier covering the most ground uphill of the road within 1,000 ft (lidar DEM), raised one step where a TRPA
+            mapped avalanche zone lies within 1,000 ft. Closure likelihood, not damage.</td>
+          <td>None: exposure only.</td>
+          <td class="w">E 1.0</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 4. Reading the map -->
+    <h2 class="sec">Reading the map</h2>
+    <div class="mapread">
+      <div class="card">
+        <h3>Colors</h3>
+        <ul>
+          <li><span class="sw" style="background:#B4CBE8"></span>Low <span class="sw" style="background:#E87722"></span>Medium <span class="sw" style="background:#9C3E27"></span>High <span class="sw" style="background:#cfd4da"></span>not exposed (0) or not scored: the vulnerability and exposure classes on every tab.</li>
+          <li><span class="sw" style="background:#042333"></span><span class="sw" style="background:#6E4694"></span><span class="sw" style="background:#F37D4D"></span><span class="sw" style="background:#E8FA5B"></span>Criticality quarter 0 to 3, dark to bright, on a dark basemap (Overview).</li>
+          <li><span class="sw" style="background:#003B71"></span>100-year zone <span class="sw" style="background:#0072CE"></span>500-year zone <span class="sw" style="background:#B4CBE8"></span>stream crossing: flood exposure.</li>
+          <li><span class="sw" style="background:#B4CBE8"></span>passes with room <span class="sw" style="background:#0072CE"></span>passes <span class="sw" style="background:#E8A05A"></span>up to twice capacity <span class="sw" style="background:#E87722"></span>two to four times <span class="sw" style="background:#9C3E27"></span>over four times; white: record to confirm; gray: no check (Storm vs capacity).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Lines and symbols</h3>
+        <ul>
+          <li><span class="sw ln" style="background:#003B71"></span>Roads solid, <span class="sw dash"></span>paths dashed; <span class="sw dot" style="background:#003B71"></span>culverts circles, <span class="sw" style="background:#003B71"></span>bridges squares, transit hubs small squares.</li>
+          <li>Overview: line weight is the criticality quarter once zoomed in (thin lowest, thick top). Hotspots are thick red lines.</li>
+          <li>Culverts and bridges draw at 1:120,000 and closer, except on Flooding, where they draw at every scale.</li>
+          <li>Hazard surfaces (flood classes, burn probability, fire severity, susceptibility, avalanche zones) are optional layers, off by default.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Clicks and controls</h3>
+        <ul>
+          <li>Click any asset for its popup (the dictionary fields) and Add a workshop note.</li>
+          <li>Overview, Flooding, Landslide, Debris flow: click a culvert to draw its drainage area, orange for ground that drains straight to it, blue dashed for ground arriving through upstream culverts.</li>
+          <li>Wildfire: click a road or path to outline the 300 ft sampling buffer its score came from.</li>
+          <li>Flooding: Design storm swaps the capacity term between the 100-year storm (of record) and the 25-year. The filters (Hotspots only, High exposure only, Class 3 only, Flagged for owner review) narrow map and table together. Every table has Export CSV.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 6. Further -->
+    <p class="further">Every field in the popups, tables, and exports is defined in the <a href="references.html#dictionary">data dictionary</a> on the
+      References page, with a glossary and the data sources. Go further: the <a href="scoring-rubrics.html">Scoring rubrics</a> (every indicator,
+      weight, break, and decision) and the <a href="criticality-index.html">Criticality page</a> (step 1).
+      <span class="url">All at trpa-agency.github.io/PROTECT/html/.</span></p>
+
+  </main>
+
+  <footer class="app-footer">
+    <p class="foot-long">Results guide v0.1 (Oct. 27, 2026). Method of record: <code>docs/SCORING_RUBRICS.md</code> v0.7 (Oct. 21, 2026), built on the consultant's
+      draft Vulnerability Assessment Methodology (Aug. 20, 2026); pair definitions in <code>Hazard_Asset_Pairs.md</code> v0.8. Culverts from six jurisdictions
+      and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA; fire inputs from the Sierra Nevada Regional Resource Kit and
+      the TRPA Fire service; landslide susceptibility and inventory from USGS; terrain from the 2 m lidar DEM. Draft for Workshop 1.</p>
+    <p class="foot-short">Results guide v0.1 (Oct. 27, 2026). Method of record: <code>docs/SCORING_RUBRICS.md</code> v0.7 (Oct. 21, 2026) on the consultant's draft
+      Vulnerability Assessment Methodology (Aug. 20, 2026); pairs from <code>Hazard_Asset_Pairs.md</code> v0.8. Draft for Workshop 1.</p>
+  </footer>
+
+</body>
+</html>

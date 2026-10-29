@@ -1,0 +1,136 @@
+# config.yaml - PROTECT print maps (lives in PROTECT/print-maps/)
+# Read by print_maps.py. Paths are relative to this print-maps/ folder unless absolute. No secrets here.
+# The Pro project and its data stay on TRPA storage (F:); PDFs land in outputs/ (gitignored).
+
+project:
+  aprx: ""                 # the print-map Pro project on F: (CURRENT when run from Pro's Python window)
+  layout: ""               # the template layout in that project, by its Catalog name
+  pagx: ""                 # optional: a .pagx to import as the template instead (its maps reuse the project's maps)
+  frame: Map Frame         # the map frame the sheet's map, layers, and extent apply to
+  legend_sync_visibility: true   # legends drop the layers a sheet turns off
+
+paths:
+  outputs: outputs         # <outputs>/<export name>/<file_prefix><sheet id>.<ext> (gitignored)
+  logs: logs               # timestamped run logs (gitignored)
+  restricted_outputs: ""   # --allow-restricted writes here only; must be on F:, never under the repo
+  file_prefix: PROTECT_W1_
+
+# Export settings, by name. format: PDF, PNG, JPEG, TIFF, SVG, EPS, or AIX. dpi sets the resolution.
+# options are the export format's own properties (arcpy.mp PDFFormat and so on), for example
+# embedFonts, imageQuality, outputAsImage, clipToElements. layout: export from another layout in the
+# project with the same element names (a 16:9 screen layout), instead of project.layout.
+# combine: PDF only, also write <file_prefix>all.pdf with every sheet in order (skipped with --only).
+exports:
+  poster:                  # large format for the stations and the facilitators
+    format: PDF
+    dpi: 300
+    options: {}
+  screen:                  # the on-screen reveal
+    format: PDF
+    dpi: 150
+    combine: true
+    options: {}
+
+# Applies to every sheet; a sheet's own keys win. text keys are text element names on the layout;
+# values take {title}, {subtitle}, {id}, {date} (house style, Oct. 28, 2026), anything in tokens,
+# and any other plain field of the sheet. elements turns layout elements on or off by name.
+tokens:
+  workshop: Workshop 1, Nov. 9, 2026
+defaults:
+  always_on: [Basin boundary]   # turned on in the main frame on every sheet that lists layers
+  text:
+    Title: "{title}"
+    Subtitle: "{subtitle}"
+  elements: {}
+  exports: [poster]
+
+# NDOT culvert rows need NDOT sign-off before any display (data sharing agreement; root config.yaml ndot:).
+# Before a sheet exports, every visible feature layer is checked. It fails when it reads the NDOT export
+# or the restricted curated geodatabase (from the root config.yaml, plus blocked_sources); when it shows
+# a row matching a row check (the check honors the layer's definition query); or when it reads the
+# analysis geodatabase (paths.analysis_gdb, plus check_required_sources) and has none of the check fields.
+# Build the print layers from PROTECT_curated.gdb, which leaves the NDOT rows out.
+restricted:
+  row_checks:
+    - {field: jurisdiction, values: [NDOT]}
+    - {field: restricted, values: [1]}     # CulvertCrossings: a crossing with an NDOT culvert
+  blocked_sources: []
+  check_required_sources: []
+
+# The sheet list: one entry per printed map. id names the output file (--only 01 matches 01_...).
+# layers: exactly what shows in the main frame (with always_on). Parent groups turn on with a listed
+# layer, and every layer inside a listed group turns on; every other layer turns off; basemaps are left
+# as authored. Leave layers out to keep the map's visibility as authored in Pro.
+# map: the Pro map for the main frame (default: whatever the template frame shows).
+# extent: {bookmark: name} | {layer: name} | {xy: [xmin, ymin, xmax, ymax]}, plus optional scale;
+# leave it out to keep the template's extent.
+# frames: other map frames on the layout, {frame name: {map, layers, extent}}, for an inset. Each frame
+# on a sheet needs its own Pro map, since layer visibility belongs to the map.
+# enabled: false keeps a sheet out of a full run (--only still exports it).
+#
+# Seeded from the Workshop 1 print-map spec (html/workshop-punchlist.html). The layer, map, and element
+# names are placeholders until `print_maps.py inspect` lists the project; `check` reports every name
+# that does not match.
+sheets:
+  - id: 01_flooding_exposure
+    title: Flooding
+    subtitle: Where flooding can reach roads, bridges, and culverts
+    layers: [Flooding exposure]
+    exports: [poster, screen]
+  - id: 02_flooding_assets
+    title: Flooding
+    subtitle: Roads, bridges, culverts, paths, and transit centers by vulnerability
+    layers: [Flooding exposure, Flooding assets]
+  - id: 03_wildfire_exposure
+    title: Wildfire
+    subtitle: Chance of fire in any year
+    layers: [Wildfire exposure]
+    exports: [poster, screen]
+    # frames:
+    #   Inset Map: {map: Wildfire inset, layers: [High-severity fire probability]}
+    # elements: {Inset Map: true}
+  - id: 04_wildfire_assets
+    title: Wildfire
+    subtitle: Roads, paths, and transit centers by vulnerability
+    layers: [Wildfire exposure, Wildfire assets]
+  - id: 05_landslide_exposure
+    title: Landslide
+    subtitle: Where the ground is prone to sliding
+    layers: [Landslide exposure]
+    exports: [poster, screen]
+  - id: 06_landslide_assets
+    title: Landslide
+    subtitle: Roads, bridges, and culverts by vulnerability
+    layers: [Landslide exposure, Landslide assets]
+  - id: 07_debris_flow_exposure
+    title: Debris flow
+    subtitle: Where burned slopes can send mud and rock downhill
+    layers: [Debris flow exposure]
+    exports: [poster, screen]
+  - id: 08_debris_flow_assets
+    title: Debris flow
+    subtitle: Roads, bridges, and culverts by vulnerability
+    layers: [Debris flow exposure, Debris flow assets]
+  - id: 09_avalanche_exposure
+    title: Avalanche
+    subtitle: Steep slopes above the roads and the recorded avalanche zones
+    layers: [Avalanche exposure]
+    exports: [poster, screen]
+  - id: 10_avalanche_assets
+    title: Avalanche
+    subtitle: Roads by vulnerability
+    layers: [Avalanche exposure, Avalanche assets]
+  - id: 11_scenario_1
+    title: "Scenario 1: SR-89 West Shore wildfire closure"
+    subtitle: Closed roads, detours, and who loses access
+    layers: [Scenario 1]
+  - id: 12_scenario_2
+    title: Scenario 2
+    subtitle: Location and hazard to be decided
+    layers: [Scenario 2]
+    enabled: false
+  - id: 13_criticality
+    title: Which roads matter most
+    subtitle: Criticality of roads, bridges, and culverts
+    layers: [Criticality]
+    enabled: false         # if time allows: the context sheet at the entrance
