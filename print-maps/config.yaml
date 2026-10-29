@@ -3,8 +3,8 @@
 # The Pro project and its data stay on TRPA storage (F:); PDFs land in outputs/ (gitignored).
 
 project:
-  aprx: ""                 # the print-map Pro project on F: (CURRENT when run from Pro's Python window)
-  layout: ""               # the template layout in that project, by its Catalog name
+  aprx: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\PROTECT_analysis.aprx   # CURRENT when run from Pro's Python window
+  layout: Hazard Fire - North Shore- PROTECT   # the sample: 36 x 48 in portrait, frame on TRPA Standard Layers at 1:24,000
   pagx: ""                 # optional: a .pagx to import as the template instead (its maps reuse the project's maps)
   frame: Map Frame         # the map frame the sheet's map, layers, and extent apply to
   legend_sync_visibility: true   # legends drop the layers a sheet turns off
@@ -32,105 +32,96 @@ exports:
     options: {}
 
 # Applies to every sheet; a sheet's own keys win. text keys are text element names on the layout;
-# values take {title}, {subtitle}, {id}, {date} (house style, Oct. 28, 2026), anything in tokens,
-# and any other plain field of the sheet. elements turns layout elements on or off by name.
+# values take {title}, {legend}, {id}, {date} (house style, Oct. 28, 2026), anything in tokens, and
+# any other plain field of the sheet. The template's Title holds the place and Legend Title the
+# hazard; Title is left as authored until a sheet sets text: {Title: ...}. elements turns layout
+# elements on or off by name.
+# managed: the layers a sheet's layers list controls. Inside them, what a sheet lists turns on and
+# the rest turns off; every layer outside them (hillshade, water, county, highway, boundaries,
+# labels, basemap) stays as authored in the template. Without managed, a sheet's list is the whole map.
 tokens:
   workshop: Workshop 1, Nov. 9, 2026
 defaults:
-  always_on: [Basin boundary]   # turned on in the main frame on every sheet that lists layers
+  managed: [Hazards, Bridge, Culvert, Road]
+  always_on: []
   text:
-    Title: "{title}"
-    Subtitle: "{subtitle}"
+    Legend Title: "{legend}"
   elements: {}
   exports: [poster]
 
 # NDOT culvert rows need NDOT sign-off before any display (data sharing agreement; root config.yaml ndot:).
 # Before a sheet exports, every visible feature layer is checked. It fails when it reads the NDOT export
 # or the restricted curated geodatabase (from the root config.yaml, plus blocked_sources); when it shows
-# a row matching a row check (the check honors the layer's definition query); or when it reads the
-# analysis geodatabase (paths.analysis_gdb, plus check_required_sources) and has none of the check fields.
-# Build the print layers from PROTECT_curated.gdb, which leaves the NDOT rows out.
+# a row matching a row check (the check honors the layer's definition query); or when it reads one of the
+# analysis geodatabase's culvert datasets (check_required_datasets, plus full paths in
+# check_required_sources) and has none of the check fields.
 restricted:
   row_checks:
     - {field: jurisdiction, values: [NDOT]}
     - {field: restricted, values: [1]}     # CulvertCrossings: a crossing with an NDOT culvert
   blocked_sources: []
+  check_required_datasets: [Culverts, CulvertCondition, CulvertCrossings, CulvertWatersheds, CulvertProfile]
   check_required_sources: []
 
 # The sheet list: one entry per printed map. id names the output file (--only 01 matches 01_...).
-# layers: exactly what shows in the main frame (with always_on). Parent groups turn on with a listed
-# layer, and every layer inside a listed group turns on; every other layer turns off; basemaps are left
-# as authored. Leave layers out to keep the map's visibility as authored in Pro.
+# layers: what shows within managed (or the whole map without it). Parent groups turn on with a listed
+# layer, and every layer inside a listed group turns on. Leave layers out to keep the map as authored.
 # map: the Pro map for the main frame (default: whatever the template frame shows).
-# extent: {bookmark: name} | {layer: name} | {xy: [xmin, ymin, xmax, ymax]}, plus optional scale;
-# leave it out to keep the template's extent.
+# extent: {bookmark: name} | {layer: name} | {xy: [xmin, ymin, xmax, ymax]} in the map's coordinates
+# (TRPA Standard Layers is Web Mercator), plus optional scale; leave it out to keep the template's.
 # frames: other map frames on the layout, {frame name: {map, layers, extent}}, for an inset. Each frame
 # on a sheet needs its own Pro map, since layer visibility belongs to the map.
 # enabled: false keeps a sheet out of a full run (--only still exports it).
 #
-# Seeded from the Workshop 1 print-map spec (html/workshop-punchlist.html). The layer, map, and element
-# names are placeholders until `print_maps.py inspect` lists the project; `check` reports every name
-# that does not match.
+# Seeded from the Workshop 1 print-map spec (html/workshop-punchlist.html) with the layer names in
+# PROTECT_analysis.aprx as of Oct. 13, 2026. Not in the map yet: vulnerability-classed asset layers
+# (Bridge, Culvert, and Road draw one plain symbol), active transport, transit centers, scenario layers,
+# one combined debris-flow surface, and a basin bookmark (every sheet keeps the SR 28 view).
 sheets:
   - id: 01_flooding_exposure
-    title: Flooding
-    subtitle: Where flooding can reach roads, bridges, and culverts
-    layers: [Flooding exposure]
+    legend: Flooding Exposure
+    layers: [Hazard_Flood_Class]
     exports: [poster, screen]
   - id: 02_flooding_assets
-    title: Flooding
-    subtitle: Roads, bridges, culverts, paths, and transit centers by vulnerability
-    layers: [Flooding exposure, Flooding assets]
+    legend: Flooding Exposure and Assets
+    layers: [Hazard_Flood_Class, Road, Bridge, Culvert]
   - id: 03_wildfire_exposure
-    title: Wildfire
-    subtitle: Chance of fire in any year
-    layers: [Wildfire exposure]
+    legend: Wildfire Burn Probability
+    layers: [Hazard_Wildfire_BurnProb]
     exports: [poster, screen]
-    # frames:
-    #   Inset Map: {map: Wildfire inset, layers: [High-severity fire probability]}
-    # elements: {Inset Map: true}
   - id: 04_wildfire_assets
-    title: Wildfire
-    subtitle: Roads, paths, and transit centers by vulnerability
-    layers: [Wildfire exposure, Wildfire assets]
+    legend: Wildfire Exposure and Assets
+    layers: [Hazard_Wildfire_BurnProb, Road]
   - id: 05_landslide_exposure
-    title: Landslide
-    subtitle: Where the ground is prone to sliding
-    layers: [Landslide exposure]
+    legend: Landslide Susceptibility
+    layers: [Hazard_Landslide_Class]
     exports: [poster, screen]
   - id: 06_landslide_assets
-    title: Landslide
-    subtitle: Roads, bridges, and culverts by vulnerability
-    layers: [Landslide exposure, Landslide assets]
+    legend: Landslide Exposure and Assets
+    layers: [Hazard_Landslide_Class, Road, Bridge, Culvert]
   - id: 07_debris_flow_exposure
-    title: Debris flow
-    subtitle: Where burned slopes can send mud and rock downhill
-    layers: [Debris flow exposure]
+    legend: Debris Flow Exposure
+    layers: [Hazard_DebrisFlow_Slope]      # slope term only; Hazard_DebrisFlow_Area is the drainage-size term
     exports: [poster, screen]
   - id: 08_debris_flow_assets
-    title: Debris flow
-    subtitle: Roads, bridges, and culverts by vulnerability
-    layers: [Debris flow exposure, Debris flow assets]
+    legend: Debris Flow Exposure and Assets
+    layers: [Hazard_DebrisFlow_Slope, Road, Bridge, Culvert]
   - id: 09_avalanche_exposure
-    title: Avalanche
-    subtitle: Steep slopes above the roads and the recorded avalanche zones
-    layers: [Avalanche exposure]
+    legend: Avalanche Terrain
+    layers: [Hazard_Avalanche_Cells]
     exports: [poster, screen]
   - id: 10_avalanche_assets
-    title: Avalanche
-    subtitle: Roads by vulnerability
-    layers: [Avalanche exposure, Avalanche assets]
+    legend: Avalanche Exposure and Assets
+    layers: [Hazard_Avalanche_Cells, Road]
   - id: 11_scenario_1
-    title: "Scenario 1: SR-89 West Shore wildfire closure"
-    subtitle: Closed roads, detours, and who loses access
+    legend: "Scenario 1: SR-89 West Shore Wildfire Closure"
     layers: [Scenario 1]
+    enabled: false         # no scenario layers in the map yet
   - id: 12_scenario_2
-    title: Scenario 2
-    subtitle: Location and hazard to be decided
+    legend: Scenario 2
     layers: [Scenario 2]
-    enabled: false
+    enabled: false         # location and hazard not decided
   - id: 13_criticality
-    title: Which roads matter most
-    subtitle: Criticality of roads, bridges, and culverts
+    legend: Criticality
     layers: [Criticality]
     enabled: false         # if time allows: the context sheet at the entrance

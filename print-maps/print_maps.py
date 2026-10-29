@@ -18,8 +18,8 @@ the sheet sets, so a sheet can be finished by hand in Pro.
 
 Restricted data: NDOT culvert rows need NDOT sign-off before any display. A sheet does not export
 when a visible layer reads a restricted source, shows a row that matches restricted.row_checks, or
-reads the analysis geodatabase without a field to check (config.yaml restricted:). Build the print
-layers from PROTECT_curated.gdb. --allow-restricted, after sign-off, writes only to
+reads one of the analysis geodatabase's culvert datasets without a field to check (config.yaml
+restricted:). --allow-restricted, after sign-off, writes only to
 paths.restricted_outputs, which must be outside the repo.
 """
 
@@ -205,17 +205,23 @@ def under(long_name: str, parents) -> bool:
     return any(long_name == p or long_name.startswith(p + "\\") for p in parents)
 
 
-def set_visibility(m, on: list) -> None:
+def set_visibility(m, on: list, managed: list | None = None) -> None:
+    """Listed layers on with their parents and contents. Without `managed`, every other layer turns off
+    (basemaps excepted); with it, only the other layers inside `managed` do and the rest stay as authored."""
     lyrs = m.listLayers()
     basemaps = [lyr.longName for lyr in lyrs if lyr.isBasemapLayer]
+    scope = [lyr.longName for lyr in managed] if managed is not None else None
     keep = set()
     for lyr in on:
         parts = lyr.longName.split("\\")
         keep.update("\\".join(parts[:i]) for i in range(1, len(parts) + 1))
     groups = [lyr.longName for lyr in on if lyr.isGroupLayer]
     for lyr in lyrs:
-        if not under(lyr.longName, basemaps):
-            lyr.visible = lyr.longName in keep or under(lyr.longName, groups)
+        show = lyr.longName in keep or under(lyr.longName, groups)
+        if show:
+            lyr.visible = True
+        elif not under(lyr.longName, basemaps) and (scope is None or under(lyr.longName, scope)):
+            lyr.visible = False
 
 
 def visible_layers(m) -> list:
@@ -249,7 +255,7 @@ def set_extent(mf, m, ext: dict | None, probs: list[str]) -> None:
 def apply_sheet(aprx, lyt, cfg: dict, spec: dict, copy_maps: bool = False) -> list[str]:
     """Set up the layout for one sheet. Returns the problems; an empty list means it is ready."""
     probs: list[str] = []
-    main = {k: spec[k] for k in ("map", "extent") if spec.get(k)}
+    main = {k: spec[k] for k in ("map", "extent", "managed") if spec.get(k)}
     if spec.get("layers") is not None:
         main["layers"] = list(spec.get("always_on") or []) + list(spec["layers"])
     for fname, fs in {cfg["project"]["frame"]: main, **spec["frames"]}.items():
@@ -276,9 +282,10 @@ def apply_sheet(aprx, lyt, cfg: dict, spec: dict, copy_maps: bool = False) -> li
             mf.camera.setExtent(ext)
         if fs.get("layers") is not None:
             on, p = resolve_layers(m, fs["layers"])
-            probs += p
-            if not p:
-                set_visibility(m, on)
+            managed, pm = resolve_layers(m, fs["managed"]) if fs.get("managed") else (None, [])
+            probs += p + pm
+            if not (p or pm):
+                set_visibility(m, on, managed)
         set_extent(mf, m, fs.get("extent"), probs)
 
     tokens = tokens_for(cfg, spec)
@@ -317,7 +324,9 @@ def restricted_problems(lyt, cfg: dict) -> list[str]:
 
     blocked = [norm(p) for p in (root.get("ndot", {}).get("gdb"), root.get("ndot", {}).get("work_dir"),
                                  root.get("curated", {}).get("restricted_gdb"), *r.get("blocked_sources", [])) if p]
-    need = [norm(p) for p in (root.get("paths", {}).get("analysis_gdb"), *r.get("check_required_sources", [])) if p]
+    agdb = root.get("paths", {}).get("analysis_gdb")
+    need = [norm(f"{agdb}\\{d}") for d in r.get("check_required_datasets", []) if agdb]
+    need += [norm(p) for p in r.get("check_required_sources", [])]
     checks = r.get("row_checks") or []
     probs = []
     for mf in lyt.listElements("MAPFRAME_ELEMENT"):
@@ -335,7 +344,7 @@ def restricted_problems(lyt, cfg: dict) -> list[str]:
             mine = [c for c in checks if c["field"].lower() in fields]
             if not mine:
                 if any(src.startswith(p) for p in need):
-                    probs.append(f"{tag} reads the analysis geodatabase, which holds the NDOT rows, and has no "
+                    probs.append(f"{tag} reads a culvert dataset that holds NDOT rows and has no "
                                  f"{' or '.join(c['field'] for c in checks)} field to check; use PROTECT_curated.gdb")
                 continue
             for c in mine:
