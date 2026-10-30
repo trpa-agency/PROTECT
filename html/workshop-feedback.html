@@ -66,6 +66,7 @@
       --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
       --gray-text:#5a6577;--gray-muted:#8a93a2;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
       /* concern ramp: 1 = greatest concern */
+      --flood-seen:#0E7C86;
       --c1:#9C3E27;--c1-bg:#F7E6E1;--c2:#E87722;--c2-bg:#FDEBDC;--c3:#B47E00;--c3-bg:#F7EFD9;
       --font:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
     }
@@ -100,6 +101,24 @@
     #panelToggle:hover{background:var(--page-bg);color:var(--trpa-blue);}
 
     .panel-sec{display:flex;flex-direction:column;gap:.5rem;}
+    /* the three kinds of feedback: one pane shows at a time */
+    #panelTop{flex:0 0 auto;display:flex;flex-direction:column;gap:.7rem;padding:.8rem 1rem .75rem;border-bottom:1px solid var(--gray-border);background:var(--white);}
+    #modeBar{display:flex;gap:.4rem;}
+    .mode{position:relative;flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:.35rem;border:1.5px solid var(--gray-border);background:#fff;border-radius:8px;padding:.45rem .4rem;cursor:pointer;font-family:var(--font);font-size:.78rem;font-weight:700;color:var(--trpa-navy);min-height:36px;transition:all 120ms;}
+    .mode[hidden]{display:none;}
+    .mode:hover{border-color:var(--trpa-blue);}
+    .mode.active{border-color:var(--trpa-blue);background:#e8f1fb;box-shadow:inset 0 -3px 0 var(--trpa-blue);}
+    .mode[data-mode="flood"].active{border-color:var(--flood-seen);background:#e7f3f4;box-shadow:inset 0 -3px 0 var(--flood-seen);}
+    .mcount{min-width:1.15rem;height:1.15rem;padding:0 .3rem;border-radius:999px;background:var(--trpa-blue);color:#fff;font-size:.64rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+    .mode[data-mode="flood"] .mcount{background:var(--flood-seen);} .mcount:empty{display:none;}
+    .mode-pane[hidden]{display:none;}
+    details.who{border:1px solid var(--gray-border);border-radius:8px;padding:.5rem .7rem;background:#fff;}
+    details.who>summary{cursor:pointer;font-size:.76rem;font-weight:700;color:var(--trpa-navy);list-style:none;display:flex;align-items:center;gap:.4rem;min-height:26px;}
+    details.who>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform 120ms;}
+    details.who[open]>summary::before{transform:rotate(90deg);}
+    details.who>summary::-webkit-details-marker{display:none;}
+    details.who>summary .need{font-weight:600;color:var(--trpa-brick);font-size:.7rem;}
+    .who-body{display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem;}
     .sec-title{display:flex;align-items:center;gap:.45rem;margin:0;font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gray-text);}
     .sec-num{display:inline-flex;align-items:center;justify-content:center;width:1.15rem;height:1.15rem;border-radius:50%;background:var(--trpa-blue);color:#fff;font-size:.66rem;}
     .sec-count{font-weight:600;color:var(--trpa-blue);text-transform:none;letter-spacing:0;font-size:.7rem;}
@@ -134,7 +153,7 @@
     .lg-note{width:13px;height:13px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px #9aa5b1;display:inline-block;} .lg-note.hollow{background:#fff;border:2px solid var(--gray-muted);box-shadow:none;}
     .lg-fill{width:16px;height:11px;border-radius:2px;display:inline-block;flex:0 0 auto;box-shadow:0 0 0 1px #9aa5b1 inset;}
     .lg-fill.ramp{background:linear-gradient(90deg,#B4CBE8,#E87722,#9C3E27);}
-    /* step 3: the discussion questions */
+    /* step 4: the discussion questions */
     .ask{font-size:.86rem;font-weight:700;line-height:1.4;color:var(--trpa-navy);border-left:3px solid var(--c,var(--trpa-blue));padding:.1rem 0 .1rem .6rem;}
     .draft-line{font-size:.72rem;color:var(--gray-text);} .draft-line b{color:var(--trpa-navy);}
 
@@ -155,13 +174,37 @@
     .note-card.empty{border-style:dashed;border-color:var(--gray-border);background:#fff;color:var(--gray-text);font-size:.78rem;}
     .nc-head{display:flex;align-items:flex-start;gap:.5rem;}
     .nc-head h3{font-size:.9rem;font-weight:700;flex:1;line-height:1.3;}
-    .nc-head .type{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:var(--trpa-navy);padding:.08rem .45rem;border-radius:999px;margin-bottom:.2rem;}
+    .nc-head .type{display:inline-block;font-size:.66rem;font-weight:700;color:#fff;background:var(--trpa-navy);padding:.08rem .45rem;border-radius:999px;margin-bottom:.2rem;}
     .nc-sub{font-size:.72rem;color:var(--gray-text);line-height:1.4;}
     .nc-close{border:none;background:transparent;cursor:pointer;color:var(--gray-muted);font-size:1.1rem;line-height:1;padding:0 .2rem;border-radius:999px;}
     .nc-close:hover{color:var(--trpa-brick);background:#fff;}
     .nc-actions{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;}
     .nc-saved{font-size:.7rem;color:var(--trpa-forest);font-weight:600;margin-left:auto;}
+    /* the map popup: pinned above the clicked point by placePopup() */
+    .map-pop{position:absolute;z-index:6;width:270px;background:#fff;border-radius:8px;box-shadow:0 3px 14px rgba(0,0,0,.3);padding:.65rem .75rem .7rem;display:flex;flex-direction:column;gap:.35rem;font-size:.78rem;color:var(--trpa-navy);}
+    .map-pop[hidden]{display:none;}
+    .map-pop::after{content:"";position:absolute;left:var(--tail,50%);bottom:-7px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#fff;}
+    .map-pop.below::after{bottom:auto;top:-7px;border:7px solid transparent;border-top:0;border-bottom-color:#fff;}
+    .map-pop .mp-body{display:flex;flex-direction:column;gap:.3rem;max-height:260px;overflow:auto;}
+    .map-pop .type{align-self:flex-start;font-size:.66rem;font-weight:700;color:#fff;background:var(--trpa-navy);padding:.08rem .45rem;border-radius:999px;}
+    .map-pop h3{font-size:.9rem;font-weight:700;line-height:1.3;padding-right:1rem;}
+    .map-pop .mp-x{position:absolute;top:.3rem;right:.35rem;border:none;background:transparent;cursor:pointer;color:var(--gray-muted);font-size:1.1rem;line-height:1;padding:0 .2rem;}
+    .map-pop .mp-x:hover{color:var(--trpa-brick);}
+    .map-pop .mp-note{display:flex;gap:.4rem;align-items:flex-start;font-size:.74rem;color:var(--gray-text);}
+    .map-pop .mp-go{margin-top:.2rem;border:none;border-radius:6px;background:var(--trpa-blue);color:#fff;font-family:var(--font);font-size:.76rem;font-weight:700;padding:.4rem .6rem;cursor:pointer;}
+    .map-pop .mp-go:hover{background:var(--trpa-navy);}
     .fine{font-size:.7rem;color:var(--gray-text);}
+    /* flooding you have seen: native buttons (Calcite made after load does not register beside the SDK) */
+    .abtn{border:1.5px solid var(--flood-seen);background:#fff;color:var(--flood-seen);border-radius:6px;font-family:var(--font);font-size:.78rem;font-weight:700;padding:.4rem .7rem;cursor:pointer;min-height:32px;}
+    .abtn:hover{background:#e7f3f4;} .abtn.on{background:var(--flood-seen);color:#fff;}
+    .abtn.solid{background:var(--flood-seen);color:#fff;} .abtn.solid:hover{background:var(--trpa-navy);border-color:var(--trpa-navy);}
+    .abtn.danger{border-color:var(--trpa-brick);color:var(--trpa-brick);} .abtn.danger:hover{background:#F7E6E1;}
+    .abtn.small{font-size:.72rem;padding:.25rem .6rem;min-height:28px;}
+    .area-card{border-color:var(--flood-seen);background:#f2f9f9;}
+    .area-card[hidden], .nlist[hidden]{display:none;}
+    .seg.area button.active{background:var(--flood-seen);}
+    .aswatch{width:14px;height:12px;border-radius:2px;flex:0 0 auto;margin-top:.15rem;background:rgba(14,124,134,.3);border:2px solid var(--flood-seen);}
+    .aswatch.hollow{background:repeating-linear-gradient(135deg,var(--flood-seen) 0 1.5px,#fff 1.5px 4px);border-style:dashed;}
 
     /* your notes list */
     .nlist{list-style:none;margin:0;padding:0;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;}
@@ -188,7 +231,7 @@
     #mapWrap{flex:1 1 auto;position:relative;display:flex;flex-direction:column;min-width:0;}
     #viewDiv{flex:1 1 auto;min-height:0;position:relative;}
     .map-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--trpa-navy);color:#fff;font-size:.76rem;font-weight:600;padding:.35rem .8rem;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:5;pointer-events:none;max-width:calc(100% - 120px);text-align:center;}
-    .map-hint.pin{background:var(--trpa-orange);}
+    .map-hint.pin{background:var(--trpa-orange);} .map-hint.area{background:var(--flood-seen);}
     body.drawer-collapsed #drawerBody{display:none;}
     #drawer{flex:0 0 auto;height:42%;min-height:160px;display:flex;flex-direction:column;background:var(--white);border-top:1px solid var(--gray-border);box-shadow:0 -2px 8px rgba(0,59,113,.08);z-index:10;}
     body.drawer-collapsed #drawer{height:auto;min-height:0;}
@@ -288,51 +331,66 @@
 
   <div id="appBody">
     <aside id="sidePanel" aria-label="Feedback panel">
+      <!-- The three kinds of feedback; only the chosen one's pane shows (setMode) -->
+      <div id="panelTop">
+        <section class="panel-sec" id="stationSec">
+          <h2 class="sec-title">Hazard station</h2>
+          <div class="stations" id="stations" role="radiogroup" aria-label="Hazard station"></div>
+        </section>
+        <section class="panel-sec">
+          <h2 class="sec-title">Provide feedback on</h2>
+          <!-- Flooding seen shows only at the Flooding station (renderStations) -->
+          <div id="modeBar" role="tablist" aria-label="Provide feedback">
+            <button class="mode" data-mode="asset" role="tab">A specific asset<span class="mcount" id="mcAsset"></span></button>
+            <button class="mode" data-mode="flood" role="tab">Flooding seen<span class="mcount" id="mcFlood"></span></button>
+            <button class="mode" data-mode="general" role="tab">General<span class="mcount" id="mcGeneral"></span></button>
+          </div>
+        </section>
+      </div>
       <div id="panelScroll">
 
-        <section class="panel-sec">
-          <h2 class="sec-title"><span class="sec-num">1</span> Hazard station</h2>
-          <div class="stations" id="stations" role="radiogroup" aria-label="Hazard station"></div>
-          <p class="station-help" id="stationHelp"></p>
-          <div class="legend" id="legend" aria-label="Map key"></div>
-        </section>
-
-        <section class="panel-sec">
-          <h2 class="sec-title"><span class="sec-num">2</span> Mark what concerns you</h2>
-          <p class="sec-help">Click a road, bridge, culvert, transit route, or path on the map, or drop a pin on any place. Rate your concern, tag the hazards, and say why. Each note is one sticky.</p>
+        <section class="panel-sec mode-pane" data-pane="asset">
+          <p class="sec-help">Click a road, bridge, culvert, transit route, or path on the map, or drop a pin on any place. Rate your concern and say why.</p>
           <div class="row">
             <calcite-button id="pinBtn" icon-start="pin" appearance="outline" kind="brand" scale="s" width="full" title="Then click the map where your concern is: a place without a mapped asset, or an asset that is missing">Drop a pin</calcite-button>
             <calcite-button id="findBtn" icon-start="search" appearance="outline" kind="neutral" scale="s" width="full" title="Find a road by name">Find a road</calcite-button>
           </div>
           <div id="noteCard" class="note-card empty">Nothing selected yet. Click an asset on the map, or drop a pin.</div>
+          <h2 class="sec-title">Your notes <span class="sec-count" id="noteCount"></span></h2>
+          <ul class="nlist" id="noteList"></ul>
+          <details class="more" id="keyBox">
+            <summary>Map key and what this station shows</summary>
+            <p class="station-help" id="stationHelp"></p>
+            <div class="legend" id="legend" aria-label="Map key"></div>
+          </details>
         </section>
 
-        <section class="panel-sec" id="stationQ">
-          <h2 class="sec-title"><span class="sec-num">3</span> Discussion questions</h2>
+        <section class="panel-sec mode-pane" data-pane="flood" hidden>
+          <p class="sec-help">Outline a place that has flooded, then say when, how bad, how often, and who saw it.</p>
+          <button id="drawBtn" class="abtn" title="Click the map to add corners; double-click to finish. Esc cancels.">Draw a flooded area</button>
+          <div id="areaCard" class="note-card area-card" hidden></div>
+          <h2 class="sec-title">Your flooded areas <span class="sec-count" id="areaCount"></span></h2>
+          <ul class="nlist" id="areaList"></ul>
+        </section>
+
+        <section class="panel-sec mode-pane" data-pane="general" id="stationQ" hidden>
           <p class="ask" id="stationAsk"></p>
-          <p class="sec-help">Answer once per hazard station. Your answers are kept with the station and sent with your notes.</p>
           <label class="field"><span>Do the draft results for <span id="sqHaz">this hazard</span> match what you expected? What is missing?</span>
-            <textarea id="sqExpect" class="plain" rows="2" placeholder="What surprised you, what agrees, what is not on the map"></textarea>
+            <textarea id="sqExpect" class="plain" rows="3" placeholder="What surprised you, what agrees, what is not on the map"></textarea>
           </label>
           <label class="field"><span>What should the map tool show to help decisions?</span>
-            <textarea id="sqTool" class="plain" rows="2" placeholder="Data, layers, or features that would help your agency"></textarea>
+            <textarea id="sqTool" class="plain" rows="3" placeholder="Data, layers, or features that would help your agency"></textarea>
           </label>
         </section>
 
-        <section class="panel-sec">
-          <h2 class="sec-title"><span class="sec-num">4</span> Your notes <span class="sec-count" id="noteCount"></span>
-            <button id="clearBtn" class="sec-tool" title="Remove all your notes and station answers from this browser">Clear</button>
-          </h2>
-          <ul class="nlist" id="noteList"></ul>
-        </section>
-
-        <section class="panel-sec">
-          <h2 class="sec-title"><span class="sec-num">5</span> Who you are</h2>
+        <details class="who" id="whoBox">
+          <summary id="whoSum">Who you are</summary>
+          <div class="who-body">
           <div class="row">
             <label class="field" style="flex:1">Your name<input id="revName" type="text" class="plain" placeholder="First Last" autocomplete="name" /></label>
             <label class="field" style="flex:1">Agency<input id="revAgency" type="text" class="plain" list="agencyList" placeholder="Start typing" autocomplete="organization" /><datalist id="agencyList"></datalist></label>
           </div>
-          <label class="field">Email <span class="fine" style="font-weight:400">(only a hash of it is sent, to match your sends; the address itself stays in this browser)</span>
+          <label class="field">Email
             <input id="revEmail" type="email" class="plain" placeholder="you@agency.gov" autocomplete="email" />
           </label>
           <div class="row" id="surveyRow">
@@ -348,8 +406,10 @@
               <input id="importFile" type="file" accept=".csv,text/csv" multiple hidden />
             </div>
             <calcite-button id="exportMineBtn" icon-start="download" appearance="transparent" kind="neutral" scale="s" width="full" title="Download your notes as a CSV to email to the data team">CSV of my notes</calcite-button>
+            <button id="clearBtn" class="sec-tool" style="margin-left:0;align-self:flex-start" title="Remove all your notes, flooded areas, and station answers from this browser">Clear everything from this browser</button>
           </details>
-        </section>
+          </div>
+        </details>
 
       </div>
       <div id="panelFooter">
@@ -360,13 +420,15 @@
     <button id="panelToggle" title="Show or hide the panel" aria-label="Show or hide the panel">&lsaquo;</button>
 
     <div id="mapWrap">
-      <div id="viewDiv"><div class="map-hint" id="mapHint" hidden></div></div>
+      <div id="viewDiv"><div class="map-hint" id="mapHint" hidden></div>
+        <div class="map-pop" id="mapPop" role="dialog" aria-label="Selected feature" hidden><button class="mp-x" title="Close" aria-label="Close">&times;</button><div class="mp-body"></div></div></div>
       <div id="drawer">
         <div class="drawer-head">
           <div class="dtabs" id="dtabs">
             <button data-v="mine" class="active">My notes</button>
             <button data-v="all">Everyone</button>
             <button data-v="report">Report out</button>
+            <button data-v="areas">Flooded areas</button>
           </div>
           <span class="d-count" id="dCount"></span>
           <span class="spacer"></span>
@@ -402,8 +464,9 @@
       <ul>
         <li><b>Stations.</b> The five hazards scored in the assessment: flooding, wildfire, landslide, debris flow, and avalanche. Picking a station turns on that hazard's draft exposure map and colors every asset by its draft vulnerability class for that hazard (Low, Medium, High), the same classes and colors as the Results page; gray means not exposed or not scored for that hazard. The map key in the panel updates with the station, and the layer list on the map lets you turn any layer on or off.</li>
         <li><b>Assets.</b> Roads (the 18,283-segment street network), the 40 National Bridge Inventory bridges, the compiled culverts with a flow profile, the eight transit hubs, transit routes, and bike and pedestrian paths, read from the same published results files as the Results page. If what concerns you is not on the map, drop a pin.</li>
+        <li><b>Flooding you have seen.</b> <em>Draw a flooded area</em> lets you outline where you have seen water on or near a road: click the map to add corners and double-click to finish. Then say when it happened, how bad it was, how often it happens, and who saw it. An email is optional and only goes to TRPA's data team, so they can follow up; it is not shown on this page. Areas are sent with your notes, and can be sent on their own without filling in Who you are.</li>
         <li><b>Concern.</b> 1 is greatest concern, 3 is worth noting. Tick <em>Missing from the draft results</em> when the draft maps do not show something you know is vulnerable.</li>
-        <li><b>Sending.</b> <em>Send my notes</em> posts to TRPA's ArcGIS Online with your name and agency; your email address is not sent, only a code made from it so your latest send replaces the earlier one. If sending fails, download the CSV of your notes and email it to the data team.</li>
+        <li><b>Sending.</b> <em>Send my notes</em> posts to TRPA's ArcGIS Online with your name, agency, and email; your latest send replaces the earlier one. If sending fails, download the CSV of your notes and email it to the data team.</li>
         <li><b>Report out.</b> The <em>Everyone</em> and <em>Report out</em> tables combine sent and imported notes by asset, with the count of people who flagged it and their concern levels.</li>
       </ul>
       <p class="fine">Notes are kept in this browser until you clear them. Internal review draft; the workshop release is Nov. 9, 2026.</p>
@@ -440,7 +503,7 @@
       boundary: SVC + "/Boundaries/FeatureServer/4"
     };
     // The five scored hazards, as stations. `layers` are the draft exposure layers turned on at that station.
-    // `data` is what is mapped there, `ask` the station's discussion question (step 3); `help` reads
+    // `data` is what is mapped there, `ask` the station's discussion question (step 4); `help` reads
     // "Data mapped: <data> <ask>". `field` names each asset's draft vulnerability score for the hazard, the
     // field that colors the asset (an asset with no field here is not scored for the hazard and draws gray).
     const HAZARDS = [
@@ -450,7 +513,7 @@
         field: { roads: "V_WFR_hist", paths: "V_WFAT_hist", hubs: "V_WFTC_hist" } },
       { k: "slide",  s: "Landslide",   color: "#B47E00", layers: ["slides"], data: "Mapped landslides (USGS inventory).", ask: "Where do slopes fail onto or under the road?",
         field: { roads: "V_LSR_hist", culverts: "V_LSC_hist", bridges: "V_LSB_hist" } },
-      { k: "debris", s: "Debris flow", color: "#7B6A8A", layers: ["wepp"],   data: "Post-fire sediment yield by catchment (WEPP).", ask: "Which roads, culverts, and bridges sit below steep, burned drainages that could send debris? No basin-wide debris-flow map exists yet, so your local knowledge matters most here.",
+      { k: "debris", s: "Debris flow", color: "#7B6A8A", layers: ["wepp"],   data: "Post-fire sediment yield by catchment (WEPP).", ask: "Which roads, culverts, and bridges sit below steep, burned drainages that could send debris?",
         field: { roads: "V_DFR_hist", culverts: "V_DFC_hist", bridges: "V_DFB_hist" } },
       { k: "avy",    s: "Avalanche",   color: "#4A6118", layers: ["avy"],    data: "Mapped avalanche zones.", ask: "Which road sections close, or should, when the hazard is high?",
         field: { roads: "V_AVR_hist" } },
@@ -487,7 +550,23 @@
     const OVERLAY = { flood: ["Flood zones (FEMA)", "rgba(0,114,206,.45)"], fire: ["Fire severity probability (ramp in the map Legend)", null], perims: ["Past fire perimeters (CAL FIRE)", "rgba(156,62,39,.35)"],
       slides: ["Mapped landslides (USGS)", "rgba(180,126,0,.5)"], wepp: ["Post-fire sediment yield (WEPP) (ramp in the map Legend)", null], avy: ["Avalanche zones", "rgba(74,97,24,.5)"] };
     const ASSET_TYPES = { road: "Road segment", bridge: "Bridge", culvert: "Culvert", transit: "Transit route", trail: "Bike or pedestrian path", pin: "Place (pin)" };
+    // Display only (the popup and the note card): all-caps words in source names ("PIONEER TRL") become "Pioneer Trl",
+    // leaving acronyms and mixed-case words alone; the details drop the segment number (still saved and sent with
+    // the note) and each starts with a capital.
+    const KEEP_CAPS = new Set(["US", "SR", "CA", "NV", "NBI", "TART", "TTD", "FEMA", "II", "III", "IV"]);
+    const properCase = (s) => String(s || "").replace(/[A-Za-z][A-Za-z']*/g, w => w.length > 1 && w === w.toUpperCase() && !KEEP_CAPS.has(w) ? w[0] + w.slice(1).toLowerCase() : w).replace(/^./, c => c.toUpperCase());
+    const capFirst = (s) => String(s || "").replace(/^./, c => c.toUpperCase());
+    const shownSub = (sub) => String(sub || "").split(" · ").filter(p => p && !/^segment /.test(p)).map(capFirst).join(" · ");
     const CONCERN = { 1: "Greatest concern", 2: "Concern", 3: "Worth noting" };
+    // Flooding you have seen: the pick lists on the area card (sent as text in severity and frequency)
+    const SEVERITY = ["Water on the shoulder", "Over a travel lane", "Road closed"];
+    const FREQUENCY = ["Once", "A few times", "Most big storms"];
+    const AREA_SYM = {
+      mine:   { type: "simple-fill", color: [14, 124, 134, 0.28], outline: { color: [14, 124, 134, 1], width: 2 } },
+      draft:  { type: "simple-fill", color: [14, 124, 134, 0.18], outline: { color: [14, 124, 134, 1], width: 2, style: "dash" } },
+      others: { type: "simple-fill", style: "backward-diagonal", color: [14, 124, 134, 0.8], outline: { color: [14, 124, 134, 0.9], width: 1.2, style: "dash" } }
+    };
+    const acresText = (a) => a == null ? "" : a < 10 ? `${(+a).toFixed(1)} acres` : `${Math.round(a).toLocaleString()} acres`;
     const AGENCIES = ["TRPA", "ICF", "Caltrans", "NDOT", "FHWA", "Placer County", "El Dorado County", "Washoe County", "Douglas County", "Carson City",
       "City of South Lake Tahoe", "Tahoe Transportation District (TTD)", "South Shore TMA", "Truckee North Tahoe TMA", "USFS Lake Tahoe Basin Management Unit",
       "CAL FIRE", "Nevada Division of Forestry", "Nevada State Parks", "California State Parks", "California Tahoe Conservancy", "Washoe Tribe",
@@ -502,6 +581,13 @@
     const SURVEY = {
       submitUrl: "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_notes_submit/FeatureServer/0",   // public, Create only
       viewUrl: "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_notes_read/FeatureServer/0",      // public, Query only
+      // Flooded areas: hosted polygon layer "PROTECT Workshop Feedback flood areas" (same script; made Oct. 30, 2026). While
+      // blank, areas are drawn and kept in this browser but not sent (Export CSV on the Flooded areas tab still works).
+      areasSubmitUrl: "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_flood_areas_submit/FeatureServer/0",   // public, Create only
+      areasViewUrl: "https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_flood_areas_read/FeatureServer/0",      // public, Query only
+      // The optional follow-up email on an area goes only here: a private table with a Create-only view and no public view,
+      // because a public view here cannot hide a field (the areas layer's contact_email stays empty). Blank: emails are not sent.
+      contactsSubmitUrl: "",   // public, Create only
       round: "Workshop 1",
       longLen: 50000,
       fields: { name: "reviewer_name", agency: "agency", key: "reviewer_key", round: "round", notes: "notes_text", json: "notes_json", station: "station_text", oid: "OBJECTID", when: "CreationDate" }
@@ -547,8 +633,9 @@
 
     // ───────────────────────── State ─────────────────────────
     // notes: { key: { key, type, id, name, sub, lon, lat, hazards:[k], concern, why, missing, when } }
-    let state = loadLS(LS_KEY, { reviewer: { name: "", agency: "", email: "" }, notes: {}, station: {}, current: "flood" });
-    state.notes = state.notes || {}; state.station = state.station || {}; state.reviewer = state.reviewer || { name: "", agency: "", email: "" };
+    // areas: { id: { id, rings:[[[lon,lat]…]], acres, lon, lat, observed, severity, frequency, why, when } }  (flooding seen, WGS84)
+    let state = loadLS(LS_KEY, { reviewer: { name: "", agency: "", email: "" }, notes: {}, areas: {}, station: {}, current: "flood" });
+    state.notes = state.notes || {}; state.areas = state.areas || {}; state.station = state.station || {}; state.reviewer = state.reviewer || { name: "", agency: "", email: "" };
     let imports = loadLS(LS_IMPORTS, {});      // { who: { agency, notes:{}, station:{}, when } }
     let remote = {}, remoteLoadedAt = 0;        // { key: { who, agency, notes, station, when } }
     // ?station=fire&type=road&id=...&name=...&sub=...&lon=...&lat=...  (links from the Results page)
@@ -564,9 +651,37 @@
     let selected = null;                        // the note being edited (saved or not)
     let pinMode = false, activeTab = "mine", gridApi = null;
     let map, view, layers = {}, noteLayer, othersLayer, hl = null, Graphic, Point;
+    let areaLayer, othersAreaLayer, sketchLayer, sketchVM, Polygon, wmu, gEngine;   // flooding seen (set when the map loads)
+    let drawing = false, selArea = null, remoteAreas = [];   // selArea: the area on the card; remoteAreas: others' sent areas
+    const myAreas = () => Object.values(state.areas).sort((a, b) => (b.when || 0) - (a.when || 0));
     let roadIndex = [];                         // { oid, name, cls, up } per road segment, for Find a road
-    const myKey = () => state.reviewer.email ? fnv(state.reviewer.email.trim().toLowerCase()) : "";
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // A send is keyed by the hash of the "Who you are" email. Flooded areas can be sent without it (each area names
+    // who saw it), and then the key is a hash of a random id kept in this browser, so the next send from it still replaces the last.
+    if (!state.device) { state.device = Math.random().toString(36).slice(2) + Date.now().toString(36); saveLS(LS_KEY, state); }
+    const myKey = () => EMAIL_RE.test(state.reviewer.email || "") ? fnv(state.reviewer.email.trim().toLowerCase()) : fnv("device:" + state.device);
     const myNotes = () => Object.values(state.notes).sort((a, b) => (a.concern || 9) - (b.concern || 9) || (b.when || 0) - (a.when || 0));
+
+    // ───────────────────────── Modes ─────────────────────────
+    // Under the hazard station picker, the panel shows one kind of feedback at a time: an asset (note card), flooding
+    // seen (draw an area; offered only at the Flooding station), or general (the station questions).
+    function setMode(m) {
+      if (!["asset", "flood", "general"].includes(m) || (m === "flood" && station !== "flood")) m = "asset";
+      state.mode = m; saveLS(LS_KEY, state);
+      document.querySelectorAll("#modeBar .mode").forEach(b => { const on = b.dataset.mode === m; b.classList.toggle("active", on); b.setAttribute("aria-selected", on); });
+      document.querySelectorAll(".mode-pane").forEach(p => { p.hidden = p.dataset.pane !== m; });
+      if (m !== "flood") stopDraw();
+      if (m !== "asset" && pinMode) setPinMode(false);
+      $("panelScroll").scrollTop = 0;
+    }
+    $("modeBar").addEventListener("click", (e) => { const b = e.target.closest(".mode[data-mode]"); if (b) setMode(b.dataset.mode); });
+    function renderModeCounts() {
+      const n = myNotes().length, na = myAreas().length, sq = Object.keys(state.station).length;
+      $("mcAsset").textContent = n || ""; $("mcFlood").textContent = na || ""; $("mcGeneral").textContent = sq || "";
+      const name = state.reviewer.name;
+      $("whoSum").innerHTML = name ? `Who you are: ${escHtml(whoLabel(name, state.reviewer.agency))}` : `Who you are <span class="need">needed to send notes and answers</span>`;
+    }
+    function openWho(focusId) { $("whoBox").open = true; if (focusId) setTimeout(() => $(focusId).focus(), 50); }
 
     // ───────────────────────── Stations ─────────────────────────
     function renderStations() {
@@ -576,6 +691,9 @@
       $("sqHaz").textContent = station === "any" ? "the assessment" : HZ[station].s.toLowerCase();
       const sq = state.station[station] || {}; $("sqExpect").value = sq.expect || ""; $("sqTool").value = sq.tool || "";
       renderLegend();
+      // Flooding seen is offered only at the Flooding station; leaving it falls back to A specific asset
+      $("modeBar").querySelector('[data-mode="flood"]').hidden = station !== "flood";
+      if (station !== "flood" && state.mode === "flood") setMode("asset");
     }
     // Map key for the station: the class colors, each asset's symbol in the three classes (or gray when the
     // asset is not scored for the hazard), the note markers, and the exposure overlays turned on.
@@ -594,6 +712,7 @@
         <div class="lg-row" title="Transit routes are context only; turn them on under Layers on the map"><span class="lg-shapes"><span class="lg-line" style="background:#7B6A8A"></span></span>Transit routes <em>not scored</em></div>
         <div class="lg-row"><span class="lg-shapes">${[1, 2, 3].map(c => bubbleImg(c)).join("")}</span>Your notes and pins, by concern (1 greatest)</div>
         <div class="lg-row"><span class="lg-shapes">${bubbleImg(1, true)}</span>Notes from others</div>
+        ${station === "flood" ? `<div class="lg-row"><span class="lg-shapes"><span class="aswatch"></span><span class="aswatch hollow"></span></span>Flooding seen: yours, others'</div>` : ""}
         ${h.layers.map(key => { const [label, c] = OVERLAY[key]; return `<div class="lg-row"><span class="lg-shapes"><span class="lg-fill${c ? "" : " ramp"}" style="${c ? `background:${c}` : ""}"></span></span>${label}</div>`; }).join("")}`;
     }
     function applyStationStyle() { for (const [asset, key] of Object.entries(ASSET_LAYER)) if (layers[key]) layers[key].renderer = rendererFor(asset, station); }
@@ -602,9 +721,10 @@
       if (!layers.flood) return;
       const on = new Set(HZ[k].layers);
       for (const key of ["flood", "fire", "perims", "slides", "wepp", "avy"]) if (layers[key]) layers[key].visible = on.has(key);
+      for (const L of [areaLayer, othersAreaLayer]) if (L) L.visible = k === "flood";   // flooded areas only at the Flooding station
       applyStationStyle();
       if (selected && !selected.saved && selected.hazards.length === 0 && k !== "any") { selected.hazards = [k]; }
-      if (selected) { selected.draft = draftFor(selected); renderNoteCard(); }
+      if (selected) { selected.draft = draftFor(selected); renderNoteCard(); if (popAt) openPopup(popAt); }
     }
     // The selected asset's draft score for the station, shown on the note card only (not saved or sent)
     function draftFor(n) {
@@ -634,8 +754,8 @@
       const n = selected; el.className = "note-card";
       el.innerHTML = `
         <div class="nc-head"><div style="flex:1;min-width:0"><span class="type">${escHtml(ASSET_TYPES[n.type] || n.type)}</span>
-          ${n.type === "pin" ? `<input id="ncName" type="text" class="plain" placeholder="Name this place, e.g. Cave Rock east portal" value="${escHtml(n.name === "Pinned place" ? "" : n.name)}" />` : `<h3>${escHtml(n.name)}</h3>`}
-          <div class="nc-sub">${escHtml(n.sub || "")}</div>${n.draft ? `<div class="draft-line">${n.draft}</div>` : ""}</div>
+          ${n.type === "pin" ? `<input id="ncName" type="text" class="plain" placeholder="Name this place, e.g. Cave Rock east portal" value="${escHtml(n.name === "Pinned place" ? "" : n.name)}" />` : `<h3>${escHtml(properCase(n.name))}</h3>`}
+          <div class="nc-sub">${escHtml(shownSub(n.sub))}</div></div>
           <button class="nc-close" id="ncClose" title="Close" aria-label="Close">&times;</button></div>
         <label class="field">Concern
           <div class="seg concern" id="ncConcern" role="radiogroup" aria-label="Concern">${[1, 2, 3].map(c => `<button data-v="${c}" role="radio" aria-checked="${n.concern === c}" class="${n.concern === c ? "active" : ""}" title="${CONCERN[c]}">${c} ${c === 1 ? "greatest" : c === 2 ? "concern" : "noting"}</button>`).join("")}</div>
@@ -667,22 +787,174 @@
       const rec = { key: n.key, type: n.type, id: n.id, name: n.name, sub: n.sub, lon: n.lon, lat: n.lat, hazards: n.hazards, concern: n.concern, why: n.why.trim(), missing: !!n.missing, when: Date.now() };
       state.notes[n.key] = rec; saveLS(LS_KEY, state);
       selected = Object.assign({ saved: true }, rec, { hazards: [...rec.hazards], asset: n.asset, attrs: n.attrs, draft: n.draft });
-      renderNoteCard(); renderAll(); toast(`Saved: ${rec.name}`);
+      renderNoteCard(); renderAll(); closePopup(); toast(`Saved: ${rec.name}`);
     }
     function removeNote(key) {
       delete state.notes[key]; saveLS(LS_KEY, state);
-      if (selected && selected.key === key) selected = null;
+      if (selected && selected.key === key) { selected = null; closePopup(); }
       renderNoteCard(); renderAll(); clearHighlight();
     }
-    function select(note, graphic) {
+    // `at` is the map click: a popup opens there with what was clicked and a button to the note card
+    function select(note, graphic, at) {
       selected = note; clearHighlight();
       if (note && graphic && graphic.layer && graphic.layer !== noteLayer && graphic.layer !== othersLayer) {
         view.whenLayerView(graphic.layer).then(lv => { clearHighlight(); hl = lv.highlight(graphic); }).catch(() => {});
       }
       renderNoteCard(); renderNoteList();
+      if (note && at) openPopup(at); else closePopup();
+      if (note && !at) setMode("asset");   // picked from a list, the table, Find a road, or a Results page link
     }
+    // The map popup: a plain div pinned to the clicked point (not the SDK popup, which renders blank beside the
+    // page's own Calcite include). It shows what was clicked; "Write a note" jumps to the note card in the panel.
+    var popAt = null;   // var: select() can run from a Results page link before this line
+    function showPopup(at, html) { popAt = at; $("mapPop").querySelector(".mp-body").innerHTML = html; $("mapPop").hidden = false; placePopup(); }
+    function openPopup(at) {
+      const n = selected; popAt = at;
+      $("mapPop").querySelector(".mp-body").innerHTML = `<span class="type">${escHtml(ASSET_TYPES[n.type] || n.type)}</span>
+        <h3>${escHtml(properCase(n.name))}</h3><div class="nc-sub">${escHtml(shownSub(n.sub))}</div>
+        ${n.saved ? `<div class="mp-note">${cBadge(n.concern)}<span>${escHtml(n.why || "Your note")}</span></div>` : ""}
+        <button class="btn mp-go" id="mpGo">${n.saved ? "Edit your note" : "Write a note"}</button>`;
+      $("mpGo").addEventListener("click", () => { closePopup(); setMode("asset"); const c = $("noteCard"); c.scrollIntoView({ behavior: "smooth", block: "start" }); const w = $("ncWhy"); if (w) w.focus({ preventScroll: true }); });
+      $("mapPop").hidden = false; placePopup();
+    }
+    function placePopup() {
+      if (!popAt || !view || $("mapPop").hidden) return;
+      const p = view.toScreen(popAt), el = $("mapPop");
+      if (!p) return;
+      // Above the point when it fits, else below; slid sideways to stay inside the map. The tail keeps pointing at the point.
+      const W = el.offsetWidth, H = el.offsetHeight, gap = 12, pad = 8, vw = view.width, vh = view.height;
+      const below = p.y - H - gap < pad && p.y + H + gap <= vh - pad;
+      const left = Math.min(Math.max(p.x - W / 2, pad), Math.max(pad, vw - W - pad));
+      const top = below ? p.y + gap : Math.max(pad, p.y - H - gap);
+      el.classList.toggle("below", below);
+      el.style.left = `${left}px`; el.style.top = `${top}px`;
+      el.style.setProperty("--tail", `${Math.min(Math.max(p.x - left, 14), W - 14)}px`);
+      // hide it when its point has panned out of view
+      el.style.visibility = p.x < 0 || p.y < 0 || p.x > vw || p.y > vh ? "hidden" : "";
+    }
+    function closePopup() { popAt = null; $("mapPop").hidden = true; }
+    $("mapPop").querySelector(".mp-x").addEventListener("click", closePopup);
     function clearHighlight() { if (hl) { hl.remove(); hl = null; } }
     function zoomTo(n) { if (n && n.lon != null && view) view.goTo({ center: [n.lon, n.lat], zoom: Math.max(view.zoom, 14) }, { duration: 500 }).catch(() => {}); }
+
+    // ───────────────────────── Flooding you have seen ─────────────────────────
+    // A participant outlines where they have seen flooding (SketchViewModel on its own layer), then fills the area
+    // card: when, how bad, how often, what happened. Areas keep WGS84 rings in the browser and go to the flood areas
+    // layer in Web Mercator with the same Send as the notes, each tagged with that send's id.
+    function drawUi(on) {
+      drawing = on; $("drawBtn").classList.toggle("on", on); $("drawBtn").textContent = on ? "Cancel drawing" : "Draw a flooded area";
+      $("mapHint").hidden = !on; if (on) { $("mapHint").className = "map-hint area"; $("mapHint").textContent = "Click to add corners. Double-click to finish. Esc cancels."; }
+    }
+    function startDraw() {
+      if (!sketchVM) { toast("The map is still loading. Try again in a moment."); return; }
+      if (pinMode) setPinMode(false);
+      if (station !== "flood") setStation("flood");   // FEMA flood zones for context
+      closePopup(); drawUi(true); sketchVM.create("polygon");
+    }
+    function stopDraw() { if (!drawing) return; drawUi(false); if (sketchVM) sketchVM.cancel(); }
+    $("drawBtn").addEventListener("click", () => drawing ? stopDraw() : startDraw());
+    function newArea(geom) {
+      const g = wmu.webMercatorToGeographic(geom);
+      const rings = g.rings.map(r => r.map(([x, y]) => [+x.toFixed(6), +y.toFixed(6)]));
+      const poly = new Polygon({ rings, spatialReference: { wkid: 4326 } });
+      const acres = Math.abs(gEngine.geodesicArea(poly, "acres")), c = poly.centroid;
+      if (!(acres > 0)) { toast("That shape has no area. Draw it again with at least three corners.", 4000); return; }
+      selArea = { id: `fa:${Date.now().toString(36)}`, rings, acres: +acres.toFixed(2), lon: c ? +c.x.toFixed(6) : null, lat: c ? +c.y.toFixed(6) : null,
+        observed: "", severity: null, frequency: null, why: "", when: null, saved: false,
+        reporter: state.reviewer.name || "", rAgency: state.reviewer.agency || "", contact: "" };   // email is never prefilled: it is sent as written
+      renderAreaCard(); renderAreas();
+      $("areaCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      setTimeout(() => { if ($("faWhen")) $("faWhen").focus({ preventScroll: true }); }, 350);
+    }
+    function renderAreaCard() {
+      const el = $("areaCard"), a = selArea;
+      el.hidden = !a; if (!a) { el.innerHTML = ""; return; }
+      const seg = (id, opts, v, label) => `<div class="seg area" id="${id}" role="radiogroup" aria-label="${label}">${opts.map(o => `<button data-v="${escHtml(o)}" role="radio" aria-checked="${v === o}" class="${v === o ? "active" : ""}">${escHtml(o)}</button>`).join("")}</div>`;
+      el.innerHTML = `
+        <div class="nc-head"><div style="flex:1;min-width:0"><span class="type" style="background:var(--flood-seen)">Flooding seen</span>
+          <div class="nc-sub">${escHtml(capFirst(acresText(a.acres)))}${a.saved && a.when ? ` · Saved ${apDate(a.when)}` : ""}</div></div>
+          <button class="nc-close" id="faClose" title="Close" aria-label="Close">&times;</button></div>
+        <label class="field">When did it happen?<input id="faWhen" type="text" class="plain" placeholder="e.g. Jan. 2017 storm, most springs" value="${escHtml(a.observed || "")}" /></label>
+        <div class="field">How bad?${seg("faSev", SEVERITY, a.severity, "How bad")}</div>
+        <div class="field">How often?${seg("faFreq", FREQUENCY, a.frequency, "How often")}</div>
+        <label class="field">What happened?<textarea id="faWhy" class="plain" rows="3" placeholder="Where the water came from, how long the road was closed, who was cut off">${escHtml(a.why || "")}</textarea></label>
+        <div class="field">Who saw it?
+          <div class="row">
+            <input id="faName" type="text" class="plain" placeholder="Name" aria-label="Name" autocomplete="name" value="${escHtml(a.reporter || "")}" />
+            <input id="faAgency" type="text" class="plain" list="agencyList" placeholder="Agency" aria-label="Agency" autocomplete="organization" value="${escHtml(a.rAgency || "")}" />
+          </div>
+          <input id="faEmail" type="email" class="plain" placeholder="Email, optional, so the data team can follow up" aria-label="Email (optional)" autocomplete="email" value="${escHtml(a.contact || "")}" />
+          <span class="fine" style="font-weight:400">The email goes only to TRPA's data team; it is not shown on this page or to other participants.</span>
+        </div>
+        <div class="nc-actions"><button class="abtn solid small" id="faSave">${a.saved ? "Update area" : "Save area"}</button>${a.saved ? `<button class="abtn danger small" id="faRemove">Remove</button>` : `<button class="abtn small" id="faDiscard">Discard</button>`}</div>`;
+      const pick = (id, prop) => $(id).addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; a[prop] = a[prop] === b.dataset.v ? null : b.dataset.v; $(id).querySelectorAll("button").forEach(x => { const on = x.dataset.v === a[prop]; x.classList.toggle("active", on); x.setAttribute("aria-checked", on); }); });
+      pick("faSev", "severity"); pick("faFreq", "frequency");
+      $("faWhen").addEventListener("input", () => { a.observed = $("faWhen").value; });
+      $("faWhy").addEventListener("input", () => { a.why = $("faWhy").value; });
+      $("faName").addEventListener("input", () => { a.reporter = $("faName").value; });
+      $("faAgency").addEventListener("input", () => { a.rAgency = $("faAgency").value; });
+      $("faEmail").addEventListener("input", () => { a.contact = $("faEmail").value; });
+      $("faClose").addEventListener("click", () => { selArea = null; renderAreaCard(); renderAreas(); });
+      $("faSave").addEventListener("click", saveArea);
+      if ($("faRemove")) $("faRemove").addEventListener("click", () => removeArea(a.id));
+      if ($("faDiscard")) $("faDiscard").addEventListener("click", () => { selArea = null; renderAreaCard(); renderAreas(); });
+    }
+    function saveArea() {
+      const a = selArea; if (!a) return;
+      if (!a.severity && !String(a.why || "").trim() && !String(a.observed || "").trim()) { toast("Say when it happened, how bad it was, or what happened first.", 3500); return; }
+      const reporter = String(a.reporter || "").trim(), contact = String(a.contact || "").trim();
+      if (!reporter) { toast("Add the name of who saw it.", 3500); $("faName").focus(); return; }
+      if (contact && !EMAIL_RE.test(contact)) { toast("That email does not look right. Fix it or leave it blank.", 4000); $("faEmail").focus(); return; }
+      state.areas[a.id] = { id: a.id, rings: a.rings, acres: a.acres, lon: a.lon, lat: a.lat, observed: String(a.observed || "").trim(), severity: a.severity, frequency: a.frequency, why: String(a.why || "").trim(), when: Date.now(),
+        reporter, rAgency: String(a.rAgency || "").trim(), contact };
+      saveLS(LS_KEY, state); selArea = null; renderAreaCard(); renderAll(); toast("Saved the flooded area.");
+    }
+    function removeArea(id) {
+      delete state.areas[id]; saveLS(LS_KEY, state);
+      if (selArea && selArea.id === id) selArea = null;
+      closePopup(); renderAreaCard(); renderAll();
+    }
+    function editArea(id) {
+      const a = state.areas[id]; if (!a) return;
+      if (station !== "flood") setStation("flood");   // Flooding seen lives at the Flooding station
+      setMode("flood");
+      selArea = Object.assign({ saved: true }, a); renderAreaCard(); renderAreas();
+      $("areaCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    const areaPoly = (a) => new Polygon({ rings: a.rings, spatialReference: { wkid: 4326 } });
+    function zoomToArea(a) { if (a && a.rings && view && Polygon) view.goTo(areaPoly(a).extent.expand(1.8), { duration: 500 }).catch(() => {}); }
+    function renderAreaList() {
+      const areas = myAreas();
+      $("areaCount").textContent = areas.length ? `${areas.length}` : "";
+      if (!areas.length) { $("areaList").innerHTML = `<li class="nrow" style="cursor:default;color:var(--gray-text)">No areas yet. Press Draw a flooded area to start.</li>`; return; }
+      $("areaList").innerHTML = areas.map(a => `<li class="nrow" data-id="${escHtml(a.id)}"><span class="aswatch"></span><div class="n-main"><b>${escHtml(a.severity || "Flooding seen")}</b><small>${escHtml([a.reporter, a.observed, a.frequency, acresText(a.acres)].filter(Boolean).map(capFirst).join(" · "))}${a.why ? ` · ${escHtml(a.why.length > 70 ? a.why.slice(0, 68) + "…" : a.why)}` : ""}</small></div><button class="n-x" data-id="${escHtml(a.id)}" title="Remove this area" aria-label="Remove">&times;</button></li>`).join("");
+    }
+    $("areaList").addEventListener("click", (e) => {
+      const x = e.target.closest(".n-x"); if (x) { removeArea(x.dataset.id); return; }
+      const li = e.target.closest(".nrow[data-id]"); if (!li) return;
+      editArea(li.dataset.id); zoomToArea(state.areas[li.dataset.id]);
+    });
+    function renderAreas() {
+      if (!areaLayer) return;
+      const add = (layer, a, symbol, attributes) => layer.add(new Graphic({ geometry: areaPoly(a), symbol, attributes }));
+      areaLayer.removeAll();
+      for (const a of myAreas()) add(areaLayer, a, AREA_SYM.mine, { id: a.id });
+      if (selArea && !selArea.saved) add(areaLayer, selArea, AREA_SYM.draft, { id: selArea.id, draft: 1 });
+      othersAreaLayer.removeAll();
+      remoteAreas.forEach((a, i) => add(othersAreaLayer, a, AREA_SYM.others, { i }));
+    }
+    function openAreaPopup(a, at, mine) {
+      const who = mine ? (a.reporter ? whoLabel(a.reporter, a.rAgency) : "") : whoLabel(a.who, a.agency);
+      showPopup(at, `<span class="type" style="background:var(--flood-seen)">Flooding seen</span><h3>${escHtml(a.severity || "Flooded area")}</h3>
+        <div class="nc-sub">${escHtml([a.observed, a.frequency, acresText(a.acres)].filter(Boolean).map(capFirst).join(" · "))}</div>
+        ${who ? `<div class="nc-sub">${escHtml(who)}</div>` : ""}${a.why ? `<div class="mp-note"><span>${escHtml(a.why)}</span></div>` : ""}
+        ${mine ? `<button class="btn mp-go" id="mpGo" style="background:var(--flood-seen)">Edit this area</button>` : ""}`);
+      if (mine) $("mpGo").addEventListener("click", () => { closePopup(); editArea(a.id); });
+    }
+    function areaRows() {
+      const me = whoLabel(state.reviewer.name, state.reviewer.agency);
+      return myAreas().map(a => Object.assign({ mine: true }, a, { who: a.reporter ? whoLabel(a.reporter, a.rAgency) : me })).concat(remoteAreas.map(a => Object.assign({ mine: false }, a, { who: whoLabel(a.who, a.agency) })));
+    }
 
     // ───────────────────────── Lists, markers, grid ─────────────────────────
     function renderNoteList() {
@@ -698,8 +970,8 @@
       select(Object.assign({ saved: true }, n, { hazards: [...(n.hazards || [])] })); zoomTo(n);
     });
     $("clearBtn").addEventListener("click", () => {
-      if (!confirm("Remove all your notes and station answers from this browser? Notes you already sent are not affected.")) return;
-      state.notes = {}; state.station = {}; saveLS(LS_KEY, state); selected = null; renderNoteCard(); renderStations(); renderAll(); clearHighlight();
+      if (!confirm("Remove all your notes, flooded areas, and station answers from this browser? What you already sent is not affected.")) return;
+      state.notes = {}; state.areas = {}; state.station = {}; saveLS(LS_KEY, state); selected = null; selArea = null; renderAreaCard(); closePopup(); renderNoteCard(); renderStations(); renderAll(); clearHighlight();
     });
     function renderMarkers() {
       if (!noteLayer) return;
@@ -760,32 +1032,45 @@
       ]
     };
     COLS.all = [{ field: "who", headerName: "Who", width: 170, cellStyle: p => p.data.mine ? { fontWeight: 700 } : null }].concat(COLS.mine);
+    COLS.areas = [
+      { field: "who", headerName: "Who saw it", width: 170, cellStyle: p => p.data && p.data.mine ? { fontWeight: 700 } : null },
+      { field: "contact", headerName: "Email", width: 170 },   // only for areas saved in this browser; others' emails are not in the public view
+      { field: "severity", headerName: "How bad", width: 160 },
+      { field: "observed", headerName: "When", width: 170 },
+      { field: "frequency", headerName: "How often", width: 130 },
+      { field: "why", headerName: "What happened", flex: 2, minWidth: 220, tooltipField: "why" },
+      { field: "acres", headerName: "Acres", width: 90, valueFormatter: p => p.value == null ? "" : (+p.value).toFixed(1) },
+      { field: "when", headerName: "Saved or sent", width: 120, valueFormatter: p => p.value ? apDate(p.value) : "" }
+    ];
     function renderGrid() {
-      const rows = activeTab === "report" ? reportRows() : activeTab === "all" ? allRows() : myNotes();
+      const rows = activeTab === "areas" ? areaRows() : activeTab === "report" ? reportRows() : activeTab === "all" ? allRows() : myNotes();
       const others = otherLists().length;
-      $("dCount").textContent = activeTab === "mine" ? `${rows.length} note${rows.length === 1 ? "" : "s"}` : activeTab === "all" ? `${rows.length} note${rows.length === 1 ? "" : "s"} from you and ${others} other${others === 1 ? "" : "s"}` : `${rows.length} asset${rows.length === 1 ? "" : "s"} flagged`;
+      $("dCount").textContent = activeTab === "areas" ? `${rows.length} flooded area${rows.length === 1 ? "" : "s"}` : activeTab === "mine" ? `${rows.length} note${rows.length === 1 ? "" : "s"}` : activeTab === "all" ? `${rows.length} note${rows.length === 1 ? "" : "s"} from you and ${others} other${others === 1 ? "" : "s"}` : `${rows.length} asset${rows.length === 1 ? "" : "s"} flagged`;
       if (!window.agGrid) return;
       if (!gridApi) {
         gridApi = agGrid.createGrid($("grid"), { columnDefs: COLS[activeTab], rowData: rows, defaultColDef: { sortable: true, resizable: true, filter: true }, rowSelection: "single", suppressCellFocus: true, tooltipShowDelay: 300,
-          onRowClicked: (e) => { const d = e.data; if (!d) return; const n = state.notes[d.key]; select(n ? Object.assign({ saved: true }, n, { hazards: [...(n.hazards || [])] }) : Object.assign({ saved: false }, d, { hazards: [...(d.hazards || [])], why: activeTab === "report" ? "" : d.why || "", concern: activeTab === "report" ? null : d.concern })); zoomTo(d); } });
+          onRowClicked: (e) => { const d = e.data; if (!d) return; if (activeTab === "areas") { if (station !== "flood") setStation("flood"); zoomToArea(d); if (d.mine) editArea(d.id); return; } const n = state.notes[d.key]; select(n ? Object.assign({ saved: true }, n, { hazards: [...(n.hazards || [])] }) : Object.assign({ saved: false }, d, { hazards: [...(d.hazards || [])], why: activeTab === "report" ? "" : d.why || "", concern: activeTab === "report" ? null : d.concern })); zoomTo(d); } });
       } else { gridApi.setGridOption("columnDefs", COLS[activeTab]); gridApi.setGridOption("rowData", rows); }
     }
     $("dtabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; activeTab = b.dataset.v; $("dtabs").querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b)); renderGrid(); });
     $("drawerToggle").addEventListener("click", () => { document.body.classList.toggle("drawer-collapsed"); $("drawerToggle").querySelector("calcite-icon").icon = document.body.classList.contains("drawer-collapsed") ? "chevron-up" : "chevron-down"; });
     $("panelToggle").addEventListener("click", () => { document.body.classList.toggle("panel-collapsed"); $("panelToggle").innerHTML = document.body.classList.contains("panel-collapsed") ? "&rsaquo;" : "&lsaquo;"; });
     $("exportGridBtn").addEventListener("click", () => {
+      if (activeTab === "areas") { const rows = areaRows(); if (!rows.length) { toast("No flooded areas to export yet."); return; }
+        const head = ["Who saw it", "Email", "How bad", "When", "How often", "What happened", "Acres", "Longitude", "Latitude", "Saved or sent", "Area id", "Geometry (WGS84 rings, JSON)"];
+        download(`PROTECT_Workshop1_flooded_areas_${todayLocal()}.csv`, [head.join(",")].concat(rows.map(a => [a.who, a.contact || "", a.severity || "", a.observed || "", a.frequency || "", a.why || "", a.acres ?? "", a.lon ?? "", a.lat ?? "", a.when ? new Date(a.when).toISOString() : "", a.id || "", JSON.stringify(a.rings)].map(csvCell).join(","))).join("\n")); return; }
       if (activeTab === "report") { const rows = reportRows(); if (!rows.length) { toast("Nothing to export yet."); return; }
         const head = ["Asset or place", "Type", "Key", "Hazards", "People", "Concern 1", "Concern 2", "Concern 3", "Missing flags", "Who", "Why", "Longitude", "Latitude"];
         download(`PROTECT_Workshop1_report_out_${todayLocal()}.csv`, [head.join(",")].concat(rows.map(g => [g.name, ASSET_TYPES[g.type] || g.type, g.key, hazLabel(g.hazards), g.n, g.c1, g.c2, g.c3, g.missing, g.who.join("; "), g.why.join(" | "), g.lon, g.lat].map(csvCell).join(","))).join("\n")); return; }
       exportNotes(activeTab === "all" ? allRows() : myNotes().map(n => Object.assign({ who: whoLabel(state.reviewer.name, state.reviewer.agency) }, n)), activeTab === "all");
     });
-    function renderAll() { renderNoteList(); renderMarkers(); renderGrid(); updateSendState(); }
+    function renderAll() { renderNoteList(); renderMarkers(); renderAreaList(); renderAreas(); renderGrid(); updateSendState(); }
 
     // ───────────────────────── CSV round trip ─────────────────────────
     const CSV_HEAD = ["Participant", "Agency", "Hazards", "Concern", "Type", "Asset or place", "Detail", "Key", "Missing from results", "Why", "Longitude", "Latitude", "Saved"];
     function exportNotes(rows, withOthers) {
       const name = state.reviewer.name.trim();
-      if (!withOthers && !name) { toast("Enter your name first, so the file can be told apart from others.", 4000); $("revName").focus(); return; }
+      if (!withOthers && !name) { toast("Enter your name first, so the file can be told apart from others.", 4000); openWho("revName"); return; }
       if (!rows.length) { toast("No notes to export yet."); return; }
       const lines = [CSV_HEAD.join(",")];
       for (const n of rows) lines.push([n.who || whoLabel(name, state.reviewer.agency), n.mine === false ? "" : state.reviewer.agency, hazLabel(n.hazards), n.concern || "", ASSET_TYPES[n.type] || n.type, n.name, n.sub || "", n.key, n.missing ? "Yes" : "", n.why || "", n.lon ?? "", n.lat ?? "", n.when ? new Date(n.when).toISOString() : ""].map(csvCell).join(","));
@@ -830,31 +1115,40 @@
     ["revName", "revAgency", "revEmail"].forEach(id => $(id).addEventListener("input", () => { state.reviewer = { name: $("revName").value.trim(), agency: $("revAgency").value.trim(), email: $("revEmail").value.trim() }; saveLS(LS_KEY, state); updateSendState(); }));
     const surveyOn = () => !!SURVEY.submitUrl;
     function updateSendState() {
-      const n = myNotes().length, sq = Object.keys(state.station).length;
-      const name = state.reviewer.name, email = state.reviewer.email, ok = name && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      renderModeCounts();
+      const n = myNotes().length, na = myAreas().length, sq = Object.keys(state.station).length;
+      // notes and station answers need a name and email under Who you are; flooded areas alone do not (each names who saw it)
+      const name = state.reviewer.name, email = state.reviewer.email, ok = (!n && !sq) || (name && EMAIL_RE.test(email));
       const btn = $("sendBtn"); btn.hidden = !surveyOn(); $("refreshBtn").hidden = !SURVEY.viewUrl;
-      btn.disabled = !(n || sq) || !ok; btn.textContent = n ? `Send my notes (${n})` : "Send my notes";
+      btn.disabled = !(n || na || sq) || !ok; btn.textContent = n + na ? `Send my notes (${n + na})` : "Send my notes";
+      const what = [n ? `${n} note${n === 1 ? "" : "s"}` : "", na ? `${na} flooded area${na === 1 ? "" : "s"}` : "", sq ? `${sq} station answer${sq === 1 ? "" : "s"}` : ""].filter(Boolean);
       $("sendReason").textContent = !surveyOn() ? "Sending opens when the survey is published. Until then, download the CSV of your notes (under Who you are) and email it to the data team."
-        : !(n || sq) ? "Save a note on the map to start." : !ok ? "Add your name and email under Who you are to send." : `Sends ${n} note${n === 1 ? "" : "s"}${sq ? ` and ${sq} station answer${sq === 1 ? "" : "s"}` : ""} as ${whoLabel(name, state.reviewer.agency)}.`;
+        : !(n || na || sq) ? "Save a note on the map to start." : !ok ? "Add your name and email under Who you are to send."
+        : `Sends ${what.length > 1 ? what.slice(0, -1).join(", ") + (what.length > 2 ? "," : "") + " and " + what[what.length - 1] : what[0]}${n || sq ? ` as ${whoLabel(name, state.reviewer.agency)}` : ""}.`
+          + (na && !SURVEY.areasSubmitUrl ? " Flooded areas cannot be sent yet: export them from the Flooded areas tab and email the CSV."
+            : na && !SURVEY.contactsSubmitUrl && myAreas().some(a => a.contact) ? " Follow-up emails on flooded areas are not sent yet; the areas are." : "");
     }
     function buildSubmission() {
       const F = SURVEY.fields, { name, email, agency } = state.reviewer;
-      if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("Enter your name and a valid email first.", 4000); (name ? $("revEmail") : $("revName")).focus(); return null; }
-      const notes = myNotes(); if (!notes.length && !Object.keys(state.station).length) { toast("Save at least one note first.", 4000); return null; }
+      const notes = myNotes(), areas = SURVEY.areasSubmitUrl ? myAreas() : [];
+      if (!notes.length && !areas.length && !Object.keys(state.station).length) { toast("Save at least one note first.", 4000); return null; }
+      if ((notes.length || Object.keys(state.station).length) && (!name || !EMAIL_RE.test(email))) { toast("Enter your name and a valid email under Who you are first.", 4000); openWho(name ? "revEmail" : "revName"); return null; }
+      const sid = Date.now();   // this send's id: on the notes row (sid in notes_json) and on every area sent with it
       const lines = notes.map(n => `${hazLabel(n.hazards) || "Any hazard"} · Concern ${n.concern || "-"} · ${ASSET_TYPES[n.type]} · ${n.name} · ${n.key}${n.missing ? " · MISSING" : ""}${n.why ? ` · ${n.why}` : ""}`);
       const stationText = Object.entries(state.station).map(([k, sq]) => `${HZ[k] ? HZ[k].s : k}: expected: ${sq.expect || "-"} | tool: ${sq.tool || "-"}`).join("\n");
-      const json = JSON.stringify({ v: 1, sent: Date.now(), notes: notes.map(n => ({ key: n.key, type: n.type, name: n.name, sub: n.sub, lon: n.lon, lat: n.lat, hazards: n.hazards, concern: n.concern, why: n.why, missing: n.missing, when: n.when })), station: state.station });
+      const json = JSON.stringify({ v: 1, sent: sid, sid, areas: areas.length, notes: notes.map(n => ({ key: n.key, type: n.type, name: n.name, sub: n.sub, lon: n.lon, lat: n.lat, hazards: n.hazards, concern: n.concern, why: n.why, missing: n.missing, when: n.when })), station: state.station });
       if (json.length > SURVEY.longLen) { toast(`Your notes are ${json.length.toLocaleString()} characters; the survey holds ${SURVEY.longLen.toLocaleString()}. Shorten some notes.`, 8000); return null; }
-      const attrs = {}; attrs[F.name] = name; attrs[F.agency] = agency; attrs[F.key] = fnv(email.toLowerCase()); attrs[F.round] = SURVEY.round;
+      const attrs = {}; attrs[F.name] = name || (areas[0] && areas[0].reporter) || null; attrs[F.agency] = agency || null; attrs[F.key] = myKey(); attrs[F.round] = SURVEY.round;
       attrs[F.notes] = lines.join("\n") || null; attrs[F.json] = json; attrs[F.station] = stationText || null;
-      return { attrs, notes, name, agency, email };
+      return { attrs, notes, areas, sid, name, agency, email };
     }
     $("sendBtn").addEventListener("click", () => {
       const sub = buildSubmission(); if (!sub) return;
-      $("sendWho").textContent = whoLabel(sub.name, sub.agency);
-      $("sendLists").innerHTML = `<div class="send-h">Notes (${sub.notes.length})</div><ul class="send-list">` + sub.notes.map(n => `<li>${cBadge(n.concern)} <span><b>${escHtml(n.name)}</b> <span class="fine">${escHtml(hazLabel(n.hazards))}${n.missing ? " · missing" : ""}</span></span>${n.why ? `<span class="why">${escHtml(n.why)}</span>` : ""}</li>`).join("") + "</ul>"
+      $("sendWho").textContent = whoLabel(sub.attrs[SURVEY.fields.name], sub.agency);
+      $("sendLists").innerHTML = (sub.notes.length ? `<div class="send-h">Notes (${sub.notes.length})</div><ul class="send-list">` + sub.notes.map(n => `<li>${cBadge(n.concern)} <span><b>${escHtml(n.name)}</b> <span class="fine">${escHtml(hazLabel(n.hazards))}${n.missing ? " · missing" : ""}</span></span>${n.why ? `<span class="why">${escHtml(n.why)}</span>` : ""}</li>`).join("") + "</ul>" : "")
+        + (sub.areas.length ? `<div class="send-h">Flooded areas (${sub.areas.length})</div><ul class="send-list">` + sub.areas.map(a => `<li><span class="aswatch"></span> <span><b>${escHtml(a.severity || "Flooding seen")}</b> <span class="fine">${escHtml([whoLabel(a.reporter, a.rAgency), a.contact, a.observed, a.frequency, acresText(a.acres)].filter(Boolean).join(" · "))}</span></span>${a.why ? `<span class="why">${escHtml(a.why)}</span>` : ""}</li>`).join("") + "</ul>" : "")
         + (Object.keys(state.station).length ? `<div class="send-h">Station answers</div><ul class="send-list">${Object.entries(state.station).map(([k, sq]) => `<li><span><b>${escHtml(HZ[k] ? HZ[k].s : k)}</b></span>${sq.expect ? `<span class="why">Expected: ${escHtml(sq.expect)}</span>` : ""}${sq.tool ? `<span class="why">Tool: ${escHtml(sq.tool)}</span>` : ""}</li>`).join("")}</ul>` : "");
-      $("sendNote").textContent = remote[fnv(sub.email.toLowerCase())] ? "You have sent notes before. This replaces them; only what you sent last counts." : "Only what you sent last counts, so you can send again later.";
+      $("sendNote").textContent = remote[myKey()] ? "You have sent notes before. This replaces them; only what you sent last counts." : "Only what you sent last counts, so you can send again later.";
       $("sendErr").hidden = true; $("sendGo").loading = false; $("sendGo").disabled = false; $("sendDialog").open = true;
     });
     $("sendCancel").addEventListener("click", () => { $("sendDialog").open = false; });
@@ -862,11 +1156,34 @@
       const sub = buildSubmission(); if (!sub) return;
       const go = $("sendGo"); go.loading = true; go.disabled = true; $("sendErr").hidden = true;
       try {
+        // Areas first, then the notes row: if the notes row fails, the new areas carry a send id no notes row
+        // names yet, so the page keeps showing the previous send until the participant sends again.
+        if (sub.areas.length) {
+          if (!wmu) throw new Error("The map has not finished loading.");
+          const adds = sub.areas.map(a => ({ geometry: wmu.geographicToWebMercator(areaPoly(a)).toJSON(), attributes: { reviewer_name: sub.name, agency: sub.agency || null,
+            reviewer_key: sub.attrs[SURVEY.fields.key], round: SURVEY.round, send_id: sub.sid, area_id: a.id, observed_when: (a.observed || "").slice(0, 255) || null,
+            severity: a.severity || null, frequency: a.frequency || null, notes: (a.why || "").slice(0, 4000) || null, area_acres: a.acres,
+            reporter_name: (a.reporter || "").slice(0, 255) || null, reporter_agency: (a.rAgency || "").slice(0, 255) || null } }));   // never the email: this layer is public
+          const ra = await fetch(`${SURVEY.areasSubmitUrl}/applyEdits`, { method: "POST", body: new URLSearchParams({ f: "json", adds: JSON.stringify(adds), rollbackOnFailure: "true" }) }).then(x => x.json());
+          const bad = ra.error || !ra.addResults || ra.addResults.some(x => !x.success);
+          if (bad) throw new Error((ra.error && ra.error.message) || "The server did not accept the flooded areas.");
+        }
+        // Emails go only to the private contacts table (no public view): the participant's own, from Who you are
+        // (area_id empty), and any follow-up email on a flooded area. The notes table and areas layer are public.
+        if (SURVEY.contactsSubmitUrl) {
+          const base = { reviewer_key: sub.attrs[SURVEY.fields.key], round: SURVEY.round, send_id: sub.sid };
+          const cadds = (EMAIL_RE.test(sub.email || "") ? [{ attributes: Object.assign({ area_id: null, reporter_name: (sub.name || "").slice(0, 255) || null, reporter_agency: (sub.agency || "").slice(0, 255) || null, contact_email: sub.email.trim().slice(0, 255) }, base) }] : [])
+            .concat(sub.areas.filter(a => a.contact).map(a => ({ attributes: Object.assign({ area_id: a.id, reporter_name: (a.reporter || "").slice(0, 255) || null, reporter_agency: (a.rAgency || "").slice(0, 255) || null, contact_email: a.contact.slice(0, 255) }, base) })));
+          if (cadds.length) {
+            const rc = await fetch(`${SURVEY.contactsSubmitUrl}/applyEdits`, { method: "POST", body: new URLSearchParams({ f: "json", adds: JSON.stringify(cadds), rollbackOnFailure: "true" }) }).then(x => x.json());
+            if (rc.error || !rc.addResults || rc.addResults.some(x => !x.success)) throw new Error((rc.error && rc.error.message) || "The server did not accept the email addresses.");
+          }
+        }
         const body = new URLSearchParams({ f: "json", adds: JSON.stringify([{ attributes: sub.attrs }]), rollbackOnFailure: "true" });
         const r = await fetch(`${SURVEY.submitUrl}/applyEdits`, { method: "POST", body }).then(x => x.json());
         const res = r.addResults && r.addResults[0];
         if (r.error || !res || !res.success) throw new Error((r.error && r.error.message) || (res && res.error && res.error.description) || "The server did not accept the notes.");
-        $("sendDialog").open = false; toast(`Sent ${sub.notes.length} note${sub.notes.length === 1 ? "" : "s"} as ${whoLabel(sub.name, sub.agency)}.`, 5000);
+        $("sendDialog").open = false; toast(`Sent ${[sub.notes.length ? `${sub.notes.length} note${sub.notes.length === 1 ? "" : "s"}` : "", sub.areas.length ? `${sub.areas.length} flooded area${sub.areas.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" and ") || "your answers"} as ${whoLabel(sub.attrs[SURVEY.fields.name], sub.agency)}.`, 5000);
         // start the next note fresh: drop the selected asset or pin (and with it the concern, why, and missing flag on the card); sent notes stay in the list
         select(null); setPinMode(false);
         setTimeout(() => loadRemote(true), 1200);
@@ -882,11 +1199,29 @@
         for (const f of r.features || []) { const a = f.attributes || {}; const key = String(a[F.key] || fnv((a[F.name] || "") + "|" + (a[F.agency] || ""))); if (remote[key]) continue;
           let parsed = { notes: [], station: {} }; try { parsed = JSON.parse(a[F.json] || "{}"); } catch {}
           const notes = {}; for (const n of parsed.notes || []) notes[n.key] = Object.assign({ id: String(n.key).split(":").slice(1).join(":") }, n);
-          remote[key] = { who: a[F.name] || "Participant", agency: a[F.agency] || "", notes, station: parsed.station || {}, when: a[F.when] || parsed.sent || null }; }
+          remote[key] = { who: a[F.name] || "Participant", agency: a[F.agency] || "", notes, station: parsed.station || {}, when: a[F.when] || parsed.sent || null, sid: parsed.sid ?? null }; }
         remoteLoadedAt = Date.now(); const n = Object.keys(remote).length;
         st.textContent = `${n} ${n === 1 ? "person has" : "people have"} sent notes (as of ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}).`;
+        await loadRemoteAreas();
       } catch (e) { console.warn("View query failed:", e); st.textContent = "Could not load sent notes. Check the connection and press Refresh."; }
       renderReviewers(); renderAll();
+    }
+    // Everyone else's flooded areas, from their latest send only: the areas whose send_id matches the sid on that
+    // participant's latest notes row (or, for a participant with no sid yet, their highest send_id).
+    async function loadRemoteAreas() {
+      if (!SURVEY.areasViewUrl) return;
+      try {
+        const q = new URLSearchParams({ where: `round='${SURVEY.round.replace(/'/g, "''")}'`, outFields: "*", returnGeometry: "true", outSR: "4326", orderByFields: "OBJECTID DESC", resultRecordCount: "2000", f: "json", _: String(Date.now()) });
+        const r = await fetch(`${SURVEY.areasViewUrl}/query?${q}`, { cache: "no-store" }).then(x => x.json()); if (r.error) throw new Error(r.error.message || "query error");
+        const feats = r.features || [], latest = {};
+        for (const f of feats) { const k = f.attributes.reviewer_key || ""; latest[k] = Math.max(latest[k] || 0, f.attributes.send_id || 0); }
+        remoteAreas = [];
+        for (const f of feats) { const a = f.attributes, k = a.reviewer_key || "";
+          if (k === myKey() || !f.geometry || !f.geometry.rings) continue;
+          const sid = remote[k] && remote[k].sid != null ? remote[k].sid : latest[k]; if ((a.send_id || 0) !== sid) continue;
+          remoteAreas.push({ id: a.area_id, who: a.reporter_name || a.reviewer_name || "Participant", agency: a.reporter_name ? a.reporter_agency || "" : a.agency || "", rings: f.geometry.rings, acres: a.area_acres,
+            observed: a.observed_when || "", severity: a.severity || "", frequency: a.frequency || "", why: a.notes || "", when: a.send_id || null }); }
+      } catch (e) { console.warn("Flood areas query failed:", e); }
     }
     $("refreshBtn").addEventListener("click", () => loadRemote(false));
     window.addEventListener("focus", () => { if (SURVEY.viewUrl && Date.now() - remoteLoadedAt > 30000) loadRemote(true); });
@@ -911,9 +1246,10 @@
     // a fresh note for a clicked asset, carrying the draft score line for the card
     function noteFor(idn, lon, lat) { const n = newNote(idn.type, idn.id, idn.name, idn.sub, lon, lat); n.asset = idn.asset; n.attrs = idn.attrs; n.draft = draftFor(n); return n; }
     require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/layers/GeoJSONLayer", "esri/layers/TileLayer", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/geometry/Point",
-      "esri/widgets/Home", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Legend", "esri/widgets/BasemapToggle"],
-      function (Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, G, P, Home, LayerList, Expand, Legend, BasemapToggle) {
-        Graphic = G; Point = P;
+      "esri/widgets/Home", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Legend", "esri/core/reactiveUtils",
+      "esri/widgets/Sketch/SketchViewModel", "esri/geometry/Polygon", "esri/geometry/support/webMercatorUtils", "esri/geometry/geometryEngine"],
+      function (Map, MapView, FeatureLayer, GeoJSONLayer, TileLayer, GraphicsLayer, G, P, Home, LayerList, Expand, Legend, reactiveUtils, SketchViewModel, Pg, WMU, GE) {
+        Graphic = G; Point = P; Polygon = Pg; wmu = WMU; gEngine = GE;
         const line = (color, width) => ({ type: "simple", symbol: { type: "simple-line", color, width, cap: "round", join: "round" } });
         const fill = (rgb, a, oa) => ({ type: "simple", symbol: { type: "simple-fill", color: [...rgb, a], outline: { color: [...rgb, oa], width: 0.5 } } });
         layers.hill = new TileLayer({ url: URLS.hill, title: "Terrain (hillshade)", visible: false, opacity: 0.55, blendMode: "multiply", listMode: "show" });
@@ -950,7 +1286,12 @@
         noteLayer.graphics.on("change", (e) => e.added.forEach(g => { g.symbol = symFor(noteRenderer(false), g.attributes.concern); }));
         othersLayer.graphics.on("change", (e) => e.added.forEach(g => { g.symbol = symFor(noteRenderer(true), g.attributes.concern); }));
 
-        map = new Map({ basemap: "gray-vector", layers: [layers.hill, layers.fire, layers.perims, layers.wepp, layers.slides, layers.flood, layers.avy, layers.boundary, layers.trails, layers.transit, layers.culverts, layers.bridges, layers.hubs, othersLayer, noteLayer] });
+        // flooding seen: under the assets, so a click on a road inside an area still picks the road
+        othersAreaLayer = new GraphicsLayer({ title: "Flooding seen by others", listMode: "show" });
+        areaLayer = new GraphicsLayer({ title: "Flooding seen (yours)", listMode: "hide" });
+        sketchLayer = new GraphicsLayer({ title: "Drawing", listMode: "hide" });
+
+        map = new Map({ basemap: "gray-vector", layers: [layers.hill, layers.fire, layers.perims, layers.wepp, layers.slides, layers.flood, layers.avy, layers.boundary, othersAreaLayer, areaLayer, layers.trails, layers.transit, layers.culverts, layers.bridges, layers.hubs, othersLayer, noteLayer, sketchLayer] });
         loadRoads().then(l => { layers.roads = l; map.add(l, map.layers.indexOf(layers.culverts)); })
           .catch(err => { console.warn("Roads failed to load:", err); toast("The road network did not load. Reload the page, or drop a pin where your concern is.", 7000); });
         view = new MapView({ container: "viewDiv", map, center: [-120.04, 39.09], zoom: 10, popup: { autoOpenEnabled: false }, constraints: { snapToZoom: false } });
@@ -959,25 +1300,33 @@
           addFullscreen(view, document.getElementById("appBody"), document.getElementById("mapWrap"), {panel:document.getElementById("sidePanel"), label:"Feedback", hide:[document.getElementById("panelToggle")]});
           view.ui.add(new Expand({ view, content: new LayerList({ view }), expandIcon: "layers", expandTooltip: "Layers", group: "top-right" }), "top-right");
           view.ui.add(new Expand({ view, content: new Legend({ view }), expandIcon: "legend", expandTooltip: "Legend", group: "top-right" }), "top-right");
-          view.ui.add(new BasemapToggle({ view, nextBasemap: "topo-vector" }), "bottom-right");
           window.PF = { view, layers };   // for debugging in the console
-          setStation(station); renderMarkers();
+          setStation(station); renderMarkers(); renderAreas();
+          reactiveUtils.watch(() => [view.extent, view.size], placePopup);
+          sketchVM = new SketchViewModel({ view, layer: sketchLayer, polygonSymbol: AREA_SYM.draft, defaultCreateOptions: { mode: "click" }, updateOnGraphicClick: false });
+          sketchVM.on("create", (e) => {
+            if (e.state === "complete") { drawUi(false); sketchLayer.removeAll(); newArea(e.graphic.geometry); }
+            else if (e.state === "cancel") { drawUi(false); sketchLayer.removeAll(); }
+          });
           if (selected && selected.lon != null) zoomTo(selected);   // an asset handed over in the URL
           view.on("click", async (e) => {
+            if (drawing) return;   // the sketch tool owns clicks while drawing
             const pt = e.mapPoint, lon = +pt.longitude.toFixed(6), lat = +pt.latitude.toFixed(6);
-            if (pinMode) { setPinMode(false); select(newNote("pin", `${lon},${lat}`, "Pinned place", `${lat}, ${lon}`, lon, lat)); return; }
-            const r = await view.hitTest(e, { include: [noteLayer, othersLayer, layers.bridges, layers.hubs, layers.culverts, layers.transit, layers.trails, layers.roads].filter(Boolean) });
+            if (pinMode) { setPinMode(false); select(newNote("pin", `${lon},${lat}`, "Pinned place", `${lat}, ${lon}`, lon, lat), null, pt); return; }
+            const r = await view.hitTest(e, { include: [noteLayer, othersLayer, layers.bridges, layers.hubs, layers.culverts, layers.transit, layers.trails, layers.roads, areaLayer, othersAreaLayer].filter(Boolean) });
             const hit = r.results.find(x => x.graphic && x.graphic.layer);
             // Laptop trackpads miss 6-px squares; fall back to a small box query around the click
             const g = hit ? hit.graphic : await nearby(e, 9);
             if (!g) { select(null); return; }
-            if (g.layer === noteLayer) { const n = state.notes[g.attributes.key]; if (n) select(Object.assign({ saved: true }, n, { hazards: [...(n.hazards || [])] })); return; }
+            if (g.layer === areaLayer) { const a = state.areas[g.attributes.id]; if (a) { select(null); openAreaPopup(a, pt, true); } return; }
+            if (g.layer === othersAreaLayer) { const a = remoteAreas[g.attributes.i]; if (a) { select(null); openAreaPopup(a, pt, false); } return; }
+            if (g.layer === noteLayer) { const n = state.notes[g.attributes.key]; if (n) select(Object.assign({ saved: true }, n, { hazards: [...(n.hazards || [])] }), null, pt); return; }
             if (g.layer === othersLayer) { const key = g.attributes.key; const mine = state.notes[key]; const src = otherLists().flatMap(l => l.notes[key] ? [l.notes[key]] : [])[0];
-              select(mine ? Object.assign({ saved: true }, mine, { hazards: [...(mine.hazards || [])] }) : Object.assign({ saved: false }, src, { hazards: [...(src.hazards || [])], concern: null, why: "", missing: false, lon: src.lon, lat: src.lat }), null); return; }
+              select(mine ? Object.assign({ saved: true }, mine, { hazards: [...(mine.hazards || [])] }) : Object.assign({ saved: false }, src, { hazards: [...(src.hazards || [])], concern: null, why: "", missing: false, lon: src.lon, lat: src.lat }), null, pt); return; }
             const idn = identify(g); if (!idn) { select(null); return; }
-            select(noteFor(idn, lon, lat), g);
+            select(noteFor(idn, lon, lat), g, pt);
           });
-          view.on("pointer-move", (e) => { if (pinMode) return; view.hitTest(e, { include: [noteLayer, layers.bridges, layers.hubs, layers.culverts, layers.transit, layers.trails, layers.roads].filter(Boolean) }).then(r => { view.container.style.cursor = r.results.length ? "pointer" : "default"; }); });
+          view.on("pointer-move", (e) => { if (pinMode || drawing) return; view.hitTest(e, { include: [noteLayer, othersLayer, layers.bridges, layers.hubs, layers.culverts, layers.transit, layers.trails, layers.roads, areaLayer, othersAreaLayer].filter(Boolean) }).then(r => { view.container.style.cursor = r.results.length ? "pointer" : "default"; }); });
         }).catch(err => console.warn("Map failed to load:", err));
       });
     async function nearby(e, px) {
@@ -994,8 +1343,8 @@
       return null;
     }
     function setPinMode(on) { pinMode = on; $("pinBtn").appearance = on ? "solid" : "outline"; $("mapHint").hidden = !on; $("mapHint").className = "map-hint pin"; $("mapHint").textContent = "Click the map where your concern is"; if (view) view.container.style.cursor = on ? "crosshair" : "default"; }
-    $("pinBtn").addEventListener("click", () => setPinMode(!pinMode));
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && pinMode) setPinMode(false); });
+    $("pinBtn").addEventListener("click", () => { stopDraw(); setPinMode(!pinMode); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && pinMode) setPinMode(false); if (e.key === "Escape" && drawing) stopDraw(); });
 
     // Find a road by name on the network layer
     $("findBtn").addEventListener("click", () => { $("findDialog").open = true; $("findList").innerHTML = ""; setTimeout(() => $("findInput").focus(), 200); });
@@ -1021,8 +1370,8 @@
     // One section per hazard: every flagged asset with how many people flagged it, their concern votes,
     // missing flags, and reasons; then the station answers. Notes tagged with two hazards appear under both.
     $("printBtn").addEventListener("click", () => {
-      const rows = allRows(); const lists = otherLists();
-      if (!rows.length) { toast("No notes to list yet. Save, send, or import some first.", 4000); return; }
+      const rows = allRows(); const lists = otherLists(); const areas = areaRows();
+      if (!rows.length && !areas.length) { toast("No notes to list yet. Save, send, or import some first.", 4000); return; }
       const people = new Set(rows.map(r => r.who)).size;
       const when = apDate(new Date());
       const cb = (c) => c ? `<span class="t t${c}">Concern ${c}</span>` : `<span class="t t0">No level</span>`;
@@ -1053,6 +1402,10 @@
       const stationHtml = stationRows.length ? `<section><h2>Station answers <small>${stationRows.length} answer${stationRows.length === 1 ? "" : "s"}</small></h2>` +
         hazOrder.filter(h => stationRows.some(r => r.hz === h.k)).map(h => `<h3><i class="dot" style="background:${h.color}"></i>${escHtml(h.s)}</h3><table><thead><tr><th>Who</th><th>Do the results match what you expected? What is missing?</th><th>What should the map tool show?</th></tr></thead><tbody>` +
           stationRows.filter(r => r.hz === h.k).map(r => `<tr><td>${escHtml(r.who)}</td><td class="notes">${escHtml(r.expect || "")}</td><td class="notes">${escHtml(r.tool || "")}</td></tr>`).join("") + `</tbody></table>`).join("") + `</section>` : "";
+      const sevRank = (s) => { const i = SEVERITY.indexOf(s); return i < 0 ? 9 : -i; };   // road closed first
+      const areasHtml = areas.length ? `<section><h2><i class="dot" style="background:#0E7C86"></i>Flooding people have seen <small>${areas.length} area${areas.length === 1 ? "" : "s"} drawn on the map</small></h2>
+        <table><thead><tr><th>How bad</th><th>When</th><th>How often</th><th>Who</th><th>What happened</th></tr></thead><tbody>` +
+        [...areas].sort((a, b) => sevRank(a.severity) - sevRank(b.severity)).map(a => `<tr><td><b>${escHtml(a.severity || "Not given")}</b><br><small>${escHtml(acresText(a.acres))}${a.lat != null ? ` · ${a.lat}, ${a.lon}` : ""}</small></td><td>${escHtml(a.observed || "")}</td><td>${escHtml(a.frequency || "")}</td><td>${escHtml(a.who)}</td><td class="notes">${escHtml(a.why || "")}</td></tr>`).join("") + `</tbody></table></section>` : "";
       const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>PROTECT Workshop 1 feedback master list</title>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1081,7 +1434,7 @@
 <header><h1>PROTECT Workshop 1 feedback master list</h1><small>Tahoe Regional Planning Agency · ${escHtml(when)}</small></header>
 <p class="note">Combined from ${people} ${people === 1 ? "person" : "people"} (${rows.length} note${rows.length === 1 ? "" : "s"}) sent or imported through the Workshop Feedback page. Each section is one hazard station: the assets and places people flagged there, most-flagged first.
   Top concern is the highest level anyone gave; the People column shows how many flagged it and at which level. A note tagged with two hazards appears under both and says so. Station answers are the two questions asked once per hazard.</p>
-${summary}${sections}${stationHtml}
+${rows.length ? summary : ""}${sections}${areasHtml}${stationHtml}
 <p class="note">PROTECT Workshop Feedback, data.trpa.gov/PROTECT · ${escHtml(SURVEY.round)} · internal review draft</p>
 </body></html>`;
       const blob = new Blob([html], { type: "text/html" }), url = URL.createObjectURL(blob);
@@ -1090,7 +1443,7 @@ ${summary}${sections}${stationHtml}
     });
 
     // ───────────────────────── Boot ─────────────────────────
-    renderStations(); renderNoteCard(); renderReviewers(); renderAll();
+    renderStations(); renderNoteCard(); renderReviewers(); renderAll(); setMode(state.mode);
     if (SURVEY.viewUrl) loadRemote(false);
     applyUrlAsset();
   })();
