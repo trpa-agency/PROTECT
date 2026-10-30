@@ -113,6 +113,7 @@ sheet_matrix:
     versions: [exposure, assets]
 
 # Sheets written out in full, after the generated ones. The keys a sheet can carry:
+# layout: export from this layout in the project instead of project.layout (an export's own layout wins).
 # layers: what shows within managed (or the whole map without it). Parent groups turn on with a listed
 # layer, and every layer inside a listed group turns on. Leave layers out to keep the map as authored.
 # map: the Pro map for the main frame (default: whatever the template frame shows).
@@ -121,7 +122,7 @@ sheet_matrix:
 # frames: other map frames on the layout, {frame name: {map, layers, extent}}, for an inset. Each frame
 # on a sheet needs its own Pro map, since layer visibility belongs to the map.
 # enabled: false keeps a sheet out of a full run (--only still exports it).
-# Not in the map yet: scenario and criticality layers.
+# Not in the map yet: scenario layers.
 sheets:
   - id: scenario_1
     legend: "Scenario 1: SR-89 West Shore Wildfire Closure"
@@ -131,7 +132,7 @@ sheets:
     legend: Scenario 2
     layers: [Scenario 2]
     enabled: false         # location and hazard not decided
-  - id: criticality
-    legend: Criticality
-    layers: [Criticality]
-    enabled: false         # if time allows: the context sheet at the entrance
+  - id: basin_criticality  # the context sheet at the entrance: the layout build_layers.py makes (layers.yaml
+    layout: Criticality - Lake Tahoe Basin - PROTECT   # layouts:), exported as built; no layers list, so its
+    legend: Road Criticality                           # map stays as built
+    exports: [poster, screen]

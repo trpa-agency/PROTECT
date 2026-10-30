@@ -465,8 +465,15 @@ def cmd_inspect(aprx, cfg: dict, log: logging.Logger) -> None:
 def cmd_export(aprx, cfg: dict, sheets: list[dict], args, log: logging.Logger, out_root: Path, dry_run: bool) -> int:
     exdefs = cfg["exports"]
     tpl = template_name(cfg)
-    in_use = [n for n in exdefs if not args.exports or n in args.exports]
-    lyts = {n: find_layout(aprx, n) for n in {exdefs[x].get("layout") or tpl for x in in_use}}
+    plan = []   # (sheet, spec, {layout name: export names}); an export's layout wins, then the sheet's, then the template
+    for s in sheets:
+        spec = sheet_spec(cfg, s)
+        groups: dict[str, list[str]] = {}
+        for n in spec.get("exports") or list(exdefs):
+            if not args.exports or n in args.exports:
+                groups.setdefault(exdefs[n].get("layout") or spec.get("layout") or tpl, []).append(n)
+        plan.append((s, spec, groups))
+    lyts = {n: find_layout(aprx, n) for n in sorted({n for _, _, g in plan for n in g})}
     state = snapshot(aprx, lyts.values())
     if cfg["project"].get("legend_sync_visibility"):
         for lyt in lyts.values():
@@ -475,12 +482,7 @@ def cmd_export(aprx, cfg: dict, sheets: list[dict], args, log: logging.Logger, o
     prefix = cfg["paths"].get("file_prefix", "")
     written: dict[str, list[Path]] = {n: [] for n in exdefs}
     failed = []
-    for s in sheets:
-        spec = sheet_spec(cfg, s)
-        wanted = [n for n in spec.get("exports") or list(exdefs) if not args.exports or n in args.exports]
-        groups: dict[str, list[str]] = {}
-        for n in wanted:
-            groups.setdefault(exdefs[n].get("layout") or tpl, []).append(n)
+    for s, spec, groups in plan:
         for lname, names in groups.items():
             lyt = lyts[lname]
             restore(state)
@@ -527,11 +529,10 @@ def cmd_export(aprx, cfg: dict, sheets: list[dict], args, log: logging.Logger, o
 
 
 def cmd_build(aprx, cfg: dict, sheets: list[dict], args, log: logging.Logger) -> int:
-    tpl = find_layout(aprx, template_name(cfg))
     failed = []
     for s in sheets:
         spec = sheet_spec(cfg, s)
-        lyt = aprx.copyItem(tpl, s["id"])
+        lyt = aprx.copyItem(find_layout(aprx, spec.get("layout") or template_name(cfg)), s["id"])
         probs = apply_sheet(aprx, lyt, cfg, spec, copy_maps=True)
         probs += layer_problems(lyt) + restricted_problems(lyt, cfg)
         for p in probs:

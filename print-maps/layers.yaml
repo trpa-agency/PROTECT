@@ -25,6 +25,10 @@ colors:                    # results.html COL
   forest: "#4A6118"
   purple: "#7B6A8A"
   white: "#ffffff"
+  crit0: "#042333"         # CRIT_RAMP: the Phosphor thermal ramp, criticality quarter 0 (dark) to 3 (bright)
+  crit1: "#6E4694"
+  crit2: "#F37D4D"
+  crit3: "#E8FA5B"
 
 # [upper bound, color, legend label]; a value goes in the first class whose upper bound it does not
 # exceed. min is the lower bound of the first class. Values outside every class and nulls draw with the
@@ -46,14 +50,21 @@ class_sets:
     min: -0.5
     classes: [[0.5, gray, "0: under 25 degrees, or no ground above"], [1.5, ice, "1: 25 to 30 or over 50 degrees"], [2.5, orange, "2: 30 to 35 or 45 to 50 degrees"], [3.5, brick, "3: 35 to 45 degrees"]]
 
+  crit_quarter:            # critRenderer: C_class, the criticality percentile cut at 25, 50, and 75
+    min: -0.5
+    classes: [[0.5, crit0, "0: lowest quarter"], [1.5, crit1, "1"], [2.5, crit2, "2"], [3.5, crit3, "3: top quarter (most critical)"]]
+
 line_widths: [0.6, 0.9, 1.2, 1.6]   # LINE_W, by class
 
 # One entry per layer, top to bottom within its hazard group (points over lines over polygons).
+# dataset: a feature class in source_gdb, or source: a full path or service URL instead.
 # kind: line | point | polygon. classes: a class_sets name, or a {min, classes} block of its own.
 # widths (lines; default line_widths) / sizes (points): one per class or one for all.
-# marker: circle | square. dashed: true for paths. alpha: fill opacity per class (polygons). opacity:
-# the layer's own opacity. simple: one color for every feature instead of classes. visible: false to
-# build it off.
+# marker: circle | square. dashed: true for paths. alpha: fill opacity per class (polygons), with
+# outline_alpha and outline_width (pixels) for the edge. opacity: the layer's own opacity. simple: one
+# color for every feature instead of classes. sort: draw features in ascending order of this field, so
+# the highest draws on top. legend_descending: list the classes highest first. visible: false to build
+# it off. legend: false keeps it out of an owned layout's legend.
 layers:
   # Flooding tab: culverts by vulnerability (100-year storm), bridges and roads by exposure
   - {name: Culverts (flooding vulnerability), group: Flooding, dataset: Assets\Culverts, kind: point, field: V_FLC_hist, classes: vclass, sizes: [4, 5, 6, 8]}
@@ -131,3 +142,33 @@ layers:
   - {name: Roads (avalanche vulnerability), group: Avalanche, dataset: Assets\Roads, kind: line, field: V_AVR_hist, classes: vclass}
   - {name: Roads (avalanche slope tier), group: Avalanche, dataset: Assets\Roads, kind: line, field: av_tier, classes: av_tier, visible: false}
   - {name: Avalanche zones, group: Avalanche, dataset: HazardSources\Avalanche_Zones, kind: polygon, simple: purple, alpha: 0.45, opacity: 0.8, label: Mapped avalanche zone}
+
+# Whole maps build_layers.py owns: made when missing (spatial_reference, basemap from Pro's Basemap gallery),
+# and their group rebuilt on every run. Layers listed top to bottom; layers without a group sit in the map's
+# owned group directly.
+maps:
+  # The Results page's Criticality view (and the Criticality Assessment page): roads by criticality quarter on
+  # the Phosphor thermal ramp, on the dark gray basemap where the bright top quarter stands out, with the TRPA
+  # boundary in TRPA Ice.
+  - name: PROTECT Criticality
+    spatial_reference: 26910
+    basemap: Dark Gray Canvas
+    group: Criticality
+    layers:
+      - {name: Road criticality, dataset: Assets\Roads, kind: line, field: C_class, classes: crit_quarter, sort: C_class, legend_descending: true}
+      - {name: TRPA boundary, source: "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4", kind: polygon, simple: ice, alpha: 0, outline_alpha: 0.9, outline_width: 2, legend: false}
+
+# Layouts build_layers.py owns: a copy of a template layout (from:) with its frame (frame:) on one of the maps
+# above, zoomed to extent (a layer, with margin_pct around it; a bookmark; or xy), its text elements set,
+# and elements turned on or off. Replaced on every run; its legend lists the map's layers.
+layouts:
+  - name: Criticality - Lake Tahoe Basin - PROTECT
+    from: Hazard Fire - North Shore- PROTECT    # the 36 x 48 in template
+    map: PROTECT Criticality
+    frame: Map Frame
+    extent: {layer: TRPA boundary, margin_pct: 3}
+    text:
+      Title: "Lake Tahoe \r\nBasin\n\n"
+      Legend Title: Road Criticality
+    elements:
+      Lake Tahoe: false    # the template's lake label is placed for the SR 28 view
