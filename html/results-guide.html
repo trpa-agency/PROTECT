@@ -67,7 +67,7 @@
     p.lead{font-size:.88rem;color:var(--gray-text);max-width:100ch;margin-bottom:.7rem;}
 
     /* Three steps */
-    .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem;margin-bottom:.9rem;}
+    .steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;margin-bottom:.9rem;}
     .step{background:#fff;border-radius:8px;padding:.8rem 1rem .85rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:3px solid var(--trpa-blue);}
     .step .k{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-text);}
     .step h3{font-size:.95rem;font-weight:700;margin:.1rem 0 .3rem;}
@@ -205,27 +205,20 @@
     </section>
 
     <!-- 2. How an asset gets a score -->
-    <h2 class="sec">How an asset gets a score <small>three steps, built on FHWA vulnerability assessment guidance</small></h2>
+    <h2 class="sec">How an asset gets a score <small>two steps, built on FHWA vulnerability assessment guidance</small></h2>
     <div class="steps">
       <div class="step">
         <div class="k">Step 1</div>
         <h3>Criticality: how much the asset matters</h3>
         <p>Each road segment is scored on traffic, the detour if it closed, access to critical places, and who depends on it (equity),
-        then cut into quarters, 0 (lowest) to 3 (top). Culverts and bridges take their road's class. Criticality sits beside
-        vulnerability, never multiplied into it.</p>
+        then cut into quarters, 0 (lowest) to 3 (top). Culverts and bridges take their road's class.</p>
       </div>
       <div class="step">
         <div class="k">Step 2</div>
         <h3>Vulnerability: how likely the asset is to fail</h3>
-        <p>Fifteen hazard-asset pairs are screened as <span class="formula">Vulnerability = (Exposure x wE) + (Sensitivity x wS)</span>.
-        Exposure is how much of the hazard reaches the asset, sensitivity how badly it would fare; both score 0 to 3 and the weights
-        sum to 1. Roads have no sensitivity term, so a road's score is its exposure.</p>
-      </div>
-      <div class="step">
-        <div class="k">Step 3</div>
-        <h3>Disruption scenarios: what happens when it fails</h3>
-        <p>For places both critical and vulnerable, the RA2CE model (Deltares) runs closures on the street network: detours, travel
-        time, access to key destinations, and people cut off. It follows the workshop and is not on the Results page yet.</p>
+        <p>Fifteen hazard-asset pairs are scored for vulnerability using <span class="formula">Vulnerability = (Exposure x weightExposure) + (Sensitivity x weightSensitivity)</span>.
+        Exposure is the likelihood and severity of the asset's exposure to the hazard, sensitivity is how badly it would fare if exposed
+        to the hazard; both score 0 to 3. Roads have no sensitivity term, so a road's vulnerability score is its exposure.</p>
       </div>
     </div>
     <div class="defs">
@@ -233,15 +226,12 @@
         Low under 1.5, Medium 1.5 to 2, High over 2.</div>
       <div><b>Combined class.</b> An asset in several pairs carries its highest pair score (the popup names it as Highest hazard); its class is the
         highest of its pair classes.</div>
-      <div><b>Hotspots.</b> High vulnerability on a road in the top criticality quarter. The Hotspots only switch narrows the Overview
-        to them.</div>
+      <div><b>Hotspots.</b> High vulnerability on a road in the top criticality quarter.</div>
       <div><b>Stand-in.</b> A dataset used in place of the one the method names until it arrives. The debris-flow pairs rest on
         stand-ins (fire severity for soil burn severity, and a drainage-size break that puts nearly every basin at 3), so they stay
         out of the combined class; the "with stand-ins" fields include them.</div>
       <div><b>Missing data.</b> An unobserved sensitivity input (most culvert conditions) takes the method's default; Sensitivity
         data then reads partial or default.</div>
-      <div><b>Horizon.</b> Every score is historical (the <code>_hist</code> suffix in exports). The 2050 and 2080 columns come in
-        December.</div>
     </div>
 
     <!-- 3. Hazards table -->
@@ -322,15 +312,6 @@
       <span class="url">All at trpa-agency.github.io/PROTECT/html/.</span></p>
 
   </main>
-
-  <footer class="app-footer">
-    <p class="foot-long">Results guide v0.1 (Oct. 27, 2026). Method of record: <code>docs/SCORING_RUBRICS.md</code> v0.7 (Oct. 21, 2026), built on the consultant's
-      draft Vulnerability Assessment Methodology (Aug. 20, 2026); pair definitions in <code>Hazard_Asset_Pairs.md</code> v0.8. Culverts from six jurisdictions
-      and the TRPA compilation; bridges from the National Bridge Inventory; flood zones from FEMA; fire inputs from the Sierra Nevada Regional Resource Kit and
-      the TRPA Fire service; landslide susceptibility and inventory from USGS; terrain from the 2 m lidar DEM. Draft for Workshop 1.</p>
-    <p class="foot-short">Results guide v0.1 (Oct. 27, 2026). Method of record: <code>docs/SCORING_RUBRICS.md</code> v0.7 (Oct. 21, 2026) on the consultant's draft
-      Vulnerability Assessment Methodology (Aug. 20, 2026); pairs from <code>Hazard_Asset_Pairs.md</code> v0.8. Draft for Workshop 1.</p>
-  </footer>
 
 </body>
 </html>
