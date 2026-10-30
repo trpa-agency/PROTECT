@@ -1,7 +1,9 @@
 """Build the Results page's layers, maps, and layouts into the print-map Pro project, from PROTECT_curated.gdb.
 
     python print-maps/build_layers.py --dry-run   # check layers.yaml, the sources, and the template; nothing saved
-    python print-maps/build_layers.py             # back up the project, rebuild what layers.yaml owns, save
+    python print-maps/build_layers.py             # add what layers.yaml owns that the project lacks; keep the rest
+    python print-maps/build_layers.py --replace   # rebuild all of it (hand edits to it are lost)
+    python print-maps/build_layers.py --replace "PROTECT Criticality" "Criticality - Lake Tahoe Basin - PROTECT"
     python print-maps/build_layers.py --lyrx      # also save each layer as print-maps/layers/<name>.lyrx
 
 Run with ArcGIS Pro's Python on the server, with the project closed in Pro (the save needs it).
@@ -10,10 +12,11 @@ datasets, fields, class breaks, colors, and legend labels of each view it carrie
 written as CIM, with the exact breaks and a gray default symbol for nulls ("not scored", as the
 page draws them), because the class-break API reclassifies fields that hold only a few values.
 
-What layers.yaml owns is rebuilt on every run, so symbology belongs in layers.yaml, not in hand
-edits in Pro:
+The script sets the project up and the maps are finished and exported by hand in Pro (Oct. 30),
+so a run only adds what layers.yaml owns that the project does not have yet, and keeps what is
+there, hand edits included. --replace rebuilds it from layers.yaml, losing those edits:
   group:    one group layer in the map named by map: (the Results group in TRPA Standard Layers)
-  maps:     whole maps, made when missing with their basemap; their owned group is rebuilt
+  maps:     whole maps, made when missing with their basemap, and their owned group
   layouts:  copies of a template layout pointed at one of those maps, with an extent and text
 The rest of the project is left as it is, except the layers in hide_after_build, which are turned
 off. A layer or layout that fails is reported and the rest still build, so one run lists every
@@ -135,9 +138,13 @@ def validate(spec: dict) -> list[str]:
 # ---------- CIM ----------
 
 def new(cls: str, **kw):
-    """A CIM object with every attribute checked, so a misspelling fails here and not inside Pro."""
-    import arcpy
-    obj = arcpy.cim.CreateCIMObjectFromClassName(cls, "V3")
+    """A CIM object with every attribute checked, so a misspelling fails here and not inside Pro.
+
+    Nested CIM fields start empty (None), as Pro writes them. CreateCIMObjectFromClassName fills
+    each with a blank object instead, and Pro reads a blank valueExpressionInfo as an Arcade
+    expression with no text: every class-breaks layer built that way drew nothing (Oct. 30)."""
+    from arcpy.cim.cimloader import ConstructTypeObject, GetClassFromCIM
+    obj = ConstructTypeObject(GetClassFromCIM(cls), True)
     for k, v in kw.items():
         if not hasattr(obj, k):
             raise AttributeError(f"{cls} has no attribute '{k}'")
@@ -197,7 +204,7 @@ def renderer(spec: dict, lyr: dict):
                minimumBreak=float(cs.get("min", -1)), classBreakType=arcpy.cim.ClassBreakType.GraduatedColor,
                classificationMethod=arcpy.cim.ClassificationMethod.Manual,
                showInAscendingOrder=not lyr.get("legend_descending", False),
-               useDefaultSymbol=True, defaultLabel="not scored",
+               useDefaultSymbol=True, defaultLabel="not scored", useExclusionSymbol=False,
                defaultSymbol=symbol(spec, gray, "gray", 0, n))
 
 
@@ -230,8 +237,9 @@ def find_layer(m, long_name: str):
     return next((x for x in m.listLayers() if x.longName == long_name), None)
 
 
-def owned_map(aprx, g: dict, log):
-    """The map an owned group goes in: an existing map, or an owned map made when missing."""
+def owned_map(aprx, g: dict, log, set_basemap: bool = True):
+    """The map an owned group goes in: an existing map, or an owned map made when missing. The
+    basemap is set only when set_basemap (a new map, or one being replaced), so a hand change sticks."""
     import arcpy
     m = next((x for x in aprx.listMaps() if x.name == g["map"]), None)
     om = g.get("owned_map")
@@ -240,7 +248,7 @@ def owned_map(aprx, g: dict, log):
         if om.get("spatial_reference"):
             m.spatialReference = arcpy.SpatialReference(int(om["spatial_reference"]))
         log.info(f"Created map '{g['map']}'")
-    if m is not None and om and om.get("basemap"):
+    if m is not None and om and om.get("basemap") and set_basemap:
         # a new map comes with Pro's default basemap, so check which one is there, not whether one is:
         # Dark Gray Canvas draws as Dark Gray Base and Dark Gray Reference (basemap_layers: overrides the hint)
         hint = om.get("basemap_layers") or om["basemap"].replace(" Canvas", "")
@@ -368,23 +376,43 @@ def build_layout(aprx, spec: dict, lay: dict, built: dict, log) -> list[str]:
     return probs
 
 
-def build(aprx, spec: dict, log, lyrx_dir: Path | None) -> list[str]:
-    """Rebuild everything layers.yaml owns. Returns the problems; the caller saves only when there are none."""
+def wanted(name: str, replace: list[str] | None) -> bool:
+    """--replace alone means everything layers.yaml owns; with names, those maps, groups, or layouts."""
+    return replace is not None and (not replace or name in replace)
+
+
+def build(aprx, spec: dict, log, lyrx_dir: Path | None, replace: list[str] | None = None) -> tuple[list[str], int]:
+    """Make what layers.yaml owns that is not in the project yet, and rebuild what replace names.
+    Anything already there is kept as it is, hand edits included. Returns the problems and how many
+    groups and layouts were built; the caller saves only when there are no problems."""
     import arcpy
     missing = missing_sources(spec)
     if missing:
-        return [f"source dataset not found: {p}" for p in missing]
+        return [f"source dataset not found: {p}" for p in missing], 0
     built: dict[str, list] = {}
-    probs = []
+    probs, made = [], 0
     for g in groups(spec):
-        m = owned_map(aprx, g, log)
+        redo = wanted(g["map"], replace) or wanted(g["group"], replace)
+        new_map = not any(x.name == g["map"] for x in aprx.listMaps())
+        m = owned_map(aprx, g, log, set_basemap=redo or new_map)
         if m is None:
-            return [f"no map '{g['map']}' in the project"]
-        built[g["map"]], p = build_group(m, spec, g, log)
-        probs += p
+            return [f"no map '{g['map']}' in the project"], made
+        if redo or find_layer(m, g["group"]) is None:
+            built[g["map"]], p = build_group(m, spec, g, log)
+            probs += p
+            made += 1
+        else:
+            parent = lambda lyr: f"{g['group']}\\{lyr['group']}" if lyr.get("group") else g["group"]
+            built[g["map"]] = [(x, lyr) for lyr in g["layers"]
+                               if (x := find_layer(m, f"{parent(lyr)}\\{lyr['name']}")) is not None]
+            log.info(f"{m.name}: kept '{g['group']}' as it is (--replace \"{g['group']}\" rebuilds it)")
     for lay in spec.get("layouts") or []:
+        if any(x.name == lay["name"] for x in aprx.listLayouts()) and not wanted(lay["name"], replace):
+            log.info(f"Kept layout '{lay['name']}' as it is (--replace \"{lay['name']}\" rebuilds it)")
+            continue
         try:
             probs += build_layout(aprx, spec, lay, built, log)
+            made += 1
         except Exception as e:
             probs.append(f"layout '{lay['name']}': {type(e).__name__}: {e}")
     if lyrx_dir:
@@ -394,7 +422,7 @@ def build(aprx, spec: dict, log, lyrx_dir: Path | None) -> list[str]:
             path = lyrx_dir / (re.sub(r"[^A-Za-z0-9]+", "_", out.name).strip("_") + ".lyrx")
             arcpy.management.SaveToLayerFile(out, str(path), "ABSOLUTE")
         log.info(f"{len(outs)} layer files -> {lyrx_dir}")
-    return probs
+    return probs, made
 
 
 def main() -> None:
@@ -402,6 +430,8 @@ def main() -> None:
     ap.add_argument("--aprx", help="the Pro project (overrides project.aprx in config.yaml)")
     ap.add_argument("--dry-run", action="store_true", help="check layers.yaml, the sources, and the templates; save nothing")
     ap.add_argument("--lyrx", action="store_true", help="also save each built layer to print-maps/layers/")
+    ap.add_argument("--replace", nargs="*", metavar="NAME",
+                    help="rebuild what is already there: everything layers.yaml owns, or the maps, groups, and layouts named")
     args = ap.parse_args()
 
     cfg = load_cfg()
@@ -427,12 +457,15 @@ def main() -> None:
         log.info(f"{n} layers and {len(spec.get('layouts') or [])} layouts checked; {len(probs)} problems; nothing saved")
         raise SystemExit(1 if probs else 0)
 
-    probs = build(aprx, spec, log, HERE / "layers" if args.lyrx else None)
+    probs, made = build(aprx, spec, log, HERE / "layers" if args.lyrx else None, args.replace)
     if probs:
         for p in probs:
             log.error(p)
         log.error(f"{len(probs)} problems; nothing saved, the project is as it was")
         raise SystemExit(1)
+    if not made:
+        log.info("Everything layers.yaml owns is already in the project; nothing saved (--replace rebuilds)")
+        raise SystemExit(0)
     # the file on disk is still the project as it was until save(), so the backup is a plain copy of it
     path = Path(aprx.filePath)
     backup = path.with_name(f"{path.stem}_backup_{time.strftime('%Y-%m-%d_%H%M%S')}.aprx")

@@ -10,7 +10,8 @@ project:
   legend_sync_visibility: true   # legends drop the layers a sheet turns off
 
 paths:
-  outputs: outputs         # <outputs>/<export name>/<file_prefix><sheet id>.<ext> (gitignored)
+  outputs: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Maps   # <outputs>/<export name>/<file_prefix><sheet id>.<ext>;
+                           # where the hand exports go too, readable from the workstation for review
   logs: logs               # timestamped run logs (gitignored)
   restricted_outputs: ""   # --allow-restricted writes here only; must be on F:, never under the repo
   file_prefix: PROTECT_W1_

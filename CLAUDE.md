@@ -129,7 +129,7 @@ PROTECT/
 ├── html/_archive/                   # retired pages, not served by Pages (ARCHIVED.md lists why)
 ├── climate/                         # self-contained climate data pipeline (own config.yaml, src/, notebooks/)
 ├── debris-flow/                     # USGS wildcat debris-flow pipeline (own config.yaml, src/, notebooks/)
-├── print-maps/                      # print maps from one Pro template layout (arcpy.mp): config.yaml holds the project, exports, NDOT guard, and the corridor x hazard sheets; print_maps.py inspect | check | export | build; build_layers.py rebuilds the Results page's layers in the project from PROTECT_curated.gdb per layers.yaml (keep it in step with results.html); the .aprx stays on F:, PDFs in print-maps/outputs/ (gitignored)
+├── print-maps/                      # print maps from one Pro template layout (arcpy.mp): config.yaml holds the project, exports, NDOT guard, and the corridor x hazard sheets; print_maps.py inspect | check | export | build; build_layers.py sets up the Results page's layers, owned maps (the dark-basemap criticality map), and layouts in the project from PROTECT_curated.gdb per layers.yaml (keep it in step with results.html), creating what is missing and keeping what is there (--replace rebuilds); since Oct. 30 the maps are finished and exported by hand in Pro; the .aprx and the PDFs live on F: (PROTECT_analysis\Maps)
 ├── scripts/                         # analysis scripts and notebooks (incl. ra2ce/)
 └── Hazard_Asset_Pairs.md            # plain-text source-of-record for pairs + framework
 ```
