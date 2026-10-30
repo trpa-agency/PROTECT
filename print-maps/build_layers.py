@@ -240,12 +240,18 @@ def owned_map(aprx, g: dict, log):
         if om.get("spatial_reference"):
             m.spatialReference = arcpy.SpatialReference(int(om["spatial_reference"]))
         log.info(f"Created map '{g['map']}'")
-    if m is not None and om and om.get("basemap") and not any(x.isBasemapLayer for x in m.listLayers()):
-        try:
-            m.addBasemap(om["basemap"])
-            log.info(f"{g['map']}: basemap {om['basemap']}")
-        except Exception as e:   # the gallery needs the portal; the map still builds
-            log.warning(f"{g['map']}: basemap '{om['basemap']}' not added ({e}); add it from the Basemap gallery in Pro")
+    if m is not None and om and om.get("basemap"):
+        # a new map comes with Pro's default basemap, so check which one is there, not whether one is:
+        # Dark Gray Canvas draws as Dark Gray Base and Dark Gray Reference (basemap_layers: overrides the hint)
+        hint = om.get("basemap_layers") or om["basemap"].replace(" Canvas", "")
+        have = [x.name for x in m.listLayers() if x.isBasemapLayer]
+        if not any(hint.lower() in n.lower() for n in have):
+            try:
+                m.addBasemap(om["basemap"])   # adds, or replaces the basemap that is there
+                log.info(f"{g['map']}: basemap {om['basemap']}" + (f" (replaced {', '.join(have)})" if have else ""))
+            except Exception as e:   # the gallery needs the portal; the map still builds
+                log.warning(f"{g['map']}: basemap '{om['basemap']}' not added ({e}); "
+                            "set it from the Basemap gallery in Pro")
     return m
 
 
