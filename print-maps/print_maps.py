@@ -3,7 +3,7 @@
     python print-maps/print_maps.py inspect        # maps, layers, layouts, elements, bookmarks in the project
     python print-maps/print_maps.py check          # resolve every sheet against the project; nothing is exported
     python print-maps/print_maps.py export         # every enabled sheet, every export it names
-    python print-maps/print_maps.py export --only 01 02 --exports screen
+    python print-maps/print_maps.py export --only sr28 --exports screen   # one corridor, screen PDFs only
     python print-maps/print_maps.py build          # a copy of the project with a layout per sheet, to finish by hand
 
 Run with ArcGIS Pro's Python (arcgispro-py3) while signed in to Pro, so arcpy has a license. The
@@ -18,8 +18,8 @@ the sheet sets, so a sheet can be finished by hand in Pro.
 
 Restricted data: NDOT culvert rows need NDOT sign-off before any display. A sheet does not export
 when a visible layer reads a restricted source, shows a row that matches restricted.row_checks, or
-reads the analysis geodatabase without a field to check (config.yaml restricted:). Build the print
-layers from PROTECT_curated.gdb. --allow-restricted, after sign-off, writes only to
+reads one of the analysis geodatabase's culvert datasets without a field to check (config.yaml
+restricted:). --allow-restricted, after sign-off, writes only to
 paths.restricted_outputs, which must be outside the repo.
 """
 
@@ -55,7 +55,37 @@ def load_cfg() -> dict:
     cfg = yaml.safe_load((HERE / "config.yaml").read_text(encoding="utf-8"))
     root = REPO / "config.yaml"
     cfg["_root"] = yaml.safe_load(root.read_text(encoding="utf-8")) if root.exists() else {}
+    made, cfg["_matrix_errors"] = expand_matrix(cfg)
+    cfg["sheets"] = made + list(cfg.get("sheets") or [])
     return cfg
+
+
+def expand_matrix(cfg: dict) -> tuple[list[dict], list[str]]:
+    """Sheets for every corridor x hazard x version in each sheet_matrix entry, ids <corridor>_<hazard>_<version>."""
+    cors, hzs, vers = cfg.get("corridors") or {}, cfg.get("hazards") or {}, cfg.get("versions") or {}
+    out, errs = [], []
+    for i, mx in enumerate(cfg.get("sheet_matrix") or [], 1):
+        cs, hs, vs = mx.get("corridors") or list(cors), mx.get("hazards") or list(hzs), mx.get("versions") or list(vers)
+        missing = [f"{kind} '{k}'" for kind, keys, tbl in (("corridor", cs, cors), ("hazard", hs, hzs), ("version", vs, vers))
+                   for k in keys if k not in tbl]
+        if missing:
+            errs.append(f"sheet_matrix entry {i}: no {', '.join(missing)}")
+            continue
+        for c in cs:
+            for h in hs:
+                for v in vs:
+                    cor, hz, ver = cors[c], hzs[h], vers[v]
+                    names = {"corridor": cor.get("label", c), "hazard": hz.get("label", h)}
+                    s = {"id": f"{c}_{h}_{v}", **names,
+                         **{k: val for k, val in ver.items() if k not in ("legend", "assets")},
+                         "legend": fill(ver.get("legend", "{hazard}"), names),
+                         "layers": list(hz.get("exposure") or []) + (list(hz.get("assets") or []) if ver.get("assets") else [])}
+                    if cor.get("title"):
+                        s["text"] = {"Title": cor["title"]}
+                    if cor.get("bookmark"):
+                        s["extent"] = {"bookmark": cor["bookmark"]}
+                    out.append(s)
+    return out, errs
 
 
 def get_logger(cfg: dict) -> logging.Logger:
@@ -76,7 +106,7 @@ def get_logger(cfg: dict) -> logging.Logger:
 
 def validate(cfg: dict, only: list[str] | None, export_names: list[str] | None) -> list[str]:
     """Config errors that need no project open."""
-    errs, ids = [], [s.get("id") for s in cfg.get("sheets", [])]
+    errs, ids = list(cfg.get("_matrix_errors") or []), [s.get("id") for s in cfg.get("sheets", [])]
     exdefs = cfg.get("exports", {})
     if any(not i for i in ids):
         errs.append("every sheet needs an id")
@@ -168,15 +198,29 @@ def snapshot(aprx, layouts) -> dict:
     return st
 
 
+def set_vis(obj, vis: bool) -> bool:
+    """Write visibility only when it changes. Some layers read `visible` but refuse a write
+    (arcpy raises NameError); False means this one did."""
+    if obj.visible == vis:
+        return True
+    try:
+        obj.visible = vis
+    except NameError:
+        return False
+    return True
+
+
 def restore(st: dict) -> None:
     for lyr, vis in st["layers"]:
-        lyr.visible = vis
+        set_vis(lyr, vis)
     for e, txt in st["text"]:
-        e.text = txt
+        if e.text != txt:
+            e.text = txt
     for e, vis in st["elements"]:
-        e.visible = vis
+        set_vis(e, vis)
     for mf, m, ext in st["frames"]:
-        mf.map = m
+        if mf.map.name != m.name:
+            mf.map = m
         mf.camera.setExtent(ext)
 
 
@@ -205,17 +249,30 @@ def under(long_name: str, parents) -> bool:
     return any(long_name == p or long_name.startswith(p + "\\") for p in parents)
 
 
-def set_visibility(m, on: list) -> None:
+def set_visibility(m, on: list, managed: list | None = None) -> list[str]:
+    """Listed layers on with their parents and contents. Without `managed`, every other layer turns off
+    (basemaps excepted); with it, only the other layers inside `managed` do and the rest stay as authored.
+    Returns a problem for each layer that needed a change arcpy refused."""
     lyrs = m.listLayers()
     basemaps = [lyr.longName for lyr in lyrs if lyr.isBasemapLayer]
+    scope = [lyr.longName for lyr in managed] if managed is not None else None
     keep = set()
     for lyr in on:
         parts = lyr.longName.split("\\")
         keep.update("\\".join(parts[:i]) for i in range(1, len(parts) + 1))
     groups = [lyr.longName for lyr in on if lyr.isGroupLayer]
+    probs = []
     for lyr in lyrs:
-        if not under(lyr.longName, basemaps):
-            lyr.visible = lyr.longName in keep or under(lyr.longName, groups)
+        if lyr.longName in keep or under(lyr.longName, groups):
+            want = True
+        elif not under(lyr.longName, basemaps) and (scope is None or under(lyr.longName, scope)):
+            want = False
+        else:
+            continue
+        if not set_vis(lyr, want):
+            probs.append(f"'{lyr.longName}' in map '{m.name}' cannot be turned {'on' if want else 'off'} by "
+                         "arcpy; set it in Pro or take it out of managed")
+    return probs
 
 
 def visible_layers(m) -> list:
@@ -249,7 +306,7 @@ def set_extent(mf, m, ext: dict | None, probs: list[str]) -> None:
 def apply_sheet(aprx, lyt, cfg: dict, spec: dict, copy_maps: bool = False) -> list[str]:
     """Set up the layout for one sheet. Returns the problems; an empty list means it is ready."""
     probs: list[str] = []
-    main = {k: spec[k] for k in ("map", "extent") if spec.get(k)}
+    main = {k: spec[k] for k in ("map", "extent", "managed") if spec.get(k)}
     if spec.get("layers") is not None:
         main["layers"] = list(spec.get("always_on") or []) + list(spec["layers"])
     for fname, fs in {cfg["project"]["frame"]: main, **spec["frames"]}.items():
@@ -276,9 +333,10 @@ def apply_sheet(aprx, lyt, cfg: dict, spec: dict, copy_maps: bool = False) -> li
             mf.camera.setExtent(ext)
         if fs.get("layers") is not None:
             on, p = resolve_layers(m, fs["layers"])
-            probs += p
-            if not p:
-                set_visibility(m, on)
+            managed, pm = resolve_layers(m, fs["managed"]) if fs.get("managed") else (None, [])
+            probs += p + pm
+            if not (p or pm):
+                probs += set_visibility(m, on, managed)
         set_extent(mf, m, fs.get("extent"), probs)
 
     tokens = tokens_for(cfg, spec)
@@ -294,8 +352,8 @@ def apply_sheet(aprx, lyt, cfg: dict, spec: dict, copy_maps: bool = False) -> li
         hits = [e for e in elements if e.name == name]
         if not hits:
             probs.append(f"no element '{name}' on layout '{lyt.name}'")
-        for e in hits:
-            e.visible = bool(vis)
+        probs += [f"element '{name}' cannot be turned {'on' if vis else 'off'} by arcpy"
+                  for e in hits if not set_vis(e, bool(vis))]
     return probs
 
 
@@ -317,7 +375,9 @@ def restricted_problems(lyt, cfg: dict) -> list[str]:
 
     blocked = [norm(p) for p in (root.get("ndot", {}).get("gdb"), root.get("ndot", {}).get("work_dir"),
                                  root.get("curated", {}).get("restricted_gdb"), *r.get("blocked_sources", [])) if p]
-    need = [norm(p) for p in (root.get("paths", {}).get("analysis_gdb"), *r.get("check_required_sources", [])) if p]
+    agdb = root.get("paths", {}).get("analysis_gdb")
+    need = [norm(f"{agdb}\\{d}") for d in r.get("check_required_datasets", []) if agdb]
+    need += [norm(p) for p in r.get("check_required_sources", [])]
     checks = r.get("row_checks") or []
     probs = []
     for mf in lyt.listElements("MAPFRAME_ELEMENT"):
@@ -335,7 +395,7 @@ def restricted_problems(lyt, cfg: dict) -> list[str]:
             mine = [c for c in checks if c["field"].lower() in fields]
             if not mine:
                 if any(src.startswith(p) for p in need):
-                    probs.append(f"{tag} reads the analysis geodatabase, which holds the NDOT rows, and has no "
+                    probs.append(f"{tag} reads a culvert dataset that holds NDOT rows and has no "
                                  f"{' or '.join(c['field'] for c in checks)} field to check; use PROTECT_curated.gdb")
                 continue
             for c in mine:
@@ -493,7 +553,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=["inspect", "check", "export", "build"])
     ap.add_argument("--aprx", help="the Pro project (overrides project.aprx; CURRENT inside Pro)")
-    ap.add_argument("--only", nargs="+", metavar="ID", help="sheets by id or number prefix (01 matches 01_...)")
+    ap.add_argument("--only", nargs="+", metavar="ID", help="sheets by id or prefix (sr28, sr28_wildfire)")
     ap.add_argument("--exports", nargs="+", metavar="NAME", help="only these exports (names in config exports:)")
     ap.add_argument("--allow-restricted", action="store_true",
                     help="after NDOT sign-off: export restricted rows, to paths.restricted_outputs only")
