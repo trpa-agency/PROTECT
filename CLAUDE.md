@@ -116,8 +116,8 @@ PROTECT/
 ├── html/reference-hub.html          # v0.6 reference hub incl. data + model inventory (Calcite + AG Grid)
 ├── html/scoring-rubrics.html        # v0.4 interactive rubrics (score an asset, rubric tables, framework, decisions, departures)
 ├── html/workshop-punchlist.html     # Workshop 1 task list (dated table, decisions open, print maps); status edited in the page data
-├── html/workshop-feedback.html      # Workshop 1 digital sticky notes: hazard stations, click an asset or drop a pin, concern 1-3, why, missing flag; sends to the AGOL table (SURVEY block), CSV fallback; Report out tab + printable master list
-├── scripts/create_workshop_feedback_layer.py  # makes/checks the AGOL table + submit/read views for the feedback page (--smoke-test)
+├── html/workshop-feedback.html      # Workshop 1 digital sticky notes: hazard stations, click an asset or drop a pin, concern 1-3, why, missing flag; "Flooding you have seen" draws polygons (when, how bad, how often, what happened) sent to a flood areas layer with the same Send, tagged with the send's id; sends to AGOL (SURVEY block), CSV fallback; Report out + Flooded areas tabs, printable master list
+├── scripts/create_workshop_feedback_layer.py  # makes/checks the AGOL notes table and flood areas polygon layer (each with submit/read views) and the private flood area contacts table (submit view only: AGOL views here do not hide fields, so follow-up emails never go to a service with a public view) for the feedback page (--smoke-test)
 ├── scripts/build_curated_gdb.py     # PROTECT_curated.gdb on F: (config `curated:`): only the hazard + asset layers and fields the assessment and pages use, NDOT rows excluded; DataDictionary + DatasetCatalog tables, CSV copies beside it
 ├── html/results.html                # the Results page: Overview + one tab per hazard (data-driven MODES config)
 ├── html/criticality-index.html      # criticality app, Results-page format (18,285 segments, adjustable weights; reads data/processed/results/roads_geometry.geojson + roads_criticality.json)
