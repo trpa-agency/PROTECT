@@ -16,13 +16,16 @@ edits in Pro:
   maps:     whole maps, made when missing with their basemap; their owned group is rebuilt
   layouts:  copies of a template layout pointed at one of those maps, with an extent and text
 The rest of the project is left as it is, except the layers in hide_after_build, which are turned
-off. Before saving, the project is copied beside itself as <name>_backup_<timestamp>.aprx.
+off. A layer or layout that fails is reported and the rest still build, so one run lists every
+problem; the project is saved only when there are none, after it is copied beside itself as
+<name>_backup_<timestamp>.aprx.
 """
 
 from __future__ import annotations
 
 import argparse
 import re
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -247,7 +250,8 @@ def owned_map(aprx, g: dict, log):
 
 
 def build_group(m, spec: dict, g: dict, log) -> list:
-    """Remove and rebuild one owned group in map m. Returns the built layers, top to bottom."""
+    """Remove and rebuild one owned group in map m. Returns the built (layer, spec) pairs, top to bottom,
+    and the problems; a layer that fails is reported and the rest still build, so one run lists them all."""
     name = g["group"]
     old = find_layer(m, name)
     if old is not None:
@@ -257,23 +261,34 @@ def build_group(m, spec: dict, g: dict, log) -> list:
     ref = find_layer(m, g.get("place_before") or "")
     if ref is not None:
         m.moveLayer(ref, top, "BEFORE")
-    top = find_layer(m, name)
     order = list(dict.fromkeys(lyr["group"] for lyr in g["layers"] if lyr.get("group")))
-    for sub in order:
-        m.createGroupLayer(sub, top)
-    for prev, sub in zip(order, order[1:]):   # nested groups land on top of their parent; put them in layers.yaml order
-        m.moveLayer(find_layer(m, f"{name}\\{prev}"), find_layer(m, f"{name}\\{sub}"), "AFTER")
+    # moveLayer refuses to reorder nested groups (ValueError, Oct. 30), so they are made last-first:
+    # a new nested group lands on top of its parent, which leaves them in layers.yaml order
+    for sub in reversed(order):
+        m.createGroupLayer(sub, find_layer(m, name))
+    top = find_layer(m, name)
     subs = {sub: find_layer(m, f"{name}\\{sub}") for sub in order}
-    built = []
+    made = [x.longName.split("\\")[1] for x in m.listLayers() if x.isGroupLayer and x.longName.count("\\") == 1
+            and x.longName.startswith(name + "\\")]
+    if made != order:
+        log.warning(f"{m.name}: hazard groups came out as {made}, not {order} (draw order only)")
+    built, probs = [], []
     for lyr in g["layers"]:
         parent = f"{name}\\{lyr['group']}" if lyr.get("group") else name
-        added = m.addDataFromPath(source_path(spec, lyr))
-        added.name = lyr["name"]
-        m.addLayerToGroup(subs.get(lyr.get("group")) or top, added, "BOTTOM")
-        m.removeLayer(added)
-        out = find_layer(m, f"{parent}\\{lyr['name']}")
-        style_layer(spec, out, lyr)
-        built.append(out)
+        step = "add"
+        try:
+            added = m.addDataFromPath(source_path(spec, lyr))
+            added.name = lyr["name"]
+            step = "group"
+            m.addLayerToGroup(subs.get(lyr.get("group")) or top, added, "BOTTOM")
+            m.removeLayer(added)
+            out = find_layer(m, f"{parent}\\{lyr['name']}")
+            step = "symbology"
+            style_layer(spec, out, lyr)
+        except Exception as e:
+            probs.append(f"{m.name}: {parent}\\{lyr['name']}: {step} failed: {type(e).__name__}: {e}")
+            continue
+        built.append((out, lyr))
         log.info(f"{m.name}: {parent}\\{lyr['name']}: {lyr.get('dataset') or lyr.get('source')}"
                  + (f" by {lyr['field']}" if lyr.get("field") else ""))
     if g.get("show_group"):
@@ -285,7 +300,7 @@ def build_group(m, spec: dict, g: dict, log) -> list:
             x.visible = False
         if not hit:
             log.warning(f"hide_after_build: no layer '{hide}' in map '{m.name}'")
-    return built
+    return built, probs
 
 
 def build_layout(aprx, spec: dict, lay: dict, built: dict, log) -> list[str]:
@@ -354,14 +369,18 @@ def build(aprx, spec: dict, log, lyrx_dir: Path | None) -> list[str]:
     if missing:
         return [f"source dataset not found: {p}" for p in missing]
     built: dict[str, list] = {}
+    probs = []
     for g in groups(spec):
         m = owned_map(aprx, g, log)
         if m is None:
             return [f"no map '{g['map']}' in the project"]
-        built[g["map"]] = list(zip(build_group(m, spec, g, log), g["layers"]))
-    probs = []
+        built[g["map"]], p = build_group(m, spec, g, log)
+        probs += p
     for lay in spec.get("layouts") or []:
-        probs += build_layout(aprx, spec, lay, built, log)
+        try:
+            probs += build_layout(aprx, spec, lay, built, log)
+        except Exception as e:
+            probs.append(f"layout '{lay['name']}': {type(e).__name__}: {e}")
     if lyrx_dir:
         lyrx_dir.mkdir(parents=True, exist_ok=True)
         outs = [out for pairs in built.values() for out, _ in pairs]
@@ -402,16 +421,17 @@ def main() -> None:
         log.info(f"{n} layers and {len(spec.get('layouts') or [])} layouts checked; {len(probs)} problems; nothing saved")
         raise SystemExit(1 if probs else 0)
 
-    path = Path(aprx.filePath)
-    backup = path.with_name(f"{path.stem}_backup_{time.strftime('%Y-%m-%d_%H%M%S')}.aprx")
-    aprx.saveACopy(str(backup))
-    log.info(f"Backup: {backup}")
     probs = build(aprx, spec, log, HERE / "layers" if args.lyrx else None)
     if probs:
         for p in probs:
             log.error(p)
-        log.error("Nothing saved")
+        log.error(f"{len(probs)} problems; nothing saved, the project is as it was")
         raise SystemExit(1)
+    # the file on disk is still the project as it was until save(), so the backup is a plain copy of it
+    path = Path(aprx.filePath)
+    backup = path.with_name(f"{path.stem}_backup_{time.strftime('%Y-%m-%d_%H%M%S')}.aprx")
+    shutil.copy2(path, backup)
+    log.info(f"Backup: {backup}")
     try:
         aprx.save()
     except OSError as e:
