@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-20",
+ "generated": "2026-10-30",
  "culverts": {
   "scored_public": 5096,
   "full_profile": 858,
@@ -108,6 +108,10 @@
   "Public jurisdictions only; the restricted state DOT export is excluded at the row level.",
   "Draft screening values for workshop review; the loading ratio ranks crossings and is not a design number."
  ],
+ "flood_classes": {
+  "2": "0.2 percent (500-yr) zone or mapped stream",
+  "3": "1 percent (100-yr) flood zone"
+ },
  "wildfire": {
   "roads": {
    "segments": 18285,
@@ -797,14 +801,14 @@
    "segments": 18285,
    "miles": 984.1,
    "V_class": {
-    "Low": 12273,
-    "High": 3937,
-    "Medium": 2075
+    "Low": 10848,
+    "High": 4951,
+    "Medium": 2486
    },
    "miles_by_class": {
-    "High": 402.1,
-    "Low": 490.7,
-    "Medium": 91.4
+    "High": 436.3,
+    "Low": 431.2,
+    "Medium": 116.6
    },
    "V_max_pair": {
     "WFR": 14476,
@@ -812,8 +816,18 @@
     "LSR": 1808,
     "AVR": 19
    },
-   "V_class_all": {},
-   "V_max_all_pair": {},
+   "V_class_all": {
+    "Medium": 11739,
+    "High": 6493,
+    "Low": 53
+   },
+   "V_max_all_pair": {
+    "DFR": 13483,
+    "WFR": 2123,
+    "FLR": 1724,
+    "LSR": 946,
+    "AVR": 9
+   },
    "pair_class": {
     "FLR": {
      "Low": 15617,
@@ -825,9 +839,9 @@
      "Medium": 1316
     },
     "WFR": {
-     "Low": 16412,
-     "Medium": 1688,
-     "High": 185
+     "Low": 13888,
+     "Medium": 2660,
+     "High": 1737
     },
     "DFR": {
      "Medium": 14033,
@@ -848,61 +862,61 @@
    },
    "matrix": {
     "Low|0": {
-     "segments": 2760,
-     "miles": 99.2
+     "segments": 2258,
+     "miles": 83.9
     },
     "Low|1": {
-     "segments": 2734,
-     "miles": 121.4
+     "segments": 2295,
+     "miles": 102.3
     },
     "Low|2": {
-     "segments": 3514,
-     "miles": 141.3
+     "segments": 3263,
+     "miles": 128.5
     },
     "Low|3": {
-     "segments": 3265,
-     "miles": 128.8
+     "segments": 3032,
+     "miles": 116.4
     },
     "Medium|0": {
-     "segments": 826,
-     "miles": 28.3
+     "segments": 823,
+     "miles": 28.6
     },
     "Medium|1": {
-     "segments": 633,
-     "miles": 30.5
+     "segments": 803,
+     "miles": 40.6
     },
     "Medium|2": {
-     "segments": 334,
-     "miles": 13.3
+     "segments": 428,
+     "miles": 21.9
     },
     "Medium|3": {
-     "segments": 282,
-     "miles": 19.3
+     "segments": 432,
+     "miles": 25.6
     },
     "High|0": {
-     "segments": 1128,
-     "miles": 95.7
+     "segments": 1633,
+     "miles": 110.6
     },
     "High|1": {
-     "segments": 1028,
-     "miles": 107.2
+     "segments": 1297,
+     "miles": 116.3
     },
     "High|2": {
-     "segments": 749,
-     "miles": 56.8
+     "segments": 906,
+     "miles": 61.0
     },
     "High|3": {
-     "segments": 1032,
-     "miles": 142.3
+     "segments": 1115,
+     "miles": 148.3
     }
    },
    "hotspots": {
-    "segments": 1032,
-    "miles": 142.3,
+    "segments": 1115,
+    "miles": 148.3,
     "by_pair": {
      "FLR": 629,
      "LSR": 310,
-     "WFR": 92,
+     "WFR": 175,
      "AVR": 1
     }
    }
@@ -968,8 +982,8 @@
    2.0
   ],
   "breaks_wildfire": [
-   2.0,
-   2.5
+   1.5,
+   2.0
   ],
   "c_class_pctl_breaks": [
    25,
@@ -984,9 +998,9 @@
   "paths": {
    "count": 216,
    "V_class": {
-    "High": 108,
-    "Low": 106,
-    "Medium": 2
+    "High": 110,
+    "Low": 98,
+    "Medium": 8
    },
    "V_max_pair": {
     "WFAT": 111,
@@ -996,8 +1010,9 @@
   "transit": {
    "count": 8,
    "V_class": {
-    "Low": 7,
-    "Medium": 1
+    "Low": 6,
+    "Medium": 1,
+    "High": 1
    },
    "V_max_pair": {
     "WFTC": 8

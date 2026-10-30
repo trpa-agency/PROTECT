@@ -41,8 +41,8 @@ Per-pair weights, from the draft:
 
 `V_<pair>` is kept to two decimals and classed for the map and posters. **TRPA proposal
 (decision 9):** Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over, set in `config.yaml`
-(`scoring.v_breaks`). **Wildfire pairs (decision 26):** Low under 2.0, Medium 2.0 to 2.5, High
-over 2.5 (`scoring.v_breaks_wildfire`).
+(`scoring.v_breaks`). **Wildfire pairs (decision 26):** Low under 1.5, Medium 1.5 to 2.0, High
+over 2.0 (`scoring.v_breaks_wildfire`).
 
 ### 1.3 Criticality
 
@@ -777,7 +777,7 @@ highest severity class covering at least 25 percent of the 300 ft buffer on both
     scaled to the full weight. Roads are read alongside criticality, never multiplied by it
     (section 1.3).
 26. **TRPA decision (Oct. 12, 2026): wildfire class breaks.** WF-R, WF-AT, and WF-TC are
-    classed Low under 2.0, Medium 2.0 to 2.5, High over 2.5 (`scoring.v_breaks_wildfire`);
+    classed Low under 1.5, Medium 1.5 to 2.0, High over 2.0 (`scoring.v_breaks_wildfire`);
     every other pair keeps the section 1.2 breaks. Wildfire scores run 1.0 to 3.0, so the
     shared breaks put nearly every road in Medium or High on wildfire alone. `V_class` is the
     highest per-pair class (section 1.4). Effect on roads: High 6,191 to 4,031 segments;

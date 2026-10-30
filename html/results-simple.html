@@ -321,7 +321,7 @@
       classBreakInfos:[{minValue:-1.5, maxValue:-0.5, symbol:symOf(COL.gray, 0)}, {minValue:-0.5, maxValue:0.999, symbol:symOf(COL.ice, 1)},
         {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     // combined class from scoring (V_class): the highest per-pair class, where wildfire pairs use their own
-    // breaks (Low under 2, Medium 2 to 2.5, High over 2.5), so it can differ from the class of V_max
+    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2), so it can differ from the class of V_max
     const vClassFieldRenderer = (field, symOf) => ({type:"unique-value", field, defaultSymbol:symOf(COL.gray, 0), defaultLabel:"not scored",
       uniqueValueInfos:[{value:"Low", symbol:symOf(COL.ice, 1)}, {value:"Medium", symbol:symOf(COL.orange, 2)}, {value:"High", symbol:symOf(COL.brick, 3)}]});
     const lineW = k => [1.2, 1.8, 2.2, 2.6, 3][k];
@@ -333,14 +333,14 @@
     const eClassOf = v => (v == null || isNaN(v)) ? null : v < 0.1 ? "None" : v < 1 ? "Low" : v < 2 ? "Medium" : "High";
     const EC_COL = {None:COL.gray, Low:COL.ice, Medium:COL.orange, High:COL.brick};
     const E_CLASSES = ["None", "Low", "Medium", "High"];
-    // wildfire classes (TRPA, Oct. 12, 2026): Low 1 to under 2, Medium 2 to 2.5, High over 2.5. Wildfire
+    // wildfire classes (TRPA, Oct. 12, 2026; revised Oct. 30): Low 1 to under 1.5, Medium 1.5 to 2, High over 2. Wildfire
     // scores run 1.0 to 3.0, and on roads and paths vulnerability equals exposure (no sensitivity).
-    const wfClassOf = v => (v == null || isNaN(v)) ? null : v > 2.5 ? "High" : v >= 2 ? "Medium" : v >= 1 ? "Low" : "None";
+    const wfClassOf = v => (v == null || isNaN(v)) ? null : v > 2 ? "High" : v >= 1.5 ? "Medium" : v >= 1 ? "Low" : "None";
     const wfRenderer = (field, symOf) => ({type:"class-breaks", valueExpression:`IIf(IsEmpty($feature.${field}), -1, $feature.${field})`,
-      classBreakInfos:[{minValue:-1.5, maxValue:0.999, symbol:symOf(COL.gray, 0)}, {minValue:0.999, maxValue:1.999, symbol:symOf(COL.ice, 1)},
-        {minValue:1.999, maxValue:2.5, symbol:symOf(COL.orange, 2)}, {minValue:2.5, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
+      classBreakInfos:[{minValue:-1.5, maxValue:0.999, symbol:symOf(COL.gray, 0)}, {minValue:0.999, maxValue:1.499, symbol:symOf(COL.ice, 1)},
+        {minValue:1.499, maxValue:2, symbol:symOf(COL.orange, 2)}, {minValue:2, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     const WF_LEG = [[COL.ice,"Low"],[COL.orange,"Medium"],[COL.brick,"High"]];
-    const WF_NOTE = "Classes: Low 1 to under 2, Medium 2 to 2.5, High over 2.5.";
+    const WF_NOTE = "Classes: Low 1 to under 1.5, Medium 1.5 to 2, High over 2.";
     // exposure class renderer: 0 gray, under 1 ice, 1 to under 2 orange, 2 and over brick
     const eClassRenderer = (field, symOf) => ({type:"class-breaks", field, classBreakInfos:[
       {minValue:-0.01, maxValue:0.1, symbol:symOf(COL.gray, 0)}, {minValue:0.1, maxValue:0.999, symbol:symOf(COL.ice, 1)},
@@ -368,7 +368,7 @@
           [fmt(h.segments), "High vulnerability on top-criticality roads"], [fmt(h.miles), "miles of those"],
           [fmt(((v.culverts||{}).V_class||{}).High), "culverts High"], [fmt(((v.bridges||{}).V_class||{}).High), "bridges High"],
           [fmt(((v.paths||{}).V_class||{}).High), "paths High"], [fmt(((v.transit||{}).V_class||{}).High), "transit hubs High"]]; },
-      note(s){ return "Generated " + (s.generated || "") + ". Class breaks: Low under 1, Medium 1 to under 2, High 2 and over; wildfire Low under 2, Medium 2 to 2.5, High over 2.5. Criticality class from percentile breaks 25, 50, 75 (provisional)."; },
+      note(s){ return "Generated " + (s.generated || "") + ". Class breaks: Low under 1, Medium 1 to under 2, High 2 and over; wildfire Low under 1.5, Medium 1.5 to 2, High over 2. Criticality class from percentile breaks 25, 50, 75 (provisional)."; },
       emptyText:"Vulnerability results have not been published yet. The hazard tabs show exposure.",
       colorBy:[
         {value:"prio", label:"Priority", renderer:{roads:priorityRenderer("V_class", false), paths:priorityRenderer("V_class", true)}, legend:legendRows(VC_LEG.slice(0,3), "lg-line") + `<div class="lg-row"><span class="lg-line" style="background:#5a6577;height:1px"></span> thin: lowest criticality quarter</div><div class="lg-row"><span class="lg-line" style="background:#5a6577;height:5px"></span> thick: top criticality quarter</div>`,
@@ -427,7 +427,7 @@
           {field:"miles", headerName:"Miles", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"src_objectid", headerName:"Segment", width:95}]},
       notes:["<b>Score.</b> For each hazard pair, exposure times its weight plus sensitivity times its weight, each 0 to 3. The asset carries the highest pair; the popup says which hazard set it.",
         "<b>Stand-in pairs.</b> Debris flow is scored on the fire severity surface in place of the contracted soil burn severity, and the draft's drainage-size break puts nearly every basin at 3, so it is left out of the combined class until the real input arrives. The \"With stand-ins\" view and the popup carry the every-pair reading.",
-        "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 2, Medium 2 to 2.5, High over 2.5, and an asset's class is the highest of its pair classes.",
+        "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 1.5, Medium 1.5 to 2, High over 2, and an asset's class is the highest of its pair classes.",
         "<b>Why roads are never Low.</b> Wildfire likelihood is at least 1 everywhere with the Resource Kit data, so every segment's wildfire score, and with it its highest pair, is at least 1.",
         "<b>Criticality.</b> The criticality percentile cut into quarters.",
         "<b>Sensitivity data.</b> Roads carry no sensitivity (rubrics decision 25): each road pair's score is its exposure. Culverts without an inspection carry the fair default; the S_source field says which.",
@@ -594,7 +594,7 @@
       filters:[{id:"top", label:"High exposure only", tip:"Exposure 2 and over: burn probability over 0.5 percent a year with moderate or high severity most likely within 300 ft.",
         apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_WFR_hist >= 1.999" : null; if (L.paths) L.paths.definitionExpression = on ? "E_WFAT_hist >= 1.999" : null; if (L.hubs) L.hubs.definitionExpression = on ? "E_WFTC_hist >= 1.999" : null; }}],
       charts:[
-        {title:"Road miles by exposure class", sub:"Low 1 to under 2, Medium 2 to 2.5, High over 2.5", async draw(div){ milesByClass(div, await roadRows("wildfire"), "E_WFR_hist", wfClassOf, ["Low", "Medium", "High"], EC_COL, "road miles"); }},
+        {title:"Road miles by exposure class", sub:"Low 1 to under 1.5, Medium 1.5 to 2, High over 2", async draw(div){ milesByClass(div, await roadRows("wildfire"), "E_WFR_hist", wfClassOf, ["Low", "Medium", "High"], EC_COL, "road miles"); }},
         {title:"Exposure class by road type", sub:"Share of each road type's miles in each class", async draw(div){ const rows = await roadRows("wildfire"); stackedShare(div, topTypes(rows), ["Low", "Medium", "High"], EC_COL, rows, r => r.class || "unknown", r => wfClassOf(r.E_WFR_hist || 0), r => r.miles, "percent of miles", "miles"); }}],
       table:{title:"Road table", lead:"One row per scored road segment.", exportName:"PROTECT_wildfire_roads.csv", rows:() => roadRows("wildfire"),
         cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"-"}, {field:"src_objectid", headerName:"Segment", width:100},
@@ -608,7 +608,7 @@
         "<b>Severity (E2).</b> TRPA most-likely fire severity, the Resource Kit's three severity probabilities stacked: low is 1, moderate is 2, high is 3. It stands in for the draft's flame length (decision 22).",
         "<b>Sampling.</b> Burn probability is the highest class within 300 ft of the segment, path, or hub; severity is the highest class covering at least 25 percent of that 300 ft buffer, so a single 30 m cell nearby does not set it; the two \"within 300 ft of roads\" layers show that ground, and a click outlines a segment's own buffer. The score is 0.7 x E1 + 0.3 x E2.",
         "<b>No zeros.</b> The Resource Kit model gives urban ground a burn probability too, so every segment scores at least 1; only water and bare rock are blank.",
-        "<b>Vulnerability.</b> Roads and paths carry no sensitivity (decision 25), so wildfire vulnerability equals exposure. Classes: Low 1 to under 2, Medium 2 to 2.5, High over 2.5.",
+        "<b>Vulnerability.</b> Roads and paths carry no sensitivity (decision 25), so wildfire vulnerability equals exposure. Classes: Low 1 to under 1.5, Medium 1.5 to 2, High over 2.",
         "<b>Vintage.</b> Both inputs are the 2022 to 2023 Pyrologix generation, after the 2021 Caldor Fire. The contracted fire-behavior package replaces them on the same breaks if it is delivered and reviewed in time for December."],
       foot:"Fire inputs from the Sierra Nevada Regional Resource Kit and the TRPA Fire service; roads from the TRPA street network; paths and hubs from TRPA services. Method: <code>docs/SCORING_RUBRICS.md</code> 6.4, decision 22."
     };
