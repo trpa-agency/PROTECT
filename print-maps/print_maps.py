@@ -198,15 +198,29 @@ def snapshot(aprx, layouts) -> dict:
     return st
 
 
+def set_vis(obj, vis: bool) -> bool:
+    """Write visibility only when it changes. Some layers read `visible` but refuse a write
+    (arcpy raises NameError); False means this one did."""
+    if obj.visible == vis:
+        return True
+    try:
+        obj.visible = vis
+    except NameError:
+        return False
+    return True
+
+
 def restore(st: dict) -> None:
     for lyr, vis in st["layers"]:
-        lyr.visible = vis
+        set_vis(lyr, vis)
     for e, txt in st["text"]:
-        e.text = txt
+        if e.text != txt:
+            e.text = txt
     for e, vis in st["elements"]:
-        e.visible = vis
+        set_vis(e, vis)
     for mf, m, ext in st["frames"]:
-        mf.map = m
+        if mf.map.name != m.name:
+            mf.map = m
         mf.camera.setExtent(ext)
 
 
@@ -235,9 +249,10 @@ def under(long_name: str, parents) -> bool:
     return any(long_name == p or long_name.startswith(p + "\\") for p in parents)
 
 
-def set_visibility(m, on: list, managed: list | None = None) -> None:
+def set_visibility(m, on: list, managed: list | None = None) -> list[str]:
     """Listed layers on with their parents and contents. Without `managed`, every other layer turns off
-    (basemaps excepted); with it, only the other layers inside `managed` do and the rest stay as authored."""
+    (basemaps excepted); with it, only the other layers inside `managed` do and the rest stay as authored.
+    Returns a problem for each layer that needed a change arcpy refused."""
     lyrs = m.listLayers()
     basemaps = [lyr.longName for lyr in lyrs if lyr.isBasemapLayer]
     scope = [lyr.longName for lyr in managed] if managed is not None else None
@@ -246,12 +261,18 @@ def set_visibility(m, on: list, managed: list | None = None) -> None:
         parts = lyr.longName.split("\\")
         keep.update("\\".join(parts[:i]) for i in range(1, len(parts) + 1))
     groups = [lyr.longName for lyr in on if lyr.isGroupLayer]
+    probs = []
     for lyr in lyrs:
-        show = lyr.longName in keep or under(lyr.longName, groups)
-        if show:
-            lyr.visible = True
+        if lyr.longName in keep or under(lyr.longName, groups):
+            want = True
         elif not under(lyr.longName, basemaps) and (scope is None or under(lyr.longName, scope)):
-            lyr.visible = False
+            want = False
+        else:
+            continue
+        if not set_vis(lyr, want):
+            probs.append(f"'{lyr.longName}' in map '{m.name}' cannot be turned {'on' if want else 'off'} by "
+                         "arcpy; set it in Pro or take it out of managed")
+    return probs
 
 
 def visible_layers(m) -> list:
@@ -315,7 +336,7 @@ def apply_sheet(aprx, lyt, cfg: dict, spec: dict, copy_maps: bool = False) -> li
             managed, pm = resolve_layers(m, fs["managed"]) if fs.get("managed") else (None, [])
             probs += p + pm
             if not (p or pm):
-                set_visibility(m, on, managed)
+                probs += set_visibility(m, on, managed)
         set_extent(mf, m, fs.get("extent"), probs)
 
     tokens = tokens_for(cfg, spec)
@@ -331,8 +352,8 @@ def apply_sheet(aprx, lyt, cfg: dict, spec: dict, copy_maps: bool = False) -> li
         hits = [e for e in elements if e.name == name]
         if not hits:
             probs.append(f"no element '{name}' on layout '{lyt.name}'")
-        for e in hits:
-            e.visible = bool(vis)
+        probs += [f"element '{name}' cannot be turned {'on' if vis else 'off'} by arcpy"
+                  for e in hits if not set_vis(e, bool(vis))]
     return probs
 
 
