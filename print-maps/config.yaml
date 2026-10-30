@@ -41,7 +41,7 @@ exports:
 tokens:
   workshop: Workshop 1, Nov. 9, 2026
 defaults:
-  managed: [Hazards, Bridge, Culvert, Road]
+  managed: [Results, Hazards, Bridge, Culvert, Road]   # Results: the group build_layers.py builds from layers.yaml
   always_on: []
   text:
     Legend Title: "{legend}"
@@ -67,9 +67,10 @@ restricted:
 # with id <corridor>_<hazard>_<version> (--only sr28 runs one corridor, --only sr28_wildfire one hazard).
 # corridors: title is the layout's Title text exactly (\r\n is a line break); bookmark is a bookmark in
 #   TRPA Standard Layers that frames the corridor (blank keeps the template's extent, which is SR 28).
-# hazards: label fills {hazard}; exposure is the classed surface; assets join it on the assets version.
-#   Layer names are as they read in PROTECT_analysis.aprx (Oct. 13, 2026).
-# versions: legend fills Legend Title; assets: true adds the hazard's asset layers; any other key (exports)
+# hazards: label fills {hazard}; exposure and assets are lists of layer names in the Results group that
+#   build_layers.py makes from layers.yaml: exposure is the hazard's surface, assets the Results page's
+#   default view of that tab.
+# versions: legend fills Legend Title; use names the hazard lists the sheet shows; any other key (exports)
 #   passes to the sheet.
 # sheet_matrix: one entry per block of the list; a corridor that needs fewer hazards gets its own entry.
 corridors:
@@ -80,37 +81,39 @@ corridors:
 hazards:
   flooding:
     label: Flooding
-    exposure: [Hazard_Flood_Class]
-    assets: [Road, Bridge, Culvert]
+    exposure: [Flood zones and streams]
+    assets: [Culverts (flooding vulnerability), Bridges (flood exposure), Roads (flood exposure class)]
   wildfire:
     label: Wildfire
-    exposure: [Hazard_Wildfire_BurnProb]
-    assets: [Road]
+    exposure: [Wildfire burn probability]
+    assets: [Transit hubs (wildfire exposure), Paths (wildfire exposure), Roads (wildfire exposure)]
   landslide:
     label: Landslide
-    exposure: [Hazard_Landslide_Class]
-    assets: [Road, Bridge, Culvert]
+    exposure: [Landslide susceptibility]
+    assets: [Culverts (landslide vulnerability), Bridges (landslide vulnerability), Roads (landslide vulnerability)]
   debris_flow:
     label: Debris Flow
-    exposure: [Hazard_DebrisFlow_Slope]    # slope term only; Hazard_DebrisFlow_Area is the drainage-size term
-    assets: [Road, Bridge, Culvert]
+    exposure: [Debris flow upslope steepness]   # the page has no debris-flow surface; E1 stands in
+    assets: [Culverts (debris flow vulnerability), Bridges (debris flow vulnerability), Roads (debris flow vulnerability)]
   avalanche:
     label: Avalanche
-    exposure: [Hazard_Avalanche_Cells]
-    assets: [Road]
+    exposure: [Avalanche zones, Roads (avalanche slope tier)]   # the page's Slope tier view
+    assets: [Avalanche zones, Roads (avalanche vulnerability)]
 versions:
   exposure:
     legend: "{hazard} Exposure"
+    use: [exposure]
     exports: [poster, screen]
   assets:
-    legend: "{hazard} Exposure and Assets"
-    assets: true
+    legend: "{hazard} Vulnerability"
+    use: [assets]
 sheet_matrix:
   - corridors: [sr28]
     hazards: [flooding, wildfire, landslide, debris_flow, avalanche]
     versions: [exposure, assets]
 
 # Sheets written out in full, after the generated ones. The keys a sheet can carry:
+# layout: export from this layout in the project instead of project.layout (an export's own layout wins).
 # layers: what shows within managed (or the whole map without it). Parent groups turn on with a listed
 # layer, and every layer inside a listed group turns on. Leave layers out to keep the map as authored.
 # map: the Pro map for the main frame (default: whatever the template frame shows).
@@ -119,8 +122,7 @@ sheet_matrix:
 # frames: other map frames on the layout, {frame name: {map, layers, extent}}, for an inset. Each frame
 # on a sheet needs its own Pro map, since layer visibility belongs to the map.
 # enabled: false keeps a sheet out of a full run (--only still exports it).
-# Not in the map yet: vulnerability-classed asset layers (Bridge, Culvert, and Road draw one plain
-# symbol), active transport, transit centers, and scenario layers.
+# Not in the map yet: scenario layers.
 sheets:
   - id: scenario_1
     legend: "Scenario 1: SR-89 West Shore Wildfire Closure"
@@ -130,7 +132,7 @@ sheets:
     legend: Scenario 2
     layers: [Scenario 2]
     enabled: false         # location and hazard not decided
-  - id: criticality
-    legend: Criticality
-    layers: [Criticality]
-    enabled: false         # if time allows: the context sheet at the entrance
+  - id: basin_criticality  # the context sheet at the entrance: the layout build_layers.py makes (layers.yaml
+    layout: Criticality - Lake Tahoe Basin - PROTECT   # layouts:), exported as built; no layers list, so its
+    legend: Road Criticality                           # map stays as built
+    exports: [poster, screen]
