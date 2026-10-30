@@ -459,11 +459,11 @@
     HAZARDS.forEach(h => { h.help = (h.data ? `Data mapped: ${h.data} ` : "") + h.ask; });
     const HZ = Object.fromEntries(HAZARDS.map(h => [h.k, h]));
     // Draft vulnerability classes and colors, copied from the Results page (results.html VC_COL / VC_LEG):
-    // Low under 1, Medium 1 to under 2, High 2 and over; wildfire pairs Low 1 to under 2, Medium 2 to 2.5,
-    // High over 2.5. Exactly 0 is not exposed and draws gray, as does an asset with no score for the hazard.
+    // Low under 1, Medium 1 to under 2, High 2 and over; wildfire pairs Low 1 to under 1.5, Medium 1.5 to 2,
+    // High over 2. Exactly 0 is not exposed and draws gray, as does an asset with no score for the hazard.
     const VC = { Low: "#B4CBE8", Medium: "#E87722", High: "#9C3E27", none: "#cfd4da" };
-    const VC_NOTE = { std: "Classes: Low under 1, Medium 1 to under 2, High 2 and over; 0 is not exposed.", fire: "Wildfire classes: Low 1 to under 2, Medium 2 to 2.5, High over 2.5." };
-    const vClassOf = (v, wf) => (v == null || isNaN(v)) ? null : wf ? (v > 2.5 ? "High" : v >= 2 ? "Medium" : v >= 1 ? "Low" : "none") : (+v === 0 ? "none" : v < 1 ? "Low" : v < 2 ? "Medium" : "High");
+    const VC_NOTE = { std: "Classes: Low under 1, Medium 1 to under 2, High 2 and over; 0 is not exposed.", fire: "Wildfire classes: Low 1 to under 1.5, Medium 1.5 to 2, High over 2." };
+    const vClassOf = (v, wf) => (v == null || isNaN(v)) ? null : wf ? (v > 2 ? "High" : v >= 1.5 ? "Medium" : v >= 1 ? "Low" : "none") : (+v === 0 ? "none" : v < 1 ? "Low" : v < 2 ? "Medium" : "High");
     // one symbol maker per asset type; k is the class index 0 (gray) to 3 (High), used for line width and dot size
     const ASSET_SYM = {
       roads:    (c, k) => ({ type: "simple-line", color: c, width: [1.2, 1.8, 2.2, 2.6][k], cap: "round", join: "round" }),
