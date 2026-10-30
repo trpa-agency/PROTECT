@@ -77,9 +77,9 @@ def expand_matrix(cfg: dict) -> tuple[list[dict], list[str]]:
                     cor, hz, ver = cors[c], hzs[h], vers[v]
                     names = {"corridor": cor.get("label", c), "hazard": hz.get("label", h)}
                     s = {"id": f"{c}_{h}_{v}", **names,
-                         **{k: val for k, val in ver.items() if k not in ("legend", "assets")},
+                         **{k: val for k, val in ver.items() if k not in ("legend", "use")},
                          "legend": fill(ver.get("legend", "{hazard}"), names),
-                         "layers": list(hz.get("exposure") or []) + (list(hz.get("assets") or []) if ver.get("assets") else [])}
+                         "layers": [n for key in ver.get("use", ["exposure"]) for n in (hz.get(key) or [])]}
                     if cor.get("title"):
                         s["text"] = {"Title": cor["title"]}
                     if cor.get("bookmark"):
@@ -88,15 +88,15 @@ def expand_matrix(cfg: dict) -> tuple[list[dict], list[str]]:
     return out, errs
 
 
-def get_logger(cfg: dict) -> logging.Logger:
+def get_logger(cfg: dict, name: str = "print_maps") -> logging.Logger:
     logs = here_path(cfg["paths"].get("logs", "logs"))
     logs.mkdir(parents=True, exist_ok=True)
-    log = logging.getLogger("print_maps")
+    log = logging.getLogger(name)
     log.setLevel(logging.INFO)
     log.handlers.clear()
     fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s", "%Y-%m-%d %H:%M:%S")
     for h in (logging.StreamHandler(sys.stdout),
-              logging.FileHandler(logs / f"print_maps_{time.strftime('%Y-%m-%d_%H%M%S')}.log", encoding="utf-8")):
+              logging.FileHandler(logs / f"{name}_{time.strftime('%Y-%m-%d_%H%M%S')}.log", encoding="utf-8")):
         h.setFormatter(fmt)
         log.addHandler(h)
     return log

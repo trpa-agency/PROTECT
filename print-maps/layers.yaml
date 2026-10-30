@@ -1,0 +1,133 @@
+# layers.yaml - the Results page's map layers rebuilt in the print-map Pro project (build_layers.py)
+# Mirrors html/results.html: the same datasets (PROTECT_curated.gdb carries the fields publish_results.py
+# publishes, public jurisdictions only), fields, class breaks, colors (COL), and legend labels, for each
+# hazard tab's default view and its surface. Change a break or a color on the page, change it here too.
+# Sizes are the page's screen pixels; build_layers.py converts them to points (x 0.75) and multiplies by
+# print_scale for the poster.
+
+source_gdb: ""             # blank = curated.gdb in the root config.yaml (rebuild it before printing)
+map: TRPA Standard Layers
+group: Results             # the one group build_layers.py owns: removed and rebuilt on every run
+place_before: Bridge       # the group goes just above this layer (under the template's labels)
+show_group: Flooding       # after a build, this hazard's group is on and the others off (print_maps.py sets
+                           # its own per sheet)
+hide_after_build: [Hazards, Bridge, Culvert, Road]   # the template's unscored layers, superseded by Results
+print_scale: 2.0
+
+colors:                    # results.html COL
+  ice: "#B4CBE8"
+  blue: "#0072CE"
+  navy: "#003B71"
+  peach: "#E8A05A"
+  orange: "#E87722"
+  brick: "#9C3E27"
+  gray: "#cfd4da"
+  forest: "#4A6118"
+  purple: "#7B6A8A"
+  white: "#ffffff"
+
+# [upper bound, color, legend label]; a value goes in the first class whose upper bound it does not
+# exceed. min is the lower bound of the first class. Values outside every class and nulls draw with the
+# default symbol (gray, "not scored"), as the page does.
+class_sets:
+  vclass:                  # vClassRenderer: exactly 0 is not exposed (roads carry no sensitivity, V = E)
+    min: -1
+    classes: [[0.0005, gray, "Not exposed (0)"], [0.999, ice, Low], [1.999, orange, Medium], [3.1, brick, High]]
+  wfclass:                 # wfRenderer: Low 1 to under 2, Medium 2 to 2.5, High over 2.5
+    min: -1
+    classes: [[0.999, gray, None], [1.999, ice, Low], [2.5, orange, Medium], [3.1, brick, High]]
+  flood_road:              # Flooding tab roads, E_FLR_hist 0 to 3 (decision 32: a stream crossing is 1)
+    min: -0.5
+    classes: [[0.5, gray, "0: none"], [1.5, ice, "1: stream crossing"], [2.5, blue, "2: 500-year zone"], [3.5, navy, "3: 100-year zone"]]
+  flood_bridge:            # Flooding tab bridges, E_FLB_hist
+    min: -1
+    classes: [[0.999, forest, Low], [1.999, orange, Medium], [3.1, brick, High]]
+  av_tier:                 # Avalanche tab slope tier view, av_tier 0 to 3
+    min: -0.5
+    classes: [[0.5, gray, "0: under 25 degrees, or no ground above"], [1.5, ice, "1: 25 to 30 or over 50 degrees"], [2.5, orange, "2: 30 to 35 or 45 to 50 degrees"], [3.5, brick, "3: 35 to 45 degrees"]]
+
+line_widths: [0.6, 0.9, 1.2, 1.6]   # LINE_W, by class
+
+# One entry per layer, top to bottom within its hazard group (points over lines over polygons).
+# kind: line | point | polygon. classes: a class_sets name, or a {min, classes} block of its own.
+# widths (lines; default line_widths) / sizes (points): one per class or one for all.
+# marker: circle | square. dashed: true for paths. alpha: fill opacity per class (polygons). opacity:
+# the layer's own opacity. simple: one color for every feature instead of classes. visible: false to
+# build it off.
+layers:
+  # Flooding tab: culverts by vulnerability (100-year storm), bridges and roads by exposure
+  - {name: Culverts (flooding vulnerability), group: Flooding, dataset: Assets\Culverts, kind: point, field: V_FLC_hist, classes: vclass, sizes: [4, 5, 6, 8]}
+  - {name: Bridges (flood exposure), group: Flooding, dataset: Assets\Bridges, kind: point, marker: square, field: E_FLB_hist, classes: flood_bridge, sizes: 11}
+  - {name: Roads (flood exposure class), group: Flooding, dataset: Assets\Roads, kind: line, field: E_FLR_hist, classes: flood_road}
+  - name: Flood zones and streams
+    group: Flooding
+    dataset: HazardSurfaces\Hazard_Flood_Class
+    kind: polygon
+    field: hz_class
+    opacity: 0.9
+    classes:
+      min: 0.5
+      classes: [[1.5, ice, "1: stream crossing"], [2.5, blue, "2: 500-year zone"], [3.5, navy, "3: 100-year zone"]]
+    alpha: [0.5, 0.35, 0.45]
+
+  # Wildfire tab: exposure on roads, paths, and transit hubs; the burn probability and severity surfaces
+  - {name: Transit hubs (wildfire exposure), group: Wildfire, dataset: Assets\TransitHubs, kind: point, marker: square, field: E_WFTC_hist, classes: wfclass, sizes: 6}
+  - {name: Paths (wildfire exposure), group: Wildfire, dataset: Assets\ActiveTransportation, kind: line, dashed: true, field: E_WFAT_hist, classes: wfclass}
+  - {name: Roads (wildfire exposure), group: Wildfire, dataset: Assets\Roads, kind: line, field: E_WFR_hist, classes: wfclass}
+  - name: Wildfire burn probability
+    group: Wildfire
+    dataset: HazardSurfaces\Hazard_Wildfire_BurnProb
+    kind: polygon
+    field: hz_class
+    opacity: 0.9
+    classes:
+      min: 0.5
+      classes: [[1.5, ice, "1: under 0.5 percent a year"], [2.5, orange, "2: 0.5 to 1 percent"], [3.5, brick, "3: over 1 percent"]]
+    alpha: [0.6, 0.5, 0.55]
+  - name: Wildfire severity
+    group: Wildfire
+    dataset: HazardSurfaces\Hazard_Wildfire_Severity
+    kind: polygon
+    field: hz_class
+    opacity: 0.9
+    visible: false
+    classes:
+      min: 0.5
+      classes: [[1.5, ice, "1: low"], [2.5, orange, "2: moderate"], [3.5, brick, "3: high severity"]]
+    alpha: [0.6, 0.5, 0.55]
+
+  # Landslide tab: vulnerability on culverts, bridges, and roads; the susceptibility surface
+  - {name: Culverts (landslide vulnerability), group: Landslide, dataset: Assets\Culverts, kind: point, field: V_LSC_hist, classes: vclass, sizes: [4, 5, 6, 7]}
+  - {name: Bridges (landslide vulnerability), group: Landslide, dataset: Assets\Bridges, kind: point, marker: square, field: V_LSB_hist, classes: vclass, sizes: 11}
+  - {name: Roads (landslide vulnerability), group: Landslide, dataset: Assets\Roads, kind: line, field: V_LSR_hist, classes: vclass}
+  - name: Landslide susceptibility
+    group: Landslide
+    dataset: HazardSurfaces\Hazard_Landslide_Class
+    kind: polygon
+    field: hz_class
+    opacity: 0.9
+    classes:
+      min: 0.5
+      classes: [[1.5, ice, "1: over 40 to 60 percent of the cell prone"], [2.5, orange, "2: over 60 to 80 percent"], [3.5, brick, "3: over 80 percent, or a recorded landslide"]]
+    alpha: [0.6, 0.5, 0.55]
+
+  # Debris flow tab: vulnerability on culverts, bridges, and roads. The page has no debris-flow surface;
+  # the upslope steepness term (E1) stands in for the exposure sheet, on the page's exposure-class breaks.
+  - {name: Culverts (debris flow vulnerability), group: Debris flow, dataset: Assets\Culverts, kind: point, field: V_DFC_hist, classes: vclass, sizes: [4, 5, 6, 7]}
+  - {name: Bridges (debris flow vulnerability), group: Debris flow, dataset: Assets\Bridges, kind: point, marker: square, field: V_DFB_hist, classes: vclass, sizes: 11}
+  - {name: Roads (debris flow vulnerability), group: Debris flow, dataset: Assets\Roads, kind: line, field: V_DFR_hist, classes: vclass}
+  - name: Debris flow upslope steepness
+    group: Debris flow
+    dataset: HazardSurfaces\Hazard_DebrisFlow_Slope
+    kind: polygon
+    field: hz_class
+    opacity: 0.9
+    classes:
+      min: 0
+      classes: [[0.999, ice, "Low (0.5)"], [1.999, orange, "Medium (1 to 1.5)"], [3.1, brick, "High (2 to 3)"]]
+    alpha: [0.6, 0.5, 0.55]
+
+  # Avalanche tab: roads by vulnerability (default view) and by slope tier, with TRPA's mapped zones
+  - {name: Roads (avalanche vulnerability), group: Avalanche, dataset: Assets\Roads, kind: line, field: V_AVR_hist, classes: vclass}
+  - {name: Roads (avalanche slope tier), group: Avalanche, dataset: Assets\Roads, kind: line, field: av_tier, classes: av_tier, visible: false}
+  - {name: Avalanche zones, group: Avalanche, dataset: HazardSources\Avalanche_Zones, kind: polygon, simple: purple, alpha: 0.45, opacity: 0.8, label: Mapped avalanche zone}
