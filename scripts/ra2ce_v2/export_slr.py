@@ -14,6 +14,16 @@ Per street:
   slr_detour        min: 0 if any contributing segment has no detour at all
   slr_alt_length    alternative route length (m) for the segment that set slr_diff_length
 
+Streets too short to trim (2.5 x TRIM_M, 12.5 m) are tested whole, so a link that
+only meets them end-on can still lie half inside their buffer: a 9 m driveway mouth
+took West Lake Boulevard's 119,891 m detour that way. For those streets a segment
+must also pass within SHORT_MID_TOL_M of the street's midpoint. Segments come from
+the same Overture links as the streets, so the street's own segment passes at about
+0 m and an end-on neighbour fails at about half the street's length (Oct. 30, 2026).
+Trunk, primary, and secondary streets are exempt (CORRIDOR_CLASSES): a short piece
+of a highway between two junctions keeps the corridor's detour, since a closure
+takes out the corridor, not 8 m of it.
+
 Self-loops (u == v, mostly cul-de-sac loops) are neutralized: RA2CE reports
 diff_length = -length for them because the "alternative" from a node to itself
 is 0 m. Removing a loop never disconnects anything, so they get detour = 1 and
@@ -42,8 +52,11 @@ from shapely.strtree import STRtree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from export_protect_va import (  # noqa: E402
-    BUFFER_M, MIN_ROW_COVER, METRIC_CRS, OUT, _interior, fetch_published,
+    BUFFER_M, MIN_ROW_COVER, METRIC_CRS, OUT, TRIM_M, _interior, fetch_published,
 )
+
+SHORT_MID_TOL_M = 2.0   # short streets: a contributing segment must pass this close to the midpoint
+CORRIDOR_CLASSES = ("trunk", "primary", "secondary")   # exempt from the midpoint test
 
 SLR = HERE / "output" / "single_link_redundancy" / "tahoe_slr_v2.gpkg"
 BASE_NETWORK = HERE / "static" / "output_graph" / "base_network.feather"
@@ -90,7 +103,13 @@ def join_to_streets(pub, crit):
     along = shapely.length(shapely.intersection(cg[ci], ibuf[si])) / clen[ci]
     ok = along >= MIN_ROW_COVER
     si, ci = si[ok], ci[ok]
-    cov = shapely.length(shapely.intersection(sg[si], cbuf[ci])) / shapely.length(sg[si])
+    # short (untrimmed) non-corridor streets: drop segments that only meet the street end-on
+    corridor = pub_m["class"].isin(CORRIDOR_CLASSES).to_numpy()
+    short = (shapely.length(sg[si]) <= 2.5 * TRIM_M) & ~corridor[si]
+    mid = shapely.line_interpolate_point(sg[si], 0.5, normalized=True)
+    ok = ~short | (shapely.distance(cg[ci], mid) <= SHORT_MID_TOL_M)
+    si, ci = si[ok], ci[ok]
+    cov =shapely.length(shapely.intersection(sg[si], cbuf[ci])) / shapely.length(sg[si])
     ok = cov > 0
     m = pd.DataFrame({"s": si[ok], "c": ci[ok], "w": cov[ok]})
     m["diff"] = crit_m.diff_length.to_numpy()[m.c]

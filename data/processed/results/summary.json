@@ -855,68 +855,68 @@
     }
    },
    "C_class": {
-    "0": 4714,
-    "1": 4395,
-    "2": 4597,
-    "3": 4579
+    "0": 4787,
+    "1": 4441,
+    "2": 4460,
+    "3": 4597
    },
    "matrix": {
     "Low|0": {
-     "segments": 2258,
-     "miles": 83.9
+     "segments": 2310,
+     "miles": 84.8
     },
     "Low|1": {
-     "segments": 2295,
-     "miles": 102.3
+     "segments": 2318,
+     "miles": 102.5
     },
     "Low|2": {
-     "segments": 3263,
-     "miles": 128.5
+     "segments": 3228,
+     "miles": 125.7
     },
     "Low|3": {
-     "segments": 3032,
-     "miles": 116.4
+     "segments": 2992,
+     "miles": 118.2
     },
     "Medium|0": {
-     "segments": 823,
-     "miles": 28.6
+     "segments": 829,
+     "miles": 28.8
     },
     "Medium|1": {
-     "segments": 803,
-     "miles": 40.6
+     "segments": 804,
+     "miles": 41.0
     },
     "Medium|2": {
-     "segments": 428,
-     "miles": 21.9
+     "segments": 379,
+     "miles": 19.6
     },
     "Medium|3": {
-     "segments": 432,
-     "miles": 25.6
+     "segments": 474,
+     "miles": 27.2
     },
     "High|0": {
-     "segments": 1633,
-     "miles": 110.6
+     "segments": 1648,
+     "miles": 112.1
     },
     "High|1": {
-     "segments": 1297,
-     "miles": 116.3
+     "segments": 1319,
+     "miles": 123.0
     },
     "High|2": {
-     "segments": 906,
-     "miles": 61.0
+     "segments": 853,
+     "miles": 56.0
     },
     "High|3": {
-     "segments": 1115,
-     "miles": 148.3
+     "segments": 1131,
+     "miles": 145.1
     }
    },
    "hotspots": {
-    "segments": 1115,
-    "miles": 148.3,
+    "segments": 1131,
+    "miles": 145.1,
     "by_pair": {
-     "FLR": 629,
-     "LSR": 310,
-     "WFR": 175,
+     "FLR": 641,
+     "LSR": 306,
+     "WFR": 183,
      "AVR": 1
     }
    }

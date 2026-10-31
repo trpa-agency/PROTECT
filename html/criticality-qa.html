@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Criticality QA | PROTECT | TRPA</title>
+  <meta name="description" content="Quality check of the PROTECT criticality scores: street segments whose criticality looks wrong and still needs a look, what was fixed on Oct. 30, 2026, and why many residential streets reach the top quarter." />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- No Calcite include: the ArcGIS SDK registers its own Calcite build for its widgets. The page's controls are native elements. -->
+  <!-- AG Grid loads BEFORE the ArcGIS SDK (its AMD loader otherwise captures the UMD bundle) -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--trpa-navy);background:var(--page-bg);line-height:1.55;}
+    header.app-header{background:var(--trpa-navy);color:#fff;}
+    .header-content{max-width:1500px;margin:0 auto;width:100%;padding:.85rem 1.6rem .9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;}
+    .header-logo{flex-shrink:0;display:inline-block;line-height:0;}
+    .header-logo img{height:50px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header.app-header .agency{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:3px;}
+    header.app-header h1{font-size:1.3rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header.app-header .header-sub{font-size:.82rem;color:var(--trpa-ice);margin-top:3px;opacity:.95;}
+    header.app-header .right{flex-shrink:0;display:flex;align-items:center;gap:.9rem;font-size:.78rem;flex-wrap:wrap;}
+    header.app-header .chip{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;}
+    header.app-header a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;}
+    header.app-header a:hover{color:#fff;}
+    main{max-width:1500px;margin:0 auto;padding:1.1rem 1.6rem 1rem;}
+    main p{max-width:56em;}
+    .lead{font-size:.9rem;color:var(--gray-text);max-width:95ch;margin-bottom:.8rem;}
+    h2.sec{font-size:1.05rem;font-weight:700;margin:1.6rem 0 .7rem;padding-bottom:.3rem;border-bottom:2px solid var(--trpa-ice);display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+    h2.sec .tag{font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.1rem .5rem;border-radius:999px;}
+    .tag.open{background:#fbe9e4;color:var(--trpa-brick);} .tag.fixed{background:#e8efdf;color:var(--trpa-forest);} .tag.design{background:#eef1f5;color:var(--gray-text);}
+    .banner{background:#fff8ec;border:1px solid #f0d9b0;border-left:4px solid var(--trpa-orange);border-radius:6px;padding:.6rem .9rem;font-size:.82rem;margin-bottom:1rem;}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.7rem;margin-bottom:.4rem;}
+    .kpi{background:#fff;border:1px solid var(--gray-border);border-top:3px solid var(--trpa-navy);border-radius:6px;padding:.6rem .8rem;}
+    .kpi.open{border-top-color:var(--trpa-brick);} .kpi.fixed{border-top-color:var(--trpa-forest);} .kpi.design{border-top-color:#9aa5b4;}
+    .kpi .v{font-size:1.45rem;font-weight:700;line-height:1.1;}
+    .kpi .l{font-size:.72rem;color:var(--gray-text);margin-top:.15rem;}
+    /* open outlier cards: the emphasis of the page */
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem;}
+    .card{background:#fff;border:1px solid var(--gray-border);border-left:5px solid var(--c);border-radius:8px;padding:.7rem .9rem .75rem;cursor:pointer;text-align:left;font:inherit;color:inherit;display:block;width:100%;}
+    .card:hover{box-shadow:0 2px 10px rgba(0,43,85,.12);}
+    .card.on{outline:2px solid var(--trpa-blue);outline-offset:1px;}
+    .card .top{display:flex;align-items:baseline;gap:.6rem;}
+    .card .n{font-size:1.5rem;font-weight:700;line-height:1;color:var(--c);min-width:2.2rem;}
+    .card h3{font-size:.9rem;font-weight:700;line-height:1.25;}
+    .card p{font-size:.78rem;color:var(--gray-text);margin-top:.35rem;}
+    .card p.next{color:var(--trpa-navy);} .card p.next b{font-weight:700;}
+    .card.small{border-left-width:3px;} .card.small .n{font-size:1.15rem;}
+    .map-wrap{display:flex;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
+    .layer-panel{width:290px;flex-shrink:0;background:#fff;padding:.9rem 1rem;overflow-y:auto;height:600px;border-right:1px solid var(--gray-border);}
+    .layer-panel h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-text);margin:.2rem 0 .5rem;}
+    .layer-panel .grp{margin-top:1rem;border-top:1px solid #eef0f3;padding-top:.7rem;}
+    .layer-panel .note{font-size:.74rem;color:var(--gray-text);margin:.3rem 0 .6rem;}
+    .lyr{display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem;font-size:.8rem;}
+    .lg-row{display:flex;align-items:center;gap:.45rem;font-size:.76rem;margin-top:.35rem;}
+    label.lg-row{cursor:pointer;line-height:1.3;}
+    label.lg-row input{accent-color:var(--trpa-navy);margin:0;flex-shrink:0;}
+    label.lg-row.off{color:#9aa5b4;}
+    .lg-head{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-text);margin:.7rem 0 .1rem;}
+    .lg-head:first-child{margin-top:0;}
+    .lg-line{flex:0 0 22px;height:4px;border-radius:2px;display:inline-block;box-shadow:0 0 0 1px rgba(4,35,51,.18);}
+    .sw{appearance:none;-webkit-appearance:none;width:30px;height:16px;border-radius:999px;background:#c9d1da;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s;outline:none;}
+    .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+    .sw:checked{background:var(--trpa-blue);} .sw:checked::after{left:16px;}
+    .sw:focus-visible{box-shadow:0 0 0 2px var(--trpa-ice);}
+    #map-view{flex:1;height:600px;}
+    .btn{font:600 .8rem 'Open Sans',sans-serif;color:var(--trpa-blue);background:#fff;border:1px solid var(--trpa-blue);border-radius:6px;padding:.4rem .8rem;cursor:pointer;}
+    .btn:hover{background:var(--trpa-blue);color:#fff;}
+    .cb{display:flex;flex-wrap:wrap;gap:.3rem;}
+    .cb button{font:600 .74rem 'Open Sans',sans-serif;color:var(--trpa-navy);background:#fff;border:1px solid var(--gray-border);border-radius:999px;padding:.22rem .6rem;cursor:pointer;}
+    .cb button:hover{border-color:var(--trpa-blue);}
+    .cb button.on{background:var(--trpa-navy);border-color:var(--trpa-navy);color:#fff;}
+    .toolbar{display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;}
+    .qf{flex:1;min-width:200px;padding:.45rem .7rem;border:1px solid var(--gray-border);border-radius:6px;font-family:inherit;font-size:.84rem;color:var(--trpa-navy);}
+    .count{font-size:.78rem;color:var(--gray-text);}
+    .grid-wrap{width:100%;height:470px;}
+    .ag-theme-quartz{--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;
+      --ag-font-family:'Open Sans',sans-serif;--ag-font-size:12.5px;--ag-borders:none;--ag-row-border-color:#eef0f3;}
+    table.ref{width:100%;border-collapse:collapse;background:#fff;font-size:.8rem;border:1px solid var(--gray-border);}
+    table.ref th{background:var(--trpa-navy);color:#fff;text-align:left;padding:.45rem .6rem;font-weight:600;}
+    table.ref td{padding:.45rem .6rem;border-top:1px solid #eef0f3;vertical-align:top;}
+    table.ref td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+    .twrap{overflow-x:auto;}
+    .bars{display:grid;grid-template-columns:1fr;gap:.35rem;max-width:720px;margin:.6rem 0 .3rem;}
+    .bar{display:grid;grid-template-columns:150px 1fr 60px;align-items:center;gap:.5rem;font-size:.78rem;}
+    .bar .t{height:14px;background:#eef1f5;border-radius:3px;overflow:hidden;}
+    .bar .t i{display:block;height:100%;background:var(--trpa-navy);}
+    .bar .t i.minor{background:var(--trpa-orange);}
+    .bar .v{text-align:right;font-variant-numeric:tabular-nums;}
+    details.block{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.5rem .9rem;margin-top:1rem;}
+    details.block summary{font-size:.9rem;font-weight:700;cursor:pointer;padding:.3rem 0;list-style:none;display:flex;align-items:center;gap:.5rem;}
+    details.block summary::-webkit-details-marker{display:none;}
+    details.block summary::before{content:"";width:0;height:0;border-left:6px solid var(--trpa-blue);border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .15s;}
+    details.block[open] summary::before{transform:rotate(90deg);}
+    .notes{font-size:.82rem;color:var(--gray-text);max-width:100ch;}
+    .notes li{margin:.25rem 0 .25rem 1.1rem;}
+    .empty{background:#fff;border:1px dashed var(--gray-border);border-radius:8px;padding:1.2rem;font-size:.86rem;color:var(--gray-text);margin:.6rem 0;}
+    footer.app-footer{max-width:1500px;margin:0 auto;padding:1.1rem 1.6rem 2.4rem;border-top:1px solid var(--gray-border);color:var(--gray-text);font-size:.8rem;}
+    footer.app-footer code,.notes code{background:#eef1f5;padding:1px 5px;border-radius:3px;font-size:.92em;}
+    @media (max-width:900px){
+      header.app-header .right{flex-basis:100%;flex-shrink:1;}
+      .map-wrap{flex-direction:column;}
+      .layer-panel{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--gray-border);}
+      #map-view{height:420px;}
+      .toolbar .qf{min-width:0;flex-basis:100%;}
+      .bar{grid-template-columns:110px 1fr 50px;}
+    }
+    @media (max-width:700px){
+      .header-content{padding:.5rem .9rem;gap:.6rem;flex-wrap:nowrap;}
+      .header-logo img{height:34px;}
+      header .agency,header .header-sub{display:none;}
+      header.app-header h1{font-size:1.02rem;line-height:1.25;}
+      header.app-header .right{flex:0 0 auto;}
+      header.app-header .right .chip{display:none;}
+      main{padding-left:.9rem;padding-right:.9rem;}
+      .cards{grid-template-columns:1fr;}
+    }
+  </style>
+  <style>
+    /* Pages menu in the header (replaces the site nav row) */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Criticality QA</h1>
+        <div class="header-sub">Tahoe Resilience Improvement Plan &middot; street segments whose criticality still needs a look</div>
+      </div>
+      <div class="right">
+        <span class="chip">v0.1 draft</span>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="criticality-qa.html" class="on" aria-current="page">Criticality QA</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="banner">Internal review draft. Three input errors were fixed on Oct. 30, 2026; the segments below are the ones nobody has fixed yet.</div>
+    <p class="lead">Each check looks for a street segment whose criticality score does not fit the road: a driveway ranked like a highway, a lone bright block in a quiet neighborhood. Open items come first; click a card to show only those segments on the map and in the table.</p>
+    <div class="empty" id="empty" style="display:none"></div>
+    <div class="kpis" id="kpis"></div>
+
+    <h2 class="sec">Still open <span class="tag open">needs a look</span></h2>
+    <div class="cards" id="cards-open"></div>
+
+    <h2 class="sec">Map and table</h2>
+    <div class="map-wrap" id="map-wrap">
+      <div class="layer-panel">
+        <h3>Show checks</h3>
+        <div class="cb" id="status"></div>
+        <p class="note" id="sel-note"></p>
+        <div class="grp" style="margin-top:.5rem"><div id="legend"></div></div>
+        <div class="grp">
+          <label class="lyr"><input type="checkbox" class="sw" id="tg-all" checked /> All streets, for context</label>
+          <label class="lyr"><input type="checkbox" class="sw" id="tg-bound" checked /> TRPA boundary</label>
+          <p class="note">Click a segment for its scores, or a table row to zoom to it.</p>
+        </div>
+      </div>
+      <div id="map-view"></div>
+    </div>
+
+    <div class="toolbar" style="margin-top:.9rem">
+      <input class="qf" id="qf" type="search" placeholder="Search by name, class, segment id, or check" aria-label="Search the table" />
+      <span class="count" id="count"></span>
+      <button type="button" class="btn" id="csv">Export CSV</button>
+    </div>
+    <div id="grid" class="ag-theme-quartz grid-wrap"></div>
+
+    <h2 class="sec">Why so many residential streets reach the top quarter <span class="tag design">by design</span></h2>
+    <p id="design-lead"></p>
+    <div class="bars" id="bars"></div>
+    <div class="cards" id="cards-design" style="margin-top:.7rem"></div>
+    <details class="block"><summary>Ways to change this, if the review wants to</summary>
+      <ul class="notes">
+        <li>Cut the quarters only among segments above the floor, so the 13,000 segments at the lowest class on every input sit in quarter 0 and the rest split into three.</li>
+        <li>Call the top tenth "High" instead of the top quarter, which keeps the major roads and drops most one-step residential streets.</li>
+        <li>Keep the quarters and read criticality with the hazard: the Results page's hotspots need both a high vulnerability class and the top criticality quarter.</li>
+        <li>Note that fixing an error does not shrink the top quarter: it always holds a quarter of the segments, so when about 190 wrongly ranked stubs and forest roads left it on Oct. 30, the next residential streets in line took their place (residential segments in the top quarter went from 1,571 to 1,712).</li>
+      </ul>
+    </details>
+
+    <h2 class="sec">Fixed on Oct. 30, 2026 <span class="tag fixed">done</span></h2>
+    <div class="twrap"><table class="ref" id="fixed">
+      <thead><tr><th>Problem</th><th>Fix</th><th>Segments</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Driveway mouths took the highway's traffic: a 10 m stub meeting a highway lies about half inside the highway's 5 m buffer, which passed the 50 percent join rule.</td><td>The traffic join also needs 15 m of overlap, or 90 percent of a street shorter than that, and a street that short must run within 30 degrees of the traffic line (<code>Streets_Network_Clean.ipynb</code>).</td><td class="num">160</td><td>An unnamed 10 m service stub on Lake Tahoe Boulevard dropped from traffic class 10 to 1.</td></tr>
+        <tr><td>Short streets took the detour of the highway they meet end-on.</td><td>A street of 12.5 m or less needs the detour link to pass within 2 m of its midpoint; trunk, primary, and secondary roads keep the corridor's detour (<code>export_slr.py</code>).</td><td class="num">385</td><td>A 9 m piece of Idlewild Way carried West Lake Boulevard's 74-mile detour: now 0.3 mile, from the 97th to the 70th percentile.</td></tr>
+        <tr><td>Major roads scored at the lowest traffic class: highway pieces inside an intersection took the cross street's traffic, the gap fill spread it along the highway, and a segment whose line doubles back found no neighbors to fill from.</td><td>Highway pieces must run along the traffic line they match; gaps on major roads fill only from touching major roads; streets sharing an endpoint count as touching (<code>Streets_Network_Clean.ipynb</code>).</td><td class="num">9</td><td>North Lake Boulevard at Brook Avenue, Kings Beach: from traffic class 1 (Brook Avenue's 304 vehicles a day) to 7 (13,360). Mount Rose Highway 3744: from 0 to 6,009.</td></tr>
+        <tr><td>Roads almost nobody uses ranked high on detour alone.</td><td>Minor roads with a detour of about 1.3 miles or more, the lowest traffic class, and fewer than 10 residents routed have their detour class capped at 1 (<code>detour_low_use</code>).</td><td class="num">52</td><td>Mount Watson Road: 18 segments, 17-mile detour, one resident routed; from the 91st to the 43rd percentile.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="toolbar" style="margin-top:.5rem"><button type="button" class="btn" id="csv-fixed">Export CSV</button></div>
+    <div class="cards" id="cards-fixed" style="margin-top:.4rem"></div>
+
+    <details class="block"><summary>How the checks work</summary>
+      <ul class="notes">
+        <li>The checks run on the published criticality table, <code>roads_criticality.json</code>, with the default weights (traffic 0.3, detour 0.3, access 0.3, equity 0.1). Quarters are the Results page rule: percentile 75 and up is the top quarter.</li>
+        <li>Two segments touch when they share an endpoint. A "stub" is a segment of 16 m or less, below what the traffic join's minimum overlap can reach.</li>
+        <li>A segment can fail several checks; the table lists all of them, and the map colors it by the first open one.</li>
+        <li>Re-run <code>python scripts/criticality_qa.py</code> after every criticality rebuild; it writes <code>criticality_qa.json</code>, which this page reads.</li>
+      </ul>
+    </details>
+  </main>
+
+  <footer class="app-footer">
+    <p id="foot">Draft v0.1. Data: <code>data/processed/results/criticality_qa.json</code> (from <code>scripts/criticality_qa.py</code>) and <code>roads_geometry.geojson</code>. Internal review draft.</p>
+  </footer>
+
+  <script>
+  (function(){
+    const BASE = "../data/processed/results/";
+    const BOUND_URL = "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4";
+    const $ = id => document.getElementById(id);
+    const fmt = n => n == null ? "" : Number(n).toLocaleString("en-US");
+    const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    // one color per check; open checks get the strong colors
+    const COLORS = {traffic_stub:"#9C3E27", stub_access:"#E87722", major_low_traffic:"#B47E00", spike:"#D6336C",
+      shape_doubles_back:"#00A3AD", parallel_split:"#7B6A8A", unnamed_major:"#0072CE", unknown_top:"#4A6118", no_geometry:"#5a6577",
+      low_use_capped:"#2E8B57", equity_only_top:"#9aa5b4", one_step_top:"#c3cad4"};
+    // presets for the check list; "none" clears it so single checks can be ticked one by one
+    const STATUS = [{v:"open", label:"Open"}, {v:"fixed", label:"Fixed, to confirm"}, {v:"by design", label:"By design"}, {v:"all", label:"All"}, {v:"none", label:"None"}];
+    const STATUS_HEAD = {"open":"Open", "fixed":"Fixed, to confirm", "by design":"By design"};
+    const state = {cats:new Set()};   // the checks shown on the map and in the table
+    let Q = null, rows = [], geomById = {}, gridApi = null, view = null, flagLayer = null, Graphic = null;
+
+    // most likely scoring errors first; the missing-name check only affects labels
+    const ORDER = ["stub_access", "shape_doubles_back", "traffic_stub", "spike", "major_low_traffic", "no_geometry", "unknown_top",
+      "parallel_split", "unnamed_major", "low_use_capped", "equity_only_top", "one_step_top"];
+    const catsOf = st => ORDER.filter(k => Q.categories[k] && (st === "all" || Q.categories[k].status === st));
+    const shownRow = r => r.flags.some(k => state.cats.has(k));
+    // the check a row is colored and labeled by: its first selected check in ORDER
+    const leadCat = r => ORDER.find(k => r.flags.includes(k) && state.cats.has(k)) || r.flags[0];
+    const isSet = ks => ks.length === state.cats.size && ks.every(k => state.cats.has(k));
+
+    function card(k, small){
+      const c = Q.categories[k];
+      return `<button type="button" class="card${small ? " small" : ""}" data-cat="${k}" style="--c:${COLORS[k]}">
+        <div class="top"><span class="n">${fmt(c.count)}</span><h3>${esc(c.label)}</h3></div>
+        <p>${esc(c.what)}</p><p class="next"><b>Next:</b> ${esc(c.next)}</p></button>`;
+    }
+    function renderStatic(){
+      const C = Q.categories, S = Q.summary;
+      const n = st => rows.filter(r => r.flags.some(k => C[k].status === st)).length;
+      $("kpis").innerHTML = [
+        ["open", fmt(n("open")), "segments with an open check"],
+        ["fixed", "606", "corrections made Oct. 30 (169 traffic, 385 detour, 52 capped)"],
+        ["design", fmt(n("by design")), "top-quarter segments explained by the method"],
+        ["", fmt(S.top_quarter), `segments in the top quarter, of ${fmt(S.segments)}`]]
+        .map(([c, v, l]) => `<div class="kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      $("cards-open").innerHTML = catsOf("open").map(k => card(k)).join("");
+      $("cards-design").innerHTML = catsOf("by design").map(k => card(k, true)).join("");
+      $("cards-fixed").innerHTML = catsOf("fixed").map(k => card(k, true)).join("");
+      const pct = Math.round(100 * S.at_floor / S.segments);
+      $("design-lead").className = "notes";
+      $("design-lead").textContent = `${fmt(S.at_floor)} of ${fmt(S.segments)} segments (${pct} percent) sit at the lowest class on traffic, detour, and access alike, so the top-quarter cut lands just above that floor (a score of ${S.top_cut_score}). One step up on any input, or above-average neighborhood need, is enough to clear it. That is why most residential and service streets in the top quarter are there: the method ranks them, it does not misread them.`;
+      const order = ["primary","trunk","secondary","tertiary","residential","service","unclassified","unknown"];
+      const mx = Math.max(...Object.values(S.top_by_class));
+      $("bars").innerHTML = `<div class="bar" style="font-weight:700"><span>Top quarter by road class</span><span></span><span class="v">segments</span></div>` +
+        order.filter(k => S.top_by_class[k]).map(k => `<div class="bar"><span>${k}</span><span class="t"><i class="${["residential","service","unclassified","unknown"].includes(k) ? "minor" : ""}" style="width:${100 * S.top_by_class[k] / mx}%"></i></span><span class="v">${fmt(S.top_by_class[k])}</span></div>`).join("");
+      document.querySelectorAll(".card").forEach(b => b.addEventListener("click", () => selectCat(b.dataset.cat)));
+    }
+    // a card shows only its check; clicking the same card again goes back to that check's whole group
+    function selectCat(k){
+      state.cats = isSet([k]) ? new Set(catsOf(Q.categories[k].status)) : new Set([k]);
+      update();
+      $("map-wrap").scrollIntoView({behavior:"smooth", block:"start"});
+    }
+    function statusButtons(){
+      $("status").innerHTML = STATUS.map(s => `<button type="button" data-v="${s.v}">${s.label}</button>`).join("");
+      $("status").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+        state.cats = new Set(b.dataset.v === "none" ? [] : catsOf(b.dataset.v)); update(); }));
+      // one checkbox per check, grouped by status, in the cards' order
+      $("legend").innerHTML = ["open", "fixed", "by design"].map(st => `<div class="lg-head">${STATUS_HEAD[st]}</div>` +
+        catsOf(st).map(k => `<label class="lg-row" data-cat="${k}"><input type="checkbox" value="${k}" /><span class="lg-line" style="background:${COLORS[k]}"></span><span>${esc(Q.categories[k].label)} (${fmt(Q.categories[k].count)})</span></label>`).join("")).join("");
+      $("legend").querySelectorAll("input").forEach(cb => cb.addEventListener("change", () => {
+        if (cb.checked) state.cats.add(cb.value); else state.cats.delete(cb.value); update(); }));
+    }
+    function update(){
+      $("status").querySelectorAll("button").forEach(b => b.classList.toggle("on",
+        b.dataset.v === "none" ? state.cats.size === 0 : isSet(catsOf(b.dataset.v))));
+      document.querySelectorAll(".card").forEach(b => b.classList.toggle("on", isSet([b.dataset.cat])));
+      $("legend").querySelectorAll("label").forEach(l => { const on = state.cats.has(l.dataset.cat);
+        l.querySelector("input").checked = on; l.classList.toggle("off", !on); });
+      $("sel-note").textContent = state.cats.size === 0 ? "No checks selected: tick one below."
+        : state.cats.size === 1 ? `Only: ${Q.categories[[...state.cats][0]].label}.` : "Tick or untick checks below, or click a card above.";
+      // rows in check order (the cards' order), then by percentile
+      const shown = rows.filter(shownRow).sort((a, b) => ORDER.indexOf(leadCat(a)) - ORDER.indexOf(leadCat(b)) || b.pctl - a.pctl);
+      if (gridApi) gridApi.setGridOption("rowData", shown);
+      $("count").textContent = `${fmt(shown.length)} segments`;
+      if (flagLayer) { drawFlags(shown); }
+    }
+
+    // ---------- table ----------
+    const QCOL = ["#042333", "#6E4694", "#F37D4D", "#E8FA5B"];
+    function buildGrid(){
+      const lbl = k => Q.categories[k].label;
+      const cols = [
+        {field:"id", headerName:"Segment", width:95, pinned:"left"},
+        {field:"name", headerName:"Name", width:190, pinned:"left", valueFormatter:p => p.value || "(no name)"},
+        {headerName:"Check", width:260, valueGetter:p => lbl(leadCat(p.data)),
+         cellStyle:p => ({borderLeft:`5px solid ${COLORS[leadCat(p.data)]}`})},
+        {field:"class", headerName:"Class", width:110},
+        {field:"len", headerName:"Length (m)", width:105, type:"numericColumn"},
+        {field:"pctl", headerName:"Percentile", width:105, type:"numericColumn"},
+        {field:"q", headerName:"Quarter", width:90, type:"numericColumn",
+         cellStyle:p => ({background:QCOL[p.value], color:p.value >= 2 ? "#042333" : "#fff", fontWeight:700, textAlign:"center"})},
+        {field:"aadt", headerName:"Traffic class", width:110, type:"numericColumn"},
+        {field:"detour", headerName:"Detour class", width:110, type:"numericColumn"},
+        {field:"detour_raw", headerName:"Detour class before cap", width:120, type:"numericColumn"},
+        {field:"detour_m", headerName:"Detour (m)", width:105, type:"numericColumn", valueFormatter:p => fmt(p.value)},
+        {field:"access", headerName:"Access class", width:110, type:"numericColumn"},
+        {field:"residents", headerName:"Residents routed", width:120, type:"numericColumn", valueFormatter:p => fmt(p.value)},
+        {field:"nb_minor_res", headerName:"Most residents on a touching minor street", width:150, type:"numericColumn", valueFormatter:p => fmt(p.value)},
+        {field:"equity", headerName:"Equity part of score", width:120, type:"numericColumn"},
+        {field:"nb_max", headerName:"Highest touching percentile", width:130, type:"numericColumn"},
+        {headerName:"All checks", width:420, valueGetter:p => p.data.flags.map(lbl).join("; ")}];
+      // fixed widths with a horizontal scroll: 17 columns do not fit the page width
+      gridApi = agGrid.createGrid($("grid"), {columnDefs:cols, rowData:[], defaultColDef:{sortable:true, resizable:true, filter:true, wrapHeaderText:true, autoHeaderHeight:true},
+        animateRows:false, onRowClicked:e => zoomTo(e.data.id)});
+      $("qf").addEventListener("input", e => gridApi.setGridOption("quickFilterText", e.target.value));
+      $("csv").addEventListener("click", () => gridApi.exportDataAsCsv({fileName:"criticality_qa.csv"}));
+    }
+    function tableToCsv(tbl, name){
+      const q = s => `"${String(s).replace(/"/g, '""').replace(/\s+/g, " ").trim()}"`;
+      const csv = [...tbl.rows].map(r => [...r.cells].map(c => q(c.textContent)).join(",")).join("\r\n");
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"})); a.download = name; a.click();
+    }
+    $("csv-fixed").addEventListener("click", () => tableToCsv($("fixed"), "criticality_qa_fixed.csv"));
+
+    // ---------- map ----------
+    // popups ride on the graphics (popupTemplate), so the view's own click handling opens them
+    const FLAG_POPUP = {title:e => esc(e.graphic.attributes.name || "(no name)"), content:e => popupHTML(e.graphic.attributes)};
+    function drawFlags(shown){
+      flagLayer.removeAll();
+      shown.forEach(r => { const g = geomById[r.id]; if (!g) return; const k = leadCat(r);
+        flagLayer.add(new Graphic({geometry:g, popupTemplate:FLAG_POPUP,
+          attributes:Object.assign({lead:k, check:Q.categories[k].label}, r),
+          symbol:{type:"simple-line", color:COLORS[k], width:k === "one_step_top" || k === "equity_only_top" ? 2 : 3.5}})); });
+    }
+    function zoomTo(id){
+      const g = geomById[id]; if (!g || !view) return;
+      view.goTo({target:g, zoom:Math.max(view.zoom, 17)}).catch(() => {});
+      const hit = flagLayer.graphics.find(x => x.attributes.id === id);
+      view.graphics.removeAll();
+      view.graphics.add(new Graphic({geometry:g, symbol:{type:"simple-line", color:[0,114,206,0.35], width:12}}));
+      if (hit) view.openPopup({features:[hit], location:g.extent.center});
+    }
+    const row = (k, v) => `<tr><th style="text-align:left;font-weight:600;padding:.15rem .8rem .15rem 0;color:#5a6577">${k}</th><td style="padding:.15rem 0">${v}</td></tr>`;
+    const popupHTML = a => {
+      const c = Q.categories[a.lead], others = a.flags.filter(f => f !== a.lead).map(f => Q.categories[f].label);
+      return `<div style="border-left:4px solid ${COLORS[a.lead]};padding-left:.5rem;margin-bottom:.4rem"><b>${esc(c.label)}</b> <span style="color:#5a6577">(${esc(c.status)})</span>`
+        + `<div style="color:#5a6577;font-size:.92em">${esc(c.next)}</div></div>`
+        + `<table style="border-collapse:collapse;font-size:.92em">`
+        + row("Segment", `${esc(a.id)} &middot; ${esc(a.class || "no class")} &middot; ${a.len} m`)
+        + row("Criticality", `percentile ${a.pctl}, quarter ${a.q}`)
+        + row("Traffic class", a.aadt)
+        + row("Detour class", a.detour + (a.detour_raw !== a.detour ? ` (${a.detour_raw} before cap)` : "") + ` &middot; ${fmt(a.detour_m)} m`)
+        + row("Access class", `${a.access} &middot; ${fmt(a.residents)} residents routed`)
+        + (a.nb_minor_res != null ? row("Touching minor streets", `at most ${fmt(a.nb_minor_res)} residents routed`) : "")
+        + row("Equity part of score", a.equity)
+        + (a.nb_max != null ? row("Highest touching percentile", a.nb_max) : "")
+        + `</table>` + (others.length ? `<div style="color:#5a6577;margin-top:.35rem">Also: ${esc(others.join("; "))}</div>` : "");
+    };
+
+    const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(url.split("/").pop() + ": " + r.status); return r.json(); });
+    const data = Promise.all([getJSON(BASE + "criticality_qa.json"), getJSON(BASE + "roads_geometry.geojson")]);
+
+    require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/layers/GeoJSONLayer", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/widgets/Home", "esri/widgets/BasemapToggle"],
+      function(Map, MapView, FeatureLayer, GeoJSONLayer, GraphicsLayer, G, Home, BasemapToggle){
+      Graphic = G;
+      const bound = new FeatureLayer({url:BOUND_URL, renderer:{type:"simple", symbol:{type:"simple-fill", color:[0,0,0,0], outline:{color:[0,59,113,0.6], width:1.5}}}, popupEnabled:false});
+      flagLayer = new GraphicsLayer({title:"Flagged segments"});
+      const map = new Map({basemap:"gray-vector", layers:[bound, flagLayer]});
+      view = new MapView({container:"map-view", map, center:[-120.03, 39.09], zoom:10, constraints:{snapToZoom:false},
+        popup:{dockEnabled:true, dockOptions:{buttonEnabled:false, breakpoint:false, position:"top-right"}}});
+      view.ui.add(new Home({view}), "top-left");
+      view.ui.add(new BasemapToggle({view, nextBasemap:"hybrid"}), "bottom-left");
+      $("tg-bound").addEventListener("change", e => { bound.visible = e.target.checked; });
+
+      data.then(([q, gj]) => {
+        Q = q; rows = q.rows;
+        gj.features.forEach(f => { geomById[String(f.properties.src_objectid)] = {type:"polyline", paths:[f.geometry.coordinates], spatialReference:{wkid:4326}}; });
+        // Graphic needs real geometry objects for goTo and extent: let the SDK autocast them once
+        Object.keys(geomById).forEach(k => { geomById[k] = new Graphic({geometry:geomById[k]}).geometry; });
+        const all = new GeoJSONLayer({url:URL.createObjectURL(new Blob([JSON.stringify(gj)], {type:"application/geo+json"})), title:"All streets",
+          renderer:{type:"simple", symbol:{type:"simple-line", color:[90,101,119,0.35], width:0.6}}, outFields:["*"],
+          popupTemplate:{title:e => esc(e.graphic.attributes.name || "(no name)"), content:e => { const a = e.graphic.attributes;
+            return `${esc(a.class || "no class")} &middot; ${Math.round(a.seg_len_m)} m &middot; segment ${esc(a.src_objectid)}<br><span style="color:#5a6577">No check flags this segment${state.cats.size < Object.keys(Q.categories).length ? " among the checks shown" : ""}. Its scores are on the <a href="criticality-index.html">Criticality</a> page.</span>`; }}});
+        map.add(all, 1);
+        $("tg-all").addEventListener("change", e => { all.visible = e.target.checked; });
+        $("foot").textContent = `Draft v0.1. Checks generated ${q.meta.generated} by scripts/criticality_qa.py from the criticality table of ${q.meta.source}; geometry from roads_geometry.geojson. Internal review draft.`;
+        state.cats = new Set(catsOf("open"));
+        renderStatic(); statusButtons(); buildGrid(); update();
+      }).catch(err => { $("empty").style.display = ""; $("empty").textContent = "The QA data did not load (" + err.message + "). Serve the repository root, for example python -m http.server, and open html/criticality-qa.html."; });
+    });
+  })();
+  </script>
+  <script>
+    // Pages menu: close on an outside click or Escape
+    (function(){ const p = document.getElementById("pages"); if (!p) return;
+      document.addEventListener("click", e => { if (p.open && !p.contains(e.target)) p.open = false; });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") p.open = false; }); })();
+  </script>
+</body>
+</html>
