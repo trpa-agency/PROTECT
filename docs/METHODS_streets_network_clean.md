@@ -126,14 +126,26 @@ recorded as `equity_bg_match = 'nearest'`.
 ### 4. Traffic volume (AADT)
 
 Each segment is matched to the modeled AADT line whose 5 m buffer covers the largest share of the
-segment, provided that share is at least 50% of the segment's length. Where two AADT lines cover the
-segment equally (both directions of a divided road), the larger AADT is used. 7,748 segments match.
+segment, provided that share is at least 50% of the segment's length and the covered part is at least
+15 m long (90% of a segment shorter than about 17 m). Where two AADT lines cover the segment equally
+(both directions of a divided road), the larger AADT is used. 7,365 segments match.
+
+The 15 m minimum was added on Oct. 30, 2026. Without it, a 10 m driveway mouth meeting a highway passed
+the 50% test on the half of it that lies inside the highway's buffer, and took the highway's AADT: 160
+such stubs, all in the top criticality quarter. A segment short enough for the 90% rule must also run
+within 30 degrees of the AADT line near its midpoint, so a piece of highway inside an intersection does
+not take the cross street's value: two 4.6 m pieces of North Lake Boulevard inside the Brook Avenue
+intersection in Kings Beach had taken Brook Avenue's AADT of 304. 7,313 segments match.
 
 `Estimated_2024_AADT_Filled` uses, in order:
 
 1. the matched AADT (`aadt_source = 'streetlight'`);
 2. for trunk, primary, secondary and tertiary segments with no match, the highest AADT among touching
-   segments, repeated along chains of unmatched segments (`'neighbor'`; 168 segments);
+   major segments, repeated along chains of unmatched segments (`'neighbor'`; 177 segments). Only major
+   segments donate, so a cross street's volume cannot fill a highway. Segments that share an endpoint
+   count as touching even when their lines overlap: a 421 m piece of Mount Rose Highway whose line runs
+   back over its neighbor had no neighbors under `touches` and scored zero traffic. Five tertiary
+   segments, mostly Tahoe Mountain Road, have no AADT anywhere along their chain and stay at 0;
 3. 0 for everything else (`'none'`), mostly local and service streets with no modeled volume.
 
 `AADT_Jenks_Score` places the filled AADT into 10 Jenks natural-break classes (1 to 10).
@@ -166,8 +178,12 @@ on that corrected graph (80,785 links, distance-weighted). `export_slr.py`:
    joined by a shorter route. Removing either kind adds no distance;
 4. joins the segments to the 18,285 streets. A segment contributes to a street when at least half of
    the segment runs within 5 m of the street's interior (the street minus 5 m at each end), so a short
-   link meeting the street end-on does not count. Per street, `slr_diff_length_raw` is the largest extra
-   distance among contributing segments and `slr_detour_max` the smallest detour flag.
+   link meeting the street end-on does not count. Streets of 12.5 m or less are too short to trim, so
+   for them a segment must also pass within 2 m of the street's midpoint (Oct. 30, 2026); trunk,
+   primary and secondary streets are exempt and keep the corridor's value. Before this rule a 9 m piece
+   of Idlewild Way took West Lake Boulevard's 119,891 m detour; 385 short streets changed. Per street,
+   `slr_diff_length_raw` is the largest extra distance among contributing segments and `slr_detour_max`
+   the smallest detour flag.
 
 ![Detour rerun](img/streets_network_clean/fig4_detour_rerun.png)
 
@@ -184,7 +200,8 @@ are now included; most of them are dead-end service and residential streets.
 3. for the 53 trunk, primary, secondary and tertiary streets with no detour, the highest value among
    touching streets (`'neighbor'`).
 
-`SLR_Diff_Length_Jenks_Score` places `slr_diff_length_max` into 10 Jenks classes.
+`SLR_Diff_Length_Jenks_Score` places `slr_diff_length_max` into 10 Jenks classes, then caps it for roads
+almost nobody uses (section 7). `SLR_Diff_Length_Jenks_Raw` keeps the class before the cap.
 
 ### 6. OD traffic to critical services
 
@@ -298,6 +315,16 @@ facilities, emergency shelters, schools and fresh food locations; set in `OD_AVG
 pushing every other street toward zero. The equity-weighted `prioritarian_*` fields are left out of this
 average because equity has its own sub-index.
 
+**No detour credit for roads almost nobody uses (Oct. 30, 2026).** Detour length measures how far around
+a closed link the shortest alternative runs, not how many people would have to take it. A street that is
+not trunk, primary, secondary or tertiary, with a detour class of 3 or higher (about 2.2 km or more), the
+lowest traffic class, and fewer than 10 residents routed (`OD_Traffic_Avg`) has its detour class capped at
+1 before the z-score. `detour_low_use = 1` marks the 52 such streets, mostly forest and seasonal roads.
+Mount Watson Road is the clearest case: 18 segments, a 28 km detour, one resident routed, and the 91st
+percentile before the cap, the 43rd after. The thresholds are `DETOUR_LOW_USE_MIN_CLASS`,
+`DETOUR_LOW_USE_MAX_OD` and `DETOUR_LOW_USE_CAP` in the notebook. Some of these roads may serve as fire or
+evacuation access that the routing does not model, so the list is on the Criticality QA page for review.
+
 `criticality_score` is the weighted sum and `criticality_pctl` its percentile rank (0 to 100). The
 highest-scoring streets are US 50 (Trooper Gary Gifford Highway and Route 50), Lake Tahoe Boulevard,
 Tahoe Boulevard, West Lake Boulevard and Kingsbury Grade, which rank high on all three traffic-type inputs. Adding OD traffic
@@ -335,6 +362,13 @@ operation; individual schema operations on the F: drive take about 30 seconds ea
 | `diff_length_max` and `detour_max` held one constant value (broken code) | Dropped, along with empty editor-tracking, `surface` and `speed_limit_kmh` fields |
 | Criticality score had no OD component | OD traffic added at weight 0.3 |
 | No access measures for daily needs | Schools and fresh food locations routed and added to the OD score |
+| 160 driveway mouths took a highway's AADT through the 50% overlap rule | 15 m minimum overlap and a 30 degree direction test for short segments; all 160 reset (Oct. 30, 2026) |
+| 9 major-road segments at the lowest traffic class (a cross street's AADT spread along North Lake Boulevard; Mount Rose Highway 3744 found no neighbors) | Major-only donors; endpoint-sharing counts as touching (Oct. 30, 2026) |
+| 242 segment lines double back on themselves, most retracing a neighbor | Open: rebuild from Overture geometry in the base network; listed on the QA page |
+| Short streets took the detour of a highway they meet end-on | Midpoint test for streets of 12.5 m or less, in `export_slr.py`; 385 changed (Oct. 30, 2026) |
+| Roads almost nobody uses ranked high on detour alone | Detour class capped at 1 on 52 streets (`detour_low_use`, Oct. 30, 2026) |
+
+Remaining outliers are listed on `html/criticality-qa.html`, from `scripts/criticality_qa.py`.
 
 ## Limitations and open items
 
