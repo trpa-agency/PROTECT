@@ -121,7 +121,7 @@ PROTECT/
 ├── scripts/build_curated_gdb.py     # PROTECT_curated.gdb on F: (config `curated:`): only the hazard + asset layers and fields the assessment and pages use, NDOT rows excluded; DataDictionary + DatasetCatalog tables, CSV copies beside it
 ├── html/results.html                # the Results page: Overview + one tab per hazard (data-driven MODES config)
 ├── html/criticality-index.html      # criticality app, Results-page format (18,285 segments, adjustable weights; reads data/processed/results/roads_geometry.geojson + roads_criticality.json)
-├── html/criticality-qa.html         # criticality outlier review: open checks first (cards, map, grid), Oct. 30 fixes, by-design top-quarter note; reads data/processed/results/criticality_qa.json from scripts/criticality_qa.py (re-run after every criticality rebuild)
+├── html/criticality-qa.html         # UNLINKED by request (Nov. 2, 2026): reached only by its URL, so keep it out of every Pages menu, the index cards, and page copy. Criticality outlier review: open checks first (cards, map, grid), Oct. 30 fixes, by-design top-quarter note; reads data/processed/results/criticality_qa.json from scripts/criticality_qa.py (re-run after every criticality rebuild)
 ├── html/od-services-index.html      # OD access-to-services index (criticality factor 4); reads roads_od.json + roads_geometry.geojson (publish_results.py, clean street layer), no longer the PROTECT_VA service
 ├── html/baseline-assessment.html    # summary of ICF's draft Baseline Assessment (findings, proposed actions, roles); no CDN libs
 ├── html/historic-hazards.html       # v0.1 observed hazard record (CAL FIRE perimeters, USGS landslides, earthquakes)

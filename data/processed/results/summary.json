@@ -882,6 +882,47 @@
      "WFR": 102,
      "AVR": 1
     }
+   },
+   "C_top10": {
+    "segments": 1830,
+    "miles": 138.8
+   },
+   "matrix_top10": {
+    "Low|0": {
+     "segments": 9619,
+     "miles": 394.9
+    },
+    "Low|1": {
+     "segments": 1177,
+     "miles": 41.6
+    },
+    "Medium|0": {
+     "segments": 3411,
+     "miles": 210.0
+    },
+    "Medium|1": {
+     "segments": 329,
+     "miles": 40.8
+    },
+    "High|0": {
+     "segments": 3425,
+     "miles": 240.4
+    },
+    "High|1": {
+     "segments": 324,
+     "miles": 56.4
+    }
+   },
+   "hotspots_top10": {
+    "segments": 324,
+    "miles": 56.4,
+    "by_pair": {
+     "FLR": 107,
+     "LSR": 98,
+     "WFR": 67,
+     "DFR": 51,
+     "AVR": 1
+    }
    }
   },
   "culverts": {
@@ -959,6 +1000,7 @@
    50,
    75
   ],
+  "c_top_pctl": 90,
   "v_max_exclude": [],
   "paths": {
    "count": 216,
