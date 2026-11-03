@@ -89,11 +89,14 @@ class Copy:
 
 V_BREAKS = "Low under 1, Medium 1 to under 2, and High 2 or more"
 WF_BREAKS = "Low under 1.5, Medium 1.5 to 2, and High over 2 (decision 26)"
+DF_BREAKS = "Low under 1.4, Medium 1.4 to under 2, and High 2 or more (decision 34, TRPA proposal)"
 DF_LEFT_OUT = ("Not counted in V_max or V_class while fire severity stands in for soil burn severity; the pairs rejoin "
                "once their class shares are reviewed next to flooding and landslide (decision 33).")
 DF_E = "0.40 x {p}_e1 + 0.60 x {p}_e3 (rubric 4.2, option 1 as revised by decision 33)."
 DF_GATE = ("1 if the contributing area is over 3 sq mi, outside the debris-flow domain (decision 33): exposure is set "
            "to 0, so the pair reads on sensitivity alone. 0 otherwise.")
+DF_HAND_GATE = (" Also 1 for the two SR 89 bridges at the Truckee River outlet, gated by hand (decision 34): the lake is a "
+                "sink in the DEM, so the flow accumulation reads the outlet as a small basin.")
 OD_ROUTE = ("Averaged over 100 stochastic assignment runs on travel time by road class "
             "(scripts/ra2ce_v2/od_stochastic_assignment.ipynb).")
 PAGES_ROADS = "results.html (road layer and table on every tab)"
@@ -117,7 +120,8 @@ def across_pairs(pairs: str, all_pairs: str, used_class: str, used_max: str, tab
     src = (lambda n: f"{table}.{n}") if table else (lambda n: "")
     how = f"joined on {key}" if table else ""
     df = all_pairs != pairs
-    classes = f"Each pair's score is classed {V_BREAKS}" + (f"; wildfire uses {WF_BREAKS}" if "WF" in pairs else "") + "."
+    classes = (f"Each pair's score is classed {V_BREAKS}" + (f"; wildfire uses {WF_BREAKS}" if "WF" in pairs else "")
+               + (f"; debris flow uses {DF_BREAKS}" if "DF" in all_pairs else "") + ".")
     same = "because this asset type has no debris-flow pair"
     return [
         Fld("V_class", "TEXT", "Vulnerability class",
@@ -332,7 +336,8 @@ def roads_fields() -> list:
             units="score, 0 to 3", src="Exposure_debris_flow_roads.E_DFR_hist", how="joined on src_objectid",
             used="results.html (Debris flow tab color, popup, table, chart)"),
         Fld("E_DFR_e1", "DOUBLE", "Upslope steepness score (DF-R E1)",
-            "Highest upslope steepness score the link touches in Hazard_DebrisFlow_Slope.",
+            "Highest upslope steepness score the link touches in Hazard_DebrisFlow_Slope; cells draining more than 3 sq mi "
+            "score 0 there (decision 34), so a river crossing reads the hillslope beside it.",
             values="0 to 3 in half points", src="Exposure_debris_flow_roads.E_DFR_e1", how="joined on src_objectid",
             used="results.html (Debris flow popup, table); E_DFR_hist (weight 0.40)"),
         Fld("E_DFR_e3", "DOUBLE", "Fire severity class (DF-R E3)",
@@ -342,7 +347,7 @@ def roads_fields() -> list:
             how="joined on src_objectid; renamed from E_e3 where the score table still uses the old name",
             used="results.html (Debris flow popup and table); E_DFR_hist (weight 0.60)"),
         Fld("V_DFR_hist", "DOUBLE", "Debris-flow vulnerability (DF-R)", road_v("E_DFR_hist"),
-            values=V_BREAKS, src="Vulnerability_roads.V_DFR_hist", how="joined on src_objectid",
+            values=DF_BREAKS, src="Vulnerability_roads.V_DFR_hist", how="joined on src_objectid",
             used="results.html (Overview Debris flow view, popups); scoring-rubrics.html (matrix)"),
     ]
     # avalanche
@@ -612,7 +617,7 @@ def culverts_fields() -> list:
         Fld("S_DFC", "DOUBLE", "Debris-flow sensitivity (DF-C)", "(0.15 x S_DFC_s1 + 0.15 x S_DFC_s2) / 0.30.",
             units="score, 0 to 3", used="V_DFC_hist (weight 0.30)"),
         Fld("V_DFC_hist", "DOUBLE", "Debris-flow vulnerability (DF-C)",
-            "0.70 x E_DFC_hist + 0.30 x S_DFC. Not counted in V_max or V_class.", values=V_BREAKS,
+            "0.70 x E_DFC_hist + 0.30 x S_DFC. Not counted in V_max or V_class.", values=DF_BREAKS,
             used="results.html (Overview and Debris flow popups); scoring-rubrics.html (matrix)"),
     ]
     return f
@@ -773,7 +778,7 @@ def bridges_fields() -> list:
             values="1 (severity stand-in)", used="results.html (Debris flow popup); scoring-rubrics.html",
             length=24),
         Fld("DF_gate", "SHORT", "Over the debris-flow area gate",
-            DF_GATE + " Read as the largest contributing area within 25 m of the bridge (2 m flow accumulation).",
+            DF_GATE + " Read as the largest contributing area within 25 m of the bridge (2 m flow accumulation)." + DF_HAND_GATE,
             values="0, 1",
             used="results.html (Debris flow popup); E_DFB_hist"),
         Fld("S_DFB_s1", "DOUBLE", "Span type score (DF-B S1)", "Same scale as S_FLB_s3.", values="1, 3",
@@ -786,7 +791,7 @@ def bridges_fields() -> list:
             "(0.10 x S_DFB_s1 + 0.10 x S_DFB_s2 + 0.10 x S_DFB_s3) / 0.30.", units="score, 0 to 3",
             used="V_DFB_hist (weight 0.30)"),
         Fld("V_DFB_hist", "DOUBLE", "Debris-flow vulnerability (DF-B)",
-            "0.70 x E_DFB_hist + 0.30 x S_DFB. Not counted in V_max or V_class.", values=V_BREAKS,
+            "0.70 x E_DFB_hist + 0.30 x S_DFB. Not counted in V_max or V_class.", values=DF_BREAKS,
             used="results.html (Overview and Debris flow popups); scoring-rubrics.html (matrix)"),
     ]
     return f
@@ -1148,8 +1153,9 @@ def datasets(cfg: dict, restricted: bool) -> list:
         Dataset("Hazard_DebrisFlow_Slope", "HazardSurfaces", "POLYGON", "Upslope steepness scores (debris-flow E1)",
                 "Average slope of the ground upslope of each 2 m cell (slope-weighted flow accumulation divided by flow "
                 "accumulation), averaged to 30 m and scored on the draft methodology's half-point breaks: 3 over 30 "
-                "percent, 2.5 over 25, 2 over 20, 1.5 over 15, 1 over 10, and 0.5 over 5. Ground that scores 0 is not "
-                "stored.",
+                "percent, 2.5 over 25, 2 over 20, 1.5 over 15, 1 over 10, and 0.5 over 5. Cells draining more than 3 sq mi "
+                "score 0 (decision 34): on a channel cell the upslope mean is the whole basin's, so a road crossing a river "
+                "reads the hillslope beside it. Ground that scores 0 is not stored.",
                 f"{hz}/{ex['debris_flow']['slope_fc']}, built by surfaces_dfav.py through score_exposure.py --hazard "
                 f"debris_flow --build", ex["debris_flow"]["slope_fc"], "All polygons.", "", "",
                 "score_exposure.py (DF-R and DF-B E1; culverts use their own basin slope instead)",

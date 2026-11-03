@@ -1,6 +1,6 @@
 # PROTECT scoring rubrics
 
-**Version 0.8, Nov. 2, 2026.** TRPA working document for the
+**Version 0.9, Nov. 2, 2026.** TRPA working document for the
 vulnerability assessment.
 
 **What this document is.** TRPA's scoring rules, built on the draft Vulnerability
@@ -42,7 +42,8 @@ Per-pair weights, from the draft:
 `V_<pair>` is kept to two decimals and classed for the map and posters. **TRPA proposal
 (decision 9):** Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over, set in `config.yaml`
 (`scoring.v_breaks`). **Wildfire pairs (decision 26):** Low under 1.5, Medium 1.5 to 2.0, High
-over 2.0 (`scoring.v_breaks_wildfire`).
+over 2.0 (`scoring.v_breaks_wildfire`). **Debris flow pairs (decision 34, TRPA proposal):** Low
+under 1.4, Medium 1.4 to under 2.0, High 2.0 and over (`scoring.v_breaks_debris_flow`).
 
 ### 1.3 Criticality
 
@@ -521,8 +522,10 @@ Consultant review of the results (Oct. 26, 2026): the bridge and large-culvert a
 
 ### 4.1 Asset set and sampling
 
-`Streets_Network_Tahoe` segments: upslope steepness as the maximum touching the segment, and
-severity as the highest class covering at least 25 percent of the 300 ft buffer (decision 33).
+`Streets_Network_Tahoe` segments: upslope steepness as the maximum touching the segment (cells
+draining more than 3 square miles score 0 in the surface, decision 34, so a river crossing reads
+the hillslope beside it), and severity as the highest class covering at least 25 percent of the
+300 ft buffer (decision 33).
 Segment IDs and `C_class` come from the criticality assessment. The debris-flow surface is
 built once so DF-R, DF-B, and DF-C share one surface and one set of breaks.
 
@@ -539,7 +542,7 @@ rows are the draft's and are not scored for roads.
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Build |
 |---|---|---|---|---|---|---|
-| E1 (option 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell, from the hydro-enforced DEM. Weight 0.40 of exposure (decision 33) | 0.20 | over 30 percent | 3 | 1 | DEM |
+| E1 (option 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell, from the hydro-enforced DEM; cells draining more than 3 sq mi score 0 (decision 34). Weight 0.40 of exposure (decision 33) | 0.20 | over 30 percent | 3 | 1 | DEM |
 | | | | over 25 to 30 percent | 2.5 | | |
 | | | | over 20 to 25 percent | 2 | | |
 | | | | over 15 to 20 percent | 1.5 | | |
@@ -580,13 +583,18 @@ rows are the draft's and are not scored for roads.
 
 - Option 1 reuses the slope raster from the culvert delineation for E1; the flow-accumulation
   raster is now the area gate, read from each culvert's own drainage area and, for bridges, as
-  the largest contributing area within 25 m. Burn severity is the only new input, and the TRPA
-  most-likely fire severity surface (the decision 22 input) stands in for predicted soil burn
-  severity until the contracted package arrives.
+  the largest contributing area within 25 m. The two SR 89 bridges at the Truckee River outlet
+  are gated by hand (`exposure.debris_flow.gate_bridge_ids`, decision 34): the lake is a sink in
+  the DEM, so the flow accumulation reads the outlet as a small basin. Burn severity is the only
+  new input, and the TRPA most-likely fire severity surface (the decision 22 input) stands in
+  for predicted soil burn severity until the contracted package arrives.
 - The gate follows the USGS post-fire models, which treat basin area as a domain limit (about 8
   square kilometers in its emergency assessments) rather than a likelihood term. A culvert or
   bridge on a large river takes a sediment-laden flood, which FL-C and FL-B carry.
 - The segment maximum on steepness catches both the crossing and the toe of slope. Intended.
+  Cells draining more than 3 square miles score 0 in the slope surface
+  (`exposure.debris_flow.e1_mask_over_gate`, decision 34), so the maximum comes from the
+  hillslope and not from a river channel, whose upslope mean is the whole basin's.
 - Roads carry no sensitivity (decision 25), so pavement condition is not a gap for roads.
 
 ### 4.4 Notes
@@ -610,6 +618,29 @@ rows are the draft's and are not scored for roads.
     and the same 25 percent rule. Supersedes decision 16; amends decision 15 (option 2 Wildcat
     is compared in December, not substituted). Sensitivity unchanged. The pairs stay out of
     the combined class until the class shares are reviewed next to flooding and landslide.
+    Share rule check (Nov. 2 dry run on 5,321 crossings): the per-class rule reads severity 1,
+    2, and 3 on 4,388, 181, and 748 watersheds; the cumulative rule (class k or worse covers 25
+    percent) on 4,200, 370, and 748. The two agree on every High basin and differ on 189 Low
+    to Moderate, so the per-class rule of decision 27 stays
+    (`exposure.debris_flow.e3_share_cumulative: false`).
+34. **TRPA proposal (Nov. 2, 2026): debris flow class breaks, two hand-gated bridges, and the
+    large-river mask.** Pending the review numbers from the Nov. 2 run. (a) DF-R, DF-C, and DF-B
+    are classed Low under 1.4, Medium 1.4 to under 2.0, High 2.0 and over
+    (`scoring.v_breaks_debris_flow`). With exposure 0.40 slope plus 0.60 severity and the
+    stand-in severity Low across most of the basin, the shared breaks read Medium on Low
+    severity alone wherever the mean upslope slope is over 10 percent: 2,303 of the 2,375
+    Medium culverts and 6,766 of the 7,398 Medium road segments in the Nov. 2 run. At 1.4, Low
+    severity reads Medium only over 20 percent slope; Moderate severity reads Medium from over 5
+    percent and High from over 20; High severity reads Medium at any slope and High from over 5
+    percent. Roads (V = E): Low 9,210 to 13,718, Medium 7,398 to 2,890, High 1,677 either way.
+    (b) The two SR 89 bridges at the Truckee River outlet (NBI 19 0205 and 19 0033) are gated
+    by hand (`exposure.debris_flow.gate_bridge_ids`): the lake is a sink in the DEM, so the flow
+    accumulation reads 0.02 and 1.25 square miles at the outlet of the whole lake basin. (c) In
+    the slope surface, 30 m cells draining more than 3 square miles score 0
+    (`exposure.debris_flow.e1_mask_over_gate`): on a channel cell the mean upslope slope is the
+    whole basin's, so road segments crossing the Upper Truckee read E1 2.5 to 3.0 from the river
+    rather than the hillslope beside them. With severity 1 those capped at exposure 1.8, so the
+    mask moves Mediums to Low and makes no High. Takes effect at the next surface build.
 
 Consultant review of the results (Oct. 26, 2026): option 1 is consistent with the original recommendation; debris flow to be reviewed in more detail as data becomes available. The review also noted that most of the network scores Medium or High and that some overlap with landslide is expected; the stand-in pairs stay out of the combined class, and the question is revisited with the Wildcat run. Decision 33 revised option 1 after this review.
 

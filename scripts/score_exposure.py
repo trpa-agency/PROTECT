@@ -18,7 +18,8 @@ Two jobs, both config-driven (config.yaml `exposure:`):
      scores 0 at the historical horizon by definition, so E_LS*_hist = 0.50 E1 / 0.70.
      Debris flow (decision 33, surfaces_dfav.py): E1 mean upslope slope 0.40, E3 the severity
      surface 0.60 by area share (exposure.debris_flow.e3_min_share), contributing area over
-     area_gate_sqmi gating culverts and bridges to E = 0 (DF_gate). Avalanche plugs in the same way.
+     area_gate_sqmi gating culverts and bridges to E = 0 (DF_gate; plus gate_bridge_ids by hand,
+     decision 34). Avalanche plugs in the same way.
   2. Sample it per asset on the rubric's sampling rule (section 1.7) and write the scores:
        culverts   maximum over the contributing watershed (CulvertWatersheds_inc aggregated up
                   the drainage tree from CulvertCrossings), 25 m buffer where no watershed;
@@ -942,6 +943,15 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
             gate_sqmi = float(ex["debris_flow"]["area_gate_sqmi"])
             br["df_area_sqmi"] = max_area_sqmi_near(cfg, br, pt_m).round(2)
             gate = br["df_area_sqmi"].gt(gate_sqmi)
+            # decision 34: structures gated by hand where the DEM cannot see the basin (the SR 89 bridges at the
+            # Truckee River outlet: the lake is a sink, so facc reads the outlet as a small basin)
+            hand = [str(i) for i in (ex["debris_flow"].get("gate_bridge_ids") or [])]
+            by_hand = br["bridge_id"].astype(str).isin(hand) & ~gate
+            if by_hand.any():
+                log.info(f"Hand gate (exposure.debris_flow.gate_bridge_ids): {int(by_hand.sum())} structures score E_{pair} = 0: "
+                         + "; ".join(f"{r.facility_carried} over {r.feature_crossed} ({r.bridge_id}, facc {r.df_area_sqmi:g} sq mi)"
+                                     for r in br[by_hand.values].itertuples()))
+            gate = gate | by_hand
             e = np.where(gate.values, 0.0, e)
             br["DF_gate"] = gate.astype(int).values
             log.info(f"Area gate: {int(gate.sum())} of {len(br)} structures over {gate_sqmi:g} sq mi score E_{pair} = 0: "

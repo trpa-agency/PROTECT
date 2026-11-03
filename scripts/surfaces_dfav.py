@@ -4,7 +4,9 @@ Debris flow, option 1 as revised by decision 33 (config exposure.debris_flow): f
 terrain rasters of the culvert delineation (profile.work_gdb: fdir, facc, slope_pct),
     E1  mean slope of the upslope contributing area at each cell (slope-weighted flow
         accumulation over flow accumulation), aggregated to 30 m by mean, on the draft's
-        half-point breaks (over 30 percent = 3 ... 0 to 5 = 0)
+        half-point breaks (over 30 percent = 3 ... 0 to 5 = 0); cells draining more than
+        area_gate_sqmi score 0 when e1_mask_over_gate is set (decision 34), so a road crossing
+        a large river reads the hillslope beside it, not the river's basin-wide mean
     E3  TRPA most-likely fire severity (the wildfire E2 surface) standing in for the contracted
         predicted soil burn severity: High 3, Moderate 2, Low 1, outside 0
 Weights 0.40 / 0.60. The draft's E2, contributing area (flow accumulation, 30 m by maximum, on
@@ -176,9 +178,11 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
 
     # E1: mean slope of the upslope area = (slope-weighted accumulation + own slope) / (facc + 1)
     p_wacc = f"{work}\\slope_wacc"
-    if overwrite or not arcpy.Exists(p_wacc):
+    if not arcpy.Exists(p_wacc):
         log.info("Slope-weighted flow accumulation (2 m) ...")
         sa.FlowAccumulation(fdir, slope, "FLOAT", "D8").save(p_wacc)
+    else:
+        log.info(f"Reusing {p_wacc} (the 2 m terrain has not changed; delete it to recompute after a terrain rerun)")
     wacc = sa.Raster(p_wacc)
     mean_up = (wacc + slope) / (facc + 1)
     log.info(f"Aggregating to {out_cell:g} m (mean upslope slope by MEAN, accumulation by MAXIMUM) ...")
@@ -187,8 +191,15 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
     area_sqmi = (facc30 + 1) * cell * cell / SQM_PER_SQMI
     # half-point scores x 10 as integers
     s = mean_up30
-    e1 = sa.Con(s > 30, 30, sa.Con(s > 25, 25, sa.Con(s > 20, 20, sa.Con(s > 15, 15, sa.Con(s > 10, 10, sa.Con(s > 5, 5, 0))))))
     a = area_sqmi
+    e1 = sa.Con(s > 30, 30, sa.Con(s > 25, 25, sa.Con(s > 20, 20, sa.Con(s > 15, 15, sa.Con(s > 10, 10, sa.Con(s > 5, 5, 0))))))
+    gate_sqmi = float(df.get("area_gate_sqmi", 0) or 0)
+    if df.get("e1_mask_over_gate") and gate_sqmi > 0:
+        # decision 34: on a channel cell the mean upslope slope is the whole basin's mean, so a road crossing a
+        # large river read E1 from the river; cells draining more than the gate score 0 and the road reads the
+        # hillslope cells beside it
+        e1 = sa.Con(a > gate_sqmi, 0, e1)
+        log.info(f"E1 masked to 0 where the 30 m contributing area is over {gate_sqmi:g} sq mi (e1_mask_over_gate)")
     e2 = sa.Con(a < 0.25, 30, sa.Con(a <= 0.5, 25, sa.Con(a <= 1, 20, sa.Con(a <= 2, 15, sa.Con(a <= 3, 10, sa.Con(a <= 5, 5, 0))))))
     e1_path, e2_path = f"{gdb}\\df_e1_cls", f"{gdb}\\df_e2_cls"
     sa.Int(e1).save(e1_path)

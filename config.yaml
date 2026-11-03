@@ -99,6 +99,8 @@ exposure:
     e3_min_share: 0.25              # E3 = highest severity class covering at least this share (the wildfire rule, decision 27)
     e3_share_cumulative: false      # true: highest class k where class k or worse covers the share
     area_gate_sqmi: 3.0             # culverts (contrib_area_ac) and bridges (largest 2 m facc within 25 m) over this score exposure 0
+    gate_bridge_ids: ["19 0205", "19 0033"]   # gated by hand (decision 34): SR 89 at the Truckee River outlet; the lake is a sink in the DEM, so facc reads the outlet as a small basin
+    e1_mask_over_gate: true         # slope surface: 30 m cells draining more than area_gate_sqmi score E1 0 (decision 34), so a road reads the hillslope, not the river; takes effect at --build
     slope_fc: Hazard_DebrisFlow_Slope
     area_fc: Hazard_DebrisFlow_Area  # drainage area classes: the bridge gate and the map; no longer scored
   avalanche:               # AV-R (rubric 5): dominant uphill slope tier within 1,000 ft x a zone record within 1,000 ft
@@ -117,6 +119,7 @@ exposure:
 scoring:
   v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
   v_breaks_wildfire: [1.5, 2.0]   # wildfire pairs (WF-R, WF-AT, WF-TC): Low under 1.5, Medium 1.5 to 2.0, High over 2.0 (Oct. 12, revised Oct. 30)
+  v_breaks_debris_flow: [1.4, 2.0]   # debris flow pairs (DF-R, DF-C, DF-B): Low under 1.4, Medium 1.4 to under 2.0, High 2.0 and over (TRPA proposal, decision 34, Nov. 2); remove the line to use v_breaks
   # Pairs scored on a stand-in input stay out of the combined class (V_max, V_class) until the input is real:
   # debris flow uses the fire severity surface for soil burn severity. Decision 33 (Nov. 2, 2026) dropped the
   # drainage-size term that put nearly every asset at 3; the pairs rejoin once the class shares are reviewed

@@ -223,7 +223,8 @@
     </div>
     <div class="defs">
       <div><b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over. Wildfire scores run 1 to 3 everywhere, so wildfire uses
-        Low under 1.5, Medium 1.5 to 2, High over 2.</div>
+        Low under 1.5, Medium 1.5 to 2, High over 2. Debris flow uses Low under 1.4, Medium 1.4 to under 2, High 2 and over, so a
+        drainage with low burn severity reads Medium only over a 20 percent slope (decision 34, proposed).</div>
       <div><b>Combined class.</b> An asset in several pairs carries its highest pair score (the popup names it as Highest hazard); its class is the
         highest of its pair classes.</div>
       <div><b>Hotspots.</b> High vulnerability on a road in the top criticality quarter.</div>
@@ -263,7 +264,8 @@
           <td>Mean slope of the ground draining to the point, from the 2 m lidar DEM (0.4), and burn severity (0.6), with the fire
             severity surface standing in for predicted soil burn severity; severity must cover at least 25 percent of the drainage
             (culverts) or of the 300 ft around the asset (roads, bridges). Culverts and bridges draining more than 3 square miles
-            score 0. The USGS debris-flow model (Wildcat) is reviewed for December.</td>
+            score 0, as do the two bridges at the Truckee River outlet; a road crossing a large river reads the slope of the
+            hillslope beside it, not the river's basin-wide mean. The USGS debris-flow model (Wildcat) is reviewed for December.</td>
           <td>Culverts: opening size, condition. Bridges: span type, condition, span length. Roads: none.</td>
           <td class="w">Roads E 1.0<br>Culverts, bridges E 0.7, S 0.3</td></tr>
         <tr><td>Avalanche</td><td>Roads</td>
