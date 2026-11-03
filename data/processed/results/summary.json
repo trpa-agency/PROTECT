@@ -13,9 +13,9 @@
   "regression": 114,
   "E_FLC": {
    "0.0": 3030,
-   "1.0": 88,
-   "2.0": 1746,
-   "3.0": 232
+   "1.0": 1615,
+   "2.0": 249,
+   "3.0": 202
   },
   "by_jurisdiction": {
    "Washoe County": 1612,
@@ -33,11 +33,11 @@
     "ratio_over_1": 1406,
     "ratio_median": 0.49,
     "ratio_p90": 4.9,
-    "V_FLC_median": 0.95,
+    "V_FLC_median": 0.88,
     "V_FLC_class": {
-     "Low": 2716,
-     "Medium": 1627,
-     "High": 753
+     "Low": 2787,
+     "Medium": 1870,
+     "High": 439
     }
    },
    "25": {
@@ -47,27 +47,28 @@
     "ratio_p90": 3.41,
     "V_FLC_median": 0.88,
     "V_FLC_class": {
-     "Low": 2819,
-     "Medium": 1620,
-     "High": 657
+     "Low": 2897,
+     "Medium": 1843,
+     "High": 356
     }
    }
   },
   "vulnerability": {
-   "V_FLC_median": 0.95,
+   "V_FLC_median": 0.88,
    "V_FLC_class": {
-    "Low": 2716,
-    "Medium": 1627,
-    "High": 753
+    "Low": 2787,
+    "Medium": 1870,
+    "High": 439
    },
    "V_class": {
-    "High": 1905,
-    "Low": 1894,
-    "Medium": 1297
+    "Low": 1995,
+    "High": 1774,
+    "Medium": 1327
    },
    "V_max_pair": {
-    "LSC": 3469,
-    "FLC": 1627
+    "DFC": 3480,
+    "LSC": 1033,
+    "FLC": 583
    },
    "S_source": {
     "full": 3888,
@@ -75,13 +76,12 @@
     "default": 32
    },
    "high_by_jurisdiction": {
-    "Washoe County": 209,
-    "El Dorado County": 177,
-    "TRPA Legacy (provisional)": 167,
-    "Caltrans": 154,
-    "Placer County": 39,
-    "City of South Lake Tahoe": 6,
-    "Douglas County": 1
+    "Washoe County": 133,
+    "El Dorado County": 128,
+    "Caltrans": 102,
+    "TRPA Legacy (provisional)": 47,
+    "Placer County": 23,
+    "City of South Lake Tahoe": 6
    }
   }
  },
@@ -90,18 +90,20 @@
   "water_crossings": 31,
   "E_FLB": {
    "0.0": 5,
-   "0.7": 8,
-   "1.0": 1,
-   "1.3": 10,
-   "1.7": 13,
-   "2.0": 2,
+   "0.3": 4,
+   "0.7": 5,
+   "1.0": 8,
+   "1.3": 4,
+   "1.7": 12,
+   "2.0": 1,
    "2.3": 1
   }
  },
  "flood_surface": {
-  "polygons": 1307,
+  "polygons": 3893,
   "area_km2_by_class": {
-   "2": 94.8,
+   "1": 92.8,
+   "2": 2.0,
    "3": 12.0
   }
  },
@@ -110,7 +112,8 @@
   "Draft screening values for workshop review; the loading ratio ranks crossings and is not a design number."
  ],
  "flood_classes": {
-  "2": "0.2 percent (500-yr) zone or mapped stream",
+  "1": "mapped stream",
+  "2": "0.2 percent (500-yr) zone",
   "3": "1 percent (100-yr) flood zone"
  },
  "wildfire": {
@@ -299,29 +302,29 @@
    "segments": 18285,
    "miles": 984.1,
    "E": {
-    "0.0": 14009,
-    "0.7": 1388,
-    "1.4": 1316,
-    "2.1": 1572
+    "0.0": 14493,
+    "0.7": 1338,
+    "1.4": 1193,
+    "2.1": 1261
    },
    "miles_by_E": {
-    "0.0": 588.1,
-    "0.7": 82.0,
-    "1.4": 93.2,
-    "2.1": 220.8
+    "0.0": 659.7,
+    "0.7": 85.2,
+    "1.4": 79.0,
+    "2.1": 160.2
    },
-   "zero_segments": 14009,
+   "zero_segments": 14493,
    "E1": {
-    "0.0": 14009,
-    "1.0": 1388,
-    "2.0": 1316,
-    "3.0": 1572
+    "0.0": 14493,
+    "1.0": 1338,
+    "2.0": 1193,
+    "3.0": 1261
    },
    "miles_by_E1": {
-    "0.0": 588.1,
-    "1.0": 82.0,
-    "2.0": 93.2,
-    "3.0": 220.8
+    "0.0": 659.7,
+    "1.0": 85.2,
+    "2.0": 79.0,
+    "3.0": 160.2
    },
    "E2": {
     "0.0": 18285
@@ -334,46 +337,46 @@
      "0.0": 0.3
     },
     "primary": {
-     "0.0": 31.8,
-     "0.7": 5.3,
-     "1.4": 8.2,
-     "2.1": 41.6
+     "0.0": 37.3,
+     "0.7": 9.3,
+     "1.4": 9.6,
+     "2.1": 30.6
     },
     "residential": {
-     "0.0": 272.2,
-     "0.7": 41.8,
-     "1.4": 47.5,
-     "2.1": 92.8
+     "0.0": 303.9,
+     "0.7": 44.3,
+     "1.4": 35.7,
+     "2.1": 70.3
     },
     "secondary": {
-     "0.0": 14.4,
-     "0.7": 1.7,
-     "1.4": 3.8,
-     "2.1": 3.3
+     "0.0": 18.5,
+     "0.7": 2.5,
+     "1.4": 2.0,
+     "2.1": 0.2
     },
     "service": {
-     "0.0": 185.3,
-     "0.7": 20.9,
-     "1.4": 21.8,
-     "2.1": 37.7
+     "0.0": 196.2,
+     "0.7": 18.4,
+     "1.4": 20.5,
+     "2.1": 30.6
     },
     "tertiary": {
-     "0.0": 37.4,
-     "0.7": 3.8,
+     "0.0": 41.4,
+     "0.7": 1.6,
      "1.4": 1.8,
-     "2.1": 3.1
+     "2.1": 1.3
     },
     "trunk": {
-     "0.0": 12.2,
-     "0.7": 2.6,
-     "1.4": 2.7,
-     "2.1": 11.6
+     "0.0": 14.7,
+     "0.7": 3.4,
+     "1.4": 2.9,
+     "2.1": 8.3
     },
     "unclassified": {
-     "0.0": 30.9,
-     "0.7": 5.5,
-     "1.4": 7.3,
-     "2.1": 30.0
+     "0.0": 43.9,
+     "0.7": 5.3,
+     "1.4": 6.4,
+     "2.1": 18.1
     },
     "unknown": {
      "0.0": 3.5,
@@ -382,42 +385,42 @@
      "2.1": 0.6
     }
    },
-   "miles_e1_class3": 220.8
+   "miles_e1_class3": 160.2
   },
   "culverts": {
    "scored": 5096,
    "E": {
-    "0.0": 2396,
-    "0.7": 372,
-    "1.4": 475,
-    "2.1": 1853
+    "0.0": 3032,
+    "0.7": 343,
+    "1.4": 351,
+    "2.1": 1370
    },
    "E1": {
-    "0.0": 2396,
-    "1.0": 372,
-    "2.0": 475,
-    "3.0": 1853
+    "0.0": 3032,
+    "1.0": 343,
+    "2.0": 351,
+    "3.0": 1370
    },
-   "n_e1_class3": 1853,
+   "n_e1_class3": 1370,
    "by_jurisdiction_e1_class3": {
-    "El Dorado County": 521,
-    "Washoe County": 418,
-    "Caltrans": 401,
-    "TRPA Legacy (provisional)": 346,
-    "Placer County": 152,
-    "City of South Lake Tahoe": 12,
+    "Washoe County": 348,
+    "El Dorado County": 341,
+    "Caltrans": 337,
+    "TRPA Legacy (provisional)": 249,
+    "Placer County": 88,
+    "City of South Lake Tahoe": 4,
     "Douglas County": 3
    }
   },
   "bridges": {
    "count": 40,
    "E": {
-    "0.0": 28,
+    "0.0": 31,
     "0.7": 2,
     "1.4": 1,
-    "2.1": 9
+    "2.1": 6
    },
-   "n_e1_class3": 9
+   "n_e1_class3": 6
   },
   "surface_km2": {
    "1": 178.2,
@@ -440,59 +443,69 @@
    "miles": 984.1,
    "E": {
     "0.0": 15617,
-    "2.0": 2307,
+    "1.0": 2002,
+    "2.0": 305,
     "3.0": 361
    },
    "miles_by_E": {
     "0.0": 697.0,
-    "2.0": 265.5,
+    "1.0": 244.2,
+    "2.0": 21.3,
     "3.0": 21.6
    },
    "zero_segments": 15617,
    "miles_by_class_E": {
     "living_street": {
      "0.0": 0.1,
-     "2.0": 0.1,
+     "1.0": 0.1,
      "3.0": 0.0
     },
     "primary": {
      "0.0": 38.6,
-     "2.0": 46.3,
+     "1.0": 43.6,
+     "2.0": 2.7,
      "3.0": 2.0
     },
     "residential": {
      "0.0": 347.4,
-     "2.0": 99.9,
+     "1.0": 90.8,
+     "2.0": 9.0,
      "3.0": 7.0
     },
     "secondary": {
      "0.0": 13.5,
-     "2.0": 8.3,
+     "1.0": 7.6,
+     "2.0": 0.8,
      "3.0": 1.4
     },
     "service": {
      "0.0": 212.5,
-     "2.0": 45.8,
+     "1.0": 41.7,
+     "2.0": 4.1,
      "3.0": 7.3
     },
     "tertiary": {
      "0.0": 34.2,
-     "2.0": 10.6,
+     "1.0": 8.3,
+     "2.0": 2.3,
      "3.0": 1.5
     },
     "trunk": {
      "0.0": 15.2,
-     "2.0": 12.6,
+     "1.0": 11.9,
+     "2.0": 0.7,
      "3.0": 1.3
     },
     "unclassified": {
      "0.0": 31.9,
-     "2.0": 40.9,
+     "1.0": 39.3,
+     "2.0": 1.6,
      "3.0": 1.0
     },
     "unknown": {
      "0.0": 3.6,
-     "2.0": 0.8,
+     "1.0": 0.7,
+     "2.0": 0.1,
      "3.0": 0.1
     }
    }
@@ -748,42 +761,44 @@
    "segments": 18285,
    "miles": 984.1,
    "V_class": {
-    "Low": 10848,
-    "High": 4951,
-    "Medium": 2486
+    "Low": 10796,
+    "High": 3749,
+    "Medium": 3740
    },
    "miles_by_class": {
-    "High": 436.3,
-    "Low": 431.2,
-    "Medium": 116.6
+    "High": 296.8,
+    "Low": 436.5,
+    "Medium": 250.8
    },
    "V_max_pair": {
-    "WFR": 14476,
-    "FLR": 1982,
-    "LSR": 1808,
-    "AVR": 19
+    "WFR": 12501,
+    "DFR": 3099,
+    "FLR": 1356,
+    "LSR": 1307,
+    "AVR": 22
    },
    "V_class_all": {
-    "Low": 10646,
-    "High": 5265,
-    "Medium": 2374
+    "Low": 10796,
+    "High": 3749,
+    "Medium": 3740
    },
    "V_max_all_pair": {
-    "WFR": 12131,
-    "DFR": 2593,
-    "FLR": 1957,
-    "LSR": 1592,
-    "AVR": 12
+    "WFR": 12501,
+    "DFR": 3099,
+    "FLR": 1356,
+    "LSR": 1307,
+    "AVR": 22
    },
    "pair_class": {
     "FLR": {
      "Low": 15617,
-     "High": 2668
+     "Medium": 2002,
+     "High": 666
     },
     "LSR": {
-     "Low": 15397,
-     "High": 1572,
-     "Medium": 1316
+     "Low": 15831,
+     "High": 1261,
+     "Medium": 1193
     },
     "WFR": {
      "Low": 13888,
@@ -809,85 +824,87 @@
    },
    "matrix": {
     "Low|0": {
-     "segments": 2310,
-     "miles": 84.8
+     "segments": 2265,
+     "miles": 83.0
     },
     "Low|1": {
-     "segments": 2318,
-     "miles": 102.5
+     "segments": 2333,
+     "miles": 109.4
     },
     "Low|2": {
-     "segments": 3228,
-     "miles": 125.7
+     "segments": 3212,
+     "miles": 126.9
     },
     "Low|3": {
-     "segments": 2992,
-     "miles": 118.2
+     "segments": 2986,
+     "miles": 117.3
     },
     "Medium|0": {
-     "segments": 829,
-     "miles": 28.8
+     "segments": 1063,
+     "miles": 50.2
     },
     "Medium|1": {
-     "segments": 804,
-     "miles": 41.0
+     "segments": 1084,
+     "miles": 78.0
     },
     "Medium|2": {
-     "segments": 379,
-     "miles": 19.6
+     "segments": 665,
+     "miles": 41.2
     },
     "Medium|3": {
-     "segments": 474,
-     "miles": 27.2
+     "segments": 928,
+     "miles": 81.4
     },
     "High|0": {
-     "segments": 1648,
-     "miles": 112.1
+     "segments": 1459,
+     "miles": 92.5
     },
     "High|1": {
-     "segments": 1319,
-     "miles": 123.0
+     "segments": 1024,
+     "miles": 79.2
     },
     "High|2": {
-     "segments": 853,
-     "miles": 56.0
+     "segments": 583,
+     "miles": 33.3
     },
     "High|3": {
-     "segments": 1131,
-     "miles": 145.1
+     "segments": 683,
+     "miles": 91.9
     }
    },
    "hotspots": {
-    "segments": 1131,
-    "miles": 145.1,
+    "segments": 683,
+    "miles": 91.9,
     "by_pair": {
-     "FLR": 641,
-     "LSR": 306,
-     "WFR": 183,
+     "LSR": 222,
+     "FLR": 207,
+     "DFR": 144,
+     "WFR": 109,
      "AVR": 1
     }
    }
   },
   "culverts": {
    "V_class": {
-    "High": 1905,
-    "Low": 1894,
-    "Medium": 1297
+    "Low": 1995,
+    "High": 1774,
+    "Medium": 1327
    },
    "V_max_pair": {
-    "LSC": 3469,
-    "FLC": 1627
+    "DFC": 3480,
+    "LSC": 1033,
+    "FLC": 583
    },
    "pair_class": {
     "FLC": {
-     "Low": 2716,
-     "Medium": 1627,
-     "High": 753
+     "Low": 2787,
+     "Medium": 1870,
+     "High": 439
     },
     "LSC": {
-     "Low": 2406,
-     "High": 1808,
-     "Medium": 882
+     "Low": 3037,
+     "High": 1340,
+     "Medium": 719
     },
     "DFC": {
      "Low": 3000,
@@ -898,29 +915,30 @@
   },
   "bridges": {
    "V_class": {
-    "Medium": 35,
-    "High": 3,
-    "Low": 2
+    "Medium": 29,
+    "High": 8,
+    "Low": 3
    },
    "V_max_pair": {
-    "FLB": 30,
-    "LSB": 10
+    "FLB": 29,
+    "DFB": 9,
+    "LSB": 2
    },
    "pair_class": {
     "FLB": {
-     "Medium": 32,
-     "Low": 7,
+     "Medium": 29,
+     "Low": 10,
      "High": 1
     },
     "LSB": {
-     "Low": 29,
-     "Medium": 9,
+     "Low": 33,
+     "Medium": 5,
      "High": 2
     },
     "DFB": {
-     "Low": 31,
+     "Low": 32,
      "High": 6,
-     "Medium": 3
+     "Medium": 2
     }
    }
   },
@@ -941,21 +959,17 @@
    50,
    75
   ],
-  "v_max_exclude": [
-   "DFC",
-   "DFB",
-   "DFR"
-  ],
+  "v_max_exclude": [],
   "paths": {
-   "count": 216,
+   "count": 217,
    "V_class": {
-    "High": 110,
-    "Low": 98,
-    "Medium": 8
+    "Low": 99,
+    "High": 62,
+    "Medium": 56
    },
    "V_max_pair": {
-    "WFAT": 111,
-    "FLAT": 105
+    "WFAT": 121,
+    "FLAT": 96
    }
   },
   "transit": {
