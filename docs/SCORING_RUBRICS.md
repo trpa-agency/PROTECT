@@ -1,6 +1,6 @@
 # PROTECT scoring rubrics
 
-**Version 0.7, Oct. 21, 2026.** TRPA working document for the
+**Version 0.8, Nov. 2, 2026.** TRPA working document for the
 vulnerability assessment.
 
 **What this document is.** TRPA's scoring rules, built on the draft Vulnerability
@@ -75,7 +75,7 @@ Where the draft states one (bridge condition none scores 1, scour other scores 1
 
 Line assets (roads, trails) take the maximum of the hazard surface touching the segment, and
 carry the share of their length in each class beside it (`len_pct_c0` to `len_pct_c3`). Point
-assets (bridges, transit centers) take the maximum within 25 m. **Small culverts are the exception (decision 3):** surfaces that describe what arrives at the crossing (flood, debris flow, landslide) are sampled over the culvert's contributing watershed, with the 25 m buffer as the fallback where no watershed could be delineated.
+assets (bridges, transit centers) take the maximum within 25 m. **Small culverts are the exception (decision 3):** surfaces that describe what arrives at the crossing (flood, debris flow, landslide) are sampled over the culvert's contributing watershed, with the 25 m buffer as the fallback where no watershed could be delineated. **Severity is sampled by area share (decisions 27 and 33):** the wildfire severity term and the debris-flow severity term take the highest class covering at least 25 percent of the sampling area (the 300 ft buffer on roads, paths, transit centers, and bridges; the watershed on culverts), not the highest class touching it.
 
 ---
 
@@ -204,14 +204,16 @@ a third term would default to fair almost everywhere. `cond_class` stays in the 
 
 **DF-C, debris flow x small culverts** (E 0.7 / S 0.3)
 
-Exposure is the shared debris-flow surface of section 4.2, option 1 (decision 15), sampled as
-the watershed maximum. Under option 1 basin slope already sits in exposure, so the draft's
+Exposure is the shared debris-flow surface of section 4.2, option 1 (decision 15) as revised by
+decision 33: the culvert's own basin slope and the severity class covering at least 25 percent
+of its watershed, with exposure 0 where the contributing area is over 3 square miles
+(`DF_gate`). Under option 1 basin slope already sits in exposure, so the draft's
 debris-potential sensitivity would count it twice. **TRPA decision (decision 7):** sensitivity
 is opening size and condition on the LS-C scales.
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 to E3 | Section 4.2, option 1 | 0.70 total | | | | Watershed maximum |
+| E1 and E3 | Section 4.2, option 1 (decision 33) | 0.70 total | | | | Basin slope from the profile; severity by 25 percent share of the watershed |
 | S1 | Opening size (`d_eq_in`), the LS-C S1 scale | 0.15 | as LS-C S1 | | 2, `S_source` partial | Per asset |
 | S2 | Condition (`cond_class`), the LS-C S2 scale | 0.15 | as LS-C S2 | | 2 (fair), `S_source` partial | Latest inspection |
 | S1 (draft, not used) | Debris potential of the basin, the FL-C S1 matrix | 0.30 | as FL-C S1 | | | Watershed |
@@ -479,10 +481,11 @@ that is consequence, which the framework carries in criticality, not sensitivity
 
 **DF-B, debris flow x bridges** (E 0.7 / S 0.3)
 
-Exposure is the shared debris-flow surface of section 4.2, sampled over the crossing's
-watershed where the structure is over a waterway and within 25 m otherwise. Sensitivity is the
-LS-B set (span type 0.10, condition 0.10, span length 0.10), same values, same direction
-question.
+Exposure is the shared debris-flow surface of section 4.2 as revised by decision 33 (E1 and E3,
+0.70 total): upslope steepness within 25 m and the severity class covering at least 25 percent
+of a 300 ft buffer, with exposure 0 where the largest contributing area within 25 m is over 3
+square miles (`DF_gate`). Bridge watersheds are December work. Sensitivity is the LS-B set
+(span type 0.10, condition 0.10, span length 0.10), same values, same direction question.
 
 ### 3.3 Output fields
 
@@ -518,35 +521,34 @@ Consultant review of the results (Oct. 26, 2026): the bridge and large-culvert a
 
 ### 4.1 Asset set and sampling
 
-`Streets_Network_Tahoe` segments, scored as the maximum along the segment. Segment IDs
-and `C_class` come from the criticality assessment. The debris-flow surface is built once so
-DF-R, DF-B, and DF-C share one surface and one set of breaks.
+`Streets_Network_Tahoe` segments: upslope steepness as the maximum touching the segment, and
+severity as the highest class covering at least 25 percent of the 300 ft buffer (decision 33).
+Segment IDs and `C_class` come from the criticality assessment. The debris-flow surface is
+built once so DF-R, DF-B, and DF-C share one surface and one set of breaks.
 
 ### 4.2 Indicator rubrics (E 1.0, exposure only; decision 25)
 
-Exposure is option 1 (decision 15); option 2 and the TRPA proxy are listed for the record. All
-are rasters so roads (maximum along the segment), bridges (25 m or watershed), and culverts
-(watershed) sample the same surfaces. The weights below are the draft's; on roads they scale
-to the full weight in the same proportions (option 1: 0.29, 0.29, 0.43; option 2: 0.50, 0.25,
-0.25; proxy: 1.00). The S rows are the draft's and are not scored for roads.
+Exposure is option 1 (decision 15) as revised by decision 33: E1 and E3 are scored, and the
+draft's E2 (drainage area) is a gate, not a score. Option 2 and the TRPA proxy are listed for
+the record. All are rasters so roads, bridges (25 m for steepness, 300 ft for severity), and
+culverts (their own basin slope, severity over the watershed) sample the same surfaces. The
+weights below are the draft's; option 1 now scales E1 and E3 to the full exposure weight in the
+draft's proportions, 0.40 and 0.60 (decision 33), and on culverts and bridges exposure keeps its
+0.70 share of the pair. Option 2 on roads scales to 0.50, 0.25, 0.25; the proxy to 1.00. The S
+rows are the draft's and are not scored for roads.
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Build |
 |---|---|---|---|---|---|---|
-| E1 (option 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell, from the hydro-enforced DEM | 0.20 | over 30 percent | 3 | 1 | DEM |
+| E1 (option 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell, from the hydro-enforced DEM. Weight 0.40 of exposure (decision 33) | 0.20 | over 30 percent | 3 | 1 | DEM |
 | | | | over 25 to 30 percent | 2.5 | | |
 | | | | over 20 to 25 percent | 2 | | |
 | | | | over 15 to 20 percent | 1.5 | | |
 | | | | over 10 to 15 percent | 1 | | |
 | | | | over 5 to 10 percent | 0.5 | | |
 | | | | 0 to 5 percent | 0 | | |
-| E2 (option 1) | Drainage area. Raster: contributing area at each cell; smaller areas lead to higher debris-flow intensities | 0.20 | under 0.25 sq mi | 3 | 1 | DEM flow accumulation |
-| | | | 0.25 to 0.5 sq mi | 2.5 | | |
-| | | | over 0.5 to 1 sq mi | 2 | | |
-| | | | over 1 to 2 sq mi | 1.5 | | |
-| | | | over 2 to 3 sq mi | 1 | | |
-| | | | over 3 to 5 sq mi | 0.5 | | |
-| | | | over 5 sq mi | 0 | | |
-| E3 (option 1) | Contracted predicted soil burn severity | 0.30 | high | 3 | 0 | As delivered |
+| E2 (option 1) | Drainage area. Gate, not scored (decision 33): culverts and bridges with a contributing area over 3 sq mi score exposure 0 (`DF_gate`); roads are not gated. The draft scored it 0.20, 3 under 0.25 sq mi to 0 over 5 sq mi | gate | over 3 sq mi | exposure 0 | not gated | DEM flow accumulation |
+| | | | 3 sq mi or less | scored on E1 and E3 | | |
+| E3 (option 1) | Contracted predicted soil burn severity; the TRPA most-likely fire severity surface stands in until it arrives. Highest class covering at least 25 percent of the watershed (culverts) or the 300 ft buffer (roads, bridges). Weight 0.60 of exposure (decision 33) | 0.30 | high | 3 | 0 | As delivered |
 | | | | moderate | 2 | | |
 | | | | low | 1 | | |
 | | | | unburned or very low | 0 | | |
@@ -576,23 +578,40 @@ to the full weight in the same proportions (option 1: 0.29, 0.29, 0.43; option 2
 
 ### 4.3 Notes
 
-- Option 1 reuses the flow-accumulation and slope rasters from the culvert delineation; burn
-  severity is the only new input, and the TRPA most-likely fire severity surface (the decision
-  22 input) stands in for predicted soil burn severity until the contracted package arrives.
-- The draft's drainage-area direction (smaller scores higher) describes the concentrated runoff
-  of small steep basins. A road crossing a large river scores low on this term; a road below a
-  small burned ravine scores high. Intended.
-- The segment maximum catches both the crossing and the toe of slope; a segment with one High
-  culvert reads High. Intended.
+- Option 1 reuses the slope raster from the culvert delineation for E1; the flow-accumulation
+  raster is now the area gate, read from each culvert's own drainage area and, for bridges, as
+  the largest contributing area within 25 m. Burn severity is the only new input, and the TRPA
+  most-likely fire severity surface (the decision 22 input) stands in for predicted soil burn
+  severity until the contracted package arrives.
+- The gate follows the USGS post-fire models, which treat basin area as a domain limit (about 8
+  square kilometers in its emergency assessments) rather than a likelihood term. A culvert or
+  bridge on a large river takes a sediment-laden flood, which FL-C and FL-B carry.
+- The segment maximum on steepness catches both the crossing and the toe of slope. Intended.
 - Roads carry no sensitivity (decision 25), so pavement condition is not a gap for roads.
 
 ### 4.4 Notes
 
 15. **TRPA decision (Oct. 21, 2026): option 1 for the Nov. 9 workshop.** Option 2 (Wildcat) is
     reviewed for December; the proxy is not used.
-16. Resolved: the draft's drainage-area breaks and direction are adopted. No action.
+16. Superseded by decision 33. (Was: the draft's drainage-area breaks and direction are
+    adopted.)
+33. **TRPA decision (Nov. 2, 2026): debris flow exposure is mean upslope slope and burn
+    severity, with contributing area as a gate.** The draft's drainage-area indicator (E2) is
+    dropped as a weighted term: under 0.25 square miles scores 3, which was 4,798 of 5,096
+    culverts, so it carried no information. Exposure is 0.40 slope and 0.60 severity, the
+    draft's proportions without E2, and keeps its 0.70 share of vulnerability on culverts and
+    bridges. Slope is sampled as before. Severity is the highest class covering at least 25
+    percent of the contributing watershed (culverts, with the 25 m buffer where no watershed
+    exists) or of a 300 ft buffer (roads and bridges), the wildfire rule of decision 27, in
+    place of the maximum. Culverts and bridges with a contributing area over 3 square miles
+    score 0 on exposure (`DF_gate`), so the pair reads Low on sensitivity alone; roads are not
+    gated. The TRPA most-likely fire severity surface still stands in for predicted soil burn
+    severity until the contracted package arrives, which then replaces it on the same breaks
+    and the same 25 percent rule. Supersedes decision 16; amends decision 15 (option 2 Wildcat
+    is compared in December, not substituted). Sensitivity unchanged. The pairs stay out of
+    the combined class until the class shares are reviewed next to flooding and landslide.
 
-Consultant review of the results (Oct. 26, 2026): option 1 is consistent with the original recommendation; debris flow to be reviewed in more detail as data becomes available. The review also noted that most of the network scores Medium or High and that some overlap with landslide is expected; the stand-in pairs stay out of the combined class, and the question is revisited with the Wildcat run.
+Consultant review of the results (Oct. 26, 2026): option 1 is consistent with the original recommendation; debris flow to be reviewed in more detail as data becomes available. The review also noted that most of the network scores Medium or High and that some overlap with landslide is expected; the stand-in pairs stay out of the combined class, and the question is revisited with the Wildcat run. Decision 33 revised option 1 after this review.
 
 ---
 

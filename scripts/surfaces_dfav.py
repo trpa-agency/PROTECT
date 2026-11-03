@@ -1,17 +1,18 @@
 """Debris-flow and avalanche surfaces for score_exposure.py (docs/SCORING_RUBRICS.md 4 and 5).
 
-Debris flow, option 1 with a burn-severity stand-in (config exposure.debris_flow): from the
-2 m terrain rasters of the culvert delineation (profile.work_gdb: fdir, facc, slope_pct),
+Debris flow, option 1 as revised by decision 33 (config exposure.debris_flow): from the 2 m
+terrain rasters of the culvert delineation (profile.work_gdb: fdir, facc, slope_pct),
     E1  mean slope of the upslope contributing area at each cell (slope-weighted flow
         accumulation over flow accumulation), aggregated to 30 m by mean, on the draft's
         half-point breaks (over 30 percent = 3 ... 0 to 5 = 0)
-    E2  contributing area at each cell (flow accumulation, 30 m by maximum), on the draft's
-        breaks (under 0.25 sq mi = 3 ... over 5 sq mi = 0)
     E3  TRPA most-likely fire severity (the wildfire E2 surface) standing in for the contracted
         predicted soil burn severity: High 3, Moderate 2, Low 1, outside 0
-Weights 0.20 / 0.20 / 0.30. Culverts read E1 and E2 from their own profile (basin_slope_pct,
-contrib_area_ac) and E3 as the watershed maximum; roads and bridges read E2 at the largest
-contributing area they touch (the draft's maximum-accumulation cell) and E1, E3 as maxima.
+Weights 0.40 / 0.60. The draft's E2, contributing area (flow accumulation, 30 m by maximum, on
+its breaks: under 0.25 sq mi = 3 ... over 5 sq mi = 0), is still built as Hazard_DebrisFlow_Area
+but is a gate, not a score: culverts and bridges over exposure.debris_flow.area_gate_sqmi score
+exposure 0. Culverts read E1 from their own profile (basin_slope_pct) and E3 as the highest
+severity class covering e3_min_share of the watershed; roads read E1 touching the segment and E3
+by share within 300 ft; bridges read E1 within 25 m and E3 by share within 300 ft.
 
 Avalanche x roads (config exposure.avalanche): one lookup of the dominant slope tier on the
 uphill side within 1,000 ft of the segment (10 m DEM, 20 m elevation bands; decision 17) and a
@@ -50,7 +51,8 @@ def df_slope_score(pct) -> float | None:
 
 
 def df_area_score(sqmi) -> float | None:
-    """DF E2 (option 1): contributing area in square miles, smaller scores higher."""
+    """The draft's DF E2 classes for contributing area in square miles, smaller scores higher.
+    Map only since decision 33: it classes Hazard_DebrisFlow_Area; the area is a gate, not a score."""
     if sqmi is None or (isinstance(sqmi, float) and np.isnan(sqmi)):
         return None
     a = float(sqmi)
@@ -109,9 +111,33 @@ def _poly_from_int_raster(raster, scratch_gdb: str, name: str, crs, log, field: 
     return g.rename(columns={"gridcode": field})
 
 
+def max_area_sqmi_near(cfg: dict, pts: gpd.GeoDataFrame, buffer_m: float) -> pd.Series:
+    """Largest contributing area (sq mi) within buffer_m of each point, from the 2 m flow
+    accumulation of the culvert delineation (profile.work_gdb facc), one small windowed read per
+    point. The bridge gate (decision 33): culverts carry their own contrib_area_ac, bridges do
+    not, and Hazard_DebrisFlow_Area drops ground over 5 sq mi, so it cannot see a big river.
+    NaN where no cell has data. Index = pts.index."""
+    import arcpy
+    R = arcpy.Raster(f"{cfg['profile']['work_gdb']}\\facc")
+    cs, ext, sr = float(R.meanCellWidth), R.extent, R.spatialReference
+    pts = pts.to_crs(sr.factoryCode or sr.exportToString())
+    n = int(np.ceil(2 * buffer_m / cs)) + 2
+    out = []
+    for x, y in zip(pts.geometry.x, pts.geometry.y):
+        c0 = int(np.floor((x - buffer_m - ext.XMin) / cs))
+        r0 = int(np.floor((ext.YMax - (y + buffer_m)) / cs))
+        a = arcpy.RasterToNumPyArray(R, arcpy.Point(ext.XMin + c0 * cs, ext.YMax - (r0 + n) * cs), n, n, nodata_to_value=-1)
+        xs = ext.XMin + (c0 + np.arange(a.shape[1]) + 0.5) * cs
+        ys = ext.YMax - (r0 + np.arange(a.shape[0]) + 0.5) * cs
+        m = (np.hypot(xs[None, :] - x, ys[:, None] - y) <= buffer_m) & (a >= 0)
+        out.append(float((a[m].max() + 1) * cs * cs / SQM_PER_SQMI) if m.any() else np.nan)
+    return pd.Series(out, index=pts.index)
+
+
 def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
-    """Three indicator surfaces in the hazards geodatabase (Hazard_DebrisFlow_Slope, _Area, and
-    the wildfire severity fc reused as E3). Returns the indicator dict with sampling hints."""
+    """The slope and drainage-area surfaces in the hazards geodatabase (Hazard_DebrisFlow_Slope,
+    _Area), with the wildfire severity fc reused as E3. Returns the scored indicators (E1, E3)
+    with sampling hints; the area surface is map context for the gate, not an indicator."""
     import arcpy
     import pyogrio
     from arcpy import sa
@@ -125,11 +151,10 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
     sev_fc = ex["wildfire"]["e2_fc"]
     if not arcpy.Exists(f"{gdb}\\{sev_fc}"):
         raise SystemExit(f"{sev_fc} (the wildfire E2 surface) is the burn-severity stand-in; build wildfire first")
-    hints = {"e1": "profile:slope", "e2": "profile:area|min", "e3": "watershed"}
+    hints = {"e1": "profile:slope", "e3": "watershed"}
     if arcpy.Exists(f"{gdb}\\{df['slope_fc']}") and arcpy.Exists(f"{gdb}\\{df['area_fc']}") and not overwrite:
         log.info(f"{df['slope_fc']} and {df['area_fc']} exist; reading them (use --build to rebuild)")
         return {"e1": (float(w["e1"]), pyogrio.read_dataframe(gdb, layer=df["slope_fc"]).to_crs(crs), hints["e1"]),
-                "e2": (float(w["e2"]), pyogrio.read_dataframe(gdb, layer=df["area_fc"]).to_crs(crs), hints["e2"]),
                 "e3": (float(w["e3"]), pyogrio.read_dataframe(gdb, layer=sev_fc).to_crs(crs), hints["e3"])}
 
     work = cfg["profile"]["work_gdb"]
@@ -176,10 +201,11 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
         log.info(f"DF {key} ({label}), area by score (km2):\n"
                  + (g.groupby("hz_class").geometry.apply(lambda x: x.area.sum() / 1e6)).round(1).to_string())
         write_class_fc(g, gdb, fc, "debris_flow", {}, cfg, log)
-        out[key] = (float(w[key]), g, hints[key])
+        if key in w:
+            out[key] = (float(w[key]), g, hints[key])
     sev = pyogrio.read_dataframe(gdb, layer=sev_fc).to_crs(crs)
     out["e3"] = (float(w["e3"]), sev, hints["e3"])
-    log.info("E3 is the TRPA most-likely fire severity surface standing in for predicted soil burn severity (DF_option proxy)")
+    log.info("E3 is the TRPA most-likely fire severity surface standing in for predicted soil burn severity (DF_option stand-in)")
     arcpy.CheckInExtension("Spatial")
     return out
 

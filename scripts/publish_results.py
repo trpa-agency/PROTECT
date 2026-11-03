@@ -31,13 +31,13 @@ CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "pare
                 "q_event_25_cfs", "q_event_100_cfs", "q_cap_crossing_cfs", "load_ratio_25", "load_ratio_100",
                 "cond_class", "cond_source", "cond_stale", "blockage_pct", "tailwater_flag", "on_stream",
                 "size_suspect", "ratio_review", "profile_completeness", "E_FLC_hist", "E_FLC_pt", "E_FLC_src",
-                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_DFC_hist", "E_DFC_e1", "E_DFC_e2", "E_DFC_e3", "DF_option", "E_source",
+                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_DFC_hist", "E_DFC_e1", "E_DFC_e3", "DF_option", "DF_gate", "E_source",
                 "S_FLC", "V_FLC_hist", "S_FLC_q25", "V_FLC_hist_q25", "S_LSC", "V_LSC_hist", "S_DFC", "V_DFC_hist", "V_max", "V_max_pair", "V_class",
                 "V_max_all", "V_max_all_pair", "V_class_all", "S_source"]
 BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_crossed", "year_built",
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
                "channel_cond", "lowest_rating", "bridge_condition_label", "water_crossing", "parent_segment_id",
-               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_DFB_hist", "DF_option", "E_source",
+               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_DFB_hist", "DF_option", "DF_gate", "E_source",
                "S_FLB", "V_FLB_hist", "S_LSB", "V_LSB_hist", "S_DFB", "V_DFB_hist", "V_max", "V_max_pair", "V_class",
                "V_max_all", "V_max_all_pair", "V_class_all", "S_source"]
 ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e2", "E_{p}_e3", "len_pct_c1", "len_pct_c2",

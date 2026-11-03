@@ -89,8 +89,11 @@ class Copy:
 
 V_BREAKS = "Low under 1, Medium 1 to under 2, and High 2 or more"
 WF_BREAKS = "Low under 1.5, Medium 1.5 to 2, and High over 2 (decision 26)"
-DF_LEFT_OUT = ("Not counted in V_max or V_class. With fire severity standing in for soil burn severity, and nearly every "
-               "asset scoring 3 on drainage size, debris flow would otherwise set V_max for most assets.")
+DF_LEFT_OUT = ("Not counted in V_max or V_class while fire severity stands in for soil burn severity; the pairs rejoin "
+               "once their class shares are reviewed next to flooding and landslide (decision 33).")
+DF_E = "0.40 x {p}_e1 + 0.60 x {p}_e3 (rubric 4.2, option 1 as revised by decision 33)."
+DF_GATE = ("1 if the contributing area is over 3 sq mi, outside the debris-flow domain (decision 33): exposure is set "
+           "to 0, so the pair reads on sensitivity alone. 0 otherwise.")
 OD_ROUTE = ("Averaged over 100 stochastic assignment runs on travel time by road class "
             "(scripts/ra2ce_v2/od_stochastic_assignment.ipynb).")
 PAGES_ROADS = "results.html (road layer and table on every tab)"
@@ -325,22 +328,19 @@ def roads_fields() -> list:
     # debris flow
     f += [
         Fld("E_DFR_hist", "DOUBLE", "Debris-flow exposure (DF-R)",
-            f"(0.20 x E_DFR_e1 + 0.20 x E_DFR_e2 + 0.30 x E_DFR_e3) / 0.70 (rubric 4.2, option 1). {DF_LEFT_OUT}",
+            f"{DF_E.format(p='E_DFR')} Roads are not gated. {DF_LEFT_OUT}",
             units="score, 0 to 3", src="Exposure_debris_flow_roads.E_DFR_hist", how="joined on src_objectid",
             used="results.html (Debris flow tab color, popup, table, chart)"),
         Fld("E_DFR_e1", "DOUBLE", "Upslope steepness score (DF-R E1)",
             "Highest upslope steepness score the link touches in Hazard_DebrisFlow_Slope.",
             values="0 to 3 in half points", src="Exposure_debris_flow_roads.E_DFR_e1", how="joined on src_objectid",
-            used="results.html (Debris flow popup, table); E_DFR_hist (weight 0.20)"),
-        Fld("E_DFR_e2", "DOUBLE", "Drainage size score (DF-R E2)",
-            "Score of the largest drainage area the link touches in Hazard_DebrisFlow_Area. Smaller drainages score "
-            "higher.", values="0 to 3 in half points", src="Exposure_debris_flow_roads.E_DFR_e2",
-            how="joined on src_objectid", used="results.html (Debris flow popup, table); E_DFR_hist (weight 0.20)"),
+            used="results.html (Debris flow popup, table); E_DFR_hist (weight 0.40)"),
         Fld("E_DFR_e3", "DOUBLE", "Fire severity class (DF-R E3)",
-            "Highest fire severity class the link touches in Hazard_Wildfire_Severity. It stands in for predicted soil "
-            "burn severity, which is under contract.", values="0 to 3", src="Exposure_debris_flow_roads.E_DFR_e3",
+            "Highest fire severity class covering at least 25 percent of the 300 ft buffer around the link "
+            "(Hazard_Wildfire_Severity), 0 where none does. It stands in for predicted soil burn severity, which is "
+            "under contract.", values="0 to 3", src="Exposure_debris_flow_roads.E_DFR_e3",
             how="joined on src_objectid; renamed from E_e3 where the score table still uses the old name",
-            used="results.html (Debris flow popup and table); E_DFR_hist (weight 0.30)"),
+            used="results.html (Debris flow popup and table); E_DFR_hist (weight 0.60)"),
         Fld("V_DFR_hist", "DOUBLE", "Debris-flow vulnerability (DF-R)", road_v("E_DFR_hist"),
             values=V_BREAKS, src="Vulnerability_roads.V_DFR_hist", how="joined on src_objectid",
             used="results.html (Overview Debris flow view, popups); scoring-rubrics.html (matrix)"),
@@ -589,23 +589,22 @@ def culverts_fields() -> list:
             values=V_BREAKS, used="results.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
         # debris flow
         Fld("E_DFC_hist", "DOUBLE", "Debris-flow exposure (DF-C)",
-            f"(0.20 x E_DFC_e1 + 0.20 x E_DFC_e2 + 0.30 x E_DFC_e3) / 0.70 (rubric 4.2, option 1). {DF_LEFT_OUT}",
+            f"{DF_E.format(p='E_DFC')} 0 where DF_gate is 1. {DF_LEFT_OUT}",
             units="score, 0 to 3", used="results.html (Debris flow color, popup, chart)"),
         Fld("E_DFC_e1", "DOUBLE", "Basin slope score (DF-C E1)",
             "Score for basin_slope_pct: 3 over 30 percent, 2.5 over 25, 2 over 20, 1.5 over 15, 1 over 10, 0.5 over 5, "
             "and 0 otherwise.", values="0 to 3 in half points",
-            used="results.html (Debris flow popup); E_DFC_hist (weight 0.20)"),
-        Fld("E_DFC_e2", "DOUBLE", "Basin size score (DF-C E2)",
-            "Score for contrib_area_ac in square miles: 3 under 0.25, 2.5 up to 0.5, 2 up to 1, 1.5 up to 2, 1 up to 3, "
-            "0.5 up to 5, and 0 over 5.", values="0 to 3 in half points",
-            used="results.html (Debris flow popup); E_DFC_hist (weight 0.20)"),
+            used="results.html (Debris flow popup); E_DFC_hist (weight 0.40)"),
         Fld("E_DFC_e3", "DOUBLE", "Fire severity class (DF-C E3)",
-            "Highest fire severity class in the watershed (Hazard_Wildfire_Severity). It stands in for predicted soil "
-            "burn severity, which is under contract.", values="1, 2, 3",
-            used="results.html (Debris flow popup); E_DFC_hist (weight 0.30)"),
+            "Highest fire severity class covering at least 25 percent of the watershed (Hazard_Wildfire_Severity), 0 "
+            "where none does; the 25 m buffer where no watershed was delineated. It stands in for predicted soil burn "
+            "severity, which is under contract.", values="0 to 3",
+            used="results.html (Debris flow popup); E_DFC_hist (weight 0.60)"),
         Fld("DF_option", "TEXT", "Debris-flow method", "Debris-flow scoring option used (rubric 4.2).",
-            values="1 (fire severity stand-in)", used="results.html (Debris flow popup); scoring-rubrics.html",
+            values="1 (severity stand-in)", used="results.html (Debris flow popup); scoring-rubrics.html",
             length=24),
+        Fld("DF_gate", "SHORT", "Over the debris-flow area gate", DF_GATE, values="0, 1",
+            used="results.html (Debris flow popup); E_DFC_hist"),
         Fld("S_DFC_s1", "DOUBLE", "Opening size score (DF-C S1)", "Same scale as S_LSC_s1 (decision 7).",
             values="1 to 3 in half points", used="S_DFC (weight 0.15)"),
         Fld("S_DFC_s2", "DOUBLE", "Condition and blockage score (DF-C S2)", "Same scale as S_FLC_s3.",
@@ -761,20 +760,22 @@ def bridges_fields() -> list:
         Fld("V_LSB_hist", "DOUBLE", "Landslide vulnerability (LS-B)", "0.70 x E_LSB_hist + 0.30 x S_LSB.",
             values=V_BREAKS, used="results.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
         Fld("E_DFB_hist", "DOUBLE", "Debris-flow exposure (DF-B)",
-            f"(0.20 x E_DFB_e1 + 0.20 x E_DFB_e2 + 0.30 x E_DFB_e3) / 0.70 (rubric 4.2, option 1). {DF_LEFT_OUT}",
+            f"{DF_E.format(p='E_DFB')} 0 where DF_gate is 1. {DF_LEFT_OUT}",
             units="score, 0 to 3", used="results.html (Debris flow color, popup)"),
         Fld("E_DFB_e1", "DOUBLE", "Upslope steepness score (DF-B E1)",
             "Highest upslope steepness score within 25 m of the bridge (Hazard_DebrisFlow_Slope).",
-            values="0 to 3 in half points", used="E_DFB_hist (weight 0.20)"),
-        Fld("E_DFB_e2", "DOUBLE", "Drainage size score (DF-B E2)",
-            "Score of the largest drainage area within 25 m of the bridge (Hazard_DebrisFlow_Area).",
-            values="0 to 3 in half points", used="E_DFB_hist (weight 0.20)"),
+            values="0 to 3 in half points", used="E_DFB_hist (weight 0.40)"),
         Fld("E_DFB_e3", "DOUBLE", "Fire severity class (DF-B E3)",
-            "Highest fire severity class within 25 m of the bridge (Hazard_Wildfire_Severity). It stands in for "
-            "predicted soil burn severity, which is under contract.", values="0 to 3", used="E_DFB_hist (weight 0.30)"),
+            "Highest fire severity class covering at least 25 percent of the 300 ft buffer around the bridge "
+            "(Hazard_Wildfire_Severity), 0 where none does. It stands in for predicted soil burn severity, which is "
+            "under contract.", values="0 to 3", used="E_DFB_hist (weight 0.60)"),
         Fld("DF_option", "TEXT", "Debris-flow method", "Debris-flow scoring option used (rubric 4.2).",
-            values="1 (fire severity stand-in)", used="results.html (Debris flow popup); scoring-rubrics.html",
+            values="1 (severity stand-in)", used="results.html (Debris flow popup); scoring-rubrics.html",
             length=24),
+        Fld("DF_gate", "SHORT", "Over the debris-flow area gate",
+            DF_GATE + " Read as the largest contributing area within 25 m of the bridge (2 m flow accumulation).",
+            values="0, 1",
+            used="results.html (Debris flow popup); E_DFB_hist"),
         Fld("S_DFB_s1", "DOUBLE", "Span type score (DF-B S1)", "Same scale as S_FLB_s3.", values="1, 3",
             used="S_DFB (weight 0.10)"),
         Fld("S_DFB_s2", "DOUBLE", "Condition score (DF-B S2)", "Same scale as S_FLB_s4.", values="1 to 3",
@@ -1154,15 +1155,15 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "score_exposure.py (DF-R and DF-B E1; culverts use their own basin slope instead)",
                 surface_fields("Upslope steepness score.", "0.5 to 3 in half points",
                                "score_exposure.py (DF-R and DF-B E1)", half_points=True, label=False)),
-        Dataset("Hazard_DebrisFlow_Area", "HazardSurfaces", "POLYGON", "Drainage size scores (debris-flow E2)",
-                "Drainage area at each 30 m cell (the largest 2 m flow accumulation in it), scored on the draft "
-                "methodology's breaks, with smaller drainages scoring higher: 3 under 0.25 sq mi, 2.5 up to 0.5, 2 up "
-                "to 1, 1.5 up to 2, 1 up to 3, and 0.5 up to 5. Ground draining more than 5 sq mi scores 0 and is not "
-                "stored.",
+        Dataset("Hazard_DebrisFlow_Area", "HazardSurfaces", "POLYGON", "Drainage size classes (debris-flow area gate)",
+                "Drainage area at each 30 m cell (the largest 2 m flow accumulation in it), classed on the draft "
+                "methodology's breaks, with smaller drainages higher: 3 under 0.25 sq mi, 2.5 up to 0.5, 2 up to 1, "
+                "1.5 up to 2, 1 up to 3, and 0.5 up to 5. Ground draining more than 5 sq mi is class 0 and is not "
+                "stored. Not scored since decision 33: classes 0.5 and 0 (over 3 sq mi) are the area gate.",
                 f"{hz}/{ex['debris_flow']['area_fc']}, built by surfaces_dfav.py", ex["debris_flow"]["area_fc"],
-                "All polygons.", "", "", "score_exposure.py (DF-R and DF-B E2, at the largest drainage area touched)",
-                surface_fields("Drainage size score.", "0.5 to 3 in half points",
-                               "score_exposure.py (DF-R and DF-B E2)", half_points=True, label=False)),
+                "All polygons.", "", "", "Map context for the bridge gate (score_exposure.py reads the class raster)",
+                surface_fields("Drainage size class.", "0.5 to 3 in half points",
+                               "Map context for the debris-flow area gate", half_points=True, label=False)),
         Dataset("Hazard_Avalanche_Cells", "HazardSurfaces", "POLYGON", "Avalanche terrain by slope tier and elevation band",
                 "Slope tiers on the 10 m grid, by 20 m elevation band. AV-R takes each link's uphill tier from this "
                 "surface (decision 17). Each polygon is a group of adjacent cells with the same tier and band.",
@@ -1277,7 +1278,7 @@ def build_roads(ds, cfg, ctx, log):
              lp("LSR", (1, 2, 3))),
             ("Exposure_wildfire_roads", ["E_WFR_hist", "E_WFR_e1", "E_WFR_e2", "len_pct_c1", "len_pct_c2", "len_pct_c3"],
              lp("WFR", (1, 2, 3))),
-            ("Exposure_debris_flow_roads", ["E_DFR_hist", "E_DFR_e1", "E_DFR_e2", df_e3], {"E_e3": "E_DFR_e3"}),
+            ("Exposure_debris_flow_roads", ["E_DFR_hist", "E_DFR_e1", df_e3], {"E_e3": "E_DFR_e3"}),
             ("Exposure_avalanche_roads", ["E_AVR_hist", "av_tier", "av_record", "uphill_ha"], None)):
         r = r.merge(table(name, cols, ren), on=key, how="left", validate="one_to_one")
     missing = int(r["V_class"].isna().sum())

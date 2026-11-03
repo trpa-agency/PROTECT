@@ -16,12 +16,15 @@ Two jobs, both config-driven (config.yaml `exposure:`):
      5 = 3, 4 = 2, 3 = 1, else 0, with every recorded landslide (USGS inventory polygons, and
      points within a set distance) as class 3; E2 the Cal-Adapt precipitation change, which
      scores 0 at the historical horizon by definition, so E_LS*_hist = 0.50 E1 / 0.70.
-     Debris flow and avalanche plug in the same way.
+     Debris flow (decision 33, surfaces_dfav.py): E1 mean upslope slope 0.40, E3 the severity
+     surface 0.60 by area share (exposure.debris_flow.e3_min_share), contributing area over
+     area_gate_sqmi gating culverts and bridges to E = 0 (DF_gate). Avalanche plugs in the same way.
   2. Sample it per asset on the rubric's sampling rule (section 1.7) and write the scores:
        culverts   maximum over the contributing watershed (CulvertWatersheds_inc aggregated up
                   the drainage tree from CulvertCrossings), 25 m buffer where no watershed;
                   FL-C tailwater modifier +1 (cap 3) where tailwater_flag is set
-       bridges    maximum within 25 m; FL-B combines E1 waterway adequacy (NBI item 71) at
+       bridges    maximum within 25 m, or an indicator with a <name>_min_share by share within the
+                  hazard's buffer_ft (DF-B E3); FL-B combines E1 waterway adequacy (NBI item 71) at
                   0.20 with E2 the flood class at 0.10, weight-normalized to 0 to 3
        roads      maximum class touching the segment, plus the share of length in each class
        active transport   maximum within the hazard's sampling distance of the line (Transportation
@@ -99,7 +102,17 @@ def waterway_score(code) -> float:
 
 
 def tree_max(values: dict[int, float], down_map: dict[int, int]) -> dict[int, float]:
-    """Maximum of a per-zone value over each crossing's full upstream set. `down_map` is
+    """Maximum of a per-zone value over each crossing's full upstream set."""
+    return _tree_fold(values, down_map, max)
+
+
+def tree_sum(values: dict[int, float], down_map: dict[int, int]) -> dict[int, float]:
+    """Sum of a per-zone value (an area) over each crossing's full upstream set."""
+    return _tree_fold(values, down_map, lambda a, b: a + b)
+
+
+def _tree_fold(values: dict[int, float], down_map: dict[int, int], combine) -> dict[int, float]:
+    """A per-zone value combined over each crossing's full upstream set. `down_map` is
     pp_id -> downstream pp_id. Cycles are cut the way culvert_profile does (walk downstream,
     drop the edge that returns to the walk). Leaves-first, no recursion."""
     down = dict(down_map)
@@ -130,7 +143,7 @@ def tree_max(values: dict[int, float], down_map: dict[int, int]) -> dict[int, fl
         v = values.get(pid, 0.0)
         v = 0.0 if v is None or (isinstance(v, float) and np.isnan(v)) else float(v)
         for ch in children.get(pid, []):
-            v = max(v, full[ch])
+            v = combine(v, full[ch])
         full[pid] = v
         par = down.get(pid)
         if par is not None and par in pending:
@@ -209,8 +222,8 @@ def indicators(surf) -> list:
 
 
 def hint_agg(hint: str) -> str:
-    """'min' when the hint asks for the largest-area cell (the draft's maximum-accumulation
-    rule for DF E2 on roads and bridges); 'max' otherwise."""
+    """'min' when the hint asks for the lowest class (the draft's maximum-accumulation rule for
+    DF E2, retired by decision 33); 'max' otherwise."""
     return "min" if (hint or "").endswith("min") else "max"
 
 
@@ -627,6 +640,14 @@ def sample_distance_m(cfg: dict, hazard: str) -> float:
     return float(hz.get("buffer_ft", 0)) * 0.3048 if "buffer_ft" in hz else float(hz.get("line_buffer_m", 0) or 0)
 
 
+def indicator_distance_m(cfg: dict, hazard: str, name: str) -> float:
+    """Line sampling distance for one indicator: exposure.<hazard>.<indicator>_buffer_ft when set
+    (debris-flow E1 keeps touching the road while E3 samples 300 ft), else the hazard's."""
+    hz = cfg["exposure"].get(hazard, {}) or {}
+    key = f"{name}_buffer_ft"
+    return float(hz[key]) * 0.3048 if key in hz else sample_distance_m(cfg, hazard)
+
+
 # ----------------------------------------------------------------------------------------
 # sampling
 
@@ -634,6 +655,24 @@ def min_share(cfg: dict, hazard: str, name: str) -> float:
     """exposure.<hazard>.<indicator>_min_share: the indicator scores the highest class covering at
     least this share of the sampling buffer, instead of the highest class touching it (0 = off)."""
     return float((cfg["exposure"].get(hazard) or {}).get(f"{name}_min_share", 0) or 0)
+
+
+def share_cumulative(cfg: dict, hazard: str, name: str) -> bool:
+    """exposure.<hazard>.<indicator>_share_cumulative: the share counts a class and every class
+    above it (the highest class k where class k or worse covers the share), not each class alone."""
+    return bool((cfg["exposure"].get(hazard) or {}).get(f"{name}_share_cumulative", False))
+
+
+def best_share_class(frac: pd.DataFrame, share: float, cumulative: bool = False) -> pd.Series:
+    """Rows of class shares (columns = hz_class) -> the highest class meeting `share`, 0 where none.
+    cumulative: each class's share includes every higher class."""
+    if frac.empty:
+        return pd.Series(0.0, index=frac.index)
+    frac = frac[sorted(frac.columns)]
+    if cumulative:
+        frac = frac.iloc[:, ::-1].cumsum(axis=1).iloc[:, ::-1]
+    hit = frac.ge(share - 1e-9)
+    return hit.mul(np.array(frac.columns, dtype=float), axis=1).max(axis=1)
 
 
 def _tiled(surf: gpd.GeoDataFrame, size: float = 1000.0) -> gpd.GeoDataFrame:
@@ -654,7 +693,7 @@ def _tiled(surf: gpd.GeoDataFrame, size: float = 1000.0) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame({"hz_class": rows_c}, geometry=rows_g, crs=surf.crs)
 
 
-def share_class(probe: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, share: float) -> pd.Series:
+def share_class(probe: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, share: float, cumulative: bool = False) -> pd.Series:
     """Highest hz_class covering at least `share` of each probe polygon's area (0 where none).
     Index = probe.index."""
     P = gpd.GeoDataFrame({"_pid": probe.index}, geometry=probe.geometry.values, crs=probe.crs)
@@ -662,27 +701,25 @@ def share_class(probe: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, share: float) -
     cut["_a"] = cut.geometry.area
     frac = cut.groupby(["_pid", "hz_class"])["_a"].sum().unstack(fill_value=0.0)
     frac = frac.div(pd.Series(probe.geometry.area.values, index=probe.index).reindex(frac.index), axis=0)
-    hit = frac.ge(share - 1e-9)
-    best = hit.mul(np.array(frac.columns, dtype=float), axis=1).max(axis=1)
-    return best.reindex(probe.index).fillna(0.0)
+    return best_share_class(frac, share, cumulative).reindex(probe.index).fillna(0.0)
 
 
 def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float, agg: str = "max",
-                  share: float = 0.0) -> pd.Series:
+                  share: float = 0.0, cumulative: bool = False) -> pd.Series:
     """Maximum (or minimum) hz_class within buffer_m of each point (0 where none), or with share > 0
     the highest class covering that share of the buffer. Index = pts.index."""
     if surf is None:
         return pd.Series(0.0, index=pts.index)
     buf = gpd.GeoDataFrame(geometry=pts.geometry.buffer(buffer_m), crs=pts.crs)
     if share > 0 and buffer_m > 0:
-        return share_class(buf, surf, share)
+        return share_class(buf, surf, share, cumulative)
     sj = gpd.sjoin(buf, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
     g = sj.groupby(level=0)["hz_class"]
     return (g.min() if agg == "min" else g.max()).reindex(pts.index).fillna(0)
 
 
 def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float = 0.0, agg: str = "max",
-                 share: float = 0.0) -> pd.DataFrame:
+                 share: float = 0.0, cumulative: bool = False) -> pd.DataFrame:
     """Maximum (or minimum) hz_class within buffer_m of each line (touching it when 0), or with
     share > 0 the highest class covering that share of the buffer, and the share of the line's own
     length inside each class."""
@@ -690,7 +727,7 @@ def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: floa
         return pd.DataFrame({"hz_max": pd.Series(0.0, index=lines.index)})
     probe = lines[["geometry"]] if buffer_m <= 0 else gpd.GeoDataFrame(geometry=lines.geometry.buffer(buffer_m), crs=lines.crs)
     if share > 0 and buffer_m > 0:
-        out = pd.DataFrame({"hz_max": share_class(probe, surf, share)})
+        out = pd.DataFrame({"hz_max": share_class(probe, surf, share, cumulative)})
     else:
         sj = gpd.sjoin(probe, surf[["hz_class", "geometry"]], how="left", predicate="intersects")
         g = sj.groupby(level=0)["hz_class"]
@@ -735,6 +772,39 @@ def sample_watersheds(cfg: dict, surf: gpd.GeoDataFrame, log) -> pd.DataFrame:
     return out
 
 
+def sample_watersheds_share(cfg: dict, surf: gpd.GeoDataFrame, share: float, cumulative: bool, log) -> pd.DataFrame:
+    """Per crossing: the highest hz_class covering at least `share` of its full contributing
+    watershed (class areas per incremental zone summed up the drainage tree, over the zone area
+    summed the same way, so both cover the same zones). A crossing with no zone area anywhere
+    upstream gets NaN and falls back to the buffer. Returns crossing_id -> hz_ws."""
+    import pyogrio
+    gdb = cfg["paths"]["analysis_gdb"]
+    crs = target_crs(cfg)
+    ws = pyogrio.read_dataframe(gdb, layer="CulvertWatersheds_inc").to_crs(crs)
+    xt = pyogrio.read_dataframe(gdb, layer="CulvertCrossings", read_geometry=False)
+    ws["gridcode"] = ws["gridcode"].astype(int)
+    zone_area = ws.geometry.area.groupby(ws["gridcode"]).sum()
+    log.info(f"Overlaying {len(ws)} incremental watershed zones with the classed surface ...")
+    cut = gpd.overlay(ws[["gridcode", "geometry"]], _tiled(surf), how="intersection", keep_geom_type=True)
+    cut["_a"] = cut.geometry.area
+    by_class = cut.groupby(["gridcode", "hz_class"])["_a"].sum().unstack(fill_value=0.0)
+    dn = xt.set_index("crossing_pp")["downstream_crossing_id"]
+    id_to_pp = {f"X{int(pp):05d}": int(pp) for pp in xt["crossing_pp"]}
+    down_map = {int(pp): id_to_pp[d] for pp, d in dn.items() if isinstance(d, str) and d in id_to_pp}
+    pps = [int(pp) for pp in xt["crossing_pp"]]
+    total = tree_sum({pp: float(zone_area.get(pp, 0.0)) for pp in pps}, down_map)
+    full = {c: tree_sum({pp: float(by_class[c].get(pp, 0.0)) for pp in pps}, down_map) for c in by_class.columns}
+    tot = pd.Series([total[pp] for pp in pps], index=pps)
+    frac = pd.DataFrame({c: [full[c][pp] for pp in pps] for c in by_class.columns}, index=pps)
+    frac = frac.div(tot.where(tot > 0), axis=0)
+    best = best_share_class(frac.fillna(0.0), share, cumulative).where(tot > 0)
+    out = pd.DataFrame({"crossing_id": [f"X{pp:05d}" for pp in pps], "hz_ws": best.values})
+    log.info(f"Watershed share sampling ({share * 100:g} percent of the watershed{', cumulative' if cumulative else ''}) on "
+             f"{len(out)} crossings, {int(best.isna().sum())} with no zone area; class counts:\n"
+             + out["hz_ws"].value_counts(dropna=False).sort_index().to_string())
+    return out
+
+
 # ----------------------------------------------------------------------------------------
 # per-asset scoring
 
@@ -749,34 +819,44 @@ def score_culverts(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run:
     log.info(f"{len(cul)} scored culverts")
     inds = indicators(surf)
     weights = {name: wt for name, wt, _, _ in inds}
-    parts, pt_parts, src = {}, {}, None
+    parts, pt_parts, srcs = {}, {}, []
     for name, wt, g, hint in inds:
         if hint.startswith("profile:"):
-            # the culvert's own profile value (DF E1 mean basin slope, DF E2 contributing area)
-            from surfaces_dfav import df_area_score, df_slope_score
+            # the culvert's own profile value (DF E1 mean basin slope)
+            from surfaces_dfav import df_slope_score
             what = hint.split(":")[1].split("|")[0]
-            if what == "slope":
-                v = cul["basin_slope_pct"].map(df_slope_score)
-            else:
-                v = (cul["contrib_area_ac"] * 4046.8564 / 2_589_988.11).map(df_area_score)
+            if what != "slope":
+                raise SystemExit(f"Unknown profile hint {hint!r}")
+            v = cul["basin_slope_pct"].map(df_slope_score)
             parts[name] = v.where(v.notna(), 0.0)
             pt_parts[name] = parts[name].values
-            if src is None:
-                src = np.where(v.notna(), "profile", "default")
+            srcs.append(np.where(v.notna(), "profile", "default"))
             continue
-        pt = sample_points(cul, g, float(ex["point_buffer_m"]), hint_agg(hint))
-        wsx = sample_watersheds(cfg, g, log).set_index("crossing_id")["hz_ws"]
+        share, cum = min_share(cfg, hazard, name), share_cumulative(cfg, hazard, name)
+        pt = sample_points(cul, g, float(ex["point_buffer_m"]), hint_agg(hint), share=share, cumulative=cum)
+        ws = sample_watersheds_share(cfg, g, share, cum, log) if share > 0 else sample_watersheds(cfg, g, log)
+        wsx = ws.set_index("crossing_id")["hz_ws"]
         hz_ws = cul["crossing_id"].map(wsx) if "crossing_id" in cul.columns else pd.Series(np.nan, index=cul.index)
         parts[name] = hz_ws.where(hz_ws.notna(), pt.values)
         pt_parts[name] = pt.values
-        if src is None:
-            src = np.where(hz_ws.notna(), "watershed", "buffer")
+        srcs.append(np.where(hz_ws.notna(), "watershed", "buffer"))
+    # per culvert: default if any indicator defaulted, buffer if any fell back to the buffer
+    s = np.vstack(srcs)
+    src = np.where((s == "default").any(axis=0), "default", np.where((s == "buffer").any(axis=0), "buffer", s[0]))
     e = pd.Series([weighted_exposure({k: v.iloc[j] for k, v in parts.items()}, weights) for j in range(len(cul))], index=cul.index)
     e_pt = pd.Series([weighted_exposure({k: v[j] for k, v in pt_parts.items()}, weights) for j in range(len(cul))], index=cul.index)
     if hazard == "flood" and "tailwater_flag" in cul.columns:
         tw = cul["tailwater_flag"].fillna(0).astype(int) == 1
         e = (e + tw.astype(int)).clip(upper=3)
         log.info(f"Tailwater modifier applied on {int(tw.sum())} culverts")
+    gate = None
+    if hazard == "debris_flow":
+        # decision 33: a contributing area over the gate is outside the debris-flow domain; E = 0
+        gate_sqmi = float(ex["debris_flow"]["area_gate_sqmi"])
+        sqmi = pd.to_numeric(cul["contrib_area_ac"], errors="coerce") * 4046.8564 / 2_589_988.11
+        gate = (sqmi > gate_sqmi).fillna(False)
+        e, e_pt = e.where(~gate, 0.0), e_pt.where(~gate, 0.0)
+        log.info(f"Area gate: {int(gate.sum())} culverts over {gate_sqmi:g} sq mi score E_{pair} = 0")
     cul[f"E_{pair}_{h}"] = e.round(2)
     cul[f"E_{pair}_pt"] = e_pt.round(2)
     cul[f"E_{pair}_src"] = src
@@ -789,15 +869,29 @@ def score_culverts(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run:
             fields.append((f"E_{pair}_{name}", "DOUBLE", None))
     if hazard == "debris_flow":
         cul["DF_option"] = "1 (severity stand-in)"
-        fields.append(("DF_option", "TEXT", 24))
+        cul["DF_gate"] = gate.astype(int)
+        fields += [("DF_option", "TEXT", 24), ("DF_gate", "SHORT", None)]
     log.info(f"E_{pair}_{h} distribution:\n" + cul[f"E_{pair}_{h}"].value_counts().sort_index().to_string())
     out = cul[["culvert_id", "jurisdiction", "crossing_id"] + [f[0] for f in fields]].copy()
     write_split_csv(out, f"exposure_{hazard}_culverts", cfg, log)
     if not dry_run:
         fc = f"{cfg['paths']['analysis_gdb']}\\{cfg['assets']['culverts_fc']}"
+        if hazard == "debris_flow":
+            drop_fields(fc, [f"E_{pair}_e2"], log)
         ensure_fields(fc, fields, log)
         apply_by_key(fc, out, "culvert_id", fields, log)
     return out
+
+
+def drop_fields(fc: str, names: list, log) -> None:
+    """Delete fields a revised method no longer writes (decision 33 retired DF E2), so stale
+    values are not published beside the new score."""
+    import arcpy
+    have = {f.name.lower(): f.name for f in arcpy.ListFields(fc)}
+    gone = [have[n.lower()] for n in names if n.lower() in have]
+    if gone:
+        arcpy.management.DeleteField(fc, gone)
+        log.info(f"Dropped {', '.join(gone)} from {fc}")
 
 
 def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: bool, overwrite: bool) -> pd.DataFrame:
@@ -828,8 +922,27 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
     else:
         inds = indicators(surf)
         weights = {name: wt for name, wt, _, _ in inds}
-        parts = {name: sample_points(br, g, float(ex["point_buffer_m"]), hint_agg(hint)).values for name, _, g, hint in inds}
-        br[f"E_{pair}_{h}"] = [round(weighted_exposure({k: v[j] for k, v in parts.items()}, weights), 2) for j in range(len(br))]
+        pt_m = float(ex["point_buffer_m"])
+        parts = {}
+        for name, _, g, hint in inds:
+            # an indicator sampled by area share (DF-B E3) uses the hazard's buffer_ft, so the share has an area
+            share = min_share(cfg, hazard, name)
+            dist = (sample_distance_m(cfg, hazard) or pt_m) if share > 0 else pt_m
+            parts[name] = sample_points(br, g, dist, hint_agg(hint), share=share,
+                                        cumulative=share_cumulative(cfg, hazard, name)).values
+        e = np.array([weighted_exposure({k: v[j] for k, v in parts.items()}, weights) for j in range(len(br))])
+        if hazard == "debris_flow":
+            # decision 33: a contributing area over the gate within 25 m (the stream the structure crosses)
+            # is outside the debris-flow domain; E = 0
+            from surfaces_dfav import max_area_sqmi_near
+            gate_sqmi = float(ex["debris_flow"]["area_gate_sqmi"])
+            br["df_area_sqmi"] = max_area_sqmi_near(cfg, br, pt_m).round(2)
+            gate = br["df_area_sqmi"].gt(gate_sqmi)
+            e = np.where(gate.values, 0.0, e)
+            br["DF_gate"] = gate.astype(int).values
+            log.info(f"Area gate: {int(gate.sum())} of {len(br)} structures over {gate_sqmi:g} sq mi score E_{pair} = 0: "
+                     + "; ".join(f"{r.facility_carried} over {r.feature_crossed}" for r in br[gate.values].itertuples()))
+        br[f"E_{pair}_{h}"] = np.round(e, 2)
         br["E_source"] = bridge_exposure_source(br)
         fields = [(f"E_{pair}_{h}", "DOUBLE", None), ("E_source", "TEXT", 10)]
         if len(inds) > 1:
@@ -837,15 +950,19 @@ def score_bridges(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: 
                 br[f"E_{pair}_{name}"] = np.round(parts[name].astype(float), 2)
                 fields.append((f"E_{pair}_{name}", "DOUBLE", None))
         if "DF_option" in br.columns:
-            fields.append(("DF_option", "TEXT", 24))
+            fields += [("DF_option", "TEXT", 24), ("DF_gate", "SHORT", None)]
     log.info(f"E_{pair}_{h} on {len(br)} structures:\n" + br[f"E_{pair}_{h}"].round(1).value_counts().sort_index().to_string())
     out = br[["bridge_id", "facility_carried", "feature_crossed"] + [f[0] for f in fields]].copy()
+    if "df_area_sqmi" in br.columns:
+        out["df_area_sqmi"] = br["df_area_sqmi"].values   # CSV only: the area behind DF_gate
     p = REPO / cfg["paths"]["outputs"] / f"exposure_{hazard}_bridges.csv"
     p.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(p, index=False)
     log.info(f"-> {p}")
     if not dry_run:
         fc = f"{gdb}\\{cfg['assets']['bridges_fc']}"
+        if hazard == "debris_flow":
+            drop_fields(fc, [f"E_{pair}_e2"], log)
         ensure_fields(fc, fields, log)
         apply_by_key(fc, out, "bridge_id", fields, log)
     return out
@@ -873,17 +990,19 @@ def score_roads(cfg: dict, hazard: str, surf: gpd.GeoDataFrame, log, dry_run: bo
 
 def score_line_assets(lines: gpd.GeoDataFrame, key: str, cfg: dict, hazard: str, surf, log) -> pd.DataFrame:
     """Line assets against every indicator surface of the hazard: each indicator is the maximum
-    within the hazard's sampling distance, combined by the rubric weights; length shares come
-    from the first (E1) surface."""
+    within its sampling distance (indicator_distance_m), or the highest class covering its
+    min_share of that buffer, combined by the rubric weights; length shares come from the first
+    (E1) surface."""
     ex = cfg["exposure"]
     code = HAZARD_CODE[hazard]
     h = ex["horizon"]
-    dist = sample_distance_m(cfg, hazard)
     inds = indicators(surf)
+    dists = {name: indicator_distance_m(cfg, hazard, name) for name, _, _, _ in inds}
     out = pd.DataFrame({key: lines[key].values})
     parts = {}
     for i, (name, w, g, hint) in enumerate(inds):
-        res = sample_lines(lines, g, dist, hint_agg(hint), share=min_share(cfg, hazard, name))
+        res = sample_lines(lines, g, dists[name], hint_agg(hint), share=min_share(cfg, hazard, name),
+                           cumulative=share_cumulative(cfg, hazard, name))
         parts[name] = res["hz_max"].values
         if len(inds) > 1:
             out[f"E_{name}"] = res["hz_max"].values
@@ -893,7 +1012,8 @@ def score_line_assets(lines: gpd.GeoDataFrame, key: str, cfg: dict, hazard: str,
     weights = {name: w for name, w, _, _ in inds}
     out[f"E_{h}"] = [round(weighted_exposure({k: v[j] for k, v in parts.items()}, weights), 2) for j in range(len(lines))]
     out["seg_len_m"] = lines.geometry.length.round(1).values
-    log.info(f"{code} E_{h} on {len(out)} lines (sampled within {dist:.0f} m):\n"
+    within = ", ".join(f"{n} {d:.0f} m" for n, d in dists.items())
+    log.info(f"{code} E_{h} on {len(out)} lines (sampled within {within}):\n"
              + out[f"E_{h}"].value_counts().sort_index().to_string())
     return out
 
