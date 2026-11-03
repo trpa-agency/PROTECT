@@ -90,13 +90,15 @@ class Copy:
 V_BREAKS = "Low under 1, Medium 1 to under 2, and High 2 or more"
 WF_BREAKS = "Low under 1.5, Medium 1.5 to 2, and High over 2 (decision 26)"
 DF_BREAKS = "Low under 1.5, Medium 1.5 to under 2, and High 2 or more (decision 34, TRPA proposal)"
-DF_LEFT_OUT = ("Not counted in V_max or V_class while fire severity stands in for soil burn severity; the pairs rejoin "
-               "once their class shares are reviewed next to flooding and landslide (decision 33).")
+DF_COMBINED = ("Counts in V_max and V_class since decision 35 (Nov. 3, 2026). Fire severity stands in for soil burn "
+               "severity (DF_option) until the contracted surface arrives, which then rescores the pair in place.")
 DF_E = "0.40 x {p}_e1 + 0.60 x {p}_e3 (rubric 4.2, option 1 as revised by decision 33)."
 DF_GATE = ("1 if the contributing area is over 3 sq mi, outside the debris-flow domain (decision 33): exposure is set "
            "to 0, so the pair reads on sensitivity alone. 0 otherwise.")
-DF_HAND_GATE = (" Also 1 for the two SR 89 bridges at the Truckee River outlet, gated by hand (decision 34): the lake is a "
-                "sink in the DEM, so the flow accumulation reads the outlet as a small basin.")
+DF_HAND_GATE = (" Also 1 for three bridges gated by hand (decision 34): the two SR 89 bridges at the Truckee River outlet, "
+                "where the lake is a sink in the DEM and the flow accumulation reads the outlet as a small basin, and Lake "
+                "Tahoe Blvd over Angora Creek, downstream of the gated View Circle bridge (3.3 sq mi) but read at 2.9 "
+                "because the 25 m window misses the restored channel.")
 OD_ROUTE = ("Averaged over 100 stochastic assignment runs on travel time by road class "
             "(scripts/ra2ce_v2/od_stochastic_assignment.ipynb).")
 PAGES_ROADS = "results.html (road layer and table on every tab)"
@@ -122,7 +124,8 @@ def across_pairs(pairs: str, all_pairs: str, used_class: str, used_max: str, tab
     df = all_pairs != pairs
     classes = (f"Each pair's score is classed {V_BREAKS}" + (f"; wildfire uses {WF_BREAKS}" if "WF" in pairs else "")
                + (f"; debris flow uses {DF_BREAKS}" if "DF" in all_pairs else "") + ".")
-    same = "because this asset type has no debris-flow pair"
+    same = ("because every scored pair has counted since decision 35 (Nov. 3, 2026)" if "DF" in all_pairs
+            else "because this asset type has no debris-flow pair")
     return [
         Fld("V_class", "TEXT", "Vulnerability class",
             f"Highest vulnerability class across {pair_words(pairs)}. {classes}"
@@ -263,7 +266,7 @@ def roads_fields() -> list:
                      f"{what} in the census block group the link touches (Block_Group_Layer). A link that touches several "
                      f"block groups takes the highest value, and one that touches none takes the nearest block group's.",
                      units=unit, used="criticality-index.html (equity sub-index); equity_subindex"))
-    f += across_pairs("FLR, LSR, WFR, AVR", "FLR, LSR, WFR, DFR, AVR",
+    f += across_pairs("FLR, LSR, WFR, DFR, AVR", "FLR, LSR, WFR, DFR, AVR",
                       "results.html (Overview color and Priority view, hotspots, tables); scoring-rubrics.html; "
                       "publish_results.py (summary)",
                       "results.html (Overview popups)", "Vulnerability_roads", "src_objectid")
@@ -292,7 +295,8 @@ def roads_fields() -> list:
             "E_LSR_e1.", values="0, 0.71, 1.43, 2.14", src="Exposure_landslide_roads.E_LSR_hist",
             how="joined on src_objectid", used="results.html (Landslide tab color, popup, table, charts)"),
         Fld("E_LSR_e1", "DOUBLE", "Landslide susceptibility class (LS-R E1)",
-            "Highest landslide class the link touches in Hazard_Landslide_Class.", values="0 to 3",
+            "Highest landslide class covering at least 25 percent of the link's length in Hazard_Landslide_Class "
+            "(decision 36; the highest class touching the link before Nov. 3, 2026).", values="0 to 3",
             src="Exposure_landslide_roads.E_LSR_e1", how="joined on src_objectid",
             used="results.html (Landslide popup, table, KPI); E_LSR_hist (weight 0.50)"),
         Fld("E_LSR_e2", "DOUBLE", "Precipitation change (LS-R E2)",
@@ -332,7 +336,7 @@ def roads_fields() -> list:
     # debris flow
     f += [
         Fld("E_DFR_hist", "DOUBLE", "Debris-flow exposure (DF-R)",
-            f"{DF_E.format(p='E_DFR')} Roads are not gated. {DF_LEFT_OUT}",
+            f"{DF_E.format(p='E_DFR')} Roads are not gated. {DF_COMBINED}",
             units="score, 0 to 3", src="Exposure_debris_flow_roads.E_DFR_hist", how="joined on src_objectid",
             used="results.html (Debris flow tab color, popup, table, chart)"),
         Fld("E_DFR_e1", "DOUBLE", "Upslope steepness score (DF-R E1)",
@@ -534,7 +538,7 @@ def culverts_fields() -> list:
             used="results.html (KPI for culverts with size, drainage, and condition all known)", length=10),
         c_class_inherited("culverts"),
     ]
-    f += across_pairs("FLC, LSC", "FLC, LSC, DFC",
+    f += across_pairs("FLC, LSC, DFC", "FLC, LSC, DFC",
                       "results.html (Overview color, popups); scoring-rubrics.html; publish_results.py (summary)",
                       "results.html (Overview and Flooding popups)")
     f += [
@@ -572,8 +576,8 @@ def culverts_fields() -> list:
             "(0.50 x E_LSC_e1 + 0.20 x E_LSC_e2) / 0.70. E_LSC_e2 is 0 at the historical horizon.",
             values="0, 0.71, 1.43, 2.14", used="results.html (Landslide color, popup)"),
         Fld("E_LSC_e1", "DOUBLE", "Landslide susceptibility class (LS-C E1)",
-            "Highest landslide class anywhere in the culvert's watershed, or within 25 m of the culvert where there is "
-            "no watershed.", values="0 to 3",
+            "Highest landslide class covering at least 25 percent of the culvert's watershed (decision 36; the highest "
+            "class anywhere in it before Nov. 3, 2026), or of the 25 m buffer where there is no watershed.", values="0 to 3",
             used="results.html (Landslide popup, KPI); E_LSC_hist (weight 0.50)"),
         Fld("E_LSC_e2", "DOUBLE", "Precipitation change (LS-C E2)",
             "Cal-Adapt precipitation change. Always 0 at the historical horizon.", values="0",
@@ -594,7 +598,7 @@ def culverts_fields() -> list:
             values=V_BREAKS, used="results.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
         # debris flow
         Fld("E_DFC_hist", "DOUBLE", "Debris-flow exposure (DF-C)",
-            f"{DF_E.format(p='E_DFC')} 0 where DF_gate is 1. {DF_LEFT_OUT}",
+            f"{DF_E.format(p='E_DFC')} 0 where DF_gate is 1. {DF_COMBINED}",
             units="score, 0 to 3", used="results.html (Debris flow color, popup, chart)"),
         Fld("E_DFC_e1", "DOUBLE", "Basin slope score (DF-C E1)",
             "Score for basin_slope_pct: 3 over 30 percent, 2.5 over 25, 2 over 20, 1.5 over 15, 1 over 10, 0.5 over 5, "
@@ -708,7 +712,7 @@ def bridges_fields() -> list:
             values="Good, Fair, Poor", used="results.html (Flooding popup); workshop-feedback.html", length=10),
         c_class_inherited("bridges"),
     ]
-    f += across_pairs("FLB, LSB", "FLB, LSB, DFB",
+    f += across_pairs("FLB, LSB, DFB", "FLB, LSB, DFB",
                       "results.html (Overview color, popups); scoring-rubrics.html; publish_results.py",
                       "results.html (Overview popups)")
     f += [
@@ -746,7 +750,8 @@ def bridges_fields() -> list:
             "(0.50 x E_LSB_e1 + 0.20 x E_LSB_e2) / 0.70. E_LSB_e2 is 0 at the historical horizon.",
             values="0, 0.71, 1.43, 2.14", used="results.html (Landslide color, popup)"),
         Fld("E_LSB_e1", "DOUBLE", "Landslide class within 25 m (LS-B E1)",
-            "Highest landslide class within 25 m of the bridge (Hazard_Landslide_Class).", values="0 to 3",
+            "Highest landslide class covering at least 25 percent of the 25 m buffer around the bridge "
+            "(Hazard_Landslide_Class; decision 36).", values="0 to 3",
             used="results.html (Landslide popup, KPI); E_LSB_hist (weight 0.50)"),
         Fld("E_LSB_e2", "DOUBLE", "Precipitation change (LS-B E2)",
             "Cal-Adapt precipitation change. Always 0 at the historical horizon.", values="0",
@@ -765,7 +770,7 @@ def bridges_fields() -> list:
         Fld("V_LSB_hist", "DOUBLE", "Landslide vulnerability (LS-B)", "0.70 x E_LSB_hist + 0.30 x S_LSB.",
             values=V_BREAKS, used="results.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
         Fld("E_DFB_hist", "DOUBLE", "Debris-flow exposure (DF-B)",
-            f"{DF_E.format(p='E_DFB')} 0 where DF_gate is 1. {DF_LEFT_OUT}",
+            f"{DF_E.format(p='E_DFB')} 0 where DF_gate is 1. {DF_COMBINED}",
             units="score, 0 to 3", used="results.html (Debris flow color, popup)"),
         Fld("E_DFB_e1", "DOUBLE", "Upslope steepness score (DF-B E1)",
             "Highest upslope steepness score within 25 m of the bridge (Hazard_DebrisFlow_Slope).",

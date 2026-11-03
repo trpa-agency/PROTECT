@@ -14,20 +14,27 @@ Two jobs, both config-driven (config.yaml `exposure:`):
      highest severity class covering at least 25 percent of the 300 ft buffer
      (exposure.wildfire.e2_min_share), so isolated 30 m cells near a road do not set it. Landslide (rubric 2, 3, 6.3): E1 the USGS landslide susceptibility raster classed
      5 = 3, 4 = 2, 3 = 1, else 0, with every recorded landslide (USGS inventory polygons, and
-     points within a set distance) as class 3; E2 the Cal-Adapt precipitation change, which
-     scores 0 at the historical horizon by definition, so E_LS*_hist = 0.50 E1 / 0.70.
+     points within a set distance) as class 3, sampled by area share since decision 36
+     (exposure.landslide.e1_min_share: the highest class covering at least 25 percent of the
+     watershed on culverts, the 25 m buffer on bridges, or the segment's length on roads); E2
+     the Cal-Adapt precipitation change, which scores 0 at the historical horizon by
+     definition, so E_LS*_hist = 0.50 E1 / 0.70.
      Debris flow (decision 33, surfaces_dfav.py): E1 mean upslope slope 0.40, E3 the severity
      surface 0.60 by area share (exposure.debris_flow.e3_min_share), contributing area over
      area_gate_sqmi gating culverts and bridges to E = 0 (DF_gate; plus gate_bridge_ids by hand,
      decision 34). Avalanche plugs in the same way.
   2. Sample it per asset on the rubric's sampling rule (section 1.7) and write the scores:
        culverts   maximum over the contributing watershed (CulvertWatersheds_inc aggregated up
-                  the drainage tree from CulvertCrossings), 25 m buffer where no watershed;
-                  FL-C tailwater modifier +1 (cap 3) where tailwater_flag is set
+                  the drainage tree from CulvertCrossings), or with <name>_min_share the highest
+                  class covering that share of it (DF-C E3, LS-C E1); 25 m buffer where no
+                  watershed; FL-C tailwater modifier +1 (cap 3) where tailwater_flag is set
        bridges    maximum within 25 m, or an indicator with a <name>_min_share by share within the
                   hazard's buffer_ft (DF-B E3); FL-B combines E1 waterway adequacy (NBI item 71) at
                   0.20 with E2 the flood class at 0.10, weight-normalized to 0 to 3
-       roads      maximum class touching the segment, plus the share of length in each class
+       roads      maximum class touching the segment, or with <name>_min_share the highest class
+                  covering that share of the indicator's buffer (WF-R E2, DF-R E3) or of the
+                  segment's own length when it has none (LS-R E1); plus the share of length in
+                  each class
        active transport   maximum within the hazard's sampling distance of the line (Transportation
                           service, existing facilities), plus length shares; table Exposure_<hazard>_active_transport
        transit centers    maximum within the sampling distance (exposure.transit_centers_layer; blank = skipped)
@@ -722,8 +729,9 @@ def sample_points(pts: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float
 def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: float = 0.0, agg: str = "max",
                  share: float = 0.0, cumulative: bool = False) -> pd.DataFrame:
     """Maximum (or minimum) hz_class within buffer_m of each line (touching it when 0), or with
-    share > 0 the highest class covering that share of the buffer, and the share of the line's own
-    length inside each class."""
+    share > 0 the highest class covering that share of the buffer (of the line's own length when
+    buffer_m is 0: landslide roads, decision 36), and the share of the line's own length inside
+    each class."""
     if surf is None:
         return pd.DataFrame({"hz_max": pd.Series(0.0, index=lines.index)})
     probe = lines[["geometry"]] if buffer_m <= 0 else gpd.GeoDataFrame(geometry=lines.geometry.buffer(buffer_m), crs=lines.crs)
@@ -740,9 +748,13 @@ def sample_lines(lines: gpd.GeoDataFrame, surf: gpd.GeoDataFrame, buffer_m: floa
     cut = gpd.overlay(L, surf[["hz_class", "geometry"]].explode(index_parts=False).reset_index(drop=True),
                       how="intersection", keep_geom_type=True)
     cut["_len"] = cut.geometry.length
-    share = cut.groupby(["_lid", "hz_class"])["_len"].sum().unstack(fill_value=0.0)
+    by_cls = cut.groupby(["_lid", "hz_class"])["_len"].sum().unstack(fill_value=0.0)
+    if share > 0 and buffer_m <= 0:
+        # the highest class covering the share of the line's own length (landslide roads, decision 36)
+        frac = by_cls.div(total.reindex(by_cls.index), axis=0)
+        out["hz_max"] = best_share_class(frac, share, cumulative).reindex(lines.index).fillna(0.0).values
     for c in sorted(surf["hz_class"].unique()):
-        col = share[c] if c in share.columns else pd.Series(0.0, index=share.index)
+        col = by_cls[c] if c in by_cls.columns else pd.Series(0.0, index=by_cls.index)
         out[f"len_pct_c{int(c)}"] = (col.reindex(lines.index).fillna(0) / total * 100).fillna(0).clip(upper=100).round(1)
     return out
 
