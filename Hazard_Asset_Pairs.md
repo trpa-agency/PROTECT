@@ -1,4 +1,4 @@
-# PROTECT: Hazard x Asset Pairs & Risk Index (v0.8)
+# PROTECT: Hazard x Asset Pairs & Risk Index (v0.9)
 
 **Task 3.3 Interactive Risk Index Mapping Tool** (PROTECT Plan, Task 3 Resilience Improvement Plan)
 
@@ -10,6 +10,11 @@ Sources: ICF draft VA Methodology (Aug. 20, 2026; scoring rubrics and weights pe
 VA discussion deck (decided pairs, three-step approach), 5/20/2026 ICF/TRPA VA deck (sensitivity &
 criticality approach), `PROTECT_RiskIndexTool_Scoping_v0.1.docx`.
 
+> v0.9 (Nov. 2, 2026) records the debris-flow exposure revision (rubric decision 33): option 1
+> keeps mean upslope slope and burn severity, sampled by area share, and the drainage-area term
+> becomes a gate (culverts and bridges over 3 square miles score exposure 0). No pair changes
+> status.
+>
 > v0.8 (Oct. 7, 2026) aligns the pair table with the consultant's Aug. 20 draft VA Methodology.
 > The draft's matrix is the same **15 Include-in-VA pairs** as v0.7, so no pair changes status.
 > What changes: the exposure inputs and sensitivity indicators for each VA pair now follow the
@@ -83,9 +88,9 @@ Resilience Improvement Plan instead; **Proposed** = added after the 6/25 decisio
 |----|--------|-------|--------|--------|-----------------|------------------------|-------|
 | AV-R | Avalanche | Roads | OP | Include in VA | Dominant slope angle within 1,000 ft (DEM or 2022 lidar) + historical avalanche record within 1,000 ft (Sierra Avalanche Center accident map, National Avalanche Accident Database) | None (exposure x 1.0) | Current terrain conditions only; 35-45 degrees with a record scores 3. Initial focus: Hwy 50, 89, 28, 207, 431; confirm scope with NDOT/Caltrans |
 | AV-B | Avalanche | Bridges | PC | TRIP discussion | | | Moved out of the VA after 6/25: not being scored, impacts covered in the plan |
-| DF-B | Debris Flow | Bridges | PC | Include in VA | Option 1: StreamStats mean basin slope + drainage area + contracted predicted soil burn severity. Option 2: Wildcat debris-flow likelihood + combined hazard class + soil burn severity | Span type (NBI 45), bridge condition (NBI 58-60), span length (NBI 48) | Added at the 6/25 VA review. Exposure option 1 or 2 undecided (section 7) |
-| DF-C | Debris Flow | Culverts | PC | Include in VA | Same as DF-B (option 1 or 2) | Debris potential of the basin: StreamStats mean basin slope x majority NLCD landcover (option 1) or CULVERT tool WDBFM debris-flow score, 0-5 (option 2) | Split from landslide per 5/20. The purchased pre-fire severity surface makes this predictive rather than post-hoc, and is the primary Wildcat input |
-| DF-R | Debris Flow | Roads | PC | Include in VA | Same as DF-B (option 1 or 2) | None, exposure only (decision 25). Draft: pavement condition, paved vs. unpaved | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
+| DF-B | Debris Flow | Bridges | PC | Include in VA | Option 1 (decisions 15, 33): mean upslope slope 0.40 + predicted soil burn severity 0.60 (fire severity stand-in, by area share within 300 ft); contributing area over 3 sq mi gates exposure to 0. Option 2: Wildcat debris-flow likelihood + combined hazard class + soil burn severity, compared in December | Span type (NBI 45), bridge condition (NBI 58-60), span length (NBI 48) | Added at the 6/25 VA review. Option 1 for the workshop (section 7) |
+| DF-C | Debris Flow | Culverts | PC | Include in VA | Same as DF-B; severity by area share of the watershed | Opening size and condition (decision 7). Draft: debris potential of the basin, StreamStats mean basin slope x majority NLCD landcover (option 1) or CULVERT tool WDBFM debris-flow score, 0-5 (option 2) | Split from landslide per 5/20. The purchased pre-fire severity surface makes this predictive rather than post-hoc, and is the primary Wildcat input |
+| DF-R | Debris Flow | Roads | PC | Include in VA | Same as DF-B, not gated | None, exposure only (decision 25). Draft: pavement condition, paved vs. unpaved | Split from landslide per 5/20; July 14 event hindcast on the Storm Events page |
 | FL-B | Flooding | Bridges | PC | Include in VA | NBI water adequacy (Item 71) + FEMA flood zone at the structure (TRPA proposal in place of the draft's change in 100-yr flood depth; no flood depth model is being acquired, Oct. 8) | Channel condition (NBI 61), scour criticality (NBI 113, 40 percent), span type (NBI 45), bridge condition (NBI 58-60) | Exposure 0.3 / sensitivity 0.7. Large culverts score with bridges. NBI fields from the FHWA National Bridge Inventory |
 | FL-C | Flooding | Culverts | PC | Include in VA | FEMA flood zone and stream crossing (TRPA proposal in place of the draft's 100-yr flood depth over the road; no flood depth model is being acquired, Oct. 8) | Debris potential of the basin (slope x landcover matrix, computed locally) + 100-yr capacity loading ratio Qevent/Qdesign (local rational-method flows; Qcap from HDS-5 where asset data has none) | Exposure 0.3 / sensitivity 0.7 (small culverts). TRPA culvert layer compiled (7,858 assets, 6 jurisdictions); CULVERT screening on the Storm Events page. High lake stage reduces outlet capacity independent of rainfall (tailwater modifier) |
 | FL-R | Flooding | Roads | PC | Include in VA | FEMA flood zone and stream crossing at the full exposure weight (TRPA proposal in place of the draft's floodplain extent and 100-yr depth at 35 percent each; no flood depth model, and FEMA maps only the 100-yr and 500-yr floodplains) | None, exposure only (decision 25). Draft: pavement condition, paved vs. unpaved, truck AADT (10 percent each) | Lowland and valley segments most exposed. Defaults: fair, paved, truck AADT TBD |
@@ -224,8 +229,12 @@ which form the tool's headline rating uses; the tool can show both, but the map 
 **Debris-flow exposure option.** Option 1 (StreamStats slope and drainage area plus predicted soil
 burn severity) or option 2 (Wildcat likelihood and combined hazard class plus soil burn severity).
 The draft's bridge and culvert sections read "same as roads, pull in once we decide on option 1 or
-2." The `debris-flow/` Wildcat pipeline supports option 2; option 1 needs StreamStats basin
-delineation at every asset.
+2." Resolved for the workshop: option 1, computed locally from the TRPA watershed delineation
+rather than StreamStats (rubric decision 15). Rubric decision 33 (Nov. 2, 2026) drops the
+drainage-area score, which was 3 on nearly every basin, and keeps the area as a gate: culverts
+and bridges over 3 square miles score exposure 0. Slope and severity keep the draft's proportions
+(0.40 and 0.60 of exposure), and severity is sampled by area share. The `debris-flow/` Wildcat
+pipeline supports option 2, compared in December.
 
 **Culvert debris potential and design capacity.** Debris potential comes from StreamStats slope
 and landcover (option 1) or the CULVERT tool WDBFM score (option 2). The capacity loading ratio

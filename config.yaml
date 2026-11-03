@@ -90,12 +90,26 @@ exposure:
     recorded_max_area_km2: 10            # inventory polygons larger than this are mapping units, not slides (one 202 km2 polygon touches the basin)
     precip_change_hist: 0                # E2 scores 0 at the historical horizon by definition; 2050 and 2080 columns come in December
     weights: {e1: 0.50, e2: 0.20}        # E_LS*_hist = (0.50 E1 + 0.20 x 0) / 0.70
+    e1_min_share: 0.25                   # decision 36 (Nov. 3, 2026): E1 = highest class covering at least this share of the watershed
+                                         # (culverts), the 25 m buffer (bridges), or the segment's length (roads), the severity rule of
+                                         # decisions 27 and 33; 0 = the maximum touching, under which one 90 m cell or one recorded slide
+                                         # set class 3 on 1,853 of 5,096 culverts and 221 road miles
+    e1_share_cumulative: false           # true: highest class k where class k or worse covers the share
     class_fc: Hazard_Landslide_Class
-  debris_flow:             # DF-C, DF-B, DF-R, option 1 with a burn-severity stand-in (rubric 4.2; DF_option = proxy)
-    cell_m: 30             # the 2 m terrain rasters are aggregated to this for the E1 and E2 surfaces
-    weights: {e1: 0.20, e2: 0.20, e3: 0.30}   # E1 mean upslope slope, E2 contributing area, E3 severity stand-in
+  debris_flow:             # DF-C, DF-B, DF-R: decision 33, slope and severity, contributing area as a gate (rubric 4.2)
+    cell_m: 30             # the 2 m terrain rasters are aggregated to this for the slope and area surfaces
+    weights: {e1: 0.40, e3: 0.60}   # E1 mean upslope slope, E3 severity stand-in; the draft's E2 (area) is a gate, not scored
+    buffer_ft: 300                  # E3 on roads and bridges: the share of a 300 ft buffer
+    e1_buffer_ft: 0                 # roads: E1 keeps the class touching the segment (bridges keep exposure.point_buffer_m)
+    e3_min_share: 0.25              # E3 = highest severity class covering at least this share (the wildfire rule, decision 27)
+    e3_share_cumulative: false      # true: highest class k where class k or worse covers the share
+    area_gate_sqmi: 3.0             # culverts (contrib_area_ac) and bridges (largest 2 m facc within 25 m) over this score exposure 0
+    gate_bridge_ids: ["19 0205", "19 0033", "25C0147"]   # gated by hand (decision 34): SR 89 at the Truckee River outlet (the lake is a sink in the DEM, so facc reads the
+                                                         # outlet as a small basin); Lake Tahoe Blvd over Angora Creek, downstream of the gated View Circle bridge
+                                                         # (25C0148, 3.3 sq mi) but read at 2.9 because the 25 m window misses the restored channel (Nov. 3)
+    e1_mask_over_gate: true         # slope surface: 30 m cells draining more than area_gate_sqmi score E1 0 (decision 34), so a road reads the hillslope, not the river; takes effect at --build
     slope_fc: Hazard_DebrisFlow_Slope
-    area_fc: Hazard_DebrisFlow_Area
+    area_fc: Hazard_DebrisFlow_Area  # drainage area classes: the bridge gate and the map; no longer scored
   avalanche:               # AV-R (rubric 5): dominant uphill slope tier within 1,000 ft x a zone record within 1,000 ft
     zones_layer: https://maps.trpa.org/server/rest/services/Avalanche_Zones/MapServer/0   # the record (decision 18); accident databases not used
     buffer_ft: 1000
@@ -112,11 +126,13 @@ exposure:
 scoring:
   v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
   v_breaks_wildfire: [1.5, 2.0]   # wildfire pairs (WF-R, WF-AT, WF-TC): Low under 1.5, Medium 1.5 to 2.0, High over 2.0 (Oct. 12, revised Oct. 30)
-  # Pairs scored on a stand-in input stay out of the combined class (V_max, V_class) until the input is real:
-  # debris flow uses the fire severity surface for soil burn severity and the draft's drainage-size break puts
-  # nearly every asset at 3, so it set V_max on 87 percent of culverts and 69 percent of roads (Oct. 11).
-  # V_max_all / V_class_all always carry the every-pair reading alongside. Empty the list to include them.
-  v_max_exclude: [DFC, DFB, DFR]
+  v_breaks_debris_flow: [1.5, 2.0]   # debris flow pairs (DF-R, DF-C, DF-B): Low under 1.5, Medium 1.5 to under 2.0, High 2.0 and over (TRPA proposal, decision 34, Nov. 2); remove the line to use v_breaks
+  # Pairs listed here stay out of the combined class (V_max, V_class); V_max_all / V_class_all always carry the
+  # every-pair reading alongside. The debris flow pairs (DFC, DFB, DFR) were listed while their severity input was
+  # a stand-in (fire severity for soil burn severity) and the drainage-size term put nearly every asset at 3. With
+  # decision 33's gate and decision 34's breaks their class shares sit with flooding and landslide, so they count
+  # since decision 35 (Nov. 3, 2026); DF_option still records the stand-in.
+  v_max_exclude: []
   flc:                            # flooding x small culverts
     s3: false                     # decision 1 (Oct. 21, 2026): no condition or blockage term; the draft's S1 / S2 only. true = the retired S3 proposal (weights_s3)
     weights_s3: {e: 0.30, s1: 0.25, s2: 0.30, s3: 0.15}

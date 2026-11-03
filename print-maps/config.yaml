@@ -10,7 +10,8 @@ project:
   legend_sync_visibility: true   # legends drop the layers a sheet turns off
 
 paths:
-  outputs: outputs         # <outputs>/<export name>/<file_prefix><sheet id>.<ext> (gitignored)
+  outputs: F:\GIS\PROJECTS\Transportation\Protect\PROTECT_analysis\Maps   # <outputs>/<export name>/<file_prefix><sheet id>.<ext>;
+                           # where the hand exports go too, readable from the workstation for review
   logs: logs               # timestamped run logs (gitignored)
   restricted_outputs: ""   # --allow-restricted writes here only; must be on F:, never under the repo
   file_prefix: PROTECT_W1_
@@ -41,7 +42,7 @@ exports:
 tokens:
   workshop: Workshop 1, Nov. 9, 2026
 defaults:
-  managed: [Hazards, Bridge, Culvert, Road]
+  managed: [Results, Hazards, Bridge, Culvert, Road]   # Results: the group build_layers.py builds from layers.yaml
   always_on: []
   text:
     Legend Title: "{legend}"
@@ -63,54 +64,11 @@ restricted:
   check_required_sources: []
 
 
-# The sheets. Each corridor gets every hazard in its sheet_matrix entry, in each version, as one sheet
-# with id <corridor>_<hazard>_<version> (--only sr28 runs one corridor, --only sr28_wildfire one hazard).
-# corridors: title is the layout's Title text exactly (\r\n is a line break); bookmark is a bookmark in
-#   TRPA Standard Layers that frames the corridor (blank keeps the template's extent, which is SR 28).
-# hazards: label fills {hazard}; exposure is the classed surface; assets join it on the assets version.
-#   Layer names are as they read in PROTECT_analysis.aprx (Oct. 13, 2026).
-# versions: legend fills Legend Title; assets: true adds the hazard's asset layers; any other key (exports)
-#   passes to the sheet.
-# sheet_matrix: one entry per block of the list; a corridor that needs fewer hazards gets its own entry.
-corridors:
-  sr28:
-    label: SR 28
-    title: "State Route 28 \r\nCorridor\n\n"
-    bookmark: ""
-hazards:
-  flooding:
-    label: Flooding
-    exposure: [Hazard_Flood_Class]
-    assets: [Road, Bridge, Culvert]
-  wildfire:
-    label: Wildfire
-    exposure: [Hazard_Wildfire_BurnProb]
-    assets: [Road]
-  landslide:
-    label: Landslide
-    exposure: [Hazard_Landslide_Class]
-    assets: [Road, Bridge, Culvert]
-  debris_flow:
-    label: Debris Flow
-    exposure: [Hazard_DebrisFlow_Slope]    # slope term only; Hazard_DebrisFlow_Area is the drainage-size term
-    assets: [Road, Bridge, Culvert]
-  avalanche:
-    label: Avalanche
-    exposure: [Hazard_Avalanche_Cells]
-    assets: [Road]
-versions:
-  exposure:
-    legend: "{hazard} Exposure"
-    exports: [poster, screen]
-  assets:
-    legend: "{hazard} Exposure and Assets"
-    assets: true
-sheet_matrix:
-  - corridors: [sr28]
-    hazards: [flooding, wildfire, landslide, debris_flow, avalanche]
-    versions: [exposure, assets]
-
-# Sheets written out in full, after the generated ones. The keys a sheet can carry:
+# The print maps are set up by build_layers.py from the sheets in layers.yaml (a map and a layout per
+# view each) and finished and exported by hand in Pro (Oct. 30). print_maps.py export is a batch option
+# for layouts already in the project: a sheet with layout: and no layers exports that layout as built.
+# The keys a sheet can carry:
+# layout: export from this layout in the project instead of project.layout (an export's own layout wins).
 # layers: what shows within managed (or the whole map without it). Parent groups turn on with a listed
 # layer, and every layer inside a listed group turns on. Leave layers out to keep the map as authored.
 # map: the Pro map for the main frame (default: whatever the template frame shows).
@@ -119,18 +77,10 @@ sheet_matrix:
 # frames: other map frames on the layout, {frame name: {map, layers, extent}}, for an inset. Each frame
 # on a sheet needs its own Pro map, since layer visibility belongs to the map.
 # enabled: false keeps a sheet out of a full run (--only still exports it).
-# Not in the map yet: vulnerability-classed asset layers (Bridge, Culvert, and Road draw one plain
-# symbol), active transport, transit centers, and scenario layers.
+# corridors, hazards, versions, and sheet_matrix (print_maps.expand_matrix) generate corridor x hazard
+# sheets; none are set while the maps come from layers.yaml.
 sheets:
-  - id: scenario_1
-    legend: "Scenario 1: SR-89 West Shore Wildfire Closure"
-    layers: [Scenario 1]
-    enabled: false         # no scenario layers in the map yet
-  - id: scenario_2
-    legend: Scenario 2
-    layers: [Scenario 2]
-    enabled: false         # location and hazard not decided
-  - id: criticality
-    legend: Criticality
-    layers: [Criticality]
-    enabled: false         # if time allows: the context sheet at the entrance
+  - id: basin_criticality
+    layout: Criticality - Lake Tahoe Basin - PROTECT
+    legend: Road Criticality
+    exports: [poster, screen]

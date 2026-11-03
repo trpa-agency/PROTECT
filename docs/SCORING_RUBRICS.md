@@ -1,6 +1,6 @@
 # PROTECT scoring rubrics
 
-**Version 0.7, Oct. 21, 2026.** TRPA working document for the
+**Version 0.10, Nov. 3, 2026.** TRPA working document for the
 vulnerability assessment.
 
 **What this document is.** TRPA's scoring rules, built on the draft Vulnerability
@@ -42,7 +42,8 @@ Per-pair weights, from the draft:
 `V_<pair>` is kept to two decimals and classed for the map and posters. **TRPA proposal
 (decision 9):** Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over, set in `config.yaml`
 (`scoring.v_breaks`). **Wildfire pairs (decision 26):** Low under 1.5, Medium 1.5 to 2.0, High
-over 2.0 (`scoring.v_breaks_wildfire`).
+over 2.0 (`scoring.v_breaks_wildfire`). **Debris flow pairs (decision 34, TRPA proposal):** Low
+under 1.5, Medium 1.5 to under 2.0, High 2.0 and over (`scoring.v_breaks_debris_flow`).
 
 ### 1.3 Criticality
 
@@ -53,7 +54,11 @@ Road segments carry a 0 to 3 class (`C_class`); bridges and culverts inherit it 
 An asset in several pairs (a culvert carries FL-C, LS-C, and DF-C) needs one rating for the
 map and a way to sort the list. **TRPA proposal (decision 9):** the rating is the highest pair
 score, `V_max`, with `V_max_pair` naming the hazard; `V_class` is the highest per-pair class,
-since wildfire has its own breaks (section 1.2). The maximum flags an asset vulnerable to any
+since wildfire has its own breaks (section 1.2). Since decision 37 `V_max_pair` is the pair that
+sets that class (the highest class, ties broken by score) and `V_max` is that pair's score, so
+the three fields describe one pair. Every scored pair counts: the debris-flow pairs, out while
+their severity input was a stand-in, rejoined on Nov. 3, 2026 (decision 35). The maximum flags
+an asset vulnerable to any
 hazard, but it cannot tell an asset High on one hazard from one High on three, and that is the
 sort prioritization needs. **TRPA proposal (decision 30):** carry two sort fields beside it,
 the number of pairs classed High and the sum of the pair scores. The sum counts one failure at
@@ -75,7 +80,7 @@ Where the draft states one (bridge condition none scores 1, scour other scores 1
 
 Line assets (roads, trails) take the maximum of the hazard surface touching the segment, and
 carry the share of their length in each class beside it (`len_pct_c0` to `len_pct_c3`). Point
-assets (bridges, transit centers) take the maximum within 25 m. **Small culverts are the exception (decision 3):** surfaces that describe what arrives at the crossing (flood, debris flow, landslide) are sampled over the culvert's contributing watershed, with the 25 m buffer as the fallback where no watershed could be delineated.
+assets (bridges, transit centers) take the maximum within 25 m. **Small culverts are the exception (decision 3):** surfaces that describe what arrives at the crossing (flood, debris flow, landslide) are sampled over the culvert's contributing watershed, with the 25 m buffer as the fallback where no watershed could be delineated. **Severity and landslide susceptibility are sampled by area share (decisions 27, 33, and 36):** the wildfire severity term, the debris-flow severity term, and the landslide susceptibility term take the highest class covering at least 25 percent of the sampling area, not the highest class touching it. For severity that area is the 300 ft buffer on roads, paths, transit centers, and bridges and the watershed on culverts; for landslide it is the watershed on culverts, the 25 m buffer on bridges, and the segment's own length on roads.
 
 ---
 
@@ -185,7 +190,7 @@ a third term would default to fair almost everywhere. `cond_class` stays in the 
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | USGS landslide susceptibility, or a recorded landslide. **TRPA proposal** (decision 24): the USGS 2024 release holds the share of each 90 m cell that is landslide-prone, not five classes, so the draft's classes 5, 4, and 3 are read as over 80, 60, and 40 percent of the cell | 0.50 | over 80 percent of the cell prone (the draft's class 5), or any recorded landslide | 3 | 0 | **TRPA proposal:** maximum over the watershed; 25 m buffer where none |
+| E1 | USGS landslide susceptibility, or a recorded landslide. **TRPA proposal** (decision 24): the USGS 2024 release holds the share of each 90 m cell that is landslide-prone, not five classes, so the draft's classes 5, 4, and 3 are read as over 80, 60, and 40 percent of the cell | 0.50 | over 80 percent of the cell prone (the draft's class 5), or any recorded landslide | 3 | 0 | **TRPA proposal:** highest class covering at least 25 percent of the watershed (decision 36; was the maximum); 25 m buffer where none |
 | | | | over 60 to 80 percent (class 4) | 2 | | |
 | | | | over 40 to 60 percent (class 3) | 1 | | |
 | | | | 40 percent and under (classes 1 and 2) | 0 | | |
@@ -204,14 +209,16 @@ a third term would default to fair almost everywhere. `cond_class` stays in the 
 
 **DF-C, debris flow x small culverts** (E 0.7 / S 0.3)
 
-Exposure is the shared debris-flow surface of section 4.2, option 1 (decision 15), sampled as
-the watershed maximum. Under option 1 basin slope already sits in exposure, so the draft's
+Exposure is the shared debris-flow surface of section 4.2, option 1 (decision 15) as revised by
+decision 33: the culvert's own basin slope and the severity class covering at least 25 percent
+of its watershed, with exposure 0 where the contributing area is over 3 square miles
+(`DF_gate`). Under option 1 basin slope already sits in exposure, so the draft's
 debris-potential sensitivity would count it twice. **TRPA decision (decision 7):** sensitivity
 is opening size and condition on the LS-C scales.
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 to E3 | Section 4.2, option 1 | 0.70 total | | | | Watershed maximum |
+| E1 and E3 | Section 4.2, option 1 (decision 33) | 0.70 total | | | | Basin slope from the profile; severity by 25 percent share of the watershed |
 | S1 | Opening size (`d_eq_in`), the LS-C S1 scale | 0.15 | as LS-C S1 | | 2, `S_source` partial | Per asset |
 | S2 | Condition (`cond_class`), the LS-C S2 scale | 0.15 | as LS-C S2 | | 2 (fair), `S_source` partial | Latest inspection |
 | S1 (draft, not used) | Debris potential of the basin, the FL-C S1 matrix | 0.30 | as FL-C S1 | | | Watershed |
@@ -375,6 +382,14 @@ the `Culverts` feature class beyond the profile:
     No frequency factor on top of the table (section 2.4).
 30. Cumulative sort fields beside `V_max` (section 1.4): the number of pairs classed High and
     the sum of the pair scores. Not yet in the published layer.
+37. **TRPA decision (Nov. 3, 2026): the highest hazard is the pair that sets the class.**
+    `V_max_pair` names the pair with the highest class, ties broken by score, and `V_max` is
+    that pair's score; `V_class` is unchanged. Wildfire and debris flow pairs carry their own
+    breaks (decisions 26 and 34), so the pair with the top score is not always the pair with
+    the top class: on the Nov. 3 results 426 of 5,096 culverts read "from debris flow" at a
+    Medium class while their debris flow score was Low (flooding or landslide set the
+    Medium), and 309 of 18,285 road segments likewise (257 debris flow, 52 wildfire). Amends
+    decision 9; the all-pairs fields follow the same rule.
 31. **Withdrawn (Oct. 28, 2026): the 20 m band around the FEMA zones.** Adopted Oct. 27 from
     the consultant's Oct. 26 review (10 to 30 m around the 500-year floodplain as exposure 1)
     and never run. Withdrawn with decision 32: the review of the Results page showed that the
@@ -391,7 +406,10 @@ the `Culverts` feature class beyond the profile:
     crossing (an NHD flowline) as exposure 1. Previewed on the Oct. 20 tables: High road miles
     across all hazards drop from 41 to 26 percent and Medium rises from 9 to 25 percent; flood
     alone leaves 23 High miles. Culverts and bridges take the new value too (E_FLC is the
-    highest class in the drainage area); takes effect at the next flood run.
+    highest class in the drainage area). Run Nov. 3, 2026: High flood road miles 287 to 43
+    (2,002 stream-crossing segments to Medium) and FL-C High 753 to 439 of 5,096 culverts;
+    High road miles across all hazards 436 to 297 of 984 (44 to 30 percent), with landslide
+    (decision 36) and debris flow (decision 35) landing in the same run.
 
 ---
 
@@ -457,7 +475,7 @@ frequency, in effect a recorded exposure history.
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database) | 0.50 | as LS-C E1 | | 0 | Maximum within 25 m, plus the parent segment's value where the abutment slopes extend past the buffer |
+| E1 | USGS Landslide Susceptibility Index class, or a recorded landslide (California Landslides Database) | 0.50 | as LS-C E1 | | 0 | Highest class covering at least 25 percent of the 25 m buffer (decision 36), plus the parent segment's value where the abutment slopes extend past the buffer |
 | E2 | Cal-Adapt annual precipitation change versus historical | 0.20 | as LS-C E2 | | 0; historical horizon scores 0 | At the structure |
 | S1 | Span type, NBI item 45 | 0.10 | as FL-B S3 | | 1 | Per structure |
 | S2 | Bridge condition, `lowest_rating` | 0.10 | as FL-B S4 | | 1 | Per structure |
@@ -479,10 +497,11 @@ that is consequence, which the framework carries in criticality, not sensitivity
 
 **DF-B, debris flow x bridges** (E 0.7 / S 0.3)
 
-Exposure is the shared debris-flow surface of section 4.2, sampled over the crossing's
-watershed where the structure is over a waterway and within 25 m otherwise. Sensitivity is the
-LS-B set (span type 0.10, condition 0.10, span length 0.10), same values, same direction
-question.
+Exposure is the shared debris-flow surface of section 4.2 as revised by decision 33 (E1 and E3,
+0.70 total): upslope steepness within 25 m and the severity class covering at least 25 percent
+of a 300 ft buffer, with exposure 0 where the largest contributing area within 25 m is over 3
+square miles (`DF_gate`). Bridge watersheds are December work. Sensitivity is the LS-B set
+(span type 0.10, condition 0.10, span length 0.10), same values, same direction question.
 
 ### 3.3 Output fields
 
@@ -518,35 +537,36 @@ Consultant review of the results (Oct. 26, 2026): the bridge and large-culvert a
 
 ### 4.1 Asset set and sampling
 
-`Streets_Network_Tahoe` segments, scored as the maximum along the segment. Segment IDs
-and `C_class` come from the criticality assessment. The debris-flow surface is built once so
-DF-R, DF-B, and DF-C share one surface and one set of breaks.
+`Streets_Network_Tahoe` segments: upslope steepness as the maximum touching the segment (cells
+draining more than 3 square miles score 0 in the surface, decision 34, so a river crossing reads
+the hillslope beside it), and severity as the highest class covering at least 25 percent of the
+300 ft buffer (decision 33).
+Segment IDs and `C_class` come from the criticality assessment. The debris-flow surface is
+built once so DF-R, DF-B, and DF-C share one surface and one set of breaks.
 
 ### 4.2 Indicator rubrics (E 1.0, exposure only; decision 25)
 
-Exposure is option 1 (decision 15); option 2 and the TRPA proxy are listed for the record. All
-are rasters so roads (maximum along the segment), bridges (25 m or watershed), and culverts
-(watershed) sample the same surfaces. The weights below are the draft's; on roads they scale
-to the full weight in the same proportions (option 1: 0.29, 0.29, 0.43; option 2: 0.50, 0.25,
-0.25; proxy: 1.00). The S rows are the draft's and are not scored for roads.
+Exposure is option 1 (decision 15) as revised by decision 33: E1 and E3 are scored, and the
+draft's E2 (drainage area) is a gate, not a score. Option 2 and the TRPA proxy are listed for
+the record. All are rasters so roads, bridges (25 m for steepness, 300 ft for severity), and
+culverts (their own basin slope, severity over the watershed) sample the same surfaces. The
+weights below are the draft's; option 1 now scales E1 and E3 to the full exposure weight in the
+draft's proportions, 0.40 and 0.60 (decision 33), and on culverts and bridges exposure keeps its
+0.70 share of the pair. Option 2 on roads scales to 0.50, 0.25, 0.25; the proxy to 1.00. The S
+rows are the draft's and are not scored for roads.
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Build |
 |---|---|---|---|---|---|---|
-| E1 (option 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell, from the hydro-enforced DEM | 0.20 | over 30 percent | 3 | 1 | DEM |
+| E1 (option 1) | Mean basin slope. Raster: mean slope of the upslope contributing area at each cell, from the hydro-enforced DEM; cells draining more than 3 sq mi score 0 (decision 34). Weight 0.40 of exposure (decision 33) | 0.20 | over 30 percent | 3 | 1 | DEM |
 | | | | over 25 to 30 percent | 2.5 | | |
 | | | | over 20 to 25 percent | 2 | | |
 | | | | over 15 to 20 percent | 1.5 | | |
 | | | | over 10 to 15 percent | 1 | | |
 | | | | over 5 to 10 percent | 0.5 | | |
 | | | | 0 to 5 percent | 0 | | |
-| E2 (option 1) | Drainage area. Raster: contributing area at each cell; smaller areas lead to higher debris-flow intensities | 0.20 | under 0.25 sq mi | 3 | 1 | DEM flow accumulation |
-| | | | 0.25 to 0.5 sq mi | 2.5 | | |
-| | | | over 0.5 to 1 sq mi | 2 | | |
-| | | | over 1 to 2 sq mi | 1.5 | | |
-| | | | over 2 to 3 sq mi | 1 | | |
-| | | | over 3 to 5 sq mi | 0.5 | | |
-| | | | over 5 sq mi | 0 | | |
-| E3 (option 1) | Contracted predicted soil burn severity | 0.30 | high | 3 | 0 | As delivered |
+| E2 (option 1) | Drainage area. Gate, not scored (decision 33): culverts and bridges with a contributing area over 3 sq mi score exposure 0 (`DF_gate`); roads are not gated. The draft scored it 0.20, 3 under 0.25 sq mi to 0 over 5 sq mi | gate | over 3 sq mi | exposure 0 | not gated | DEM flow accumulation |
+| | | | 3 sq mi or less | scored on E1 and E3 | | |
+| E3 (option 1) | Contracted predicted soil burn severity; the TRPA most-likely fire severity surface stands in until it arrives. Highest class covering at least 25 percent of the watershed (culverts) or the 300 ft buffer (roads, bridges). Weight 0.60 of exposure (decision 33) | 0.30 | high | 3 | 0 | As delivered |
 | | | | moderate | 2 | | |
 | | | | low | 1 | | |
 | | | | unburned or very low | 0 | | |
@@ -576,23 +596,88 @@ to the full weight in the same proportions (option 1: 0.29, 0.29, 0.43; option 2
 
 ### 4.3 Notes
 
-- Option 1 reuses the flow-accumulation and slope rasters from the culvert delineation; burn
-  severity is the only new input, and the TRPA most-likely fire severity surface (the decision
-  22 input) stands in for predicted soil burn severity until the contracted package arrives.
-- The draft's drainage-area direction (smaller scores higher) describes the concentrated runoff
-  of small steep basins. A road crossing a large river scores low on this term; a road below a
-  small burned ravine scores high. Intended.
-- The segment maximum catches both the crossing and the toe of slope; a segment with one High
-  culvert reads High. Intended.
+- Option 1 reuses the slope raster from the culvert delineation for E1; the flow-accumulation
+  raster is now the area gate, read from each culvert's own drainage area and, for bridges, as
+  the largest contributing area within 25 m. Three bridges are gated by hand
+  (`exposure.debris_flow.gate_bridge_ids`, decision 34): the two SR 89 bridges at the Truckee
+  River outlet, where the lake is a sink in the DEM and the flow accumulation reads the outlet as
+  a small basin, and Lake Tahoe Blvd over Angora Creek, downstream of the gated View Circle
+  bridge but read at 2.89 square miles because the 25 m window misses the restored channel. Burn
+  severity is the only
+  new input, and the TRPA most-likely fire severity surface (the decision 22 input) stands in
+  for predicted soil burn severity until the contracted package arrives.
+- The gate follows the USGS post-fire models, which treat basin area as a domain limit (about 8
+  square kilometers in its emergency assessments) rather than a likelihood term. A culvert or
+  bridge on a large river takes a sediment-laden flood, which FL-C and FL-B carry.
+- The segment maximum on steepness catches both the crossing and the toe of slope. Intended.
+  Cells draining more than 3 square miles score 0 in the slope surface
+  (`exposure.debris_flow.e1_mask_over_gate`, decision 34), so the maximum comes from the
+  hillslope and not from a river channel, whose upslope mean is the whole basin's.
 - Roads carry no sensitivity (decision 25), so pavement condition is not a gap for roads.
 
 ### 4.4 Notes
 
 15. **TRPA decision (Oct. 21, 2026): option 1 for the Nov. 9 workshop.** Option 2 (Wildcat) is
     reviewed for December; the proxy is not used.
-16. Resolved: the draft's drainage-area breaks and direction are adopted. No action.
+16. Superseded by decision 33. (Was: the draft's drainage-area breaks and direction are
+    adopted.)
+33. **TRPA decision (Nov. 2, 2026): debris flow exposure is mean upslope slope and burn
+    severity, with contributing area as a gate.** The draft's drainage-area indicator (E2) is
+    dropped as a weighted term: under 0.25 square miles scores 3, which was 4,798 of 5,096
+    culverts, so it carried no information. Exposure is 0.40 slope and 0.60 severity, the
+    draft's proportions without E2, and keeps its 0.70 share of vulnerability on culverts and
+    bridges. Slope is sampled as before. Severity is the highest class covering at least 25
+    percent of the contributing watershed (culverts, with the 25 m buffer where no watershed
+    exists) or of a 300 ft buffer (roads and bridges), the wildfire rule of decision 27, in
+    place of the maximum. Culverts and bridges with a contributing area over 3 square miles
+    score 0 on exposure (`DF_gate`), so the pair reads Low on sensitivity alone; roads are not
+    gated. The TRPA most-likely fire severity surface still stands in for predicted soil burn
+    severity until the contracted package arrives, which then replaces it on the same breaks
+    and the same 25 percent rule. Supersedes decision 16; amends decision 15 (option 2 Wildcat
+    is compared in December, not substituted). Sensitivity unchanged. The pairs stayed out of
+    the combined class until the class shares were reviewed next to flooding and landslide
+    (decision 35).
+    Share rule check (Nov. 2 dry run on 5,321 crossings): the per-class rule reads severity 1,
+    2, and 3 on 4,388, 181, and 748 watersheds; the cumulative rule (class k or worse covers 25
+    percent) on 4,200, 370, and 748. The two agree on every High basin and differ on 189 Low
+    to Moderate, so the per-class rule of decision 27 stays
+    (`exposure.debris_flow.e3_share_cumulative: false`).
+34. **TRPA decision (Nov. 2, 2026, confirmed on the Nov. 3 run): debris flow class breaks,
+    three hand-gated bridges, and the large-river mask.** (a) DF-R, DF-C, and DF-B
+    are classed Low under 1.5, Medium 1.5 to under 2.0, High 2.0 and over
+    (`scoring.v_breaks_debris_flow`), the wildfire lower break. With exposure 0.40 slope plus
+    0.60 severity and the stand-in severity Low across most of the basin, the shared breaks
+    read Medium on Low severity alone wherever the mean upslope slope is over 10 percent: 2,303
+    of the 2,375 Medium culverts and 6,766 of the 7,398 Medium road segments in the Nov. 2 run.
+    At 1.5, Low severity reads Medium only over 25 percent slope; Moderate severity reads
+    Medium from over 10 percent and High from over 20; High severity reads Medium at any slope
+    and High from over 5 percent. Roads (V = E) on the Nov. 3 run: Low 9,210 to 14,695, Medium
+    7,398 to 1,913, High 1,677 either way; culverts Medium or High 5,021 to 2,096 of 5,096
+    (1,133 Medium, 963 High; 1.4 would have left about 2,700, 1.6 about 1,700 while hiding
+    Low-severity crossings on 15 to 20 percent slopes). (b) Three bridges are gated by hand
+    (`exposure.debris_flow.gate_bridge_ids`): the two SR 89 bridges at the Truckee River outlet
+    (NBI 19 0205 and 19 0033), where the lake is a sink in the DEM and the flow accumulation
+    reads 0.02 and 1.25 square miles at the outlet of the whole lake basin, and Lake Tahoe Blvd
+    over Angora Creek (25C0147, added Nov. 3), downstream of the gated View Circle bridge
+    (25C0148, 3.30 square miles) but read at 2.89 because the 25 m window misses the restored
+    channel. (c) In
+    the slope surface, 30 m cells draining more than 3 square miles score 0
+    (`exposure.debris_flow.e1_mask_over_gate`): on a channel cell the mean upslope slope is the
+    whole basin's, so road segments crossing the Upper Truckee read E1 2.5 to 3.0 from the river
+    rather than the hillslope beside them. With severity 1 those capped at exposure 1.8, so the
+    mask moves Mediums to Low and makes no High. In the surface since the Nov. 3 build.
+35. **TRPA decision (Nov. 3, 2026): the debris-flow pairs count in the combined class.** DF-R,
+    DF-C, and DF-B rejoin `V_max`, `V_max_pair`, and `V_class` (`scoring.v_max_exclude` is
+    empty); `V_max_all` and `V_class_all` stay in the tables and now equal them. With the gate
+    (decision 33) and the breaks (decision 34) the pair's class shares sit with the others on
+    the Nov. 3 run: culverts 41 percent Medium or High against 47 for flooding and 53 for
+    landslide, roads 20 percent against 24 for wildfire, 16 for landslide, and 15 for flooding.
+    Effect on that run, all scored rows: High culverts 2,260 to 2,532, High bridges 3 to 8,
+    High road segments 4,951 to 5,265. Burn severity is still the stand-in (`DF_option`); the
+    contracted surface rescores the pairs in place on the same breaks and share rule. Closes
+    the review clause of decision 33.
 
-Consultant review of the results (Oct. 26, 2026): option 1 is consistent with the original recommendation; debris flow to be reviewed in more detail as data becomes available. The review also noted that most of the network scores Medium or High and that some overlap with landslide is expected; the stand-in pairs stay out of the combined class, and the question is revisited with the Wildcat run.
+Consultant review of the results (Oct. 26, 2026): option 1 is consistent with the original recommendation; debris flow to be reviewed in more detail as data becomes available. The review also noted that most of the network scores Medium or High and that some overlap with landslide is expected; the stand-in pairs stay out of the combined class, and the question is revisited with the Wildcat run. Decision 33 revised option 1 after this review.
 
 ---
 
@@ -653,7 +738,8 @@ Consultant review of the results (Oct. 26, 2026): the avalanche approach appears
 
 ### 6.1 Asset sets and sampling
 
-Roads are `Streets_Network_Tahoe` segments, maximum along the segment. Active transport is the
+Roads are `Streets_Network_Tahoe` segments, maximum along the segment (landslide susceptibility
+by length share, decision 36). Active transport is the
 Class 1 and Class 2 trail inventory (paved or unpaved, slope from the DTM), maximum along the
 trail. Transit centers are points, maximum within 25 m (300 ft for wildfire, per the draft).
 Segment IDs, the inventories, and `C_class` come from the criticality assessment.
@@ -708,7 +794,7 @@ the same surface.
 
 | Code | Indicator | Weight | Indicator value | Score | Default | Sampling |
 |---|---|---|---|---|---|---|
-| E1 | USGS Landslide Susceptibility Index class, or a recorded landslide | 0.50 | as LS-C E1 | | 0 | Maximum along the segment |
+| E1 | USGS Landslide Susceptibility Index class, or a recorded landslide | 0.50 | as LS-C E1 | | 0 | Highest class covering at least 25 percent of the segment's length (decision 36) |
 | E2 | Cal-Adapt annual precipitation change versus historical | 0.20 | as LS-C E2 | | 0; historical horizon scores 0 | Segment mean |
 | S1 (draft; not scored for roads (decision 25)) | Pavement condition. The draft prefers embankment condition or stabilization measures where available; pavement condition is the stand-in | 0.30 | poor | 3 | | |
 | | | | fair | 2 | | |
@@ -790,5 +876,18 @@ highest severity class covering at least 25 percent of the 300 ft buffer on both
     segment 17899, had six one-cell High patches 30 to 80 m away). E1 keeps the maximum within
     300 ft. Effect on roads: 7,549 of 9,813 segments at E2 = 3 drop to 1; High vulnerability
     4,031 to 3,937; hotspots 1,060 to 1,032.
+36. **TRPA decision (Nov. 3, 2026): landslide susceptibility sampled by area share.** E1 on
+    LS-C, LS-B, and LS-R is the highest class covering at least 25 percent of the sampling
+    area (`exposure.landslide.e1_min_share`): the contributing watershed on culverts, the 25 m
+    buffer on bridges, and the segment's own length on roads, the rule decisions 27 and 33 set
+    for severity. Under the maximum rule one 90 m cell over 80 percent prone, or one recorded
+    landslide, anywhere in a drainage or touching a segment scored 3, and with sensitivity at
+    2.0 to 2.5 on most culverts (a small pipe, condition defaulted to fair) that is V 2.10 to
+    2.25, High. On the Nov. 3 run 1,853 of 5,096 public culverts read class 3, 1,808 of them
+    were High, and 1,152 were High on landslide alone; 221 of 984 road miles were High on
+    landslide. Effect on the Nov. 3 rerun (public): culverts at class 3 1,853 to 1,370 and
+    LS-C High 1,808 to 1,340; road segments at class 3 1,572 to 1,261 and High landslide
+    miles 221 to 160. Prone ground is contiguous, so a quarter of a drainage is often class 3
+    and the rule trims a quarter of the Highs rather than half.
 
 Consultant review of the results (Oct. 26, 2026): the landslide approach for roads is consistent with the original recommendation. If the state DOTs can supply embankment condition or the locations of stabilization measures, either could serve as an LS-R sensitivity indicator (not required); it would be the first road sensitivity term and would revisit decision 25 for that pair only.

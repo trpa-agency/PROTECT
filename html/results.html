@@ -278,7 +278,7 @@
       <ol>
         <li><b>Pick a hazard</b> from the tabs in the blue bar. Overview combines every hazard.</li>
         <li><b>Use the panel beside the map.</b> The buttons at the top choose what the assets are colored by, with the legend under them. Switches turn layers on and off. Hover any small i for what a layer shows.</li>
-        <li><b>Read the classes.</b> Low is a score under 1, Medium 1 to under 2, High 2 and over; wildfire uses Low under 1.5, Medium 1.5 to 2, High over 2. Roads are solid lines, paths dashed, culverts dots, bridges squares, transit hubs small squares. Each hazard tab maps the assets that hazard scores.</li>
+        <li><b>Read the classes.</b> Low is a score under 1, Medium 1 to under 2, High 2 and over; wildfire uses Low under 1.5, Medium 1.5 to 2, High over 2; debris flow uses Low under 1.5, Medium 1.5 to under 2, High 2 and over. Roads are solid lines, paths dashed, culverts dots, bridges squares, transit hubs small squares. Each hazard tab maps the assets that hazard scores.</li>
         <li><b>Click anything on the map</b> for its scores, each with its class and the hazard that set it. Click a culvert to draw the land that drains to it; click anywhere else to clear it.</li>
         <li><b>Make room for the map.</b> Drag the panel's edge to resize it, or use the arrows in its blue header to fold it away. The full-screen button on the map hides everything else and floats the panel over the map.</li>
         <li><b>Scroll down</b> for charts, a searchable table you can export to CSV (click a row to find it on the map), how the numbers are made, and key numbers.</li>
@@ -435,7 +435,8 @@
       classBreakInfos:[{minValue:-1.5, maxValue:0.0005, symbol:symOf(COL.gray, 0)}, {minValue:0.0005, maxValue:0.999, symbol:symOf(COL.ice, 1)},
         {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     // combined class from scoring (V_class): the highest per-pair class, where wildfire pairs use their own
-    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2), so it can differ from the class of V_max
+    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2) and debris flow pairs 1.5 and 2 (decision 34);
+    // V_max_pair and V_max come from the pair that sets it (decision 37)
     const vClassFieldRenderer = (field, symOf) => ({type:"unique-value", field, defaultSymbol:symOf(COL.gray, 0), defaultLabel:"not scored",
       uniqueValueInfos:[{value:"Low", symbol:symOf(COL.ice, 1)}, {value:"Medium", symbol:symOf(COL.orange, 2)}, {value:"High", symbol:symOf(COL.brick, 3)}]});
     const lineW = k => [1.2, 1.8, 2.2, 2.6, 3][k];
@@ -454,6 +455,13 @@
       classBreakInfos:[{minValue:-1.5, maxValue:0.999, symbol:symOf(COL.gray, 0)}, {minValue:0.999, maxValue:1.499, symbol:symOf(COL.ice, 1)},
         {minValue:1.499, maxValue:2, symbol:symOf(COL.orange, 2)}, {minValue:2, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     const WF_LEG = [[COL.ice,"Low"],[COL.orange,"Medium"],[COL.brick,"High"]];
+    // debris flow pairs (decision 34): Low under 1.5, Medium 1.5 to under 2, High 2 and over, so a
+    // Low-severity drainage reads Medium only over a 25 percent mean upslope slope; exactly 0 is not exposed
+    const dfClassOf = v => (v == null || isNaN(v)) ? null : v < 1.5 ? "Low" : v < 2 ? "Medium" : "High";
+    const dfRenderer = (field, symOf) => ({type:"class-breaks", valueExpression:`IIf(IsEmpty($feature.${field}), -1, $feature.${field})`,
+      classBreakInfos:[{minValue:-1.5, maxValue:0.0005, symbol:symOf(COL.gray, 0)}, {minValue:0.0005, maxValue:1.499, symbol:symOf(COL.ice, 1)},
+        {minValue:1.499, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
+    const DF_CLASS_NOTE = "Classes on debris flow: Low under 1.5, Medium 1.5 to under 2, High 2 and over (decision 34).";
     const WF_NOTE = "Classes: Low 1 to under 1.5, Medium 1.5 to 2, High over 2.";
     // exposure class renderer: 0 gray, under 1 ice, 1 to under 2 orange, 2 and over brick
     const eClassRenderer = (field, symOf) => ({type:"class-breaks", field, classBreakInfos:[
@@ -503,13 +511,13 @@
     const ovCritLegend = () => CRITCUT === "top10"
       ? legendRows([[CRIT_RAMP[3], "Top tenth (90th percentile and up)"], [CRIT_RAMP[0], "The rest"]], "lg-line")
       : legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line");
-    const CLASS_NOTE = "Classes: Low under 1, Medium 1 to under 2, High 2 and over. Wildfire: Low under 1.5, Medium 1.5 to 2, High over 2.";
+    const CLASS_NOTE = "Classes: Low under 1, Medium 1 to under 2, High 2 and over. Wildfire: Low under 1.5, Medium 1.5 to 2, High over 2. Debris flow: Low under 1.5, Medium 1.5 to under 2, High 2 and over.";
     const CLASS_NOTE_SHORT = "Classes: Low under 1, Medium 1 to under 2, High 2 and over.";
     const SYMBOL_NOTE = "Roads are solid lines, paths dashed lines, culverts dots, bridges squares, transit hubs small squares.";
     // popups: the pair code that set the score shown as the hazard's name, and each hazard's V as "score (class)"
     const PAIR_NAME = {FLR:"Flooding", FLC:"Flooding", FLB:"Flooding", FLAT:"Flooding", FLTC:"Flooding", WFR:"Wildfire", WFAT:"Wildfire", WFTC:"Wildfire", LSR:"Landslide", LSC:"Landslide", LSB:"Landslide", DFR:"Debris flow", DFC:"Debris flow", DFB:"Debris flow", AVR:"Avalanche"};
     const pairArcade = f => `var m = Dictionary(${Object.entries(PAIR_NAME).map(([k, v]) => `'${k}','${v}'`).join(",")}); var p = $feature.${f}; IIf(IsEmpty(p), '-', IIf(HasKey(m, p), m[p], p))`;
-    const vArcade = f => `var v = $feature.${f}; IIf(IsEmpty(v), 'not scored', IIf(v == 0, '0 (not exposed)', Text(Round(v, 2), '#.##') + ' (' + ${f.startsWith("V_WF") ? "When(v > 2, 'High', v >= 1.5, 'Medium', 'Low')" : "When(v < 1, 'Low', v < 2, 'Medium', 'High')"} + ')'))`;
+    const vArcade = f => `var v = $feature.${f}; IIf(IsEmpty(v), 'not scored', IIf(v == 0, '0 (not exposed)', Text(Round(v, 2), '#.##') + ' (' + ${f.startsWith("V_WF") ? "When(v > 2, 'High', v >= 1.5, 'Medium', 'Low')" : f.startsWith("V_DF") ? "When(v >= 2, 'High', v >= 1.5, 'Medium', 'Low')" : "When(v < 1, 'Low', v < 2, 'Medium', 'High')"} + ')'))`;
     function vPopup(title, rows){ const ex = [], fi = [];
       rows.forEach(([f, label, kind]) => {
         if (kind === "pair" || kind === "v") { ex.push({name:f, title:label, expression:kind === "pair" ? pairArcade(f) : vArcade(f)}); fi.push({fieldName:"expression/" + f, label}); }
@@ -530,10 +538,11 @@
     const HZ_NAME = {FL:"flooding", WF:"wildfire", LS:"landslide", DF:"debris flow", AV:"avalanche"};
     const ARC_LIB = `
       function fv(n) { if (HasKey($feature, n)) { return $feature[n]; } return null; }
-      function cls(v, wf) {
+      function cls(v, wf, df) {
         if (IsEmpty(v)) { return 'Not scored'; }
         if (v == 0) { return 'Not exposed'; }
         if (wf) { return When(v > 2, 'High', v >= 1.5, 'Medium', 'Low'); }
+        if (df) { return When(v >= 2, 'High', v >= 1.5, 'Medium', 'Low'); }
         return When(v < 1, 'Low', v < 2, 'Medium', 'High');
       }
       function col(c) { return Decode(c, 'High', '${COL.brick}', 'Medium', '${COL.orange}', 'Low', '${COL.ice}', '#cfd4da'); }
@@ -541,9 +550,9 @@
       function chip(c) { return '<span style="background-color:' + col(c) + ';color:' + ink(c) + ';font-weight:700;padding:2px 10px;border-radius:10px;">' + c + '</span>'; }
       function lsText(e1, where) {
         if (IsEmpty(e1)) { return 'Not scored for landslide.'; }
-        return Decode(Round(e1), 3, 'Over 80 percent of ' + where + ' is landslide-prone, or a landslide is on record there.',
-          2, '60 to 80 percent of ' + where + ' is landslide-prone.', 1, '40 to 60 percent of ' + where + ' is landslide-prone.',
-          'Under 40 percent of ' + where + ' is landslide-prone.');
+        return Decode(Round(e1), 3, 'A quarter or more of ' + where + ' is over 80 percent landslide-prone, or holds a recorded landslide.',
+          2, 'A quarter or more of ' + where + ' is 60 to 80 percent landslide-prone.', 1, 'A quarter or more of ' + where + ' is 40 to 60 percent landslide-prone.',
+          'Less than a quarter of ' + where + ' is over 40 percent landslide-prone.');
       }
       function wfText(e1, e2, v) {
         if (!IsEmpty(e1) && !IsEmpty(e2)) {
@@ -557,7 +566,7 @@
         if (v >= 1.3) { return 'Fire is unlikely nearby, and a fire would most likely burn at moderate severity.'; }
         return 'Fire is unlikely nearby, and a fire would most likely burn at low severity.';
       }
-      var DF_TEXT = 'Scored from slope, drainage size, and a stand-in for burn severity, so it stays out of the overall class until the USGS model runs.';
+      var DF_TEXT = 'Scored from slope and a stand-in for burn severity; it counts in the overall class (decision 35) and is rescored in place when the contracted severity arrives.';
     `;
     // the reason sentence for one hazard on one asset type, as Arcade statements that return a string;
     // hz is the open tab, so length shares (len_pct_*) are read only on the hazard they belong to
@@ -574,7 +583,7 @@
         if (h === "FL") return flLine("E_FLR_hist", "V_FLR_hist", hz === "FL");
         if (h === "WF") return "return wfText(fv('E_WFR_e1'), fv('E_WFR_e2'), fv('V_WFR_hist'));";
         if (h === "LS") return `var e1 = fv('E_LSR_e1'); var v = fv('V_LSR_hist'); if (IsEmpty(e1) && !IsEmpty(v)) { e1 = Round(v * 1.4); }
-          return lsText(e1, 'the ground it touches');`;
+          return lsText(e1, 'its length');`;
         if (h === "AV") return `var t = fv('av_tier'); var rec = fv('av_record'); var v = fv('V_AVR_hist');
           if (HasKey($feature, 'av_tier')) { t = DefaultValue(t, 0);
             return Decode(t, 3, 'The slope above it is mostly 35 to 45 degrees, the prime avalanche release band', 2, 'The slope above it is mostly 30 to 35 or 45 to 50 degrees',
@@ -627,18 +636,18 @@
           if (IsEmpty(vc) || hn == '') { html += '<div style="margin-bottom:8px;">' + chip(DefaultValue(vc, 'Not scored')) + '</div>'; }
           else { html += '<div style="margin-bottom:4px;">' + chip(vc) + '&nbsp; <span style="font-size:14px;">from ' + hn + '</span></div><div style="color:#4b5563;margin-bottom:10px;">' + reason(h) + '</div>'; }
           var rows = ${rows};
-          function byv(a, b) { if (a.s != b.s) { return IIf(a.s, 1, -1); } return DefaultValue(b.v, -1) - DefaultValue(a.v, -1); }   // the stand-in sorts last
+          function byv(a, b) { return DefaultValue(b.v, -1) - DefaultValue(a.v, -1); }
           rows = Sort(rows, byv);
           html += '<div style="font-size:11px;color:#6b7280;margin-bottom:2px;">Every hazard scored for it, highest first</div><table style="width:100%;border-collapse:collapse;">';
-          for (var i in rows) { var r = rows[i]; var c = cls(r.v, r.wf); var w = 0; var val = 'not scored';
-            if (!IsEmpty(r.v)) { w = Max(2, Round(100 * r.v / 3)); val = 'not exposed'; if (r.v > 0) { val = Text(r.v, '#,##0.0') + ' ' + IIf(r.s, 'stand-in', c); } }
-            var fill = IIf(r.s, '#ffffff', col(c)); var edge = IIf(r.s, 'border:1px dashed ${COL.orange};', '');
+          for (var i in rows) { var r = rows[i]; var c = cls(r.v, r.wf, r.s); var w = 0; var val = 'not scored';
+            if (!IsEmpty(r.v)) { w = Max(2, Round(100 * r.v / 3)); val = 'not exposed'; if (r.v > 0) { val = Text(r.v, '#,##0.0') + ' ' + c + IIf(r.s, ' (stand-in severity)', ''); } }
+            var fill = col(c); var edge = '';
             html += '<tr><td style="padding:2px 8px 2px 0;white-space:nowrap;">' + r.l + '</td><td style="width:48%;padding:2px 0;"><div style="background-color:#eef0f3;height:8px;border-radius:4px;"><div style="width:' + w + '%;height:8px;border-radius:4px;background-color:' + fill + ';' + edge + '"></div></div></td><td style="padding:2px 0 2px 8px;text-align:right;white-space:nowrap;color:#4b5563;">' + val + '</td></tr>'; }
           html += '</table>';`;
       } else {
         const pr = pairs.find(p => p[2] === hz) || pairs[0];
-        body = `var v = fv('${pr[1]}'); var c = cls(v, ${hz === "WF"});
-          var html = '<div style="font-size:13px;line-height:1.45;"><div style="margin-bottom:4px;">' + chip(c) + '&nbsp; <span style="font-size:14px;">for ${HZ_NAME[hz]}${hz === "DF" ? " (stand-in)" : ""}</span>' + IIf(IsEmpty(v), '', ' <span style="color:#6b7280;">score ' + Text(v, '#,##0.0') + ' of 3</span>') + '</div>';
+        body = `var v = fv('${pr[1]}'); var c = cls(v, ${hz === "WF"}, ${hz === "DF"});
+          var html = '<div style="font-size:13px;line-height:1.45;"><div style="margin-bottom:4px;">' + chip(c) + '&nbsp; <span style="font-size:14px;">for ${HZ_NAME[hz]}${hz === "DF" ? " (stand-in severity)" : ""}</span>' + IIf(IsEmpty(v), '', ' <span style="color:#6b7280;">score ' + Text(v, '#,##0.0') + ' of 3</span>') + '</div>';
           html += '<div style="color:#4b5563;">' + reason('${hz}') + '</div>';`;
       }
       return ARC_LIB + reasonFn + body + "\n" + crit + "\nhtml += '</div>';\nreturn {type: 'text', text: html};";
@@ -656,7 +665,7 @@
     // legend for a three-class surface layer
     const surfLeg = labels => [["rgba(180,203,232,.6)", labels[0]], ["rgba(232,119,34,.5)", labels[1]], ["rgba(156,62,39,.55)", labels[2]]].map(([c, l]) => `<span class="lg-sw" style="background:${c}"></span> ${l}`).join(" &nbsp; ");
     // Overview statistics for a view: class shares by miles (roads, paths) or by count (culverts, bridges, hubs)
-    const classOfField = (f, v) => f === "V_class" ? (v || null) : (v == null || isNaN(v)) ? null : +v === 0 ? "Not exposed" : f.startsWith("V_WF") ? wfClassOf(+v) : vClassOf(+v);
+    const classOfField = (f, v) => f === "V_class" ? (v || null) : (v == null || isNaN(v)) ? null : +v === 0 ? "Not exposed" : f.startsWith("V_WF") ? wfClassOf(+v) : f.startsWith("V_DF") ? dfClassOf(+v) : vClassOf(+v);
     async function ovStats(fields){
       const out = {};
       for (const id of Object.keys(OV_LABEL)) { const f = fields[id]; if (!f) continue;
@@ -711,14 +720,14 @@
       colorHeading:"Assets, colored by",
       colorBy:[
         {value:"vmax", label:"Highest vulnerability", default:true, fields:OV_FIELDS.vmax, renderer:ovRend(OV_FIELDS.vmax), legend:legendRows(VC_LEG, "lg-line"),
-          note:"Each asset's class from whichever hazard scores it highest. Turn on Hotspots only to narrow the map to High vulnerability on the most critical roads.", noteTip:"Vulnerability class from the highest scored pair, the debris-flow stand-in pairs left out. An asset's class is the highest of its pair classes, so it can differ from the class of the highest score where wildfire's breaks apply."},
+          note:"Each asset's class from whichever hazard scores it highest. Turn on Hotspots only to narrow the map to High vulnerability on the most critical roads.", noteTip:"Vulnerability class from the highest scored pair, debris flow included since Nov. 3 (decision 35). An asset's class is the highest of its pair classes, and the highest hazard is the pair that sets it (decision 37)."},
         // renderer and legend are functions: they follow the High criticality switch
         {value:"crit", label:"Criticality", fields:null, dark:true, renderer:() => Object.assign(ovRend({}), {roads:ovCritRenderer()}), legend:ovCritLegend,
           note:"How much each road matters to the network, from the Criticality Assessment at its default weights: in quarters, or the top tenth against the rest (switch under Filter). Criticality is scored on roads; the other assets are gray in this view.", noteTip:"Criticality percentile cut at 25, 50, and 75 (the Criticality Assessment page's quarters), or at 90 for the top tenth. Kept separate from vulnerability; the Hotspots filter is where the two are read together."},
         {value:"FLR", label:"Flooding", fields:OV_FIELDS.FLR, renderer:ovRend(OV_FIELDS.FLR), legend:legendRows(VC_LEG, "lg-line"), note:"Flooding vulnerability. Scored for roads, paths, culverts, bridges, and transit hubs."},
         {value:"WFR", label:"Wildfire", fields:OV_FIELDS.WFR, renderer:ovRend(OV_FIELDS.WFR), legend:legendRows(WF_LEG.concat([[COL.gray, "not scored"]]), "lg-line"), note:"Wildfire vulnerability. Scored for roads, paths, and transit hubs; culverts and bridges are gray (no pair)."},
         {value:"LSR", label:"Landslide", fields:OV_FIELDS.LSR, renderer:ovRend(OV_FIELDS.LSR), legend:legendRows(VC_LEG, "lg-line"), note:"Landslide vulnerability. Scored for roads, culverts, and bridges; paths and transit hubs are gray (no pair)."},
-        {value:"DFR", label:"Debris flow", fields:OV_FIELDS.DFR, renderer:ovRend(OV_FIELDS.DFR), legend:legendRows(VC_LEG, "lg-line"), note:"Debris flow vulnerability on the stand-in burn severity surface, left out of the combined class. Scored for roads, culverts, and bridges."},
+        {value:"DFR", label:"Debris flow", fields:OV_FIELDS.DFR, renderer:ovRend(OV_FIELDS.DFR), legend:legendRows(VC_LEG, "lg-line"), note:"Debris flow vulnerability from slope and the stand-in burn severity surface, counted in the combined class since decision 35. Scored for roads, culverts, and bridges."},
         {value:"AVR", label:"Avalanche", fields:OV_FIELDS.AVR, renderer:ovRend(OV_FIELDS.AVR), legend:legendRows(VC_LEG, "lg-line"), note:"Avalanche vulnerability. Scored for roads only."}],
       // the key numbers and the asset-type chart follow the selected view
       onColor(o){ ovStats(o.fields || OV_FIELDS.vmax).then(st => { if (current !== "overview") return; paintOvKpis(st, o); assetClassChart("ch-a", st); }).catch(e => console.warn("overview stats", e)); },
@@ -726,7 +735,7 @@
       layers(){ return [
         {id:"roads", label:"Roads", checked:true, legend:`<span class="lg-line" style="background:#5a6577"></span> solid line`, make:() => roadLayer(null, {renderer:vClassFieldRenderer("V_class", (c,k) => line(c, LINE_W[k])),
           popupTemplate:vPopup("{name}", [["class", "Road type"], ["V_max", "Vulnerability (highest hazard)", {places:2}], ["V_max_pair", "Highest hazard", "pair"], ["V_class", "Class"],
-            ["V_FLR_hist", "Flooding", "v"], ["V_WFR_hist", "Wildfire", "v"], ["V_LSR_hist", "Landslide", "v"], ["V_AVR_hist", "Avalanche", "v"], ["V_DFR_hist", "Debris flow (stand-in, not in the class)", "v"],
+            ["V_FLR_hist", "Flooding", "v"], ["V_WFR_hist", "Wildfire", "v"], ["V_LSR_hist", "Landslide", "v"], ["V_AVR_hist", "Avalanche", "v"], ["V_DFR_hist", "Debris flow (stand-in severity)", "v"],
             ["C_class", "Criticality quarter (3 = top)"], ["criticality_pctl", "Criticality percentile", {places:0}]])})},
         {id:"paths", label:"Paths and bike routes", checked:true, legend:`<span class="lg-line" style="background:repeating-linear-gradient(90deg,#5a6577 0 4px,transparent 4px 7px)"></span> dashed line`,
           make:() => new M.GeoJSONLayer({url:BASE + "paths_wildfire.geojson", title:"Paths", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => line(c, LINE_W[k], true)),
@@ -734,11 +743,11 @@
         {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, tip:"The culvert's score is the highest among flooding, landslide, and debris flow. Only public jurisdictions are scored.", legend:`<span class="lg-dot" style="background:#5a6577"></span> dot`,
           make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => dot(c, [4,5,6,7][k])),
             popupTemplate:vPopup("{culvert_id}", [["jurisdiction", "Jurisdiction"], ["road_name", "Road"], ["V_max", "Vulnerability (highest hazard)", {places:2}], ["V_max_pair", "Highest hazard", "pair"], ["V_class", "Class"],
-              ["V_FLC_hist", "Flooding", "v"], ["V_LSC_hist", "Landslide", "v"], ["V_DFC_hist", "Debris flow (stand-in, not in the class)", "v"], ["E_FLC_hist", "Flood exposure E", {places:0}], ["S_FLC", "Flood sensitivity S", {places:2}], ["S_source", "Sensitivity data"]])})},
+              ["V_FLC_hist", "Flooding", "v"], ["V_LSC_hist", "Landslide", "v"], ["V_DFC_hist", "Debris flow (stand-in severity)", "v"], ["E_FLC_hist", "Flood exposure E", {places:0}], ["S_FLC", "Flood sensitivity S", {places:2}], ["S_source", "Sensitivity data"]])})},
         {id:"bridges", minScale:CULVERT_MIN_SCALE, label:"Bridges", checked:true, legend:`<span class="lg-sq" style="background:#5a6577"></span> square`,
           make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => sq(c)),
             popupTemplate:vPopup("{facility_carried} over {feature_crossed}", [["owner", "Owner"], ["V_max", "Vulnerability (highest hazard)", {places:2}], ["V_max_pair", "Highest hazard", "pair"], ["V_class", "Class"],
-              ["V_FLB_hist", "Flooding", "v"], ["V_LSB_hist", "Landslide", "v"], ["V_DFB_hist", "Debris flow (stand-in, not in the class)", "v"], ["E_FLB_hist", "Flood exposure E", {places:2}], ["S_FLB", "Flood sensitivity S", {places:2}]])})},
+              ["V_FLB_hist", "Flooding", "v"], ["V_LSB_hist", "Landslide", "v"], ["V_DFB_hist", "Debris flow (stand-in severity)", "v"], ["E_FLB_hist", "Flood exposure E", {places:2}], ["S_FLB", "Flood sensitivity S", {places:2}]])})},
         {id:"hubs", label:"Transit hubs", checked:true, legend:`<span class="lg-sq" style="background:#5a6577;width:8px;height:8px"></span> small square`,
           make:() => new M.GeoJSONLayer({url:BASE + "transit_wildfire.geojson", title:"Transit hubs", outFields:["*"], renderer:vClassFieldRenderer("V_class", (c,k) => sq(c, HUB_SIZE)),
             popupTemplate:vPopup("Transit hub {tc_id}", [["V_max", "Vulnerability (highest hazard)", {places:2}], ["V_max_pair", "Highest hazard", "pair"], ["V_class", "Class"], ["V_FLTC_hist", "Flooding", "v"], ["V_WFTC_hist", "Wildfire", "v"]])})},
@@ -770,8 +779,8 @@
           {field:"miles", headerName:"Miles", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"src_objectid", headerName:"Segment", width:95}]},
       notes:["<b>Score.</b> For each hazard pair, exposure times its weight plus sensitivity times its weight, each 0 to 3. The asset carries the highest pair; the popup names the hazard that set it and gives every hazard's score with its class.",
         "<b>Which assets each hazard scores.</b> Flooding: roads, paths, culverts, bridges, and transit hubs. Wildfire: roads, paths, and transit hubs. Landslide and debris flow: roads, culverts, and bridges. Avalanche: roads. An asset is gray when the selected hazard has no pair for it.",
-        "<b>Stand-in pairs.</b> Debris flow is scored on the fire severity surface in place of the contracted soil burn severity, and the draft's drainage-size break puts nearly every basin at 3, so it is left out of the combined class until the real input arrives. The Debris flow view and the popup carry its reading.",
-        "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 1.5, Medium 1.5 to 2, High over 2, and an asset's class is the highest of its pair classes.",
+        "<b>Stand-in severity.</b> Debris flow is scored on the fire severity surface in place of the contracted soil burn severity (DF_option records it). It counts in the combined class since Nov. 3, 2026 (decision 35): with the drainage gate and its own breaks (decisions 33 and 34) its class shares sit with flooding and landslide. The contracted surface rescores the pairs in place when it arrives.",
+        "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 1.5, Medium 1.5 to 2, High over 2; debris flow pairs Low under 1.5, Medium 1.5 to under 2, High 2 and over (decision 34). An asset's class is the highest of its pair classes.",
         "<b>Why roads are never Low.</b> Wildfire likelihood is at least 1 everywhere with the Resource Kit data, so every segment's wildfire score, and with it its highest pair, is at least 1.",
         "<b>Criticality.</b> Kept separate from vulnerability and never multiplied into it: the criticality percentile cut into quarters, 3 being the most critical quarter of the network. It appears on the map in the Criticality view and in the Hotspots filter, and on its own page as the Criticality Assessment.",
         "<b>By miles.</b> Road and path figures on this page are shares of miles, not counts of segments, because segments differ in length: one long mountain road weighs more than a dozen short town blocks.",
@@ -961,8 +970,8 @@
       colorHeading:"Roads, culverts, and bridges, colored by",
       colorBy:[
         {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_LSR_hist", (c,k) => line(c, LINE_W[k])), culverts:vClassRenderer("V_LSC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_LSB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
-          note:"Roads: exposure only, the highest susceptibility class touching the segment. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3. The popup has the susceptibility class behind each score; the Susceptibility surface layer shows the ground itself.", noteTip:"E1: the share of each 90 m cell that the USGS 2024 susceptibility model calls landslide-prone (over 80 percent = 3, over 60 = 2, over 40 = 1; decision 24), with every recorded landslide in the USGS inventory as 3, read as the highest class touching the road, within 25 m of the bridge, or anywhere in the culvert's drainage area. E = (0.50 x E1 + 0.20 x E2) / 0.70; E2 is the Cal-Adapt precipitation change, 0 at the historical horizon, so exposure tops out at 2.14. Roads: no sensitivity (decision 25). Culverts: opening width and condition. Bridges: span type, condition, span length."}],
-      extra(L, ctx){ culvertDrainage(L, ctx, "The landslide class is the highest anywhere in this area."); },
+          note:"Roads: exposure only, the highest susceptibility class covering at least a quarter of the segment's length. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3. The popup has the susceptibility class behind each score; the Susceptibility surface layer shows the ground itself.", noteTip:"E1: the share of each 90 m cell that the USGS 2024 susceptibility model calls landslide-prone (over 80 percent = 3, over 60 = 2, over 40 = 1; decision 24), with every recorded landslide in the USGS inventory as 3, read as the highest class covering at least 25 percent of the segment's length, of the 25 m buffer around a bridge, or of the culvert's drainage area (decision 36; before Nov. 3 the highest class touching any of them). E = (0.50 x E1 + 0.20 x E2) / 0.70; E2 is the Cal-Adapt precipitation change, 0 at the historical horizon, so exposure tops out at 2.14. Roads: no sensitivity (decision 25). Culverts: opening width and condition. Bridges: span type, condition, span length."}],
+      extra(L, ctx){ culvertDrainage(L, ctx, "The landslide class is the highest covering at least a quarter of this area."); },
       layers(){ return [
         {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("landslide", {
           popupTemplate:vPopup("{name}", [["class", "Road type"], ["src_objectid", "Segment"], ["V_LSR_hist", "Landslide vulnerability", "v"], ["E_LSR_e1", "Susceptibility class (E1)"], ["E_LSR_hist", "Landslide exposure score", {places:2}],
@@ -997,41 +1006,42 @@
 
     MODES.debris_flow = {
       title:"Debris flow", banner:"Draft results for workshop review. Option 1 of the draft with the fire severity surface standing in for predicted soil burn severity until the contracted package arrives.",
-      bannerTip:"Component 2 exposure (DF-R, DF-C, DF-B): mean upslope slope, contributing area, and burn severity at 0.20, 0.20, 0.30. DF_option records the stand-in.",
-      lead:"Which roads, culverts, and bridges sit below small, steep, burn-prone drainages. The method is section 4 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
+      bannerTip:"Component 2 exposure (DF-R, DF-C, DF-B), decision 33: mean upslope slope 0.40 and burn severity 0.60 of exposure; culverts and bridges draining more than 3 square miles score exposure 0. DF_option records the stand-in.",
+      lead:"Which roads, culverts, and bridges sit below steep, burn-prone drainages. The method is section 4 of the <a href='scoring-rubrics.html'>scoring rubrics</a>.",
       kpiBorder:COL.brick,
       kpis(s){ const w = s.debris_flow; if (!w) return null; const r = w.roads || {}; const E = r.E || {}; const hi = Object.entries(E).filter(([k]) => Number(k) >= 2).reduce((a, [,v]) => a + v, 0);
         return [[fmt(r.segments), "road segments scored"], [fmt(r.miles), "road miles scored"], [fmt(hi), "segments scoring 2 and over"], [fmt(r.zero_segments), "segments at 0"]]; },
-      note(s){ return "Generated " + (s.generated || "") + ". Culverts read slope and area from their own drainage; roads and bridges read the largest drainage they touch."; },
+      note(s){ return "Generated " + (s.generated || "") + ". Culverts read slope from their own drainage and burn severity across it; roads and bridges read burn severity within 300 ft."; },
       emptyText:"Debris flow results have not been published yet.",
-      classNote:CLASS_NOTE_SHORT,
+      classNote:DF_CLASS_NOTE,
       colorHeading:"Roads, culverts, and bridges, colored by",
       colorBy:[
-        {value:"v", label:"Vulnerability", renderer:{roads:vClassRenderer("V_DFR_hist", (c,k) => line(c, LINE_W[k])), culverts:vClassRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:vClassRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
-          note:"Roads: exposure only, from slope, drainage size, and a stand-in burn severity. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3. The popup has the three exposure terms behind each score. Nearly everything scores Medium or High because the draft's drainage-size break is met almost everywhere; this pair is left out of the Overview's combined class until the USGS model replaces it.", noteTip:"E1 mean slope of the contributing area (over 30 percent = 3), E2 contributing area (under 0.25 sq mi = 3, over 5 sq mi = 0), E3 most-likely fire severity standing in for soil burn severity; E = (0.2 E1 + 0.2 E2 + 0.3 E3) / 0.7. Roads: no sensitivity (decision 25). Culverts: opening width and condition (decision 7). Bridges: span type, condition, span length."}],
-      extra(L, ctx){ culvertDrainage(L, ctx, "Slope and drainage size are read from this area."); },
+        {value:"v", label:"Vulnerability", renderer:{roads:dfRenderer("V_DFR_hist", (c,k) => line(c, LINE_W[k])), culverts:dfRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:dfRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
+          note:"Roads: exposure only, from slope and a stand-in burn severity. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3; those draining more than 3 square miles score exposure 0, since a large river brings a flood, not a debris flow. Classed Low under 1.5, Medium 1.5 to under 2, High 2 and over, so a Low-severity drainage reads Medium only over a 25 percent slope. The popup has the exposure terms behind each score. This pair counts in the Overview's combined class (decision 35); burn severity is a stand-in until the contracted surface arrives.", noteTip:"Decisions 33 to 35. E1 mean slope of the contributing area (over 30 percent = 3), E3 most-likely fire severity standing in for soil burn severity, the highest class covering at least 25 percent of the drainage (culverts) or the 300 ft buffer (roads, bridges); E = 0.4 E1 + 0.6 E3. Contributing area is a gate, not a score: over 3 sq mi sets culvert and bridge exposure to 0 (DF_gate), as does the hand list: the two bridges at the Truckee River outlet and Lake Tahoe Blvd over Angora Creek. Class breaks 1.5 and 2.0 (decision 34). Roads: no sensitivity (decision 25). Culverts: opening width and condition (decision 7). Bridges: span type, condition, span length."}],
+      extra(L, ctx){ culvertDrainage(L, ctx, "Slope and burn severity are read from this area."); },
       layers(){ return [
-        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:vPopup("{name}", [["class", "Road type"], ["V_DFR_hist", "Debris flow vulnerability", "v"], ["E_DFR_hist", "Debris flow exposure", {places:2}], ["E_DFR_e1", "E1 slope class", {places:1}], ["E_DFR_e2", "E2 drainage size class", {places:1}], ["E_DFR_e3", "E3 burn severity class (stand-in)"], ["C_class", "Criticality quarter (3 = top)"]])})},
-        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, legend:legendRows(VC_LEG.slice(0, 3), "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:vPopup("{culvert_id}", [["jurisdiction", "Jurisdiction"], ["road_name", "Road"], ["V_DFC_hist", "Debris flow vulnerability", "v"], ["E_DFC_hist", "Debris flow exposure", {places:2}], ["E_DFC_e1", "E1 basin slope class", {places:1}], ["E_DFC_e2", "E2 basin size class", {places:1}], ["E_DFC_e3", "E3 burn severity in the drainage (stand-in)"], ["DF_option", "Option"]])})},
-        {id:"bridges", minScale:CULVERT_MIN_SCALE, label:"Bridges", checked:true, legend:legendRows(VC_LEG.slice(0, 3), "lg-sq"), make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:vPopup("{facility_carried} over {feature_crossed}", [["owner", "Owner"], ["V_DFB_hist", "Debris flow vulnerability", "v"], ["E_DFB_hist", "Debris flow exposure", {places:2}]])})}];
+        {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:vPopup("{name}", [["class", "Road type"], ["V_DFR_hist", "Debris flow vulnerability", "v"], ["E_DFR_hist", "Debris flow exposure", {places:2}], ["E_DFR_e1", "E1 slope class", {places:1}], ["E_DFR_e3", "E3 burn severity class within 300 ft (stand-in)"], ["C_class", "Criticality quarter (3 = top)"]])})},
+        {id:"culverts", minScale:CULVERT_MIN_SCALE, label:"Culverts", checked:true, legend:legendRows(VC_LEG.slice(0, 3), "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:vPopup("{culvert_id}", [["jurisdiction", "Jurisdiction"], ["road_name", "Road"], ["V_DFC_hist", "Debris flow vulnerability", "v"], ["E_DFC_hist", "Debris flow exposure", {places:2}], ["E_DFC_e1", "E1 basin slope class", {places:1}], ["E_DFC_e3", "E3 burn severity in the drainage (stand-in)"], ["DF_gate", "Over 3 sq mi (exposure 0)"], ["DF_option", "Option"]])})},
+        {id:"bridges", minScale:CULVERT_MIN_SCALE, label:"Bridges", checked:true, legend:legendRows(VC_LEG.slice(0, 3), "lg-sq"), make:() => new M.GeoJSONLayer({url:BASE + "bridges_results.geojson", title:"Bridges", outFields:["*"], popupTemplate:vPopup("{facility_carried} over {feature_crossed}", [["owner", "Owner"], ["V_DFB_hist", "Debris flow vulnerability", "v"], ["E_DFB_hist", "Debris flow exposure", {places:2}], ["DF_gate", "Over 3 sq mi (exposure 0)"]])})}];
       },
       filters:[{id:"top", label:"High exposure only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_DFR_hist >= 1.999" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.999" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.999" : null; }}],
       charts:[
-        {title:"Road miles by exposure class", sub:"Low under 1, Medium 1 to under 2, High 2 and over", async draw(div){ milesByClass(div, await roadRows("debris_flow"), "E_DFR_hist", eClassOf, E_CLASSES, EC_COL, "road miles"); }},
-        {title:"Culverts by jurisdiction", sub:"Share of each jurisdiction's culverts in each exposure class", async draw(div){ const rows = (await rowsOf(BASE + "culverts_results.geojson")).filter(p => p.E_DFC_hist != null); if (!rows.length) return;
-          stackedShare(div, [...new Set(rows.map(r => r.jurisdiction))].sort(), E_CLASSES, EC_COL, rows, r => r.jurisdiction, r => eClassOf(r.E_DFC_hist || 0), r => 1, "percent of culverts", "culverts"); }}],
+        {title:"Road miles by exposure class", sub:"Low under 1.5, Medium 1.5 to under 2, High 2 and over (decision 34)", async draw(div){ milesByClass(div, await roadRows("debris_flow"), "E_DFR_hist", dfClassOf, E_CLASSES, EC_COL, "road miles"); }},
+        {title:"Culverts by jurisdiction", sub:"Share of each jurisdiction's culverts in each exposure class (gated culverts read as None)", async draw(div){ const rows = (await rowsOf(BASE + "culverts_results.geojson")).filter(p => p.E_DFC_hist != null); if (!rows.length) return;
+          stackedShare(div, [...new Set(rows.map(r => r.jurisdiction))].sort(), E_CLASSES, EC_COL, rows, r => r.jurisdiction, r => (r.E_DFC_hist || 0) < 0.1 ? "None" : dfClassOf(r.E_DFC_hist), r => 1, "percent of culverts", "culverts"); }}],
       table:{title:"Road table", lead:"", exportName:"PROTECT_debris_flow_roads.csv", rows:() => roadRows("debris_flow"),
         cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:120}, {field:"src_objectid", headerName:"Segment", width:100},
-          {field:"E_DFR_hist", headerName:"Exposure", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=eClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
-          {field:"E_DFR_e1", headerName:"Slope", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"E_DFR_e2", headerName:"Drainage size", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"E_DFR_e3", headerName:"Burn severity", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
-          {field:"V_DFR_hist", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=vClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}}, CRIT_COL,
+          {field:"E_DFR_hist", headerName:"Exposure", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=dfClassOf(p.value); return c?{background:EC_COL[c], color:(c==="High"||c==="Medium")?"#fff":"#003B71", fontWeight:600}:{};}},
+          {field:"E_DFR_e1", headerName:"Slope", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,1)}, {field:"E_DFR_e3", headerName:"Burn severity", width:115, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+          {field:"V_DFR_hist", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=dfClassOf(p.value); return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}}, CRIT_COL,
           {field:"miles", headerName:"Miles", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}]},
-      notes:["<b>Slope (E1).</b> The mean slope of everything that drains to a cell, from the 2 m lidar DEM, aggregated to 30 m. Over 30 percent scores 3, 0 to 5 percent scores 0, in half-point steps.",
-        "<b>Drainage size (E2).</b> Contributing area at the cell. Small, steep drainages score high: under 0.25 square miles is 3, over 5 square miles is 0. Roads and bridges read the largest drainage they touch, so a highway over a river scores low and a road below a small burned ravine scores high.",
-        "<b>Burn severity (E3).</b> The TRPA most-likely fire severity surface stands in for the contracted predicted soil burn severity (DF_option records this). Culverts take the highest class in their drainage.",
-        "<b>Culverts.</b> Read slope and area from their own delineated drainage rather than the raster, which is more exact for a crossing.",
-        "<b>Vulnerability.</b> Roads: exposure only (decision 25). Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3, from opening width and condition for culverts (decision 7) and span terms for bridges."],
-      foot:"Terrain from the 2 m lidar DEM; burn severity stand-in from the TRPA Fire service. Method: <code>docs/SCORING_RUBRICS.md</code> 4, decisions 7 and 15."
+      notes:["<b>Slope (E1).</b> The mean slope of everything that drains to a cell, from the 2 m lidar DEM, aggregated to 30 m. Over 30 percent scores 3, 0 to 5 percent scores 0, in half-point steps. Cells draining more than 3 square miles score 0, so a road crossing a river reads the hillslope beside it rather than the river's basin-wide mean (decision 34).",
+        "<b>Burn severity (E3).</b> The TRPA most-likely fire severity surface stands in for the contracted predicted soil burn severity (DF_option records this). Each asset takes the highest class covering at least a quarter of its drainage (culverts) or of the 300 ft around it (roads, bridges), so a few isolated cells do not set it. Severity carries 0.6 of exposure, slope 0.4.",
+        "<b>Drainage size gate.</b> The draft scored small drainages high, but nearly every basin was under a quarter square mile, so the term was the same everywhere. It is now a gate: culverts and bridges draining more than 3 square miles score exposure 0, because a large river brings a sediment-laden flood, which the flooding pairs carry. Three bridges are gated by hand: the two at the Truckee River outlet, since the lake is a sink in the terrain model and reads as a small drainage there, and Lake Tahoe Blvd over Angora Creek, which the terrain window reads short. Roads are not gated.",
+        "<b>Culverts.</b> Read slope and drainage area from their own delineated drainage rather than the raster, which is more exact for a crossing.",
+        "<b>Vulnerability.</b> Roads: exposure only (decision 25). Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3, from opening width and condition for culverts (decision 7) and span terms for bridges.",
+        "<b>Classes.</b> Debris flow uses Low under 1.5, Medium 1.5 to under 2, High 2 and over (decision 34). With severity Low across most of the basin, the shared 1.0 break read Medium on any slope over 10 percent; at 1.5 a Low-severity drainage reads Medium only over 25 percent, and High needs Moderate severity with a slope over 20 percent or High severity with a slope over 5 percent."],
+      foot:"Terrain from the 2 m lidar DEM; burn severity stand-in from the TRPA Fire service. Method: <code>docs/SCORING_RUBRICS.md</code> 4, decisions 7, 15, 33, 34, and 35."
     };
 
     MODES.avalanche = {
@@ -1099,7 +1109,7 @@
     async function mxCounts(name, asset){
       const field = MX[name][asset], out = {n:0, skipped:0};
       const cls = v => { if (field === "V_class") return v || null; if (v == null || isNaN(v)) return null;
-        if (+v === 0) return "Not exposed"; const c = field.startsWith("V_WF") ? wfClassOf(+v) : vClassOf(+v); return c === "None" ? "Not exposed" : c; };
+        if (+v === 0) return "Not exposed"; const c = field.startsWith("V_WF") ? wfClassOf(+v) : field.startsWith("V_DF") ? dfClassOf(+v) : vClassOf(+v); return c === "None" ? "Not exposed" : c; };
       // roads are weighted by miles (segments differ in length); culverts and bridges are counted
       const add = (v, c, w) => { const k = cls(v); if (!k) { out.skipped++; return; } const key = k + "|" + (c == null ? "none" : c); out[key] = (out[key] || 0) + w; out.n += w; };
       // columns follow the High criticality switch: quarters, or the rest and the top tenth
@@ -1244,8 +1254,8 @@
       overview:"On Overview, every asset opens colored by its class from whichever hazard scores it highest. Pick a hazard to see that hazard alone (an asset with no pair for it goes gray), or Criticality to see which roads matter most. Click a culvert to draw its drainage area; click elsewhere to clear it.",
       flood:"On Flooding, culverts open colored by their flooding vulnerability; Storm vs capacity shows whether the pipe passes the storm, and Design storm switches the culvert scores to the 25-year storm. Roads are colored by flood class. Click a culvert to draw its drainage area; its flood score is the highest flood class anywhere in that area.",
       wildfire:"On Wildfire, click a road or path to outline the 300 ft area its score came from. The two within-300-ft layers show that ground for every road.",
-      landslide:"On Landslide, roads, culverts, and bridges are colored by vulnerability; the susceptibility class behind each score is in the popup, and the Susceptibility surface layer shows the ground. Click a culvert to draw its drainage area; a culvert takes the highest class anywhere in that area.",
-      debris_flow:"On Debris flow, roads, culverts, and bridges are colored by vulnerability with the three exposure terms in the popup. Click a culvert to draw its drainage area; slope and drainage size are read from it. Burn severity is a stand-in until the contracted surface arrives.",
+      landslide:"On Landslide, roads, culverts, and bridges are colored by vulnerability; the susceptibility class behind each score is in the popup, and the Susceptibility surface layer shows the ground. Click a culvert to draw its drainage area; a culvert takes the highest class covering at least a quarter of that area.",
+      debris_flow:"On Debris flow, roads, culverts, and bridges are colored by vulnerability with the exposure terms in the popup, on the pair's own breaks (Low under 1.5, Medium 1.5 to under 2, High 2 and over). Click a culvert to draw its drainage area; slope and burn severity are read from it, and a drainage over 3 square miles sets exposure to 0. Burn severity is a stand-in until the contracted surface arrives.",
       avalanche:"On Avalanche, roads are colored by vulnerability, which here is the exposure score: steep ground uphill of the road plus a mapped zone nearby. The TRPA mapped zones are a layer you can turn on."};
 
 
