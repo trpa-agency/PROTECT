@@ -66,9 +66,9 @@
     "Medium": 1327
    },
    "V_max_pair": {
-    "DFC": 3480,
-    "LSC": 1033,
-    "FLC": 583
+    "DFC": 3054,
+    "LSC": 1165,
+    "FLC": 877
    },
    "S_source": {
     "full": 3888,
@@ -253,10 +253,10 @@
    "miles_e_ge_1_6": 303.8
   },
   "paths": {
-   "count": 215,
-   "miles": 150.5,
+   "count": 216,
+   "miles": 151.0,
    "E": {
-    "1.0": 181,
+    "1.0": 182,
     "1.6": 3,
     "1.7": 22,
     "2.0": 1,
@@ -771,11 +771,11 @@
     "Medium": 250.8
    },
    "V_max_pair": {
-    "WFR": 12501,
-    "DFR": 3099,
-    "FLR": 1356,
+    "WFR": 12449,
+    "DFR": 2859,
+    "FLR": 1577,
     "LSR": 1307,
-    "AVR": 22
+    "AVR": 93
    },
    "V_class_all": {
     "Low": 10796,
@@ -783,11 +783,11 @@
     "Medium": 3740
    },
    "V_max_all_pair": {
-    "WFR": 12501,
-    "DFR": 3099,
-    "FLR": 1356,
+    "WFR": 12449,
+    "DFR": 2859,
+    "FLR": 1577,
     "LSR": 1307,
-    "AVR": 22
+    "AVR": 93
    },
    "pair_class": {
     "FLR": {
@@ -878,8 +878,8 @@
     "by_pair": {
      "LSR": 222,
      "FLR": 207,
-     "DFR": 144,
-     "WFR": 109,
+     "DFR": 151,
+     "WFR": 102,
      "AVR": 1
     }
    }
@@ -891,9 +891,9 @@
     "Medium": 1327
    },
    "V_max_pair": {
-    "DFC": 3480,
-    "LSC": 1033,
-    "FLC": 583
+    "DFC": 3054,
+    "LSC": 1165,
+    "FLC": 877
    },
    "pair_class": {
     "FLC": {
@@ -961,14 +961,14 @@
   ],
   "v_max_exclude": [],
   "paths": {
-   "count": 217,
+   "count": 216,
    "V_class": {
-    "Low": 99,
+    "Low": 98,
     "High": 62,
     "Medium": 56
    },
    "V_max_pair": {
-    "WFAT": 121,
+    "WFAT": 120,
     "FLAT": 96
    }
   },
