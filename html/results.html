@@ -434,8 +434,8 @@
       classBreakInfos:[{minValue:-1.5, maxValue:0.0005, symbol:symOf(COL.gray, 0)}, {minValue:0.0005, maxValue:0.999, symbol:symOf(COL.ice, 1)},
         {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     // combined class from scoring (V_class): the highest per-pair class, where wildfire pairs use their own
-    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2) and debris flow pairs 1.5 and 2 (decision 34), so it
-    // can differ from the class of V_max
+    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2) and debris flow pairs 1.5 and 2 (decision 34);
+    // V_max_pair and V_max come from the pair that sets it (decision 37)
     const vClassFieldRenderer = (field, symOf) => ({type:"unique-value", field, defaultSymbol:symOf(COL.gray, 0), defaultLabel:"not scored",
       uniqueValueInfos:[{value:"Low", symbol:symOf(COL.ice, 1)}, {value:"Medium", symbol:symOf(COL.orange, 2)}, {value:"High", symbol:symOf(COL.brick, 3)}]});
     const lineW = k => [1.2, 1.8, 2.2, 2.6, 3][k];
@@ -697,7 +697,7 @@
       colorHeading:"Assets, colored by",
       colorBy:[
         {value:"vmax", label:"Highest vulnerability", default:true, fields:OV_FIELDS.vmax, renderer:ovRend(OV_FIELDS.vmax), legend:legendRows(VC_LEG, "lg-line"),
-          note:"Each asset's class from whichever hazard scores it highest. Turn on Hotspots only to narrow the map to High vulnerability on the most critical roads.", noteTip:"Vulnerability class from the highest scored pair, debris flow included since Nov. 3 (decision 35). An asset's class is the highest of its pair classes, so it can differ from the class of the highest score where wildfire's breaks apply."},
+          note:"Each asset's class from whichever hazard scores it highest. Turn on Hotspots only to narrow the map to High vulnerability on the most critical roads.", noteTip:"Vulnerability class from the highest scored pair, debris flow included since Nov. 3 (decision 35). An asset's class is the highest of its pair classes, and the highest hazard is the pair that sets it (decision 37)."},
         {value:"crit", label:"Criticality", fields:null, dark:true, renderer:Object.assign(ovRend({}), {roads:critRenderer()}), legend:legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line"),
           note:"How much each road matters to the network, from the Criticality Assessment at its default weights, cut into quarters. Criticality is scored on roads; the other assets are gray in this view.", noteTip:"Criticality percentile cut at 25, 50, and 75, the same quarters as the Criticality Assessment page. Kept separate from vulnerability; the Hotspots filter is where the two are read together."},
         {value:"FLR", label:"Flooding", fields:OV_FIELDS.FLR, renderer:ovRend(OV_FIELDS.FLR), legend:legendRows(VC_LEG, "lg-line"), note:"Flooding vulnerability. Scored for roads, paths, culverts, bridges, and transit hubs."},

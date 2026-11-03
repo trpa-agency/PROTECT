@@ -54,9 +54,11 @@ Road segments carry a 0 to 3 class (`C_class`); bridges and culverts inherit it 
 An asset in several pairs (a culvert carries FL-C, LS-C, and DF-C) needs one rating for the
 map and a way to sort the list. **TRPA proposal (decision 9):** the rating is the highest pair
 score, `V_max`, with `V_max_pair` naming the hazard; `V_class` is the highest per-pair class,
-since wildfire has its own breaks (section 1.2). Every scored pair counts: the debris-flow pairs,
-out while their severity input was a stand-in, rejoined on Nov. 3, 2026 (decision 35). The
-maximum flags an asset vulnerable to any
+since wildfire has its own breaks (section 1.2). Since decision 37 `V_max_pair` is the pair that
+sets that class (the highest class, ties broken by score) and `V_max` is that pair's score, so
+the three fields describe one pair. Every scored pair counts: the debris-flow pairs, out while
+their severity input was a stand-in, rejoined on Nov. 3, 2026 (decision 35). The maximum flags
+an asset vulnerable to any
 hazard, but it cannot tell an asset High on one hazard from one High on three, and that is the
 sort prioritization needs. **TRPA proposal (decision 30):** carry two sort fields beside it,
 the number of pairs classed High and the sum of the pair scores. The sum counts one failure at
@@ -380,6 +382,14 @@ the `Culverts` feature class beyond the profile:
     No frequency factor on top of the table (section 2.4).
 30. Cumulative sort fields beside `V_max` (section 1.4): the number of pairs classed High and
     the sum of the pair scores. Not yet in the published layer.
+37. **TRPA decision (Nov. 3, 2026): the highest hazard is the pair that sets the class.**
+    `V_max_pair` names the pair with the highest class, ties broken by score, and `V_max` is
+    that pair's score; `V_class` is unchanged. Wildfire and debris flow pairs carry their own
+    breaks (decisions 26 and 34), so the pair with the top score is not always the pair with
+    the top class: on the Nov. 3 results 426 of 5,096 culverts read "from debris flow" at a
+    Medium class while their debris flow score was Low (flooding or landslide set the
+    Medium), and 309 of 18,285 road segments likewise (257 debris flow, 52 wildfire). Amends
+    decision 9; the all-pairs fields follow the same rule.
 31. **Withdrawn (Oct. 28, 2026): the 20 m band around the FEMA zones.** Adopted Oct. 27 from
     the consultant's Oct. 26 review (10 to 30 m around the 500-year floodplain as exposure 1)
     and never run. Withdrawn with decision 32: the review of the Results page showed that the
@@ -396,7 +406,10 @@ the `Culverts` feature class beyond the profile:
     crossing (an NHD flowline) as exposure 1. Previewed on the Oct. 20 tables: High road miles
     across all hazards drop from 41 to 26 percent and Medium rises from 9 to 25 percent; flood
     alone leaves 23 High miles. Culverts and bridges take the new value too (E_FLC is the
-    highest class in the drainage area); takes effect at the next flood run.
+    highest class in the drainage area). Run Nov. 3, 2026: High flood road miles 287 to 43
+    (2,002 stream-crossing segments to Medium) and FL-C High 753 to 439 of 5,096 culverts;
+    High road miles across all hazards 436 to 297 of 984 (44 to 30 percent), with landslide
+    (decision 36) and debris flow (decision 35) landing in the same run.
 
 ---
 
@@ -872,6 +885,9 @@ highest severity class covering at least 25 percent of the 300 ft buffer on both
     2.0 to 2.5 on most culverts (a small pipe, condition defaulted to fair) that is V 2.10 to
     2.25, High. On the Nov. 3 run 1,853 of 5,096 public culverts read class 3, 1,808 of them
     were High, and 1,152 were High on landslide alone; 221 of 984 road miles were High on
-    landslide. Effect to be recorded from the rerun.
+    landslide. Effect on the Nov. 3 rerun (public): culverts at class 3 1,853 to 1,370 and
+    LS-C High 1,808 to 1,340; road segments at class 3 1,572 to 1,261 and High landslide
+    miles 221 to 160. Prone ground is contiguous, so a quarter of a drainage is often class 3
+    and the rule trims a quarter of the Highs rather than half.
 
 Consultant review of the results (Oct. 26, 2026): the landslide approach for roads is consistent with the original recommendation. If the state DOTs can supply embankment condition or the locations of stabilization measures, either could serve as an LS-R sensitivity indicator (not required); it would be the first road sensitivity term and would revisit decision 25 for that pair only.

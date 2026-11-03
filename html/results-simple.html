@@ -321,8 +321,8 @@
       classBreakInfos:[{minValue:-1.5, maxValue:-0.5, symbol:symOf(COL.gray, 0)}, {minValue:-0.5, maxValue:0.999, symbol:symOf(COL.ice, 1)},
         {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     // combined class from scoring (V_class): the highest per-pair class, where wildfire pairs use their own
-    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2) and debris flow pairs 1.5 and 2 (decision 34), so it
-    // can differ from the class of V_max
+    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2) and debris flow pairs 1.5 and 2 (decision 34);
+    // V_max_pair and V_max come from the pair that sets it (decision 37)
     const vClassFieldRenderer = (field, symOf) => ({type:"unique-value", field, defaultSymbol:symOf(COL.gray, 0), defaultLabel:"not scored",
       uniqueValueInfos:[{value:"Low", symbol:symOf(COL.ice, 1)}, {value:"Medium", symbol:symOf(COL.orange, 2)}, {value:"High", symbol:symOf(COL.brick, 3)}]});
     const lineW = k => [1.2, 1.8, 2.2, 2.6, 3][k];

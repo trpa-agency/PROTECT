@@ -131,17 +131,18 @@ def across_pairs(pairs: str, all_pairs: str, used_class: str, used_max: str, tab
             f"Highest vulnerability class across {pair_words(pairs)}. {classes}"
             + (" Debris flow is left out; V_class_all includes it." if df else ""),
             values="Low, Medium, High", used=used_class, src=src("V_class"), how=how, length=10),
-        Fld("V_max", "DOUBLE", "Highest vulnerability score",
-            f"Highest vulnerability score across {pair_words(pairs)}." + (" Debris flow is left out." if df else ""),
+        Fld("V_max", "DOUBLE", "Score of the pair that sets the class",
+            f"Score of the pair that sets V_class across {pair_words(pairs)}: the highest class, ties broken by score "
+            f"(decision 37, Nov. 3, 2026; the highest score of any pair before)." + (" Debris flow is left out." if df else ""),
             units="score, 0 to 3", used=used_max, src=src("V_max"), how=how),
-        Fld("V_max_pair", "TEXT", "Pair with the highest score", "Pair that V_max comes from.", values=pairs,
+        Fld("V_max_pair", "TEXT", "Pair that sets the class", "Pair that V_class and V_max come from (decision 37).", values=pairs,
             used=used_max, src=src("V_max_pair"), how=how, length=10),
         Fld("V_class_all", "TEXT", "Vulnerability class, all pairs",
             f"Highest vulnerability class across all pairs, debris flow included ({pair_words(all_pairs)})." if df
             else f"Same as V_class, {same}.", values="Low, Medium, High",
             used="publish_results.py (summary.json counts)", src=src("V_class_all"), how=how, length=10),
-        Fld("V_max_all", "DOUBLE", "Highest vulnerability score, all pairs",
-            f"Highest vulnerability score across all pairs, debris flow included ({pair_words(all_pairs)})." if df
+        Fld("V_max_all", "DOUBLE", "Score of the class-setting pair, all pairs",
+            f"Score of the pair that sets V_class_all across all pairs, debris flow included ({pair_words(all_pairs)})." if df
             else f"Same as V_max, {same}.", units="score, 0 to 3",
             used="results.html (Overview popups)", src=src("V_max_all"), how=how),
         Fld("V_max_all_pair", "TEXT", "Pair with the highest score, all pairs",
