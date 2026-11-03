@@ -45,12 +45,12 @@ ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e
 V_ROAD_COLS = ["src_objectid", "name", "class", "V_FLR_hist", "V_LSR_hist", "V_WFR_hist", "V_DFR_hist", "V_AVR_hist",
                "V_max", "V_max_pair", "V_class", "V_max_all", "V_max_all_pair", "V_class_all", "C_class", "criticality_score",
                "criticality_pctl", "seg_len_m"]
-OD_DESTS = ("evacuation", "law_enforcement", "medical_facilities", "emergency_shelters")
+OD_DESTS = ("evacuation", "law_enforcement", "medical_facilities", "emergency_shelters", "schools", "fresh_food")
 OD_COLS = (["src_objectid", "segment_id", "in_flood_zone", "high_sev_fire", "landslide_mean"]
            + [f"{m}_{d}" for m in ("traffic", "prioritarian") for d in OD_DESTS])
 CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")
-# wildfire pairs (scoring.v_breaks_wildfire): Low under 2.0, Medium 2.0 to 2.5, High over 2.5
-WF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 2 else "Medium" if v <= 2.5 else "High")
+# wildfire pairs (scoring.v_breaks_wildfire): Low under 1.5, Medium 1.5 to 2.0, High over 2.0
+WF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1.5 else "Medium" if v <= 2 else "High")
 WF_ROAD_COLS = [c.format(p="WFR") for c in ROAD_COLS]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
          "q_cap_crossing_cfs": 1, "load_ratio_25": 2, "load_ratio_100": 2, "max_span_m": 1, "span_in": 1, "d_eq_in": 1}
@@ -235,8 +235,8 @@ def _json_rows(df: pd.DataFrame, path: Path, log) -> None:
 
 
 def write_od_services(cfg: dict, out_dir: Path, log) -> None:
-    """The OD Services Index page's table (roads_od.json): routed trips to the four destination types and the
-    hazard filter fields from the clean street layer, joined in the browser to roads_geometry.geojson on
+    """The OD Services Index page's table (roads_od.json): routed trips to the six destination types and the
+    hazard flags from the clean street layer, joined in the browser to roads_geometry.geojson on
     src_objectid. The same layer feeds the Criticality Index, so the two pages show one routing run."""
     import json
     key = cfg["assets"]["streets_key"]

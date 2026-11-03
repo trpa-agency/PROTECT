@@ -88,7 +88,7 @@ class Copy:
 # shared wording
 
 V_BREAKS = "Low under 1, Medium 1 to under 2, and High 2 or more"
-WF_BREAKS = "Low under 2, Medium 2 to 2.5, and High over 2.5 (decision 26)"
+WF_BREAKS = "Low under 1.5, Medium 1.5 to 2, and High over 2 (decision 26)"
 DF_LEFT_OUT = ("Not counted in V_max or V_class. With fire severity standing in for soil burn severity, and nearly every "
                "asset scoring 3 on drainage size, debris flow would otherwise set V_max for most assets.")
 OD_ROUTE = ("Averaged over 100 stochastic assignment runs on travel time by road class "
