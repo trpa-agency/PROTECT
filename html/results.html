@@ -164,6 +164,7 @@
     .cb button.on{background:var(--trpa-navy);border-color:var(--trpa-navy);color:#fff;}
     .cb button:disabled{opacity:.45;cursor:not-allowed;border-color:var(--gray-border);}
     .layer-panel h3 .i{text-transform:none;letter-spacing:normal;}
+    .layer-panel .sub-h{font-size:.74rem;font-weight:600;color:var(--gray-text);margin:.7rem 0 .3rem;}
     #map-view{flex:1;min-width:0;height:100%;}
     .charts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
     .chart{background:#fff;border:1px solid var(--gray-border);border-radius:8px;padding:.6rem .6rem .2rem;min-height:340px;min-width:0;}
@@ -266,7 +267,7 @@
         <span class="draft" id="draft-chip" tabindex="0" data-tip="Draft results for workshop review.">Draft</span>
         <button type="button" class="band-btn" id="help-btn" aria-haspopup="dialog"><span class="ic" aria-hidden="true">i</span><span class="lbl">How to use</span><span class="sr">How to use this page</span></button>
         <a class="band-btn" href="results-guide.html" title="Two-page guide: how the numbers were made and what each field means"><span class="lbl">Guide</span><span class="sr">Two-page printable guide</span></a>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="criticality-qa.html">Criticality QA</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -482,6 +483,26 @@
       return [id, f === "V_class" ? vClassFieldRenderer(f, sym) : (f.startsWith("V_WF") ? wfRenderer : vClassRenderer)(f, sym)]; }));
     // criticality quarter 0 to 3 on roads, one blue hue
     const critRenderer = () => breaksRenderer("C_class", [{minValue:-0.5, maxValue:0.5, symbol:line(CRIT_RAMP[0], LINE_W[0])}, {minValue:0.5, maxValue:1.5, symbol:line(CRIT_RAMP[1], LINE_W[1])}, {minValue:1.5, maxValue:2.5, symbol:line(CRIT_RAMP[2], LINE_W[2])}, {minValue:2.5, maxValue:3.5, symbol:line(CRIT_RAMP[3], LINE_W[3])}]);
+    // What "high criticality" means on the Overview (Nov. 2, 2026): the top quarter (C_class 3, the
+    // default) or the top tenth (C_top10, percentile 90 and up). ?crit=top10 opens the page on the top
+    // tenth and the switch keeps the URL in step, so a link shares either reading.
+    const TOP_PCTL = 90;
+    let CRITCUT = new URLSearchParams(location.search).get("crit") === "top10" ? "top10" : "quarter";
+    const CUT = {quarter:{label:"Top quarter", short:"top-quarter", col:"quarter 3"}, top10:{label:"Top tenth", short:"top-tenth", col:"top tenth"}};
+    const isTopCrit = r => CRITCUT === "top10" ? r.C_top10 === 1 : r.C_class === 3;
+    const topCritSql = () => CRITCUT === "top10" ? "C_top10 = 1" : "C_class = 3";
+    // matrix and chart columns: quarters 0 to 3, or the rest and the top tenth (0, 1)
+    const critCols = () => CRITCUT === "top10" ? [0, 1] : [0, 1, 2, 3];
+    const critColOf = pctl => pctl == null ? null : CRITCUT === "top10" ? +(pctl >= TOP_PCTL) : pctl < 25 ? 0 : pctl < 50 ? 1 : pctl < 75 ? 2 : 3;
+    const critColName = c => CRITCUT === "top10" ? (c === 1 ? "Top tenth" : "The rest") : {0:"Least critical", 1:"Less critical", 2:"More critical", 3:"Most critical"}[c];
+    const critColSub = c => CRITCUT === "top10" ? (c === 1 ? "90th percentile and up" : "below the 90th") : "quarter " + c;
+    // the Overview's Criticality view: quarters, or the top tenth bright against the rest
+    const ovCritRenderer = () => CRITCUT === "top10"
+      ? breaksRenderer("criticality_pctl", [{minValue:-1, maxValue:TOP_PCTL - 1e-6, symbol:line(CRIT_RAMP[0], LINE_W[0])}, {minValue:TOP_PCTL - 1e-6, maxValue:101, symbol:line(CRIT_RAMP[3], LINE_W[3])}])
+      : critRenderer();
+    const ovCritLegend = () => CRITCUT === "top10"
+      ? legendRows([[CRIT_RAMP[3], "Top tenth (90th percentile and up)"], [CRIT_RAMP[0], "The rest"]], "lg-line")
+      : legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line");
     const CLASS_NOTE = "Classes: Low under 1, Medium 1 to under 2, High 2 and over. Wildfire: Low under 1.5, Medium 1.5 to 2, High over 2.";
     const CLASS_NOTE_SHORT = "Classes: Low under 1, Medium 1 to under 2, High 2 and over.";
     const SYMBOL_NOTE = "Roads are solid lines, paths dashed lines, culverts dots, bridges squares, transit hubs small squares.";
@@ -595,7 +616,8 @@
       const reasonFn = "function reason(h) {\n" + codes.map(h => `if (h == '${h}') { ${arcReason(asset, h, hz)} }`).join("\n") + "\nreturn ''; }\n";
       const crit = `var q = fv('C_class'); var cr = [${CRIT_RAMP.map(c => "'" + c + "'").join(", ")}];
         if (!IsEmpty(q)) { var bx = ''; for (var k = 0; k < 4; k++) { bx += '<span style="display:inline-block;width:12px;height:8px;margin-right:2px;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(4,35,51,.18);background-color:' + IIf(k <= q, cr[k], '#dfe3e8') + ';"></span>'; }
-          html += '<div style="border-top:1px solid #e6e9ee;margin-top:9px;padding-top:7px;">Criticality&nbsp; ' + bx + ' ' + Decode(q, 3, 'top quarter, most critical', 2, 'upper middle quarter', 1, 'lower middle quarter', 'lowest quarter') + '</div>'; }`;
+          var t10 = fv('criticality_pctl'); var tt = IIf(!IsEmpty(t10) && t10 >= ${TOP_PCTL}, ', top tenth', '');
+          html += '<div style="border-top:1px solid #e6e9ee;margin-top:9px;padding-top:7px;">Criticality&nbsp; ' + bx + ' ' + Decode(q, 3, 'top quarter, most critical', 2, 'upper middle quarter', 1, 'lower middle quarter', 'lowest quarter') + tt + '</div>'; }`;
       let body;
       if (!hz) {
         const rows = "[" + pairs.map(([l, f, h]) => `{l:'${l}', v:fv('${f}'), wf:${h === "WF"}, s:${h === "DF"}}`).join(", ") + "]";
@@ -641,14 +663,14 @@
         const rows = id === "roads" ? await roadRows(null) : await rowsOf(BASE + OV_SRC[id]);
         const byMiles = id === "roads" || id === "paths"; const st = {byMiles, total:0, High:0, Medium:0, Low:0, "Not exposed":0, n:0, hotMiles:0, hotN:0};
         rows.forEach(r => { const c = classOfField(f, r[f]); if (!c) return; const w = byMiles ? (r.miles != null ? r.miles : (r.seg_len_m || 0) / MI) : 1;
-          st.total += w; st[c] = (st[c] || 0) + w; st.n += 1; if (c === "High" && id === "roads" && r.C_class === 3) { st.hotMiles += w; st.hotN += 1; } });
+          st.total += w; st[c] = (st[c] || 0) + w; st.n += 1; if (c === "High" && id === "roads" && isTopCrit(r)) { st.hotMiles += w; st.hotN += 1; } });
         out[id] = st; }
       return out;
     }
     const kpiTiles = tiles => tiles.map(([v, l, c]) => `<div class="kpi" style="border-top-color:${c || COL.navy}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
     function paintOvKpis(st, o){ const r = st.roads || {total:0}; const pct = r.total ? fmt(100 * (r.High || 0) / r.total) + "%" : "-"; const lbl = o.value === "vmax" ? "" : ", " + o.label.toLowerCase();
       const tiles = [[pct, "of road miles High" + lbl], [fmt(r.High), "road miles High" + lbl]];
-      if (o.value === "vmax") tiles.push([fmt(r.hotN), "High vulnerability on top-criticality roads"], [fmt(r.hotMiles), "miles of those"]);
+      if (o.value === "vmax") tiles.push([fmt(r.hotN), `High vulnerability on ${CUT[CRITCUT].short} criticality roads`], [fmt(r.hotMiles), "miles of those"]);
       [["culverts", "culverts High"], ["bridges", "bridges High"], ["paths", "path miles High"], ["hubs", "transit hubs High"]].forEach(([id, l]) => { const s = st[id]; tiles.push([s ? fmt(s.High, id === "paths" ? 1 : 0) : "-", s ? l + lbl : l.replace(" High", "") + ": no pair" + lbl]); });
       const nl = ctx && ctx.L.notes; if (nl && nl.noteCount != null) tiles.push([fmt(nl.noteCount), "workshop note" + (nl.noteCount === 1 ? "" : "s") + " sent so far", COL.purple]);
       $("kpis").innerHTML = kpiTiles(tiles); }
@@ -677,20 +699,22 @@
       bannerTip:"Vulnerability = (Exposure x wE) + (Sensitivity x wS) per hazard pair, 0 to 3; roads carry no sensitivity, so a road pair is its exposure (decision 25). The asset carries the highest pair (V_max). Criticality is component 1, carried separately and never multiplied in; the quarter here is provisional from the street layer's criticality percentile.",
       lead:"Roads, culverts, bridges, paths, and transit hubs by vulnerability across all scored hazards. Pick a hazard to see it alone, or Criticality to see which roads matter most to the network.",
       kpiBorder:COL.navy,
-      kpis(s){ const v = s.vulnerability; if (!v) return null; const r = v.roads || {}, h = r.hotspots || {}, mb = r.miles_by_class || {}, tot = r.miles || (Number(mb.High || 0) + Number(mb.Medium || 0) + Number(mb.Low || 0));
+      kpis(s){ const v = s.vulnerability; if (!v) return null; const r = v.roads || {}, h = (CRITCUT === "top10" ? r.hotspots_top10 : r.hotspots) || {}, mb = r.miles_by_class || {}, tot = r.miles || (Number(mb.High || 0) + Number(mb.Medium || 0) + Number(mb.Low || 0));
         return [[tot ? fmt(100 * (mb.High || 0) / tot) + "%" : "-", "of road miles High"], [fmt(mb.High), "road miles High"],
-          [fmt(h.segments), "High vulnerability on top-criticality roads"], [fmt(h.miles), "miles of those"],
+          [fmt(h.segments), `High vulnerability on ${CUT[CRITCUT].short} criticality roads`], [fmt(h.miles), "miles of those"],
           [fmt(((v.culverts||{}).V_class||{}).High), "culverts High"], [fmt(((v.bridges||{}).V_class||{}).High), "bridges High"],
           [fmt(((v.paths||{}).V_class||{}).High), "paths High"], [fmt(((v.transit||{}).V_class||{}).High), "transit hubs High"]]; },
-      note(s){ return "Generated " + (s.generated || "") + ". " + CLASS_NOTE + " Road and path figures are by miles. Criticality quarter from percentile breaks 25, 50, 75 (provisional)."; },
+      note(s){ return "Generated " + (s.generated || "") + ". " + CLASS_NOTE + " Road and path figures are by miles. High criticality here is the "
+        + (CRITCUT === "top10" ? `top tenth (criticality percentile ${TOP_PCTL} and up)` : "top quarter (percentile breaks 25, 50, 75)") + "; switch it under Filter (provisional)."; },
       emptyText:"Vulnerability results have not been published yet. The hazard tabs show exposure.",
       classNote:CLASS_NOTE + " " + SYMBOL_NOTE,
       colorHeading:"Assets, colored by",
       colorBy:[
         {value:"vmax", label:"Highest vulnerability", default:true, fields:OV_FIELDS.vmax, renderer:ovRend(OV_FIELDS.vmax), legend:legendRows(VC_LEG, "lg-line"),
           note:"Each asset's class from whichever hazard scores it highest. Turn on Hotspots only to narrow the map to High vulnerability on the most critical roads.", noteTip:"Vulnerability class from the highest scored pair, the debris-flow stand-in pairs left out. An asset's class is the highest of its pair classes, so it can differ from the class of the highest score where wildfire's breaks apply."},
-        {value:"crit", label:"Criticality", fields:null, dark:true, renderer:Object.assign(ovRend({}), {roads:critRenderer()}), legend:legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line"),
-          note:"How much each road matters to the network, from the Criticality Assessment at its default weights, cut into quarters. Criticality is scored on roads; the other assets are gray in this view.", noteTip:"Criticality percentile cut at 25, 50, and 75, the same quarters as the Criticality Assessment page. Kept separate from vulnerability; the Hotspots filter is where the two are read together."},
+        // renderer and legend are functions: they follow the High criticality switch
+        {value:"crit", label:"Criticality", fields:null, dark:true, renderer:() => Object.assign(ovRend({}), {roads:ovCritRenderer()}), legend:ovCritLegend,
+          note:"How much each road matters to the network, from the Criticality Assessment at its default weights: in quarters, or the top tenth against the rest (switch under Filter). Criticality is scored on roads; the other assets are gray in this view.", noteTip:"Criticality percentile cut at 25, 50, and 75 (the Criticality Assessment page's quarters), or at 90 for the top tenth. Kept separate from vulnerability; the Hotspots filter is where the two are read together."},
         {value:"FLR", label:"Flooding", fields:OV_FIELDS.FLR, renderer:ovRend(OV_FIELDS.FLR), legend:legendRows(VC_LEG, "lg-line"), note:"Flooding vulnerability. Scored for roads, paths, culverts, bridges, and transit hubs."},
         {value:"WFR", label:"Wildfire", fields:OV_FIELDS.WFR, renderer:ovRend(OV_FIELDS.WFR), legend:legendRows(WF_LEG.concat([[COL.gray, "not scored"]]), "lg-line"), note:"Wildfire vulnerability. Scored for roads, paths, and transit hubs; culverts and bridges are gray (no pair)."},
         {value:"LSR", label:"Landslide", fields:OV_FIELDS.LSR, renderer:ovRend(OV_FIELDS.LSR), legend:legendRows(VC_LEG, "lg-line"), note:"Landslide vulnerability. Scored for roads, culverts, and bridges; paths and transit hubs are gray (no pair)."},
@@ -720,27 +744,29 @@
             popupTemplate:vPopup("Transit hub {tc_id}", [["V_max", "Vulnerability (highest hazard)", {places:2}], ["V_max_pair", "Highest hazard", "pair"], ["V_class", "Class"], ["V_FLTC_hist", "Flooding", "v"], ["V_WFTC_hist", "Wildfire", "v"]])})},
         {id:"notes", label:"Workshop notes", checked:true, tip:"Notes partners have sent from the feedback page, drawn as purple speech bubbles numbered by concern (1 greatest) so they never read as an asset. Open any asset's popup and choose Add a workshop note to add one.", legend:`<div class="lg-row">${[1, 2, 3].map(c => bubbleImg(c)).join(" ")} the number is the concern, 1 greatest</div>`, make:() => notesLayer()}];
       },
-      filters:[{id:"hot", label:"Hotspots only", tip:"High vulnerability on top-quarter criticality (roads), or High vulnerability (other assets).",
-        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "V_class = 'High' AND C_class = 3" : null; ["culverts","bridges","paths","hubs"].forEach(k => { if (L[k]) L[k].definitionExpression = on ? "V_class = 'High'" : null; }); }}],
+      critCut:true,   // shows the High criticality switch (top quarter or top tenth) under Filter
+      filters:[{id:"hot", label:"Hotspots only", tip:"High vulnerability on high-criticality roads (the top quarter or top tenth, per the switch below), or High vulnerability (other assets).",
+        apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "V_class = 'High' AND " + topCritSql() : null; ["culverts","bridges","paths","hubs"].forEach(k => { if (L[k]) L[k].definitionExpression = on ? "V_class = 'High'" : null; }); }}],
       charts:[
         {title:"Vulnerability class by asset type", sub:"Share of each asset type in each class for the view selected above the map. Roads and paths by miles; culverts, bridges, and hubs by count.", async draw(div, s){
           const on = document.querySelector("#color-by button.on"); const o = MODES.overview.colorBy.find(x => x.value === (on ? on.dataset.v : "vmax")) || {}; assetClassChart(div, await ovStats(o.fields || OV_FIELDS.vmax)); }},
-        {title:"Road miles by vulnerability, within each criticality quarter", sub:"The hotspot reading: High vulnerability in the top criticality quarter (3)", async draw(div, s){
-          const m = {}; (await roadRows(null)).forEach(r => { if (!r.V_class || r.C_class == null) return; const k = r.V_class + "|" + r.C_class;
+        {title:"Road miles by vulnerability, by criticality", sub:"The hotspot reading: High vulnerability on the most critical roads (top quarter or top tenth, per the switch under Filter)", async draw(div, s){
+          const m = {}; (await roadRows(null)).forEach(r => { const cc = critColOf(r.criticality_pctl); if (!r.V_class || cc == null) return; const k = r.V_class + "|" + cc;
             m[k] = m[k] || {miles:0, segments:0}; m[k].miles += r.miles; m[k].segments += 1; });
 
-          const cs = ["0","1","2","3"], traces = ["Low","Medium","High"].map(vc => ({type:"bar", name:vc, x:cs.map(c => "quarter " + c), marker:{color:VC_COL[vc]},
+          const cs = critCols().map(String), traces = ["Low","Medium","High"].map(vc => ({type:"bar", name:vc, x:cs.map(c => CRITCUT === "top10" ? critColName(+c).toLowerCase() : "quarter " + c), marker:{color:VC_COL[vc]},
             y:cs.map(c => (m[vc + "|" + c]||{}).miles || 0), customdata:cs.map(c => (m[vc + "|" + c]||{}).segments || 0), hovertemplate:"%{y:.1f} miles (%{customdata} segments)<extra>" + vc + "</extra>"}));
           Plotly.newPlot(div, traces, Object.assign({}, LAYOUT, {barmode:"stack", margin:{l:50,r:10,t:10,b:50}, legend:{orientation:"h", y:1.14}, yaxis:{title:"road miles", gridcolor:"#eef0f3"}}), {displayModeBar:false, responsive:true}); }}],
-      table:{title:"Road table", lead:"Every road segment, highest vulnerability first, with its criticality quarter. Turn on Hotspots only above the map to narrow this to High vulnerability on top-quarter criticality.", exportName:"PROTECT_roads.csv",
+      table:{title:"Road table", lead:"Every road segment, highest vulnerability first, with its criticality quarter and whether it is in the top tenth. Turn on Hotspots only above the map to narrow this to High vulnerability on high-criticality roads.", exportName:"PROTECT_roads.csv",
         async rows(){ return roadRows(null); },
-        filterRows:(rows, on) => on ? rows.filter(r => r.V_class === "High" && r.C_class === 3) : rows, defaultFilter:false,
+        filterRows:(rows, on) => on ? rows.filter(r => r.V_class === "High" && isTopCrit(r)) : rows, defaultFilter:false,
         cols:[{field:"name", headerName:"Road", minWidth:200, flex:1, filter:"agTextColumnFilter", valueFormatter:p=>p.value||"(unnamed)"}, {field:"class", headerName:"Type", width:110},
           {field:"V_max", headerName:"Vulnerability", width:120, type:"numericColumn", sort:"desc", sortIndex:0, valueFormatter:p=>fmt(p.value,2), cellStyle:p=>{const c=(p.data||{}).V_class; return c?{background:VC_COL[c], color:c==="Low"?"#003B71":"#fff", fontWeight:600}:{};}},
           {field:"V_max_pair", headerName:"Highest hazard", width:115, valueFormatter:p=>PAIR_NAME[p.value]||p.value||"-"}, {field:"V_FLR_hist", headerName:"Flood", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
           {field:"V_WFR_hist", headerName:"Wildfire", width:90, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"V_LSR_hist", headerName:"Landslide", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
           {field:"V_DFR_hist", headerName:"Debris flow", width:105, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"V_AVR_hist", headerName:"Avalanche", width:95, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)},
-          CRIT_COL, {field:"criticality_pctl", headerName:"Crit. percentile", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
+          CRIT_COL, {field:"C_top10", headerName:"Top tenth", headerTooltip:"1 = criticality percentile 90 and up", width:100, type:"numericColumn"},
+          {field:"criticality_pctl", headerName:"Crit. percentile", width:120, type:"numericColumn", valueFormatter:p=>fmt(p.value,0)},
           {field:"miles", headerName:"Miles", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"src_objectid", headerName:"Segment", width:95}]},
       notes:["<b>Score.</b> For each hazard pair, exposure times its weight plus sensitivity times its weight, each 0 to 3. The asset carries the highest pair; the popup names the hazard that set it and gives every hazard's score with its class.",
         "<b>Which assets each hazard scores.</b> Flooding: roads, paths, culverts, bridges, and transit hubs. Wildfire: roads, paths, and transit hubs. Landslide and debris flow: roads, culverts, and bridges. Avalanche: roads. An asset is gray when the selected hazard has no pair for it.",
@@ -1076,10 +1102,11 @@
         if (+v === 0) return "Not exposed"; const c = field.startsWith("V_WF") ? wfClassOf(+v) : vClassOf(+v); return c === "None" ? "Not exposed" : c; };
       // roads are weighted by miles (segments differ in length); culverts and bridges are counted
       const add = (v, c, w) => { const k = cls(v); if (!k) { out.skipped++; return; } const key = k + "|" + (c == null ? "none" : c); out[key] = (out[key] || 0) + w; out.n += w; };
-      if (asset === "roads") { (await roadRows(name === "overview" ? null : name)).forEach(r => add(r[field], r.C_class, r.miles || 0)); return out; }
+      // columns follow the High criticality switch: quarters, or the rest and the top tenth
+      if (asset === "roads") { (await roadRows(name === "overview" ? null : name)).forEach(r => add(r[field], critColOf(r.criticality_pctl), r.miles || 0)); return out; }
       const rows = await rowsOf(BASE + MX_SRC[asset]);
       let crit = {}; try { crit = await scoreTable("roads_criticality"); } catch (e) {}
-      rows.forEach(r => { const c = crit[String(r.parent_segment_id)]; add(r[field], c ? critClass(c.criticality_pctl) : null, 1); });
+      rows.forEach(r => { const c = crit[String(r.parent_segment_id)]; add(r[field], c ? critColOf(c.criticality_pctl) : null, 1); });
       return out;
     }
     async function renderMatrix(name){
@@ -1089,17 +1116,17 @@
       $("mx").innerHTML = ""; $("mx-note").textContent = "Loading the counts...";
       let m; try { m = await mxCounts(name, asset); } catch (e) { if (current === name) $("mx-note").textContent = "Counts are not available for this asset type yet."; return; }
       if (current !== name || sel.value !== asset) return;
-      const cols = [0, 1, 2, 3].concat(MX_ROWS.some(([r]) => m[r + "|none"]) ? ["none"] : []);
+      const cols = critCols().concat(MX_ROWS.some(([r]) => m[r + "|none"]) ? ["none"] : []);
       const rows = MX_ROWS.filter(([r]) => r !== "Not exposed" || cols.some(c => m[r + "|" + c]));
       const cell = (r, c) => { const n = m[r + "|" + c] || 0, pct = m.n ? n / m.n * 100 : 0;
         return `<td style="background:rgba(0,114,206,${(Math.min(pct, 40) / 40 * 0.35).toFixed(3)})">${asset === "roads" ? fmt(n) : n.toLocaleString()}<div class="mx-pct">${pct.toFixed(1)}%</div></td>`; };
-      // columns read as criticality in words, least to most critical, with the quarter number small beneath
-      const MX_COL = {0:"Least critical", 1:"Less critical", 2:"More critical", 3:"Most critical"};
+      // columns read as criticality in words, least to most critical, with the quarter (or top-tenth cut) small beneath
       $("mx").innerHTML = `<table class="matrix"><thead><tr><th rowspan="2">Vulnerability</th><th colspan="${cols.length}" class="mx-span">How critical the road is to the network &rarr;</th></tr>`
-        + `<tr>${cols.map(c => c === "none" ? `<th>No matching road</th>` : `<th>${MX_COL[c]}<div class="mx-q">quarter ${c}</div></th>`).join("")}</tr></thead><tbody>`
+        + `<tr>${cols.map(c => c === "none" ? `<th>No matching road</th>` : `<th>${critColName(c)}<div class="mx-q">${critColSub(c)}</div></th>`).join("")}</tr></thead><tbody>`
         + rows.map(([r, col]) => `<tr><th class="rh"><i style="background:${col}"></i>${r}</th>${cols.map(c => cell(r, c)).join("")}</tr>`).join("") + "</tbody></table>";
       const unit = asset === "roads" ? "road miles" : MX_LABEL[asset].toLowerCase();
-      $("mx-note").textContent = `${fmt(m.n)} ${unit}; ${asset === "roads" ? "miles" : "count"} and percent of the total in each cell. Roads are split into four equal quarters by how critical they are to the network`
+      $("mx-note").textContent = `${fmt(m.n)} ${unit}; ${asset === "roads" ? "miles" : "count"} and percent of the total in each cell. `
+        + (CRITCUT === "top10" ? `Roads are split into the most critical tenth (percentile ${TOP_PCTL} and up) and the rest` : "Roads are split into four equal quarters by how critical they are to the network")
         + (asset !== "roads" ? `; ${unit} take the criticality of the road they carry` : "")
         + (cols.includes("none") ? "; no quarter means no matching road segment" : "")
         + (rows.some(([r]) => r === "Not exposed") ? "; not exposed means a score of 0" : "")
@@ -1129,6 +1156,8 @@
           const c = crit[String(f.properties.src_objectid)];
           if (c && c.criticality_pctl != null) { p.criticality_score = c.criticality_score; p.criticality_pctl = c.criticality_pctl;
             p.C_class = c.criticality_pctl < 25 ? 0 : c.criticality_pctl < 50 ? 1 : c.criticality_pctl < 75 ? 2 : 3; }
+          // the top tenth, from the same percentile (equals the published C_top10)
+          if (p.criticality_pctl != null) p.C_top10 = +(p.criticality_pctl >= TOP_PCTL);
           p.miles = (p.seg_len_m || 0) / MI; return p; });
       })();
       return cache[key];
@@ -1337,10 +1366,11 @@
       // one view only: the heading names it and there are no buttons to press
       const heading = cb.length === 1 ? (mode.colorHeading || "Colored by") + " " + cb[0].label.toLowerCase() : (mode.colorHeading || "Colored by");
       $("panel-color").innerHTML = cb.length ? `<h3>${esc(heading)}</h3><div class="cb" id="color-by"${cb.length === 1 ? ' hidden' : ""}>${cb.map((o, i) => `<button type="button" data-v="${o.value}"${i === sel ? ' class="on"' : ""}>${esc(o.label)}</button>`).join("")}</div><div id="legend"></div>` : "";
-      const applyColor = o => { setBase(!!o.dark); Object.entries(o.renderer || {}).forEach(([id, r]) => { if (ctx.L[id]) ctx.L[id].renderer = r; });
+      // renderer and legend may be functions (the Criticality view follows the High criticality switch)
+      const applyColor = o => { setBase(!!o.dark); Object.entries((typeof o.renderer === "function" ? o.renderer() : o.renderer) || {}).forEach(([id, r]) => { if (ctx.L[id]) ctx.L[id].renderer = r; });
         if (o.field) Object.entries(o.field).forEach(([id, f]) => { if (!ctx.L[id]) return; ctx.L[id].renderer = (f === "C_class") ? critRenderer() : vClassRenderer(f, (c,k) => line(c, LINE_W[k], id === "paths")); });
         thinPaths(ctx.L.paths);
-        $("legend").innerHTML = (o.legend || "") + (o.note ? `<p class="note">${esc(o.note)}${o.noteTip ? tip(o.noteTip) : ""}</p>` : "") + (mode.classNote ? `<p class="note">${esc(mode.classNote)}</p>` : "");
+        $("legend").innerHTML = ((typeof o.legend === "function" ? o.legend() : o.legend) || "") + (o.note ? `<p class="note">${esc(o.note)}${o.noteTip ? tip(o.noteTip) : ""}</p>` : "") + (mode.classNote ? `<p class="note">${esc(mode.classNote)}</p>` : "");
         if (mode.onColor) mode.onColor(o);
         // roads-only views hide the other assets (their markers would bury the roads) and restore them after
         Object.entries(ctx.L).forEach(([id, l]) => { if (id === "roads" || id === "notes" || !l) return; const tg = $("tg-" + id);
@@ -1371,6 +1401,26 @@
         mode.charts[1].draw("ch-b", s).catch(e => console.warn("chart b", e));
         if (gridApi) gridApi.setGridOption("columnDefs", mode.table.cols);
       }));
+    }
+
+    // High criticality switch (Overview): repaint everything that reads it in place, and keep the
+    // choice in the URL (?crit=top10) so the link shares the version on screen
+    function setCritCut(v, mode, s){
+      if (v === CRITCUT || !CUT[v]) return;
+      CRITCUT = v;
+      const u = new URL(location.href);
+      if (v === "top10") u.searchParams.set("crit", "top10"); else u.searchParams.delete("crit");
+      history.replaceState(null, "", u);
+      $("crit-cut").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+      const on = document.querySelector("#color-by button.on");
+      paintKpis(mode, s); paintColor(mode, on ? on.dataset.v : null);
+      const hot = (mode.filters || []).find(f => f.id === "hot"), sw = hot && $("fl-hot"), filtered = !!(sw && sw.checked);
+      if (filtered) hot.apply(true, ctx.L);
+      if (gridApi && mode.table.filterRows) mode.table.rows().then(rows => gridApi.setGridOption("rowData", mode.table.filterRows(rows, filtered)));
+      ["ch-a", "ch-b"].forEach(id => Plotly.purge(id));
+      mode.charts[0].draw("ch-a", s).catch(e => console.warn("chart a", e));
+      mode.charts[1].draw("ch-b", s).catch(e => console.warn("chart b", e));
+      renderMatrix(current);
     }
 
     async function switchMode(name){
@@ -1430,8 +1480,11 @@
       // filters
       const fl = mode.filters || [];
       $("panel-filter-wrap").style.display = fl.length ? "" : "none";
-      $("panel-filter").innerHTML = fl.map(f => `<label class="lyr">${sw("fl-" + f.id, false)} ${esc(f.label)}${f.tip ? tip(f.tip) : ""}</label>`).join("");
+      $("panel-filter").innerHTML = fl.map(f => `<label class="lyr">${sw("fl-" + f.id, false)} ${esc(f.label)}${f.tip ? tip(f.tip) : ""}</label>`).join("")
+        + (mode.critCut ? `<div class="sub-h">High criticality${tip("Which roads count as high criticality for the hotspots, the KPIs, the chart, the matrix, and the Criticality view: the top quarter (percentile 75 and up, C_class 3) or the top tenth (percentile 90 and up, C_top10). The page link carries the choice, so either version can be shared.")}</div>`
+          + `<div class="cb" id="crit-cut">${Object.entries(CUT).map(([v, c]) => `<button type="button" data-v="${v}"${v === CRITCUT ? ' class="on"' : ""}>${c.label}</button>`).join("")}</div>` : "");
       fl.forEach(f => $("fl-" + f.id).addEventListener("change", e => { f.apply(e.target.checked, ctx.L); if (mode.table.filterRows && gridApi) mode.table.rows().then(rows => gridApi.setGridOption("rowData", mode.table.filterRows(rows, e.target.checked))); }));
+      if (mode.critCut) $("crit-cut").querySelectorAll("button").forEach(b => b.addEventListener("click", () => setCritCut(b.dataset.v, mode, s)));
 
       // charts and table (each guarded: a missing file leaves its block empty)
       if (items) {

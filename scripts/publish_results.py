@@ -43,7 +43,7 @@ BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_cross
 ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e2", "E_{p}_e3", "len_pct_c1", "len_pct_c2",
              "len_pct_c3", "av_tier", "av_record", "uphill_ha", "seg_len_m"]
 V_ROAD_COLS = ["src_objectid", "name", "class", "V_FLR_hist", "V_LSR_hist", "V_WFR_hist", "V_DFR_hist", "V_AVR_hist",
-               "V_max", "V_max_pair", "V_class", "V_max_all", "V_max_all_pair", "V_class_all", "C_class", "criticality_score",
+               "V_max", "V_max_pair", "V_class", "V_max_all", "V_max_all_pair", "V_class_all", "C_class", "C_top10", "criticality_score",
                "criticality_pctl", "seg_len_m"]
 OD_DESTS = ("evacuation", "law_enforcement", "medical_facilities", "emergency_shelters", "schools", "fresh_food")
 OD_COLS = (["src_objectid", "segment_id", "in_flood_zone", "high_sev_fire", "landslide_mean"]
@@ -279,12 +279,12 @@ def write_hazard_roads(cfg: dict, out_dir: Path, log, hazard: str, pair: str):
     vr = _table(gdb, "Vulnerability_roads", log) if f"V_{pair}_hist" not in r.columns else None
     if vr is not None and f"V_{pair}_hist" in vr.columns:
         vr[key] = vr[key].astype(str)
-        r = r.merge(vr[[key, f"V_{pair}_hist", "V_class", "C_class"]], on=key, how="left")
+        r = r.merge(vr[[key, f"V_{pair}_hist", "V_class", "C_class"] + [c for c in ("C_top10",) if c in vr.columns]], on=key, how="left")
     r["geometry"] = r.geometry.simplify(5, preserve_topology=True)
     for c in ("name", "class"):
         if c not in r.columns:
             r[c] = None
-    cols = [c.format(p=pair) for c in ROAD_COLS] + [f"V_{pair}_hist", "V_class", "C_class"]
+    cols = [c.format(p=pair) for c in ROAD_COLS] + [f"V_{pair}_hist", "V_class", "C_class", "C_top10"]
     r = r[[c for c in cols if c in r.columns] + ["geometry"]]
     ecols = [c for c in (f"E_{pair}_hist", f"E_{pair}_e1", f"E_{pair}_e2", f"E_{pair}_e3", f"V_{pair}_hist") if c in r.columns]
     for c in ecols:
@@ -383,6 +383,9 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
             m = (r["V_class"] == vc) & (cc == c)
             matrix[f"{vc}|{c}"] = {"segments": int(m.sum()), "miles": round(float(mi[m].sum()), 1)}
     hot = r[(r["V_class"] == "High") & (cc == 3)]
+    # the same reading with high criticality as the top tenth (C_top10), so either can be shared
+    t10 = r["C_top10"] if "C_top10" in r.columns else pd.Series(np.nan, index=r.index)
+    hot10 = r[(r["V_class"] == "High") & (t10 == 1)]
     summary = {
         "roads": {"segments": int(len(r)), "miles": round(float(mi.sum()), 1),
                   "V_class": {str(k): int(v) for k, v in r["V_class"].value_counts().items()},
@@ -395,7 +398,13 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
                   "C_class": {str(int(k)): int(v) for k, v in cc.dropna().value_counts().sort_index().items()},
                   "matrix": matrix,
                   "hotspots": {"segments": int(len(hot)), "miles": round(float(mi[hot.index].sum()), 1),
-                               "by_pair": {str(k): int(v) for k, v in hot["V_max_pair"].value_counts().items()}}},
+                               "by_pair": {str(k): int(v) for k, v in hot["V_max_pair"].value_counts().items()}},
+                  "C_top10": {"segments": int((t10 == 1).sum()), "miles": round(float(mi[t10 == 1].sum()), 1)},
+                  "matrix_top10": {f"{vc}|{c}": {"segments": int(((r["V_class"] == vc) & (t10 == c)).sum()),
+                                                 "miles": round(float(mi[(r["V_class"] == vc) & (t10 == c)].sum()), 1)}
+                                   for vc in ("Low", "Medium", "High") for c in (0, 1)},
+                  "hotspots_top10": {"segments": int(len(hot10)), "miles": round(float(mi[hot10.index].sum()), 1),
+                                     "by_pair": {str(k): int(v) for k, v in hot10["V_max_pair"].value_counts().items()}}},
         "culverts": {"V_class": {str(k): int(v) for k, v in cul["V_class"].value_counts().items()},
                      "V_max_pair": {str(k): int(v) for k, v in cul["V_max_pair"].value_counts().items()},
                      "pair_class": {p: {str(k): int(v) for k, v in cul[f"V_{p}_hist"].map(CLASS_OF).value_counts().items()}
@@ -404,7 +413,7 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
                     "V_max_pair": {str(k): int(v) for k, v in br["V_max_pair"].value_counts().items()},
                     "pair_class": {p: {str(k): int(v) for k, v in br[f"V_{p}_hist"].map(WF_CLASS_OF if p.startswith("WF") else CLASS_OF).value_counts().items()}
                                    for p in ("FLB", "LSB", "DFB") if f"V_{p}_hist" in br.columns}} if "V_class" in br.columns else None,
-        "breaks": cfg["scoring"]["v_breaks"], "breaks_wildfire": cfg["scoring"].get("v_breaks_wildfire"), "c_class_pctl_breaks": cfg["scoring"].get("c_class_pctl_breaks"),
+        "breaks": cfg["scoring"]["v_breaks"], "breaks_wildfire": cfg["scoring"].get("v_breaks_wildfire"), "c_class_pctl_breaks": cfg["scoring"].get("c_class_pctl_breaks"), "c_top_pctl": cfg["scoring"].get("c_top_pctl", 90),
         "v_max_exclude": list(cfg["scoring"].get("v_max_exclude") or []),
     }
     for stem, lab in (("active_transport", "paths"), ("transit_centers", "transit")):

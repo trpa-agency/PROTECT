@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-30",
+ "generated": "2026-11-02",
  "culverts": {
   "scored_public": 5096,
   "full_profile": 858,
@@ -919,6 +919,46 @@
      "WFR": 183,
      "AVR": 1
     }
+   },
+   "C_top10": {
+    "segments": 1830,
+    "miles": 138.8
+   },
+   "matrix_top10": {
+    "Low|0": {
+     "segments": 9668,
+     "miles": 388.5
+    },
+    "Low|1": {
+     "segments": 1180,
+     "miles": 42.7
+    },
+    "Medium|0": {
+     "segments": 2347,
+     "miles": 105.9
+    },
+    "Medium|1": {
+     "segments": 139,
+     "miles": 10.7
+    },
+    "High|0": {
+     "segments": 4440,
+     "miles": 351.0
+    },
+    "High|1": {
+     "segments": 511,
+     "miles": 85.3
+    }
+   },
+   "hotspots_top10": {
+    "segments": 511,
+    "miles": 85.3,
+    "by_pair": {
+     "FLR": 272,
+     "LSR": 137,
+     "WFR": 101,
+     "AVR": 1
+    }
    }
   },
   "culverts": {
@@ -990,6 +1030,7 @@
    50,
    75
   ],
+  "c_top_pctl": 90,
   "v_max_exclude": [
    "DFC",
    "DFB",

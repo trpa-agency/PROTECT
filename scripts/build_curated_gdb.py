@@ -197,6 +197,11 @@ def roads_fields() -> list:
             how="joined on src_objectid",
             used="results.html (line weight on every tab, tables, Overview matrix and hotspots); scoring-rubrics.html "
                  "(matrix); publish_results.py (matrix, hotspots)"),
+        Fld("C_top10", "SHORT", "Top tenth of criticality",
+            "1 if the criticality percentile is 90 or higher: the top-tenth reading of high criticality, kept beside "
+            "C_class so either can be shared.",
+            values="0, 1 (1 is the top tenth)", src="Vulnerability_roads.C_top10", how="joined on src_objectid",
+            used="results.html (High criticality switch: hotspots, matrix, tables); publish_results.py (hotspots_top10)"),
         Fld("criticality_pctl", "DOUBLE", "Criticality percentile", "Percentile rank of criticality_score, 0 to 100.",
             units="percentile", used="results.html (popups); criticality-index.html; score_vulnerability.py (C_class)"),
         Fld("criticality_score", "DOUBLE", "Criticality score",
@@ -1260,7 +1265,7 @@ def build_roads(ds, cfg, ctx, log):
             raise SystemExit(f"{name}: duplicate {key}")
         return t.rename(columns=rename or {})
 
-    vr = table("Vulnerability_roads", ["seg_len_m", "C_class", "criticality_pctl", "V_FLR_hist", "V_LSR_hist", "V_WFR_hist",
+    vr = table("Vulnerability_roads", ["seg_len_m", "C_class", "C_top10", "criticality_pctl", "V_FLR_hist", "V_LSR_hist", "V_WFR_hist",
                                        "V_DFR_hist", "V_AVR_hist", "V_max", "V_max_pair", "V_class", "V_max_all",
                                        "V_max_all_pair", "V_class_all"])
     chk = st[[key, "criticality_pctl"]].merge(vr[[key, "criticality_pctl"]], on=key, suffixes=("", "_scored"))
