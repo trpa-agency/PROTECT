@@ -109,7 +109,16 @@ def _poly_from_int_raster(raster, scratch_gdb: str, name: str, crs, log, field: 
     import pyogrio
     poly = f"{scratch_gdb}\\{name}"
     arcpy.conversion.RasterToPolygon(raster, poly, "NO_SIMPLIFY", "VALUE")
-    g = pyogrio.read_dataframe(scratch_gdb, layer=name).to_crs(crs)
+    log.info(f"RasterToPolygon -> {poly}")
+    # a class polygon from RasterToPolygon is one outer ring with thousands of holes; GDAL's default
+    # ring sorting is quadratic in the ring count and warns that it "may be really slow". File
+    # geodatabase rings are oriented like a shapefile's (outer clockwise, holes counter-clockwise),
+    # which is what ONLY_CCW assumes, so the read is linear.
+    pyogrio.set_gdal_config_options({"OGR_ORGANIZE_POLYGONS": "ONLY_CCW"})
+    try:
+        g = pyogrio.read_dataframe(scratch_gdb, layer=name).to_crs(crs)
+    finally:
+        pyogrio.set_gdal_config_options({"OGR_ORGANIZE_POLYGONS": None})
     return g.rename(columns={"gridcode": field})
 
 
@@ -176,18 +185,35 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
     agg = int(round(float(df.get("cell_m", 30)) / cell))
     out_cell = cell * agg
 
-    # E1: mean slope of the upslope area = (slope-weighted accumulation + own slope) / (facc + 1)
+    # E1: mean slope of the upslope area = (slope-weighted accumulation + own slope) / (facc + 1).
+    # The 2 m products persist in the work gdb (slope_wacc, then the 30 m aggregates df_mean_up30
+    # and df_facc30) so a rebuild that only changes the classes, the gate, or the mask runs at 30 m
+    # in minutes; delete slope_wacc after a terrain rerun and all three are recomputed.
     p_wacc = f"{work}\\slope_wacc"
-    if not arcpy.Exists(p_wacc):
-        log.info("Slope-weighted flow accumulation (2 m) ...")
-        sa.FlowAccumulation(fdir, slope, "FLOAT", "D8").save(p_wacc)
+    p_mean30, p_facc30 = f"{work}\\df_mean_up30", f"{work}\\df_facc30"
+    if arcpy.Exists(p_wacc) and arcpy.Exists(p_mean30) and arcpy.Exists(p_facc30):
+        log.info(f"Reusing the {out_cell:g} m aggregates {p_mean30} and {p_facc30} (built from slope_wacc; delete slope_wacc after a terrain rerun to recompute all three)")
     else:
-        log.info(f"Reusing {p_wacc} (the 2 m terrain has not changed; delete it to recompute after a terrain rerun)")
-    wacc = sa.Raster(p_wacc)
-    mean_up = (wacc + slope) / (facc + 1)
-    log.info(f"Aggregating to {out_cell:g} m (mean upslope slope by MEAN, accumulation by MAXIMUM) ...")
-    mean_up30 = sa.Aggregate(mean_up, agg, "MEAN", "EXPAND", "DATA")
-    facc30 = sa.Aggregate(facc, agg, "MAXIMUM", "EXPAND", "DATA")
+        if not arcpy.Exists(p_wacc):
+            log.info("Slope-weighted flow accumulation (2 m) ...")
+            sa.FlowAccumulation(fdir, slope, "FLOAT", "D8").save(p_wacc)
+        else:
+            log.info(f"Reusing {p_wacc} (the 2 m terrain has not changed; delete it to recompute after a terrain rerun)")
+        wacc = sa.Raster(p_wacc)
+        mean_up = (wacc + slope) / (facc + 1)
+        log.info(f"Aggregating to {out_cell:g} m (mean upslope slope by MEAN, accumulation by MAXIMUM) ...")
+        sa.Aggregate(mean_up, agg, "MEAN", "EXPAND", "DATA").save(p_mean30)
+        log.info(f"-> {p_mean30}")
+        sa.Aggregate(facc, agg, "MAXIMUM", "EXPAND", "DATA").save(p_facc30)
+        log.info(f"-> {p_facc30}")
+    mean_up30 = sa.Raster(p_mean30)
+    facc30 = sa.Raster(p_facc30)
+    # the class rasters are 30 m products: with the environment still at the 2 m facc, every Con below
+    # resampled the aggregates back to 2 m and RasterToPolygon walked 375 million cells (four hours
+    # on the Oct. 10 and Nov. 2 builds for the same 133,667 polygons)
+    arcpy.env.snapRaster = p_mean30
+    arcpy.env.cellSize = p_mean30
+    arcpy.env.extent = p_mean30
     area_sqmi = (facc30 + 1) * cell * cell / SQM_PER_SQMI
     # half-point scores x 10 as integers
     s = mean_up30
@@ -204,9 +230,11 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
     e1_path, e2_path = f"{gdb}\\df_e1_cls", f"{gdb}\\df_e2_cls"
     sa.Int(e1).save(e1_path)
     sa.Int(e2).save(e2_path)
+    log.info(f"Class rasters saved at {float(arcpy.Describe(e1_path).meanCellWidth):g} m: {e1_path}, {e2_path}")
     out = {}
     for key, path, fc, label in (("e1", e1_path, df["slope_fc"], "mean upslope slope"), ("e2", e2_path, df["area_fc"], "contributing area")):
         g = _poly_from_int_raster(path, gdb, f"df_{key}_poly", crs, log)
+        log.info(f"DF {key}: {len(g)} raster polygons read; dissolving by class ...")
         g["hz_class"] = g["gridcode"].astype(float) / 10.0
         g = dissolve_classes(g[["hz_class", "geometry"]], crs)
         log.info(f"DF {key} ({label}), area by score (km2):\n"
