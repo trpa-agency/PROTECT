@@ -321,7 +321,7 @@
       classBreakInfos:[{minValue:-1.5, maxValue:-0.5, symbol:symOf(COL.gray, 0)}, {minValue:-0.5, maxValue:0.999, symbol:symOf(COL.ice, 1)},
         {minValue:0.999, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     // combined class from scoring (V_class): the highest per-pair class, where wildfire pairs use their own
-    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2) and debris flow pairs 1.4 and 2 (decision 34), so it
+    // breaks (Low under 1.5, Medium 1.5 to 2, High over 2) and debris flow pairs 1.5 and 2 (decision 34), so it
     // can differ from the class of V_max
     const vClassFieldRenderer = (field, symOf) => ({type:"unique-value", field, defaultSymbol:symOf(COL.gray, 0), defaultLabel:"not scored",
       uniqueValueInfos:[{value:"Low", symbol:symOf(COL.ice, 1)}, {value:"Medium", symbol:symOf(COL.orange, 2)}, {value:"High", symbol:symOf(COL.brick, 3)}]});
@@ -341,11 +341,11 @@
       classBreakInfos:[{minValue:-1.5, maxValue:0.999, symbol:symOf(COL.gray, 0)}, {minValue:0.999, maxValue:1.499, symbol:symOf(COL.ice, 1)},
         {minValue:1.499, maxValue:2, symbol:symOf(COL.orange, 2)}, {minValue:2, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     const WF_LEG = [[COL.ice,"Low"],[COL.orange,"Medium"],[COL.brick,"High"]];
-    // debris flow pairs (decision 34, TRPA proposal): Low under 1.4, Medium 1.4 to under 2, High 2 and over
-    const dfClassOf = v => (v == null || isNaN(v)) ? null : v < 1.4 ? "Low" : v < 2 ? "Medium" : "High";
+    // debris flow pairs (decision 34, TRPA proposal): Low under 1.5, Medium 1.5 to under 2, High 2 and over
+    const dfClassOf = v => (v == null || isNaN(v)) ? null : v < 1.5 ? "Low" : v < 2 ? "Medium" : "High";
     const dfRenderer = (field, symOf) => ({type:"class-breaks", valueExpression:`IIf(IsEmpty($feature.${field}), -1, $feature.${field})`,
-      classBreakInfos:[{minValue:-1.5, maxValue:-0.5, symbol:symOf(COL.gray, 0)}, {minValue:-0.5, maxValue:1.399, symbol:symOf(COL.ice, 1)},
-        {minValue:1.399, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
+      classBreakInfos:[{minValue:-1.5, maxValue:-0.5, symbol:symOf(COL.gray, 0)}, {minValue:-0.5, maxValue:1.499, symbol:symOf(COL.ice, 1)},
+        {minValue:1.499, maxValue:1.999, symbol:symOf(COL.orange, 2)}, {minValue:1.999, maxValue:3.1, symbol:symOf(COL.brick, 3)}]});
     const WF_NOTE = "Classes: Low 1 to under 1.5, Medium 1.5 to 2, High over 2.";
     // exposure class renderer: 0 gray, under 1 ice, 1 to under 2 orange, 2 and over brick
     const eClassRenderer = (field, symOf) => ({type:"class-breaks", field, classBreakInfos:[
@@ -374,7 +374,7 @@
           [fmt(h.segments), "High vulnerability on top-criticality roads"], [fmt(h.miles), "miles of those"],
           [fmt(((v.culverts||{}).V_class||{}).High), "culverts High"], [fmt(((v.bridges||{}).V_class||{}).High), "bridges High"],
           [fmt(((v.paths||{}).V_class||{}).High), "paths High"], [fmt(((v.transit||{}).V_class||{}).High), "transit hubs High"]]; },
-      note(s){ return "Generated " + (s.generated || "") + ". Class breaks: Low under 1, Medium 1 to under 2, High 2 and over; wildfire Low under 1.5, Medium 1.5 to 2, High over 2; debris flow Low under 1.4, Medium 1.4 to under 2, High 2 and over. Criticality class from percentile breaks 25, 50, 75 (provisional)."; },
+      note(s){ return "Generated " + (s.generated || "") + ". Class breaks: Low under 1, Medium 1 to under 2, High 2 and over; wildfire Low under 1.5, Medium 1.5 to 2, High over 2; debris flow Low under 1.5, Medium 1.5 to under 2, High 2 and over. Criticality class from percentile breaks 25, 50, 75 (provisional)."; },
       emptyText:"Vulnerability results have not been published yet. The hazard tabs show exposure.",
       colorBy:[
         {value:"prio", label:"Priority", renderer:{roads:priorityRenderer("V_class", false), paths:priorityRenderer("V_class", true)}, legend:legendRows(VC_LEG.slice(0,3), "lg-line") + `<div class="lg-row"><span class="lg-line" style="background:#5a6577;height:1px"></span> thin: lowest criticality quarter</div><div class="lg-row"><span class="lg-line" style="background:#5a6577;height:5px"></span> thick: top criticality quarter</div>`,
@@ -433,7 +433,7 @@
           {field:"miles", headerName:"Miles", width:85, type:"numericColumn", valueFormatter:p=>fmt(p.value,2)}, {field:"src_objectid", headerName:"Segment", width:95}]},
       notes:["<b>Score.</b> For each hazard pair, exposure times its weight plus sensitivity times its weight, each 0 to 3. The asset carries the highest pair; the popup says which hazard set it.",
         "<b>Stand-in pairs.</b> Debris flow is scored on the fire severity surface in place of the contracted soil burn severity, so it is left out of the combined class until its class shares are reviewed next to flooding and landslide (decision 33). The \"With stand-ins\" view and the popup carry the every-pair reading.",
-        "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 1.5, Medium 1.5 to 2, High over 2; debris flow pairs Low under 1.4, Medium 1.4 to under 2, High 2 and over (decision 34). An asset's class is the highest of its pair classes.",
+        "<b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over, on the 1.0 and 2.0 breaks (TRPA proposal). Wildfire pairs use Low under 1.5, Medium 1.5 to 2, High over 2; debris flow pairs Low under 1.5, Medium 1.5 to under 2, High 2 and over (decision 34). An asset's class is the highest of its pair classes.",
         "<b>Why roads are never Low.</b> Wildfire likelihood is at least 1 everywhere with the Resource Kit data, so every segment's wildfire score, and with it its highest pair, is at least 1.",
         "<b>Criticality.</b> The criticality percentile cut into quarters.",
         "<b>Sensitivity data.</b> Roads carry no sensitivity (rubrics decision 25): each road pair's score is its exposure. Culverts without an inspection carry the fair default; the S_source field says which.",
@@ -681,7 +681,7 @@
         {value:"e", label:"Exposure", renderer:{roads:eClassRenderer("E_DFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:eClassRenderer("E_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:eClassRenderer("E_DFB_hist", (c,k) => sq(c))}, legend:legendRows(EC_LEG, "lg-line"),
           note:"Slope and burn severity, each 0 to 3, weighted 0.4 and 0.6; culverts and bridges draining more than 3 square miles score 0.", noteTip:"Decision 33. E1 mean slope of the contributing area (over 30 percent = 3), E3 most-likely fire severity standing in for soil burn severity, the highest class covering at least 25 percent of the drainage (culverts) or the 300 ft buffer (roads, bridges); E = 0.4 E1 + 0.6 E3. Contributing area is a gate, not a score (DF_gate)."},
         {value:"v", label:"Vulnerability", renderer:{roads:dfRenderer("V_DFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), culverts:dfRenderer("V_DFC_hist", (c,k) => dot(c, [4,5,6,7][k])), bridges:dfRenderer("V_DFB_hist", (c,k) => sq(c))}, legend:legendRows(VC_LEG, "lg-line"),
-          note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3. Classed Low under 1.4, Medium 1.4 to under 2, High 2 and over.", noteTip:"Roads: no sensitivity (decision 25). Culverts: opening width and condition with blockage (decision 7). Bridges: span type, condition, span length. Class breaks 1.4 and 2.0 (decision 34, TRPA proposal): a Low-severity drainage reads Medium only over a 20 percent mean upslope slope."}],
+          note:"Roads: exposure only. Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3. Classed Low under 1.5, Medium 1.5 to under 2, High 2 and over.", noteTip:"Roads: no sensitivity (decision 25). Culverts: opening width and condition with blockage (decision 7). Bridges: span type, condition, span length. Class breaks 1.5 and 2.0 (decision 34, TRPA proposal): a Low-severity drainage reads Medium only over a 25 percent mean upslope slope."}],
       layers(){ return [
         {id:"roads", label:"Roads (scored)", checked:true, make:() => roadLayer("debris_flow", {popupTemplate:{title:"{name}", content:[{type:"fields", fieldInfos:[{fieldName:"class", label:"Road type"}, {fieldName:"E_DFR_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFR_e1", label:"E1 slope class", format:{places:1}}, {fieldName:"E_DFR_e3", label:"E3 burn severity class within 300 ft"}, {fieldName:"V_DFR_hist", label:"Vulnerability V", format:{places:2}}]}]}})},
         {id:"culverts", label:"Culverts", checked:true, legend:legendRows(EC_LEG, "lg-dot"), make:() => new M.GeoJSONLayer({url:BASE + "culverts_results.geojson", title:"Culverts", outFields:["*"], popupTemplate:{title:"{culvert_id}", content:[{type:"fields", fieldInfos:[{fieldName:"jurisdiction", label:"Jurisdiction"}, {fieldName:"road_name", label:"Road"}, {fieldName:"E_DFC_hist", label:"Debris flow exposure", format:{places:2}}, {fieldName:"E_DFC_e1", label:"E1 basin slope class", format:{places:1}}, {fieldName:"E_DFC_e3", label:"E3 burn severity in the drainage"}, {fieldName:"DF_gate", label:"Over 3 sq mi (exposure 0)"}, {fieldName:"V_DFC_hist", label:"Vulnerability V", format:{places:2}}, {fieldName:"DF_option", label:"Option"}]}]}})},
@@ -689,7 +689,7 @@
       },
       filters:[{id:"top", label:"High exposure only", apply(on, L){ if (L.roads) L.roads.definitionExpression = on ? "E_DFR_hist >= 1.999" : null; if (L.culverts) L.culverts.definitionExpression = on ? "E_DFC_hist >= 1.999" : null; if (L.bridges) L.bridges.definitionExpression = on ? "E_DFB_hist >= 1.999" : null; }}],
       charts:[
-        {title:"Road miles by exposure class", sub:"Low under 1.4, Medium 1.4 to under 2, High 2 and over (decision 34)", async draw(div){ milesByClass(div, await roadRows("debris_flow"), "E_DFR_hist", dfClassOf, E_CLASSES, EC_COL, "road miles"); }},
+        {title:"Road miles by exposure class", sub:"Low under 1.5, Medium 1.5 to under 2, High 2 and over (decision 34)", async draw(div){ milesByClass(div, await roadRows("debris_flow"), "E_DFR_hist", dfClassOf, E_CLASSES, EC_COL, "road miles"); }},
         {title:"Culverts by jurisdiction", sub:"Share of each jurisdiction's culverts in each exposure class (gated culverts read as None)", async draw(div){ const rows = (await rowsOf(BASE + "culverts_results.geojson")).filter(p => p.E_DFC_hist != null); if (!rows.length) return;
           stackedShare(div, [...new Set(rows.map(r => r.jurisdiction))].sort(), E_CLASSES, EC_COL, rows, r => r.jurisdiction, r => (r.E_DFC_hist || 0) < 0.1 ? "None" : dfClassOf(r.E_DFC_hist), r => 1, "percent of culverts", "culverts"); }}],
       table:{title:"Road table", lead:"One row per scored road segment.", exportName:"PROTECT_debris_flow_roads.csv", rows:() => roadRows("debris_flow"),
@@ -703,7 +703,7 @@
         "<b>Drainage size gate.</b> The draft scored small drainages high, but nearly every basin was under a quarter square mile, so the term was the same everywhere. It is now a gate: culverts and bridges draining more than 3 square miles score exposure 0, because a large river brings a sediment-laden flood, which the flooding pairs carry. The two bridges at the Truckee River outlet are gated by hand, since the lake is a sink in the terrain model and reads as a small drainage there. Roads are not gated.",
         "<b>Culverts.</b> Read slope and drainage area from their own delineated drainage rather than the raster, which is more exact for a crossing.",
         "<b>Vulnerability.</b> Roads: exposure only (decision 25). Culverts and bridges: exposure at 0.7 plus sensitivity at 0.3, from opening width and condition with blockage for culverts (decision 7) and span terms for bridges.",
-        "<b>Classes.</b> Debris flow uses Low under 1.4, Medium 1.4 to under 2, High 2 and over (decision 34, TRPA proposal). With severity Low across most of the basin, the shared 1.0 break read Medium on any slope over 10 percent; at 1.4 a Low-severity drainage reads Medium only over 20 percent."],
+        "<b>Classes.</b> Debris flow uses Low under 1.5, Medium 1.5 to under 2, High 2 and over (decision 34, TRPA proposal). With severity Low across most of the basin, the shared 1.0 break read Medium on any slope over 10 percent; at 1.5 a Low-severity drainage reads Medium only over 25 percent."],
       foot:"Terrain from the 2 m lidar DEM; burn severity stand-in from the TRPA Fire service. Method: <code>docs/SCORING_RUBRICS.md</code> 4, decisions 7, 15, 33, and 34."
     };
 

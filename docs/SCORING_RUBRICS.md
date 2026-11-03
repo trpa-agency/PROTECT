@@ -43,7 +43,7 @@ Per-pair weights, from the draft:
 (decision 9):** Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over, set in `config.yaml`
 (`scoring.v_breaks`). **Wildfire pairs (decision 26):** Low under 1.5, Medium 1.5 to 2.0, High
 over 2.0 (`scoring.v_breaks_wildfire`). **Debris flow pairs (decision 34, TRPA proposal):** Low
-under 1.4, Medium 1.4 to under 2.0, High 2.0 and over (`scoring.v_breaks_debris_flow`).
+under 1.5, Medium 1.5 to under 2.0, High 2.0 and over (`scoring.v_breaks_debris_flow`).
 
 ### 1.3 Criticality
 
@@ -625,14 +625,16 @@ rows are the draft's and are not scored for roads.
     (`exposure.debris_flow.e3_share_cumulative: false`).
 34. **TRPA proposal (Nov. 2, 2026): debris flow class breaks, two hand-gated bridges, and the
     large-river mask.** Pending the review numbers from the Nov. 2 run. (a) DF-R, DF-C, and DF-B
-    are classed Low under 1.4, Medium 1.4 to under 2.0, High 2.0 and over
-    (`scoring.v_breaks_debris_flow`). With exposure 0.40 slope plus 0.60 severity and the
-    stand-in severity Low across most of the basin, the shared breaks read Medium on Low
-    severity alone wherever the mean upslope slope is over 10 percent: 2,303 of the 2,375
-    Medium culverts and 6,766 of the 7,398 Medium road segments in the Nov. 2 run. At 1.4, Low
-    severity reads Medium only over 20 percent slope; Moderate severity reads Medium from over 5
-    percent and High from over 20; High severity reads Medium at any slope and High from over 5
-    percent. Roads (V = E): Low 9,210 to 13,718, Medium 7,398 to 2,890, High 1,677 either way.
+    are classed Low under 1.5, Medium 1.5 to under 2.0, High 2.0 and over
+    (`scoring.v_breaks_debris_flow`), the wildfire lower break. With exposure 0.40 slope plus
+    0.60 severity and the stand-in severity Low across most of the basin, the shared breaks
+    read Medium on Low severity alone wherever the mean upslope slope is over 10 percent: 2,303
+    of the 2,375 Medium culverts and 6,766 of the 7,398 Medium road segments in the Nov. 2 run.
+    At 1.5, Low severity reads Medium only over 25 percent slope; Moderate severity reads
+    Medium from over 10 percent and High from over 20; High severity reads Medium at any slope
+    and High from over 5 percent. Roads (V = E): Low 9,210 to 14,689, Medium 7,398 to 1,919,
+    High 1,677 either way; culverts Medium or High 5,021 to 2,069 of 5,096 (1.4 would have
+    left 2,721, 1.6 1,703 while hiding Low-severity crossings on 15 to 20 percent slopes).
     (b) The two SR 89 bridges at the Truckee River outlet (NBI 19 0205 and 19 0033) are gated
     by hand (`exposure.debris_flow.gate_bridge_ids`): the lake is a sink in the DEM, so the flow
     accumulation reads 0.02 and 1.25 square miles at the outlet of the whole lake basin. (c) In

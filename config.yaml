@@ -119,7 +119,7 @@ exposure:
 scoring:
   v_breaks: [1.0, 2.0]            # V_class: Low under 1.0, Medium 1.0 to under 2.0, High 2.0 and over (TRPA proposal, 1.2)
   v_breaks_wildfire: [1.5, 2.0]   # wildfire pairs (WF-R, WF-AT, WF-TC): Low under 1.5, Medium 1.5 to 2.0, High over 2.0 (Oct. 12, revised Oct. 30)
-  v_breaks_debris_flow: [1.4, 2.0]   # debris flow pairs (DF-R, DF-C, DF-B): Low under 1.4, Medium 1.4 to under 2.0, High 2.0 and over (TRPA proposal, decision 34, Nov. 2); remove the line to use v_breaks
+  v_breaks_debris_flow: [1.5, 2.0]   # debris flow pairs (DF-R, DF-C, DF-B): Low under 1.5, Medium 1.5 to under 2.0, High 2.0 and over (TRPA proposal, decision 34, Nov. 2); remove the line to use v_breaks
   # Pairs scored on a stand-in input stay out of the combined class (V_max, V_class) until the input is real:
   # debris flow uses the fire severity surface for soil burn severity. Decision 33 (Nov. 2, 2026) dropped the
   # drainage-size term that put nearly every asset at 3; the pairs rejoin once the class shares are reviewed

@@ -89,7 +89,7 @@ class Copy:
 
 V_BREAKS = "Low under 1, Medium 1 to under 2, and High 2 or more"
 WF_BREAKS = "Low under 1.5, Medium 1.5 to 2, and High over 2 (decision 26)"
-DF_BREAKS = "Low under 1.4, Medium 1.4 to under 2, and High 2 or more (decision 34, TRPA proposal)"
+DF_BREAKS = "Low under 1.5, Medium 1.5 to under 2, and High 2 or more (decision 34, TRPA proposal)"
 DF_LEFT_OUT = ("Not counted in V_max or V_class while fire severity stands in for soil burn severity; the pairs rejoin "
                "once their class shares are reviewed next to flooding and landslide (decision 33).")
 DF_E = "0.40 x {p}_e1 + 0.60 x {p}_e3 (rubric 4.2, option 1 as revised by decision 33)."

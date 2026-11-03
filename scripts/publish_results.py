@@ -51,8 +51,8 @@ OD_COLS = (["src_objectid", "segment_id", "in_flood_zone", "high_sev_fire", "lan
 CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")
 # wildfire pairs (scoring.v_breaks_wildfire): Low under 1.5, Medium 1.5 to 2.0, High over 2.0
 WF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1.5 else "Medium" if v <= 2 else "High")
-# debris flow pairs (scoring.v_breaks_debris_flow, decision 34): Low under 1.4, Medium 1.4 to under 2.0, High 2.0 and over
-DF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1.4 else "Medium" if v < 2 else "High")
+# debris flow pairs (scoring.v_breaks_debris_flow, decision 34): Low under 1.5, Medium 1.5 to under 2.0, High 2.0 and over
+DF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1.5 else "Medium" if v < 2 else "High")
 PAIR_CLASS_OF = lambda p: WF_CLASS_OF if p.startswith("WF") else DF_CLASS_OF if p.startswith("DF") else CLASS_OF
 WF_ROAD_COLS = [c.format(p="WFR") for c in ROAD_COLS]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
