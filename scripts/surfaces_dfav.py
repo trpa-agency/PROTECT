@@ -1,17 +1,20 @@
 """Debris-flow and avalanche surfaces for score_exposure.py (docs/SCORING_RUBRICS.md 4 and 5).
 
-Debris flow, option 1 with a burn-severity stand-in (config exposure.debris_flow): from the
-2 m terrain rasters of the culvert delineation (profile.work_gdb: fdir, facc, slope_pct),
+Debris flow, option 1 as revised by decision 33 (config exposure.debris_flow): from the 2 m
+terrain rasters of the culvert delineation (profile.work_gdb: fdir, facc, slope_pct),
     E1  mean slope of the upslope contributing area at each cell (slope-weighted flow
         accumulation over flow accumulation), aggregated to 30 m by mean, on the draft's
-        half-point breaks (over 30 percent = 3 ... 0 to 5 = 0)
-    E2  contributing area at each cell (flow accumulation, 30 m by maximum), on the draft's
-        breaks (under 0.25 sq mi = 3 ... over 5 sq mi = 0)
+        half-point breaks (over 30 percent = 3 ... 0 to 5 = 0); cells draining more than
+        area_gate_sqmi score 0 when e1_mask_over_gate is set (decision 34), so a road crossing
+        a large river reads the hillslope beside it, not the river's basin-wide mean
     E3  TRPA most-likely fire severity (the wildfire E2 surface) standing in for the contracted
         predicted soil burn severity: High 3, Moderate 2, Low 1, outside 0
-Weights 0.20 / 0.20 / 0.30. Culverts read E1 and E2 from their own profile (basin_slope_pct,
-contrib_area_ac) and E3 as the watershed maximum; roads and bridges read E2 at the largest
-contributing area they touch (the draft's maximum-accumulation cell) and E1, E3 as maxima.
+Weights 0.40 / 0.60. The draft's E2, contributing area (flow accumulation, 30 m by maximum, on
+its breaks: under 0.25 sq mi = 3 ... over 5 sq mi = 0), is still built as Hazard_DebrisFlow_Area
+but is a gate, not a score: culverts and bridges over exposure.debris_flow.area_gate_sqmi score
+exposure 0. Culverts read E1 from their own profile (basin_slope_pct) and E3 as the highest
+severity class covering e3_min_share of the watershed; roads read E1 touching the segment and E3
+by share within 300 ft; bridges read E1 within 25 m and E3 by share within 300 ft.
 
 Avalanche x roads (config exposure.avalanche): one lookup of the dominant slope tier on the
 uphill side within 1,000 ft of the segment (10 m DEM, 20 m elevation bands; decision 17) and a
@@ -50,7 +53,8 @@ def df_slope_score(pct) -> float | None:
 
 
 def df_area_score(sqmi) -> float | None:
-    """DF E2 (option 1): contributing area in square miles, smaller scores higher."""
+    """The draft's DF E2 classes for contributing area in square miles, smaller scores higher.
+    Map only since decision 33: it classes Hazard_DebrisFlow_Area; the area is a gate, not a score."""
     if sqmi is None or (isinstance(sqmi, float) and np.isnan(sqmi)):
         return None
     a = float(sqmi)
@@ -105,13 +109,46 @@ def _poly_from_int_raster(raster, scratch_gdb: str, name: str, crs, log, field: 
     import pyogrio
     poly = f"{scratch_gdb}\\{name}"
     arcpy.conversion.RasterToPolygon(raster, poly, "NO_SIMPLIFY", "VALUE")
-    g = pyogrio.read_dataframe(scratch_gdb, layer=name).to_crs(crs)
+    log.info(f"RasterToPolygon -> {poly}")
+    # a class polygon from RasterToPolygon is one outer ring with thousands of holes; GDAL's default
+    # ring sorting is quadratic in the ring count and warns that it "may be really slow". File
+    # geodatabase rings are oriented like a shapefile's (outer clockwise, holes counter-clockwise),
+    # which is what ONLY_CCW assumes, so the read is linear.
+    pyogrio.set_gdal_config_options({"OGR_ORGANIZE_POLYGONS": "ONLY_CCW"})
+    try:
+        g = pyogrio.read_dataframe(scratch_gdb, layer=name).to_crs(crs)
+    finally:
+        pyogrio.set_gdal_config_options({"OGR_ORGANIZE_POLYGONS": None})
     return g.rename(columns={"gridcode": field})
 
 
+def max_area_sqmi_near(cfg: dict, pts: gpd.GeoDataFrame, buffer_m: float) -> pd.Series:
+    """Largest contributing area (sq mi) within buffer_m of each point, from the 2 m flow
+    accumulation of the culvert delineation (profile.work_gdb facc), one small windowed read per
+    point. The bridge gate (decision 33): culverts carry their own contrib_area_ac, bridges do
+    not, and Hazard_DebrisFlow_Area drops ground over 5 sq mi, so it cannot see a big river.
+    NaN where no cell has data. Index = pts.index."""
+    import arcpy
+    R = arcpy.Raster(f"{cfg['profile']['work_gdb']}\\facc")
+    cs, ext, sr = float(R.meanCellWidth), R.extent, R.spatialReference
+    pts = pts.to_crs(sr.factoryCode or sr.exportToString())
+    n = int(np.ceil(2 * buffer_m / cs)) + 2
+    out = []
+    for x, y in zip(pts.geometry.x, pts.geometry.y):
+        c0 = int(np.floor((x - buffer_m - ext.XMin) / cs))
+        r0 = int(np.floor((ext.YMax - (y + buffer_m)) / cs))
+        a = arcpy.RasterToNumPyArray(R, arcpy.Point(ext.XMin + c0 * cs, ext.YMax - (r0 + n) * cs), n, n, nodata_to_value=-1)
+        xs = ext.XMin + (c0 + np.arange(a.shape[1]) + 0.5) * cs
+        ys = ext.YMax - (r0 + np.arange(a.shape[0]) + 0.5) * cs
+        m = (np.hypot(xs[None, :] - x, ys[:, None] - y) <= buffer_m) & (a >= 0)
+        out.append(float((a[m].max() + 1) * cs * cs / SQM_PER_SQMI) if m.any() else np.nan)
+    return pd.Series(out, index=pts.index)
+
+
 def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
-    """Three indicator surfaces in the hazards geodatabase (Hazard_DebrisFlow_Slope, _Area, and
-    the wildfire severity fc reused as E3). Returns the indicator dict with sampling hints."""
+    """The slope and drainage-area surfaces in the hazards geodatabase (Hazard_DebrisFlow_Slope,
+    _Area), with the wildfire severity fc reused as E3. Returns the scored indicators (E1, E3)
+    with sampling hints; the area surface is map context for the gate, not an indicator."""
     import arcpy
     import pyogrio
     from arcpy import sa
@@ -125,11 +162,10 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
     sev_fc = ex["wildfire"]["e2_fc"]
     if not arcpy.Exists(f"{gdb}\\{sev_fc}"):
         raise SystemExit(f"{sev_fc} (the wildfire E2 surface) is the burn-severity stand-in; build wildfire first")
-    hints = {"e1": "profile:slope", "e2": "profile:area|min", "e3": "watershed"}
+    hints = {"e1": "profile:slope", "e3": "watershed"}
     if arcpy.Exists(f"{gdb}\\{df['slope_fc']}") and arcpy.Exists(f"{gdb}\\{df['area_fc']}") and not overwrite:
         log.info(f"{df['slope_fc']} and {df['area_fc']} exist; reading them (use --build to rebuild)")
         return {"e1": (float(w["e1"]), pyogrio.read_dataframe(gdb, layer=df["slope_fc"]).to_crs(crs), hints["e1"]),
-                "e2": (float(w["e2"]), pyogrio.read_dataframe(gdb, layer=df["area_fc"]).to_crs(crs), hints["e2"]),
                 "e3": (float(w["e3"]), pyogrio.read_dataframe(gdb, layer=sev_fc).to_crs(crs), hints["e3"])}
 
     work = cfg["profile"]["work_gdb"]
@@ -149,37 +185,66 @@ def build_debris_flow_surface(cfg: dict, log, overwrite: bool) -> dict:
     agg = int(round(float(df.get("cell_m", 30)) / cell))
     out_cell = cell * agg
 
-    # E1: mean slope of the upslope area = (slope-weighted accumulation + own slope) / (facc + 1)
+    # E1: mean slope of the upslope area = (slope-weighted accumulation + own slope) / (facc + 1).
+    # The 2 m products persist in the work gdb (slope_wacc, then the 30 m aggregates df_mean_up30
+    # and df_facc30) so a rebuild that only changes the classes, the gate, or the mask runs at 30 m
+    # in minutes; delete slope_wacc after a terrain rerun and all three are recomputed.
     p_wacc = f"{work}\\slope_wacc"
-    if overwrite or not arcpy.Exists(p_wacc):
-        log.info("Slope-weighted flow accumulation (2 m) ...")
-        sa.FlowAccumulation(fdir, slope, "FLOAT", "D8").save(p_wacc)
-    wacc = sa.Raster(p_wacc)
-    mean_up = (wacc + slope) / (facc + 1)
-    log.info(f"Aggregating to {out_cell:g} m (mean upslope slope by MEAN, accumulation by MAXIMUM) ...")
-    mean_up30 = sa.Aggregate(mean_up, agg, "MEAN", "EXPAND", "DATA")
-    facc30 = sa.Aggregate(facc, agg, "MAXIMUM", "EXPAND", "DATA")
+    p_mean30, p_facc30 = f"{work}\\df_mean_up30", f"{work}\\df_facc30"
+    if arcpy.Exists(p_wacc) and arcpy.Exists(p_mean30) and arcpy.Exists(p_facc30):
+        log.info(f"Reusing the {out_cell:g} m aggregates {p_mean30} and {p_facc30} (built from slope_wacc; delete slope_wacc after a terrain rerun to recompute all three)")
+    else:
+        if not arcpy.Exists(p_wacc):
+            log.info("Slope-weighted flow accumulation (2 m) ...")
+            sa.FlowAccumulation(fdir, slope, "FLOAT", "D8").save(p_wacc)
+        else:
+            log.info(f"Reusing {p_wacc} (the 2 m terrain has not changed; delete it to recompute after a terrain rerun)")
+        wacc = sa.Raster(p_wacc)
+        mean_up = (wacc + slope) / (facc + 1)
+        log.info(f"Aggregating to {out_cell:g} m (mean upslope slope by MEAN, accumulation by MAXIMUM) ...")
+        sa.Aggregate(mean_up, agg, "MEAN", "EXPAND", "DATA").save(p_mean30)
+        log.info(f"-> {p_mean30}")
+        sa.Aggregate(facc, agg, "MAXIMUM", "EXPAND", "DATA").save(p_facc30)
+        log.info(f"-> {p_facc30}")
+    mean_up30 = sa.Raster(p_mean30)
+    facc30 = sa.Raster(p_facc30)
+    # the class rasters are 30 m products: with the environment still at the 2 m facc, every Con below
+    # resampled the aggregates back to 2 m and RasterToPolygon walked 375 million cells (four hours
+    # on the Oct. 10 and Nov. 2 builds for the same 133,667 polygons)
+    arcpy.env.snapRaster = p_mean30
+    arcpy.env.cellSize = p_mean30
+    arcpy.env.extent = p_mean30
     area_sqmi = (facc30 + 1) * cell * cell / SQM_PER_SQMI
     # half-point scores x 10 as integers
     s = mean_up30
-    e1 = sa.Con(s > 30, 30, sa.Con(s > 25, 25, sa.Con(s > 20, 20, sa.Con(s > 15, 15, sa.Con(s > 10, 10, sa.Con(s > 5, 5, 0))))))
     a = area_sqmi
+    e1 = sa.Con(s > 30, 30, sa.Con(s > 25, 25, sa.Con(s > 20, 20, sa.Con(s > 15, 15, sa.Con(s > 10, 10, sa.Con(s > 5, 5, 0))))))
+    gate_sqmi = float(df.get("area_gate_sqmi", 0) or 0)
+    if df.get("e1_mask_over_gate") and gate_sqmi > 0:
+        # decision 34: on a channel cell the mean upslope slope is the whole basin's mean, so a road crossing a
+        # large river read E1 from the river; cells draining more than the gate score 0 and the road reads the
+        # hillslope cells beside it
+        e1 = sa.Con(a > gate_sqmi, 0, e1)
+        log.info(f"E1 masked to 0 where the 30 m contributing area is over {gate_sqmi:g} sq mi (e1_mask_over_gate)")
     e2 = sa.Con(a < 0.25, 30, sa.Con(a <= 0.5, 25, sa.Con(a <= 1, 20, sa.Con(a <= 2, 15, sa.Con(a <= 3, 10, sa.Con(a <= 5, 5, 0))))))
     e1_path, e2_path = f"{gdb}\\df_e1_cls", f"{gdb}\\df_e2_cls"
     sa.Int(e1).save(e1_path)
     sa.Int(e2).save(e2_path)
+    log.info(f"Class rasters saved at {float(arcpy.Describe(e1_path).meanCellWidth):g} m: {e1_path}, {e2_path}")
     out = {}
     for key, path, fc, label in (("e1", e1_path, df["slope_fc"], "mean upslope slope"), ("e2", e2_path, df["area_fc"], "contributing area")):
         g = _poly_from_int_raster(path, gdb, f"df_{key}_poly", crs, log)
+        log.info(f"DF {key}: {len(g)} raster polygons read; dissolving by class ...")
         g["hz_class"] = g["gridcode"].astype(float) / 10.0
         g = dissolve_classes(g[["hz_class", "geometry"]], crs)
         log.info(f"DF {key} ({label}), area by score (km2):\n"
                  + (g.groupby("hz_class").geometry.apply(lambda x: x.area.sum() / 1e6)).round(1).to_string())
         write_class_fc(g, gdb, fc, "debris_flow", {}, cfg, log)
-        out[key] = (float(w[key]), g, hints[key])
+        if key in w:
+            out[key] = (float(w[key]), g, hints[key])
     sev = pyogrio.read_dataframe(gdb, layer=sev_fc).to_crs(crs)
     out["e3"] = (float(w["e3"]), sev, hints["e3"])
-    log.info("E3 is the TRPA most-likely fire severity surface standing in for predicted soil burn severity (DF_option proxy)")
+    log.info("E3 is the TRPA most-likely fire severity surface standing in for predicted soil burn severity (DF_option stand-in)")
     arcpy.CheckInExtension("Spatial")
     return out
 

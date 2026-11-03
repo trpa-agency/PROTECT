@@ -31,13 +31,13 @@ CULVERT_COLS = ["culvert_id", "jurisdiction", "road_name", "feature_type", "pare
                 "q_event_25_cfs", "q_event_100_cfs", "q_cap_crossing_cfs", "load_ratio_25", "load_ratio_100",
                 "cond_class", "cond_source", "cond_stale", "blockage_pct", "tailwater_flag", "on_stream",
                 "size_suspect", "ratio_review", "profile_completeness", "E_FLC_hist", "E_FLC_pt", "E_FLC_src",
-                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_DFC_hist", "E_DFC_e1", "E_DFC_e2", "E_DFC_e3", "DF_option", "E_source",
+                "E_LSC_hist", "E_LSC_e1", "E_LSC_pt", "E_DFC_hist", "E_DFC_e1", "E_DFC_e3", "DF_option", "DF_gate", "E_source",
                 "S_FLC", "V_FLC_hist", "S_FLC_q25", "V_FLC_hist_q25", "S_LSC", "V_LSC_hist", "S_DFC", "V_DFC_hist", "V_max", "V_max_pair", "V_class",
                 "V_max_all", "V_max_all_pair", "V_class_all", "S_source"]
 BRIDGE_COLS = ["bridge_id", "state", "owner", "facility_carried", "feature_crossed", "year_built",
                "is_culvert_type", "main_spans", "max_span_m", "waterway_eval", "scour_code", "scour_label",
                "channel_cond", "lowest_rating", "bridge_condition_label", "water_crossing", "parent_segment_id",
-               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_DFB_hist", "DF_option", "E_source",
+               "E_FLB_hist", "E_FLB_e1", "E_FLB_e2", "E_LSB_hist", "E_LSB_e1", "E_DFB_hist", "DF_option", "DF_gate", "E_source",
                "S_FLB", "V_FLB_hist", "S_LSB", "V_LSB_hist", "S_DFB", "V_DFB_hist", "V_max", "V_max_pair", "V_class",
                "V_max_all", "V_max_all_pair", "V_class_all", "S_source"]
 ROAD_COLS = ["src_objectid", "name", "class", "E_{p}_hist", "E_{p}_e1", "E_{p}_e2", "E_{p}_e3", "len_pct_c1", "len_pct_c2",
@@ -51,6 +51,9 @@ OD_COLS = (["src_objectid", "segment_id", "in_flood_zone", "high_sev_fire", "lan
 CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1 else "Medium" if v < 2 else "High")
 # wildfire pairs (scoring.v_breaks_wildfire): Low under 1.5, Medium 1.5 to 2.0, High over 2.0
 WF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1.5 else "Medium" if v <= 2 else "High")
+# debris flow pairs (scoring.v_breaks_debris_flow, decision 34): Low under 1.5, Medium 1.5 to under 2.0, High 2.0 and over
+DF_CLASS_OF = lambda v: None if pd.isna(v) else ("Low" if v < 1.5 else "Medium" if v < 2 else "High")
+PAIR_CLASS_OF = lambda p: WF_CLASS_OF if p.startswith("WF") else DF_CLASS_OF if p.startswith("DF") else CLASS_OF
 WF_ROAD_COLS = [c.format(p="WFR") for c in ROAD_COLS]
 ROUND = {"contrib_area_ac": 1, "basin_slope_pct": 1, "basin_precip_in": 1, "q_event_25_cfs": 1, "q_event_100_cfs": 1,
          "q_cap_crossing_cfs": 1, "load_ratio_25": 2, "load_ratio_100": 2, "max_span_m": 1, "span_in": 1, "d_eq_in": 1}
@@ -390,7 +393,7 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
                   "V_max_pair": {str(k): int(v) for k, v in r["V_max_pair"].value_counts().items()},
                   "V_class_all": {str(k): int(v) for k, v in r["V_class_all"].value_counts().items()} if "V_class_all" in r.columns else None,
                   "V_max_all_pair": {str(k): int(v) for k, v in r["V_max_all_pair"].value_counts().items()} if "V_max_all_pair" in r.columns else None,
-                  "pair_class": {p: {str(k): int(v) for k, v in r[f"V_{p}_hist"].map(WF_CLASS_OF if p.startswith("WF") else CLASS_OF).value_counts().items()}
+                  "pair_class": {p: {str(k): int(v) for k, v in r[f"V_{p}_hist"].map(PAIR_CLASS_OF(p)).value_counts().items()}
                                  for p in ("FLR", "LSR", "WFR", "DFR", "AVR") if f"V_{p}_hist" in r.columns},
                   "C_class": {str(int(k)): int(v) for k, v in cc.dropna().value_counts().sort_index().items()},
                   "matrix": matrix,
@@ -398,13 +401,14 @@ def write_vulnerability(cfg: dict, out_dir: Path, log, cul: gpd.GeoDataFrame, br
                                "by_pair": {str(k): int(v) for k, v in hot["V_max_pair"].value_counts().items()}}},
         "culverts": {"V_class": {str(k): int(v) for k, v in cul["V_class"].value_counts().items()},
                      "V_max_pair": {str(k): int(v) for k, v in cul["V_max_pair"].value_counts().items()},
-                     "pair_class": {p: {str(k): int(v) for k, v in cul[f"V_{p}_hist"].map(CLASS_OF).value_counts().items()}
+                     "pair_class": {p: {str(k): int(v) for k, v in cul[f"V_{p}_hist"].map(PAIR_CLASS_OF(p)).value_counts().items()}
                                     for p in ("FLC", "LSC", "DFC") if f"V_{p}_hist" in cul.columns}} if "V_class" in cul.columns else None,
         "bridges": {"V_class": {str(k): int(v) for k, v in br["V_class"].value_counts().items()},
                     "V_max_pair": {str(k): int(v) for k, v in br["V_max_pair"].value_counts().items()},
-                    "pair_class": {p: {str(k): int(v) for k, v in br[f"V_{p}_hist"].map(WF_CLASS_OF if p.startswith("WF") else CLASS_OF).value_counts().items()}
+                    "pair_class": {p: {str(k): int(v) for k, v in br[f"V_{p}_hist"].map(PAIR_CLASS_OF(p)).value_counts().items()}
                                    for p in ("FLB", "LSB", "DFB") if f"V_{p}_hist" in br.columns}} if "V_class" in br.columns else None,
-        "breaks": cfg["scoring"]["v_breaks"], "breaks_wildfire": cfg["scoring"].get("v_breaks_wildfire"), "c_class_pctl_breaks": cfg["scoring"].get("c_class_pctl_breaks"),
+        "breaks": cfg["scoring"]["v_breaks"], "breaks_wildfire": cfg["scoring"].get("v_breaks_wildfire"),
+        "breaks_debris_flow": cfg["scoring"].get("v_breaks_debris_flow"), "c_class_pctl_breaks": cfg["scoring"].get("c_class_pctl_breaks"),
         "v_max_exclude": list(cfg["scoring"].get("v_max_exclude") or []),
     }
     for stem, lab in (("active_transport", "paths"), ("transit_centers", "transit")):

@@ -223,13 +223,14 @@
     </div>
     <div class="defs">
       <div><b>Classes.</b> Low under 1, Medium 1 to under 2, High 2 and over. Wildfire scores run 1 to 3 everywhere, so wildfire uses
-        Low under 1.5, Medium 1.5 to 2, High over 2.</div>
-      <div><b>Combined class.</b> An asset in several pairs carries its highest pair score (the popup names it as Highest hazard); its class is the
-        highest of its pair classes.</div>
+        Low under 1.5, Medium 1.5 to 2, High over 2. Debris flow uses Low under 1.5, Medium 1.5 to under 2, High 2 and over, so a
+        drainage with low burn severity reads Medium only over a 25 percent slope (decision 34).</div>
+      <div><b>Combined class.</b> An asset in several pairs takes the highest of its pair classes; the popup names the pair that sets it as
+        the Highest hazard and shows that pair's score (decision 37).</div>
       <div><b>Hotspots.</b> High vulnerability on a road in the top criticality quarter.</div>
       <div><b>Stand-in.</b> A dataset used in place of the one the method names until it arrives. The debris-flow pairs rest on
-        stand-ins (fire severity for soil burn severity, and a drainage-size break that puts nearly every basin at 3), so they stay
-        out of the combined class; the "with stand-ins" fields include them.</div>
+        a stand-in (fire severity for soil burn severity); they count in the combined class since Nov. 3, 2026 (decision 35) and
+        are rescored in place when the contracted surface arrives.</div>
       <div><b>Missing data.</b> An unobserved sensitivity input (most culvert conditions) takes the method's default; Sensitivity
         data then reads partial or default.</div>
     </div>
@@ -260,9 +261,11 @@
           <td>Culverts: opening size, condition. Bridges: span type, condition, span length. Roads: none.</td>
           <td class="w">Roads E 1.0<br>Culverts, bridges E 0.7, S 0.3</td></tr>
         <tr><td>Debris flow</td><td>Roads, culverts, bridges</td>
-          <td>Mean slope (0.2) and drainage area (0.2) of the ground draining to the point, from the 2 m lidar DEM, and burn severity
-            (0.3) with the fire severity surface standing in for predicted soil burn severity. The USGS debris-flow model (Wildcat) is
-            reviewed for December.</td>
+          <td>Mean slope of the ground draining to the point, from the 2 m lidar DEM (0.4), and burn severity (0.6), with the fire
+            severity surface standing in for predicted soil burn severity; severity must cover at least 25 percent of the drainage
+            (culverts) or of the 300 ft around the asset (roads, bridges). Culverts and bridges draining more than 3 square miles
+            score 0, as do the two bridges at the Truckee River outlet; a road crossing a large river reads the slope of the
+            hillslope beside it, not the river's basin-wide mean. The USGS debris-flow model (Wildcat) is reviewed for December.</td>
           <td>Culverts: opening size, condition. Bridges: span type, condition, span length. Roads: none.</td>
           <td class="w">Roads E 1.0<br>Culverts, bridges E 0.7, S 0.3</td></tr>
         <tr><td>Avalanche</td><td>Roads</td>
