@@ -798,10 +798,14 @@ def sample_watersheds_share(cfg: dict, surf: gpd.GeoDataFrame, share: float, cum
     frac = pd.DataFrame({c: [full[c][pp] for pp in pps] for c in by_class.columns}, index=pps)
     frac = frac.div(tot.where(tot > 0), axis=0)
     best = best_share_class(frac.fillna(0.0), share, cumulative).where(tot > 0)
+    other = best_share_class(frac.fillna(0.0), share, not cumulative).where(tot > 0)
     out = pd.DataFrame({"crossing_id": [f"X{pp:05d}" for pp in pps], "hz_ws": best.values})
-    log.info(f"Watershed share sampling ({share * 100:g} percent of the watershed{', cumulative' if cumulative else ''}) on "
+    rule, alt = ("cumulative", "per class") if cumulative else ("per class", "cumulative")
+    log.info(f"Watershed share sampling ({share * 100:g} percent of the watershed, {rule} rule) on "
              f"{len(out)} crossings, {int(best.isna().sum())} with no zone area; class counts:\n"
-             + out["hz_ws"].value_counts(dropna=False).sort_index().to_string())
+             + out["hz_ws"].value_counts(dropna=False).sort_index().to_string()
+             + f"\nSame crossings under the {alt} rule (not used; for the share-rule decision):\n"
+             + other.value_counts(dropna=False).sort_index().to_string())
     return out
 
 
