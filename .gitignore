@@ -65,6 +65,12 @@ scripts/ra2ce/output_rerun/**/*.feather
 scripts/ra2ce/output_rerun/optimal_route_origin_destination/*.csv
 scripts/ra2ce/output_rerun/*.parquet
 
+# ArcGIS Pro projects. The working project lives outside the repo (C:\GIS\PROTECT_local, set up by
+# print-maps/localize_aprx.py) because its default geodatabase holds NDOT rows; a .aprx is binary
+# and Pages would serve it from data/.
+*.aprx
+*.aprx.bak
+
 # ArcGIS file geodatabases. A .gdb is a directory of binary tables that ArcGIS Pro
 # rewrites in place, so it neither diffs nor merges - treat the whole thing as an
 # output no matter where a script drops it.
