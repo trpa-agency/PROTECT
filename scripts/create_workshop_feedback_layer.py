@@ -10,15 +10,18 @@ for each of two services:
 The services:
 
 * "PROTECT Workshop Feedback notes", a hosted table, one row per send;
-* "PROTECT Workshop Feedback flood areas" (added Oct. 30, 2026), a hosted polygon layer, one
-  feature per area a participant drew where they have seen flooding, with who saw it. Each area carries the
-  send_id of its send, and the notes row of the same send carries it as sid in notes_json; the
-  page shows a participant's areas only from their latest send.
-* "PROTECT Workshop Feedback flood area contacts", a private hosted table with a Create-only
-  submit view and no public view, holding every email the page sends: the participant's own
-  (from Who you are, area_id empty) and the optional follow-up email for an area. It is a
-  separate service because a view in this org does not hide a field: the flood areas public view
-  still listed contact_email after it was left out (checked Oct. 30, 2026).
+* "PROTECT Workshop Feedback flood areas v2" (Nov. 4, 2026), a hosted polygon layer, one
+  feature per area a participant drew where they have seen flooding: when, what happened, acres,
+  and the name at the top of the page. Each area carries the send_id of its send, and the notes
+  row of the same send carries it as sid in notes_json; the page shows a participant's areas only
+  from their latest send. It replaces the Oct. 30, 2026 "PROTECT Workshop Feedback flood areas"
+  service (owner amcclary_TRPA, left in place, empty): that service's submit view was made with a
+  hand-rolled create_service that never set isUpdatableView, so ArcGIS Online marked the view
+  non-updatable and refused every add with "This operation is not supported." Views are now made
+  with FeatureLayerCollection.manager.create_view(updateable=True), the supported way.
+
+The page no longer asks for an email or agency (Nov. 4, 2026), so the flood area contacts table
+built Oct. 30 is not created or used any more.
 
 Built Oct. 10, 2026 (owner mbindl, TRPA ArcGIS Online). What did not work in this org, so the
 page is designed around it: hiding a field on a view of a hosted *table* (sourceLayerFields at
@@ -31,7 +34,8 @@ Run from arcgispro-py3 while ArcGIS Pro is signed in to ArcGIS Online (GIS("home
 sign-in; no password in this file). Safe to run again: it finds the items by title and only
 creates what is missing. --smoke-test posts one anonymous row to the notes submit view, reads it
 back from the public view, confirms the submit view refuses queries, and deletes the row; then
-the same with one polygon on the flood areas service.
+the same with one polygon on the flood areas service. The smoke test needs the signed-in user to
+own the parent (it deletes its rows there); someone else's service is reported and skipped.
 
     python scripts/create_workshop_feedback_layer.py [--smoke-test]
 """
@@ -81,14 +85,9 @@ AREA_FIELDS = [
     {"name": "send_id", "type": "esriFieldTypeDouble", "alias": "Send (ms since 1970; sid in the notes row of the same send)", "nullable": True, "editable": True},
     text("area_id", "Area id (made by the page)", 64),
     text("observed_when", "When it happened"),
-    text("severity", "How bad", 64),
-    text("frequency", "How often", 64),
     text("notes", "What happened", 4000),
     {"name": "area_acres", "type": "esriFieldTypeDouble", "alias": "Area (acres)", "nullable": True, "editable": True},
-    text("reporter_name", "Who saw it: name"),
-    text("reporter_agency", "Who saw it: agency"),
-    # The layer made Oct. 30, 2026 also has a contact_email field, from before the emails moved to the contacts
-    # table: the public view still listed it after it was left out (as with the notes table), so the page never fills it.
+    text("reporter_name", "Who saw it: the name at the top of the page when the area was saved"),
 ]
 TAHOE_EXTENT = {"xmin": -13392000, "ymin": 4688000, "xmax": -13331000, "ymax": 4770000, "spatialReference": {"wkid": 102100, "latestWkid": 3857}}
 AREA_DEF = {
@@ -103,28 +102,10 @@ AREA_DEF = {
 NOTES = {"parent": "PROTECT Workshop Feedback notes", "submit": "PROTECT Workshop Feedback notes submit",
          "public": "PROTECT Workshop Feedback notes public view", "service": "PROTECT_Workshop_Feedback_notes",
          "kind": "tables", "definition": TABLE_DEF, "what": "Feedback sent from the PROTECT Workshop Feedback page (data.trpa.gov/PROTECT)."}
-AREAS = {"parent": "PROTECT Workshop Feedback flood areas", "submit": "PROTECT Workshop Feedback flood areas submit",
-         "public": "PROTECT Workshop Feedback flood areas public view", "service": "PROTECT_Workshop_Feedback_flood_areas",
+AREAS = {"parent": "PROTECT Workshop Feedback flood areas v2", "submit": "PROTECT Workshop Feedback flood areas v2 submit",
+         "public": "PROTECT Workshop Feedback flood areas v2 public view", "service": "PROTECT_Workshop_Feedback_flood_areas_v2",
          "kind": "layers", "definition": AREA_DEF, "what": "Areas of observed flooding drawn on the PROTECT Workshop Feedback page (data.trpa.gov/PROTECT)."}
 
-# The optional follow-up email on a flooded area. A view here cannot hide a field, so the email gets its own private
-# table with a Create-only submit view and no public view: only the owner reads it. Joins to the areas on area_id + send_id.
-CONTACT_DEF = {
-    "name": "contacts", "type": "Table", "displayField": "reporter_name", "objectIdField": "OBJECTID",
-    "description": "Emails sent from html/workshop-feedback.html (private; no public view): the participant's own (area_id empty) and follow-up emails on flooded areas",
-    "fields": [{"name": "OBJECTID", "type": "esriFieldTypeOID", "alias": "OBJECTID", "nullable": False, "editable": False},
-               text("reviewer_key", "Reviewer key (hash of the email under Who you are, or of the browser)", 32),
-               text("round", "Round (Workshop 1, Workshop 2)", 64),
-               {"name": "send_id", "type": "esriFieldTypeDouble", "alias": "Send (matches send_id on the flood area)", "nullable": True, "editable": True},
-               text("area_id", "Area id (matches area_id on the flood area; empty for the participant's own email from Who you are)", 64),
-               text("reporter_name", "Who saw it: name"),
-               text("reporter_agency", "Who saw it: agency"),
-               text("contact_email", "Who saw it: email for follow-up")],
-    "capabilities": "Create,Query,Update,Delete,Editing", "hasAttachments": False,
-}
-CONTACTS = {"parent": "PROTECT Workshop Feedback flood area contacts", "submit": "PROTECT Workshop Feedback flood area contacts submit",
-            "public": None, "service": "PROTECT_Workshop_Feedback_flood_area_contacts",
-            "kind": "tables", "definition": CONTACT_DEF, "what": "Follow-up emails for flooded areas from the PROTECT Workshop Feedback page. Private."}
 
 
 def find(gis, title):
@@ -179,18 +160,15 @@ def ensure_view(gis, spec, parent, which, name, capabilities):
         log.info("view exists: %s (%s)", title, item.id)
     else:
         log.info("creating view %s (%s)", title, capabilities)
-        src = sublayer_of(gis, parent, spec["kind"]).properties
-        item = gis.content.create_service(name=name, is_view=True, service_type="featureService", capabilities=capabilities, tags=TAGS,
-                                          snippet=f"{capabilities} view of {spec['parent']} for the Workshop Feedback page.")
+        # manager.create_view is the supported way: it sets isUpdatableView, which a hand-rolled create_service +
+        # addToDefinition left unset on the Oct. 30 flood areas view (ArcGIS Online then refused every add)
+        sublayer_of(gis, parent, spec["kind"])             # waits until the parent lists its layer or table
+        item = FeatureLayerCollection.fromitem(parent).manager.create_view(
+            name=name, capabilities=capabilities, updateable=True, allow_schema_changes=True, tags=",".join(TAGS),
+            snippet=f"{capabilities} view of {spec['parent']} for the Workshop Feedback page.")
         item.update({"title": title})
-        d = spec["definition"]
-        tdef = {"adminLayerInfo": {"viewLayerDefinition": {"sourceServiceName": spec["service"], "sourceLayerId": 0, "sourceLayerFields": "*"}},
-                "name": d["name"], "type": d["type"], "displayField": d["displayField"], "objectIdField": "OBJECTID",
-                "fields": [dict(f) for f in src["fields"]], "capabilities": capabilities, "hasAttachments": False}
-        if spec["kind"] == "layers":
-            tdef.update({"geometryType": d["geometryType"], "extent": d["extent"]})
-        log.info("addToDefinition: %s", FeatureLayerCollection.fromitem(item).manager.add_to_definition({spec["kind"]: [tdef]}))
         item = gis.content.get(item.id)
+        log.info("view %s: isUpdatableView %s", title, sublayer_of(gis, item, spec["kind"]).properties.get("isUpdatableView"))
     tbl = sublayer_of(gis, item, spec["kind"])
     if not mine(gis, item):                          # someone else's view: report it, change nothing
         log.info("view %s is owned by %s; left as is (%s, %s)", title, item.owner, tbl.properties.get("capabilities"), item.access)
@@ -229,9 +207,8 @@ def smoke_test(gis, parent, submit_url, public_url):
 def smoke_test_areas(gis, parent, submit_url, public_url):
     x, y = -13358000, 4732000                        # a small square near Tahoe City, in Web Mercator like the page sends
     geom = {"rings": [[[x, y], [x, y + 200], [x + 200, y + 200], [x + 200, y], [x, y]]], "spatialReference": {"wkid": 102100}}
-    row = {"reviewer_name": "Smoke Test", "agency": "TRPA", "reviewer_key": "deadbeef", "round": "smoke", "send_id": int(time.time() * 1000),
-           "area_id": "smoke", "observed_when": "Jan. 2017 storm", "severity": "Road closed", "frequency": "Once", "notes": "Test area", "area_acres": 9.9,
-           "reporter_name": "Smoke Test", "reporter_agency": "TRPA"}
+    row = {"reviewer_name": "Smoke Test", "agency": None, "reviewer_key": "deadbeef", "round": "smoke", "send_id": int(time.time() * 1000),
+           "area_id": "smoke", "observed_when": "Jan. 2017 storm", "notes": "Test area", "area_acres": 9.9, "reporter_name": "Smoke Test"}
     r = post(f"{submit_url}/applyEdits", {"f": "json", "adds": json.dumps([{"geometry": geom, "attributes": row}]), "rollbackOnFailure": "true"})
     log.info("anonymous area add: %s", r.get("addResults") or r)
     ok = bool(r.get("addResults", [{}])[0].get("success"))
@@ -239,10 +216,6 @@ def smoke_test_areas(gis, parent, submit_url, public_url):
     feats = q.get("features", [])
     log.info("anonymous area read back: %s features (error: %s)", len(feats), q.get("error"))
     ok = ok and len(feats) >= 1 and bool((feats[0].get("geometry") or {}).get("rings"))
-    # no email may come back from the public view (the page sends emails to the contacts table, never here)
-    leaked = [f["attributes"].get("contact_email") for f in feats if f["attributes"].get("contact_email")]
-    log.info("public view returns no emails: %s", not leaked)
-    ok = ok and not leaked
     blocked = bool(post(f"{submit_url}/query", {"f": "json", "where": "1=1"}).get("error"))
     log.info("area submit view refuses queries: %s", blocked)
     ok = ok and blocked
@@ -250,28 +223,11 @@ def smoke_test_areas(gis, parent, submit_url, public_url):
     return ok
 
 
-def smoke_test_contacts(gis, parent, submit_url, public_url=None):
-    row = {"reviewer_key": "deadbeef", "round": "smoke", "send_id": int(time.time() * 1000), "area_id": "smoke",
-           "reporter_name": "Smoke Test", "reporter_agency": "TRPA", "contact_email": "smoke-test@example.com"}
-    r = post(f"{submit_url}/applyEdits", {"f": "json", "adds": json.dumps([{"attributes": row}]), "rollbackOnFailure": "true"})
-    log.info("anonymous contact add: %s", r.get("addResults") or r)
-    ok = bool(r.get("addResults", [{}])[0].get("success"))
-    blocked = bool(post(f"{submit_url}/query", {"f": "json", "where": "1=1"}).get("error"))
-    log.info("contacts submit view refuses queries: %s", blocked)
-    private = gis.content.get(parent.id).access == "private"
-    log.info("contacts table is private: %s", private)
-    tbl = sublayer_of(gis, parent, "tables")
-    back = tbl.query(where="round='smoke'").features
-    log.info("owner reads it back: %s rows", len(back))
-    log.info("delete test contacts: %s", tbl.delete_features(where="round='smoke'").get("deleteResults"))
-    return ok and blocked and private and len(back) >= 1
-
-
 def main():
     gis = GIS("home")
     log.info("signed in as %s at %s", gis.users.me.username, gis.url)
     found = {}
-    for spec, keys in ((NOTES, ("submitUrl", "viewUrl")), (AREAS, ("areasSubmitUrl", "areasViewUrl")), (CONTACTS, ("contactsSubmitUrl", None))):
+    for spec, keys in ((NOTES, ("submitUrl", "viewUrl")), (AREAS, ("areasSubmitUrl", "areasViewUrl"))):
         parent = ensure_parent(gis, spec)
         submit_item, submit_url = ensure_view(gis, spec, parent, "submit", f"{spec['service']}_submit", "Create")
         public_item, public_url = ensure_view(gis, spec, parent, "public", f"{spec['service']}_read", "Query") if spec["public"] else (None, None)
@@ -282,7 +238,7 @@ def main():
     if "--smoke-test" in sys.argv:
         # the test deletes its rows from the parent, which takes owning it; someone else's service is skipped
         results = {}
-        for spec, test in ((NOTES, smoke_test), (AREAS, smoke_test_areas), (CONTACTS, smoke_test_contacts)):
+        for spec, test in ((NOTES, smoke_test), (AREAS, smoke_test_areas)):
             parent = found[spec["service"]][0]
             if mine(gis, parent):
                 results[spec["parent"]] = "passed" if test(gis, *found[spec["service"]]) else "FAILED"
