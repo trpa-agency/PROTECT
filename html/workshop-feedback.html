@@ -112,8 +112,6 @@
     .mcount{min-width:1.15rem;height:1.15rem;padding:0 .3rem;border-radius:999px;background:var(--trpa-blue);color:#fff;font-size:.64rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
     .mode[data-mode="flood"] .mcount{background:var(--flood-seen);} .mcount:empty{display:none;}
     .mode-pane[hidden]{display:none;}
-    /* the participant's name: the one identity field, first thing in the panel (no agency, no email) */
-    .name-top{flex-direction:row;align-items:center;gap:.6rem;} .name-top span{flex:0 0 auto;} .name-top input{flex:1;}
     /* the draft result for the selected asset: class chip, score, the reason, how the score is built */
     .nc-draft{font-size:.74rem;line-height:1.45;color:var(--gray-text);background:#fff;border:1px solid var(--gray-border);border-radius:6px;padding:.4rem .55rem;} .nc-draft b{color:var(--trpa-navy);}
     .vc{display:inline-block;font-weight:700;color:#fff;padding:0 .45rem;border-radius:999px;font-size:.7rem;line-height:1.5;} .vc.Low,.vc.none{color:var(--trpa-navy);}
@@ -333,7 +331,6 @@
     <aside id="sidePanel" aria-label="Feedback panel">
       <!-- The three kinds of feedback; only the chosen one's pane shows (setMode) -->
       <div id="panelTop">
-        <label class="field name-top" title="Your notes, flooded areas, and answers are sent under this name. Nothing else about you is asked for."><span>Your name</span><input id="revName" type="text" class="plain" placeholder="First Last" autocomplete="name" /></label>
         <section class="panel-sec" id="stationSec">
           <h2 class="sec-title">Hazard station</h2>
           <div class="stations" id="stations" role="radiogroup" aria-label="Hazard station"></div>
@@ -376,6 +373,7 @@
 
         <section class="panel-sec mode-pane" data-pane="general" id="stationQ" hidden>
           <p class="ask" id="stationAsk"></p>
+          <label class="field">Name<input type="text" class="plain who" placeholder="First Last" autocomplete="name" title="Your notes, flooded areas, and answers are sent under this name. Nothing else about you is asked for." /></label>
           <label class="field"><span>Do the draft results for <span id="sqHaz">this hazard</span> match what you expected? What is missing?</span>
             <textarea id="sqExpect" class="plain" rows="3" placeholder="What surprised you, what agrees, what is not on the map"></textarea>
           </label>
@@ -456,9 +454,9 @@
         <li><b>Assets.</b> Roads (the 18,283-segment street network), the 40 National Bridge Inventory bridges, the compiled culverts with a flow profile, the eight transit hubs, transit routes, and bike and pedestrian paths, read from the same published results files as the Results page. If what concerns you is not on the map, drop a pin.</li>
         <li><b>Draft result and why.</b> Clicking an asset shows its draft vulnerability class for the station, the score out of 3, the reason in plain words (for example, how much of the 100-year storm a culvert can pass), and how the score is built: exposure and sensitivity with their weights. The scores are the published results the Results page maps; the full rubrics are on the Scoring rubrics page.</li>
         <li><b>Flooding you have seen.</b> <em>Draw a flooded area</em> lets you outline where you have seen water on or near a road: click the map to add corners and double-click to finish. Then say when it happened and what happened. Areas are sent with your notes under your name.</li>
-        <li><b>Concern.</b> Greatest Concern, Somewhat Concerned, or Just Adding a Note; the marker on the map shows 1, 2, or 3 in that order. Nothing is required: a note can be just the asset. Tick <em>Missing from the draft results</em> when the draft maps do not show something you know is vulnerable.</li>
-        <li><b>Sending.</b> <em>Send my notes</em> posts to TRPA's ArcGIS Online under the name at the top of the panel; no email or agency is asked for. The latest send under that name from this browser replaces the earlier one. If sending fails, download the CSV of your notes and email it to the data team.</li>
-        <li><b>Typing up paper sticky notes.</b> The paper template has the same fields: Name, asset, concern level, issue description. Enter the person's name at the top, add their notes (click the asset, use <em>Find a road</em>, or drop a pin and describe the asset), send, then press <em>Next person</em> to clear the browser for the next set.</li>
+        <li><b>Concern.</b> Greatest Concern, Somewhat Concerned, or Just Adding a Note; the marker on the map shows 1, 2, or 3 in that order. Nothing is required: a note can be just the asset.</li>
+        <li><b>Sending.</b> <em>Send my notes</em> posts to TRPA's ArcGIS Online under the name at the top of the form; no email or agency is asked for. The latest send under that name from this browser replaces the earlier one. If sending fails, download the CSV of your notes and email it to the data team.</li>
+        <li><b>Typing up paper sticky notes.</b> The paper template has the same fields: Name, asset, concern level, issue description. Enter the person's name at the top of the form, add their notes (click the asset, use <em>Find a road</em>, or drop a pin and describe the asset), send, then press <em>Next person</em> to clear the browser for the next set.</li>
         <li><b>Report out.</b> The <em>Everyone</em> and <em>Report out</em> tables combine sent and imported notes by asset, with the count of people who flagged it and their concern levels.</li>
       </ul>
       <p class="fine">Notes are kept in this browser until you clear them. Internal review draft; the workshop release is Nov. 9, 2026.</p>
@@ -807,6 +805,7 @@
           <div class="nc-sub">${escHtml(shownSub(n.sub))}</div></div>
           <button class="nc-close" id="ncClose" title="Close" aria-label="Close">&times;</button></div>
         ${n.draft ? `<div class="nc-draft">${n.draft}</div>` : ""}
+        <label class="field">Name<input type="text" class="plain who" placeholder="First Last" autocomplete="name" value="${escHtml(state.reviewer.name)}" /></label>
         <label class="field">Concern level
           <div class="seg concern" id="ncConcern" role="radiogroup" aria-label="Concern level">${[1, 2, 3].map(c => `<button data-v="${c}" role="radio" aria-checked="${n.concern === c}" class="${n.concern === c ? "active" : ""}" title="${CONCERN[c]} (${c} on the map)">${CONCERN[c]}</button>`).join("")}</div>
         </label>
@@ -816,7 +815,6 @@
         <label class="field">Issue description
           <textarea id="ncWhy" class="plain" rows="3" placeholder="e.g. This culvert overtops during every storm and is below the Caldor burn scar">${escHtml(n.why || "")}</textarea>
         </label>
-        <label class="toggle"><calcite-checkbox id="ncMissing" ${n.missing ? "checked" : ""}></calcite-checkbox> Missing from the draft results</label>
         <div class="nc-actions">
           <calcite-button id="ncSave" appearance="solid" kind="brand" scale="s" icon-start="save">${n.saved ? "Update note" : "Save note"}</calcite-button>
           ${n.saved ? `<calcite-button id="ncRemove" appearance="outline" kind="danger" scale="s" icon-start="trash">Remove</calcite-button>` : ""}
@@ -826,7 +824,6 @@
       $("ncConcern").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; n.concern = n.concern === +b.dataset.v ? null : +b.dataset.v; renderNoteCard(); });
       $("ncHaz").addEventListener("click", (e) => { const b = e.target.closest("button[data-k]"); if (!b) return; const k = b.dataset.k; n.hazards = n.hazards.includes(k) ? n.hazards.filter(x => x !== k) : [...n.hazards, k]; renderNoteCard(); });
       $("ncWhy").addEventListener("input", () => { n.why = $("ncWhy").value; });
-      $("ncMissing").addEventListener("calciteCheckboxChange", () => { n.missing = $("ncMissing").checked; });
       if ($("ncName")) $("ncName").addEventListener("input", () => { n.name = $("ncName").value.trim() || "Pinned place"; });
       $("ncSave").addEventListener("click", saveNote);
       if ($("ncRemove")) $("ncRemove").addEventListener("click", () => removeNote(n.key));
@@ -922,6 +919,7 @@
         <div class="nc-head"><div style="flex:1;min-width:0"><span class="type" style="background:var(--flood-seen)">Flooding seen</span>
           <div class="nc-sub">${escHtml(capFirst(acresText(a.acres)))}${a.saved && a.when ? ` · Saved ${apDate(a.when)}` : ""}</div></div>
           <button class="nc-close" id="faClose" title="Close" aria-label="Close">&times;</button></div>
+        <label class="field">Name<input type="text" class="plain who" placeholder="First Last" autocomplete="name" value="${escHtml(state.reviewer.name)}" /></label>
         <label class="field">When did it happen?<input id="faWhen" type="text" class="plain" placeholder="e.g. Jan. 2017 storm, most springs" value="${escHtml(a.observed || "")}" /></label>
         <label class="field">What happened?<textarea id="faWhy" class="plain" rows="3" placeholder="Where the water came from, how long the road was closed, who was cut off">${escHtml(a.why || "")}</textarea></label>
         <div class="nc-actions"><button class="abtn solid small" id="faSave">${a.saved ? "Update area" : "Save area"}</button>${a.saved ? `<button class="abtn danger small" id="faRemove">Remove</button>` : `<button class="abtn small" id="faDiscard">Discard</button>`}</div>`;
@@ -989,7 +987,7 @@
     function renderNoteList() {
       const notes = myNotes();
       $("noteCount").textContent = notes.length ? `${notes.length}` : "";
-      $("noteList").innerHTML = notes.length ? notes.map(n => `<li class="nrow ${selected && selected.key === n.key ? "sel" : ""}" data-key="${escHtml(n.key)}">${cBadge(n.concern)}<div class="n-main"><b>${escHtml(n.name)}</b>${n.missing ? ' <span class="fine" style="color:var(--trpa-brick);font-weight:700">missing</span>' : ""}<small>${(n.hazards || []).map(k => `<span class="hdot" style="background:${(HZ[k] || {}).color || "#999"}"></span>${escHtml((HZ[k] || {}).s || k)}`).join(" ")}${n.hazards.length ? " · " : ""}${escHtml(ASSET_TYPES[n.type] || n.type)}${n.why ? ` · ${escHtml(n.why.length > 70 ? n.why.slice(0, 68) + "…" : n.why)}` : ""}</small></div><button class="n-x" data-key="${escHtml(n.key)}" title="Remove this note" aria-label="Remove">&times;</button></li>`).join("")
+      $("noteList").innerHTML = notes.length ? notes.map(n => `<li class="nrow ${selected && selected.key === n.key ? "sel" : ""}" data-key="${escHtml(n.key)}">${cBadge(n.concern)}<div class="n-main"><b>${escHtml(n.name)}</b><small>${(n.hazards || []).map(k => `<span class="hdot" style="background:${(HZ[k] || {}).color || "#999"}"></span>${escHtml((HZ[k] || {}).s || k)}`).join(" ")}${n.hazards.length ? " · " : ""}${escHtml(ASSET_TYPES[n.type] || n.type)}${n.why ? ` · ${escHtml(n.why.length > 70 ? n.why.slice(0, 68) + "…" : n.why)}` : ""}</small></div><button class="n-x" data-key="${escHtml(n.key)}" title="Remove this note" aria-label="Remove">&times;</button></li>`).join("")
         : `<li class="nrow" style="cursor:default;color:var(--gray-text)">No notes yet. Click an asset on the map to start.</li>`;
     }
     $("noteList").addEventListener("click", (e) => {
@@ -1000,8 +998,8 @@
     });
     $("nextBtn").addEventListener("click", () => {
       if (!confirm("Start the next person's notes? What was sent stays on the server. The notes, flooded areas, and answers in this browser are cleared and the name is blanked.")) return;
-      state.notes = {}; state.areas = {}; state.station = {}; state.sentAt = null; state.reviewer.name = ""; $("revName").value = ""; saveLS(LS_KEY, state);
-      selected = null; selArea = null; renderAreaCard(); closePopup(); renderNoteCard(); renderStations(); renderAll(); clearHighlight(); setMode("asset"); $("revName").focus();
+      state.notes = {}; state.areas = {}; state.station = {}; state.sentAt = null; state.reviewer.name = ""; setWho(""); saveLS(LS_KEY, state);
+      selected = null; selArea = null; renderAreaCard(); closePopup(); renderNoteCard(); renderStations(); renderAll(); clearHighlight(); setMode("asset"); focusWho();
     });
     $("clearBtn").addEventListener("click", () => {
       if (!confirm("Remove all your notes, flooded areas, and station answers from this browser? What you already sent is not affected.")) return;
@@ -1044,7 +1042,6 @@
         { field: "name", headerName: "Asset or place", flex: 1.4, minWidth: 160 },
         { field: "type", headerName: "Type", width: 150, valueFormatter: p => ASSET_TYPES[p.value] || p.value },
         { field: "hazards", headerName: "Hazards", width: 160, valueFormatter: p => hazLabel(p.value) },
-        { colId: "missing", headerName: "Missing", width: 90, valueGetter: p => p.data && p.data.missing ? "Yes" : "", cellStyle: p => p.value ? { color: "var(--trpa-brick)", fontWeight: 700 } : null },
         { field: "why", headerName: "Issue description", flex: 2, minWidth: 220, tooltipField: "why" },
         { field: "sub", headerName: "Detail", flex: 1, minWidth: 140 },
         { field: "id", headerName: "ID", width: 150 },
@@ -1059,7 +1056,6 @@
         { field: "c1", headerName: "Concern 1", width: 100, cellStyle: p => p.value ? { background: "var(--c1-bg)", color: "var(--c1)", fontWeight: 700 } : null },
         { field: "c2", headerName: "Concern 2", width: 100, cellStyle: p => p.value ? { background: "var(--c2-bg)", color: "var(--c2)", fontWeight: 700 } : null },
         { field: "c3", headerName: "Concern 3", width: 100, cellStyle: p => p.value ? { background: "var(--c3-bg)", color: "var(--c3)", fontWeight: 700 } : null },
-        { field: "missing", headerName: "Missing flags", width: 110, cellStyle: p => p.value ? { color: "var(--trpa-brick)", fontWeight: 700 } : null },
         { field: "who", headerName: "Who", flex: 1, minWidth: 160, valueFormatter: p => joinList(p.value, "; ") },
         { field: "why", headerName: "Why", flex: 2, minWidth: 240, valueFormatter: p => joinList(p.value, " | "), tooltipValueGetter: p => joinList(p.value, "\n") },
         { field: "key", headerName: "Key", width: 160 }
@@ -1093,8 +1089,8 @@
         const head = ["Who saw it", "When", "What happened", "Acres", "Longitude", "Latitude", "Saved or sent", "Area id", "Geometry (WGS84 rings, JSON)"];
         download(`PROTECT_Workshop1_flooded_areas_${todayLocal()}.csv`, [head.join(",")].concat(rows.map(a => [a.who, a.observed || "", a.why || "", a.acres ?? "", a.lon ?? "", a.lat ?? "", a.when ? new Date(a.when).toISOString() : "", a.id || "", JSON.stringify(a.rings)].map(csvCell).join(","))).join("\n")); return; }
       if (activeTab === "report") { const rows = reportRows(); if (!rows.length) { toast("Nothing to export yet."); return; }
-        const head = ["Asset or place", "Type", "Key", "Hazards", "People", "Concern 1", "Concern 2", "Concern 3", "Missing flags", "Who", "Why", "Longitude", "Latitude"];
-        download(`PROTECT_Workshop1_report_out_${todayLocal()}.csv`, [head.join(",")].concat(rows.map(g => [g.name, ASSET_TYPES[g.type] || g.type, g.key, hazLabel(g.hazards), g.n, g.c1, g.c2, g.c3, g.missing, g.who.join("; "), g.why.join(" | "), g.lon, g.lat].map(csvCell).join(","))).join("\n")); return; }
+        const head = ["Asset or place", "Type", "Key", "Hazards", "People", "Concern 1", "Concern 2", "Concern 3", "Who", "Issue description", "Longitude", "Latitude"];
+        download(`PROTECT_Workshop1_report_out_${todayLocal()}.csv`, [head.join(",")].concat(rows.map(g => [g.name, ASSET_TYPES[g.type] || g.type, g.key, hazLabel(g.hazards), g.n, g.c1, g.c2, g.c3, g.who.join("; "), g.why.join(" | "), g.lon, g.lat].map(csvCell).join(","))).join("\n")); return; }
       exportNotes(activeTab === "all" ? allRows() : myNotes().map(n => Object.assign({ who: whoLabel(state.reviewer.name, state.reviewer.agency) }, n)), activeTab === "all");
     });
     function renderAll() { renderNoteList(); renderMarkers(); renderAreaList(); renderAreas(); renderGrid(); updateSendState(); }
@@ -1142,8 +1138,13 @@
     $("reviewerChips").addEventListener("click", (e) => { const b = e.target.closest(".r-x"); if (!b) return; delete imports[b.dataset.who]; saveLS(LS_IMPORTS, imports); renderReviewers(); renderAll(); });
 
     // ───────────────────────── Reviewer + send ─────────────────────────
-    $("revName").value = state.reviewer.name;
-    $("revName").addEventListener("input", () => { state.reviewer.name = $("revName").value.trim(); saveLS(LS_KEY, state); updateSendState(); });
+    // one name, typed once: the Name field inside each form (note card, flooded-area card, general) shows the same value;
+    // the cards are re-rendered, so the inputs are wired by delegation and filled from state when drawn
+    const whoInputs = () => [...document.querySelectorAll("input.who")];
+    const setWho = (v) => whoInputs().forEach(i => { if (i.value !== v) i.value = v; });
+    const focusWho = () => { const i = whoInputs().find(x => x.offsetParent !== null) || whoInputs()[0]; if (i) i.focus(); };
+    setWho(state.reviewer.name);
+    document.addEventListener("input", (e) => { const i = e.target; if (!(i instanceof HTMLInputElement) || !i.classList.contains("who")) return; state.reviewer.name = i.value.trim(); setWho(i.value); saveLS(LS_KEY, state); updateSendState(); });
     const surveyOn = () => !!SURVEY.submitUrl;
     function updateSendState() {
       renderModeCounts();
@@ -1156,7 +1157,7 @@
       const what = [n ? `${n} note${n === 1 ? "" : "s"}` : "", na ? `${na} flooded area${na === 1 ? "" : "s"}` : "", sq ? `${sq} station answer${sq === 1 ? "" : "s"}` : ""].filter(Boolean);
       $("sendReason").textContent = !surveyOn() ? "Sending opens when the survey is published. Until then, download the CSV of your notes (under facilitator tools) and email it to the data team."
         : !(n || na || sq) ? "Save a note on the map to start."
-        : `Sends ${what.length > 1 ? what.slice(0, -1).join(", ") + (what.length > 2 ? "," : "") + " and " + what[what.length - 1] : what[0]} as ${name || "an unnamed participant (add your name at the top)"}.`
+        : `Sends ${what.length > 1 ? what.slice(0, -1).join(", ") + (what.length > 2 ? "," : "") + " and " + what[what.length - 1] : what[0]} as ${name || "an unnamed participant (add your name at the top of the form)"}.`
           + (na && !SURVEY.areasSubmitUrl ? " Flooded areas cannot be sent yet: export them from the Flooded areas tab and email the CSV." : "");
     }
     function buildSubmission() {
@@ -1164,7 +1165,7 @@
       const notes = myNotes(), areas = SURVEY.areasSubmitUrl ? myAreas() : [];
       if (!notes.length && !areas.length && !Object.keys(state.station).length) { toast("Save at least one note first.", 4000); return null; }
       const sid = Date.now();   // this send's id: on the notes row (sid in notes_json) and on every area sent with it
-      const lines = notes.map(n => `${hazLabel(n.hazards) || "Any hazard"} · Concern ${n.concern || "-"} · ${ASSET_TYPES[n.type]} · ${n.name} · ${n.key}${n.missing ? " · MISSING" : ""}${n.why ? ` · ${n.why}` : ""}`);
+      const lines = notes.map(n => `${hazLabel(n.hazards) || "Any hazard"} · Concern ${n.concern || "-"} · ${ASSET_TYPES[n.type]} · ${n.name} · ${n.key}${n.why ? ` · ${n.why}` : ""}`);
       const stationText = Object.entries(state.station).map(([k, sq]) => `${HZ[k] ? HZ[k].s : k}: expected: ${sq.expect || "-"} | tool: ${sq.tool || "-"}`).join("\n");
       const json = JSON.stringify({ v: 1, sent: sid, sid, areas: areas.length, notes: notes.map(n => ({ key: n.key, type: n.type, name: n.name, sub: n.sub, lon: n.lon, lat: n.lat, hazards: n.hazards, concern: n.concern, why: n.why, missing: n.missing, when: n.when })), station: state.station });
       if (json.length > SURVEY.longLen) { toast(`Your notes are ${json.length.toLocaleString()} characters; the survey holds ${SURVEY.longLen.toLocaleString()}. Shorten some notes.`, 8000); return null; }
@@ -1175,7 +1176,7 @@
     $("sendBtn").addEventListener("click", () => {
       const sub = buildSubmission(); if (!sub) return;
       $("sendWho").textContent = sub.name || "an unnamed participant";
-      $("sendLists").innerHTML = (sub.notes.length ? `<div class="send-h">Notes (${sub.notes.length})</div><ul class="send-list">` + sub.notes.map(n => `<li>${cBadge(n.concern)} <span><b>${escHtml(n.name)}</b> <span class="fine">${escHtml(hazLabel(n.hazards))}${n.missing ? " · missing" : ""}</span></span>${n.why ? `<span class="why">${escHtml(n.why)}</span>` : ""}</li>`).join("") + "</ul>" : "")
+      $("sendLists").innerHTML = (sub.notes.length ? `<div class="send-h">Notes (${sub.notes.length})</div><ul class="send-list">` + sub.notes.map(n => `<li>${cBadge(n.concern)} <span><b>${escHtml(n.name)}</b> <span class="fine">${escHtml(hazLabel(n.hazards))}</span></span>${n.why ? `<span class="why">${escHtml(n.why)}</span>` : ""}</li>`).join("") + "</ul>" : "")
         + (sub.areas.length ? `<div class="send-h">Flooded areas (${sub.areas.length})</div><ul class="send-list">` + sub.areas.map(a => `<li><span class="aswatch"></span> <span><b>${escHtml(capFirst(a.observed) || "Flooding seen")}</b> <span class="fine">${escHtml(acresText(a.acres))}</span></span>${a.why ? `<span class="why">${escHtml(a.why)}</span>` : ""}</li>`).join("") + "</ul>" : "")
         + (Object.keys(state.station).length ? `<div class="send-h">Station answers</div><ul class="send-list">${Object.entries(state.station).map(([k, sq]) => `<li><span><b>${escHtml(HZ[k] ? HZ[k].s : k)}</b></span>${sq.expect ? `<span class="why">Expected: ${escHtml(sq.expect)}</span>` : ""}${sq.tool ? `<span class="why">Tool: ${escHtml(sq.tool)}</span>` : ""}</li>`).join("")}</ul>` : "");
       $("sendNote").textContent = remote[myKey()] ? "Notes were sent under this name from this browser before. This replaces them; only what was sent last counts." : "Only what you sent last under this name counts, so you can send again later.";
@@ -1202,7 +1203,7 @@
         const res = r.addResults && r.addResults[0];
         if (r.error || !res || !res.success) throw new Error((r.error && r.error.message) || (res && res.error && res.error.description) || "The server did not accept the notes.");
         $("sendDialog").open = false; toast(`Sent ${[sub.notes.length ? `${sub.notes.length} note${sub.notes.length === 1 ? "" : "s"}` : "", sub.areas.length ? `${sub.areas.length} flooded area${sub.areas.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" and ") || "your answers"}${sub.name ? ` as ${sub.name}` : ""}.`, 5000);
-        // start the next note fresh: drop the selected asset or pin (and with it the concern, why, and missing flag on the card); sent notes stay in the list
+        // start the next note fresh: drop the selected asset or pin (and with it the concern level and issue on the card); sent notes stay in the list
         state.sentAt = Date.now(); saveLS(LS_KEY, state); select(null); setPinMode(false); updateSendState();
         setTimeout(() => loadRemote(true), 1200);
       } catch (e) { console.warn("Send failed:", e); $("sendErr").textContent = `Could not send: ${e.message} Try again, or download the CSV of your notes and email it.`; $("sendErr").hidden = false; go.loading = false; go.disabled = false; }
@@ -1386,7 +1387,7 @@
 
     // ───────────────────────── Master list (print) ─────────────────────────
     // One section per hazard: every flagged asset with how many people flagged it, their concern votes,
-    // missing flags, and reasons; then the station answers. Notes tagged with two hazards appear under both.
+    // and reasons; then the station answers. Notes tagged with two hazards appear under both.
     $("printBtn").addEventListener("click", () => {
       const rows = allRows(); const lists = otherLists(); const areas = areaRows();
       if (!rows.length && !areas.length) { toast("No notes to list yet. Save, send, or import some first.", 4000); return; }
@@ -1403,12 +1404,12 @@
       };
       const hazOrder = HAZARDS.filter(h => h.k !== "any").concat([{ k: "any", s: "No hazard given", color: "#5a6577" }]);
       const groups = hazOrder.map(h => ({ h, items: groupsFor(h.k) })).filter(x => x.items.length);
-      const summary = `<table class="sum"><thead><tr><th>Hazard</th><th class="r">Assets and places</th><th class="r">Notes</th><th class="r">Concern 1</th><th class="r">Missing flags</th></tr></thead><tbody>` +
-        groups.map(({ h, items }) => `<tr><td><i class="dot" style="background:${h.color}"></i>${escHtml(h.s)}</td><td class="r">${items.length}</td><td class="r">${items.reduce((a, g) => a + g.n, 0)}</td><td class="r">${items.reduce((a, g) => a + g.v[1], 0)}</td><td class="r">${items.reduce((a, g) => a + g.missing, 0)}</td></tr>`).join("") +
-        `<tr class="tot"><td>Total</td><td class="r">${new Set(rows.map(r => r.key)).size}</td><td class="r">${rows.length}</td><td class="r">${rows.filter(r => r.concern === 1).length}</td><td class="r">${rows.filter(r => r.missing).length}</td></tr></tbody></table>`;
+      const summary = `<table class="sum"><thead><tr><th>Hazard</th><th class="r">Assets and places</th><th class="r">Notes</th><th class="r">Concern 1</th></tr></thead><tbody>` +
+        groups.map(({ h, items }) => `<tr><td><i class="dot" style="background:${h.color}"></i>${escHtml(h.s)}</td><td class="r">${items.length}</td><td class="r">${items.reduce((a, g) => a + g.n, 0)}</td><td class="r">${items.reduce((a, g) => a + g.v[1], 0)}</td></tr>`).join("") +
+        `<tr class="tot"><td>Total</td><td class="r">${new Set(rows.map(r => r.key)).size}</td><td class="r">${rows.length}</td><td class="r">${rows.filter(r => r.concern === 1).length}</td></tr></tbody></table>`;
       const sections = groups.map(({ h, items }) => `<section><h2><i class="dot" style="background:${h.color}"></i>${escHtml(h.s)} <small>${items.length} asset${items.length === 1 ? "" : "s"} or place${items.length === 1 ? "" : "s"} · ${items.reduce((a, g) => a + g.n, 0)} note${items.reduce((a, g) => a + g.n, 0) === 1 ? "" : "s"}</small></h2>
-        <table><thead><tr><th>Top concern</th><th>Asset or place</th><th>Type</th><th>People</th><th>Why</th></tr></thead><tbody>` +
-        items.map(g => `<tr><td>${cb(g.top)}${g.missing ? `<br><em class="warn">${g.missing} said missing from the draft results</em>` : ""}</td>` +
+        <table><thead><tr><th>Top concern</th><th>Asset or place</th><th>Type</th><th>People</th><th>Issue description</th></tr></thead><tbody>` +
+        items.map(g => `<tr><td>${cb(g.top)}</td>` +
           `<td><b>${escHtml(g.name)}</b>${g.sub ? `<br><small>${escHtml(g.sub)}</small>` : ""}${g.also.size ? `<br><small>Also under ${[...g.also].map(k => escHtml((HZ[k] || {}).s || k)).join(" and ")}</small>` : ""}</td>` +
           `<td>${escHtml(ASSET_TYPES[g.type] || g.type)}</td>` +
           `<td>${g.n} <small>(${[1, 2, 3].filter(c => g.v[c]).map(c => `${g.v[c]} at Concern ${c}`).join(", ") || "no level"})</small><br><small>${g.who.map(escHtml).join("; ")}</small></td>` +
