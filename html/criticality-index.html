@@ -225,7 +225,7 @@
         <div class="header-sub">Tahoe Resilience Improvement Plan &middot; how much each street segment matters to the network</div>
       </div>
       <div class="right">
-        <span class="chip">v0.4 draft</span>
+        <span class="chip">v0.5 draft</span>
         <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html" class="on" aria-current="page">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
@@ -252,6 +252,7 @@
         </details>
         <div class="grp"><h3>Streets, colored by</h3>
           <div class="cb" id="color-by"></div>
+          <label class="lyr"><input type="checkbox" class="sw" id="cut-q" /> Use criticality quarters<i class="i" tabindex="0" data-tip="Off: overall criticality breaks at the 25th, 50th, and 90th percentiles, so the top class is the most critical tenth. On: it breaks at the 25th, 50th, and 75th, the quarters on the Results page. The map, charts, table, and key numbers follow.">i</i></label>
           <div id="legend"></div>
         </div>
         <div class="grp"><h3>Filter by hazard</h3>
@@ -272,12 +273,12 @@
 
     <h2 class="sec">Distributions</h2>
     <div class="charts">
-      <div class="chart"><h3 id="ch-a-title">Miles by criticality quarter</h3><div class="sub" id="ch-a-sub"></div><div id="ch-a" style="height:290px"></div></div>
-      <div class="chart"><h3 id="ch-b-title">Criticality quarter by road type</h3><div class="sub" id="ch-b-sub"></div><div id="ch-b" style="height:290px"></div></div>
+      <div class="chart"><h3 id="ch-a-title">Miles by criticality class</h3><div class="sub" id="ch-a-sub"></div><div id="ch-a" style="height:290px"></div></div>
+      <div class="chart"><h3 id="ch-b-title">Criticality class by road type</h3><div class="sub" id="ch-b-sub"></div><div id="ch-b" style="height:290px"></div></div>
     </div>
 
     <h2 class="sec">Table</h2>
-    <p class="lead">Every segment shown on the map with its score and criticality quarter under the current weights, the four sub-indices, and the inputs behind them. The export carries the weights used, so a weighting can be reproduced.</p>
+    <p class="lead">Every segment shown on the map with its score and criticality class under the current weights, the four sub-indices, and the inputs behind them. The export carries the weights used, so a weighting can be reproduced.</p>
     <div class="toolbar">
       <input id="qf" class="qf" type="text" placeholder="Search the table" aria-label="Quick search" />
       <button type="button" id="export" class="btn">Export CSV</button>
@@ -291,7 +292,7 @@
         <li><b>Access to critical services:</b> residents of 2,201 hexagons routed by travel time to basin exits, law enforcement, medical facilities, emergency shelters, schools, and fresh food locations, averaged over 100 routing runs with small random variation in travel time so near-equal routes share the trips. The mean across the six destination types is grouped into 10 Jenks classes for the score. The map's access view shows the mean itself, in residents routed.</li>
         <li><b>Equity:</b> for each segment, the highest count among the census block groups it crosses of households below the poverty line, residents who speak English less than well, households with no vehicle, and residents with a disability; the four are weighted equally by default.</li>
         <li><b>Combining:</b> each variable is converted to a z-score across all segments: its distance from the mean, in standard deviations.<i class="i" tabindex="0" data-tip="Min-max scaling (0 to 1) was considered and set aside. Z-score is the method, and with the default weights it reproduces the published criticality_score.">i</i> A sub-index is the weighted sum of its variables, and the score is the weighted sum of the sub-indices. Weights are rebalanced to total 1 as a slider moves. Invert flips a variable so that lower values score higher.</li>
-        <li><b>Quarters and colors:</b> each segment is ranked against every other under the current weights and cut into quarters at the 25th, 50th, and 75th percentiles: criticality quarter 0 (lowest) to 3 (top), the same rule the Results page uses. When many segments share the same value they share a rank, so a quarter can hold more or fewer than a quarter of the segments. The traffic, detour length, and access views color the map by the input itself at fixed breaks (stated in each legend), because those inputs are class scores that sit at the lowest class on most segments, and rank quarters would collapse to two colors. Colors run dark (lowest) to bright (highest) on the Phosphor thermal ramp, drawn on a dark basemap so the most critical roads stand out. A hazard filter changes what is shown, never the scores or the quarters.</li>
+        <li><b>Classes and colors:</b> each segment is ranked against every other under the current weights and cut at the 25th, 50th, and 90th percentiles: criticality class 0 (lowest) to 3 (the most critical tenth). The Use criticality quarters switch cuts at the 25th, 50th, and 75th instead, the same rule the Results page uses. When many segments share the same value they share a rank, so a class can hold more or fewer segments than its percentile range suggests. The traffic, detour length, and access views color the map by the input itself at fixed breaks (stated in each legend), because those inputs are class scores that sit at the lowest class on most segments, and rank quarters would collapse to two colors. Colors run dark (lowest) to bright (highest) on the Phosphor thermal ramp, drawn on a dark basemap so the most critical roads stand out. A hazard filter changes what is shown, never the scores or the classes.</li>
         <li><b>Hazards:</b> FEMA flood zones (100- and 500-year), areas with a higher probability of high-severity wildfire, and the USGS landslide susceptibility mean along the segment. Hazard exposure is kept separate from criticality; the Results page reads the two together.</li>
       </ul>
     </details>
@@ -331,7 +332,7 @@
     const ALL_VARS = SUBS.flatMap(s => s.vars.map(v => v.field));
     const FALLBACK_WEIGHTS = {traffic:0.3, detour:0.3, od:0.3, equity:0.1};
     let DEFAULT = {sub:{...FALLBACK_WEIGHTS}};
-    const state = {sub:{}, vars:{}, inv:{}, norm:"zscore", color:"crit", hazard:"none", ls:22};
+    const state = {sub:{}, vars:{}, inv:{}, norm:"zscore", color:"crit", hazard:"none", ls:22, cut:"p90"};
     function setDefaults(){
       state.sub = {...DEFAULT.sub};
       SUBS.forEach(s => { state.vars[s.key] = {}; state.inv[s.key] = {};
@@ -353,9 +354,17 @@
     // access 0 / under 10 / 10 to 100 / 100 or more holds 44, 15, 22, and 19 percent (non-zero
     // tertiles 15 and 105). A value is class k when it is below breaks[k]; above the last break, class 3.
     const QUARTER_NAMES = ["0: lowest quarter, least critical", "1", "2", "3: top quarter, most critical"];
+    // Overall criticality's four classes: the 90th percentile starts the top class by default (Nov. 3, 2026),
+    // with the middle class widened to 50 to 90; the switch returns to quarters, the Results page's C_class.
+    const CRIT_CLASSES = {
+      p90:{pcts:[25, 50, 90], word:"class", top:"top tenth of criticality",
+        labels:["0: under 25th percentile", "1: 25th to 50th percentile", "2: 50th to 90th percentile", "3: 90th percentile and up"],
+        note:"Overall criticality score under the current weights, ranked against every segment and cut at the 25th, 50th, and 90th percentiles. Brighter is more critical."},
+      quarter:{pcts:[25, 50, 75], word:"quarter", top:"top criticality quarter", labels:QUARTER_NAMES,
+        note:"Overall criticality score under the current weights, ranked against every segment and cut into quarters at the 25th, 50th, and 75th percentiles (the Results page's criticality quarter). Brighter is more critical."}};
+    const critClasses = () => CRIT_CLASSES[state.cut];
     const VIEWS = {
-      crit:{name:"Overall criticality score", kind:"quarter", unit:"quarter", labels:QUARTER_NAMES,
-        note:"Overall criticality score under the current weights, ranked against every segment and cut into quarters at the 25th, 50th, and 75th percentiles (the Results page's criticality quarter). Brighter is more critical."},
+      crit:{name:"Overall criticality score", kind:"quarter", unit:"quarter", get labels(){ return critClasses().labels; }, get note(){ return critClasses().note; }},
       traffic:{name:"Traffic", kind:"bins", unit:"class", field:"AADT_Jenks_Score", breaks:[1.5, 3.5, 6.5],
         labels:["Volume class 1 (lowest)", "Volume classes 2 to 3", "Volume classes 4 to 6", "Volume classes 7 to 10 (highest)"],
         note:"Modeled daily traffic volume class, 1 (lowest) to 10 (highest), in natural breaks and grouped in four for the map. This is a volume class, not a quarter: most segments are local streets in class 1. Only the class is published."},
@@ -409,24 +418,24 @@
     }
 
     // ---------- classes and legend ----------
-    // Criticality quarters 0 to 3, the Results page rule (C_class): percentile rank cut at 25, 50 and
-    // 75. Tied segments share the average rank of their group (as criticality_pctl does on the clean
-    // layer), so a classed input that ties on most segments lands in one quarter by its rank, not in
+    // Classes 0 to 3 from a percentile rank cut at pcts: quarters by default, the Results page rule
+    // (C_class). Tied segments share the average rank of their group (as criticality_pctl does on the
+    // clean layer), so a classed input that ties on most segments lands in one class by its rank, not in
     // the top one. Map breaks sit halfway between distinct values, never on a tied value, so the
     // renderer's arithmetic cannot straddle a break.
     // computeBreaks returns ascending [{cls, hi}]: values below hi (and above the previous hi) take cls.
-    function computeBreaks(valueFn){
+    function computeBreaks(valueFn, pcts = [25, 50, 75]){
       const v = rows.map(valueFn).sort((a, b) => a - b), n = v.length, groups = [];
       for (let i = 0; i < n; ) { let j = i; while (j + 1 < n && v[j + 1] - v[i] <= 1e-9) j++;
         groups.push({lo:v[i], hi:v[j], mid:(i + j + 2) / 2 / n}); i = j + 1; }
       const cuts = [];
-      groups.forEach((g, gi) => { const pct = 100 * g.mid, cls = pct < 25 ? 0 : pct < 50 ? 1 : pct < 75 ? 2 : 3, next = groups[gi + 1];
+      groups.forEach((g, gi) => { const pct = 100 * g.mid, cls = pct < pcts[0] ? 0 : pct < pcts[1] ? 1 : pct < pcts[2] ? 2 : 3, next = groups[gi + 1];
         const hi = next ? (g.hi + next.lo) / 2 : Infinity;
         if (cuts.length && cuts[cuts.length - 1].cls === cls) cuts[cuts.length - 1].hi = hi; else cuts.push({cls, hi}); });
       return cuts;
     }
     const cutClass = (cuts, x) => { for (const c of cuts) if (x < c.hi) return c.cls; return cuts[cuts.length - 1].cls; };
-    let critCuts = [];   // quarters of the overall score (always computed: the table, KPIs, and popups use them)
+    let critCuts = [];   // classes of the overall score (always computed: the table, KPIs, and popups use them)
     let cuts = [];       // the current view's quarter cuts (overall criticality or equity)
     const binClass = (vw, r) => { const x = r[vw.field], val = (x == null || isNaN(x)) ? 0 : x; const k = vw.breaks.findIndex(b => val < b); return k < 0 ? 3 : k; };
     const classOf = r => { const vw = curView(); return vw.kind === "bins" ? binClass(vw, r) : cutClass(cuts, valueOf(r)); };
@@ -439,7 +448,7 @@
       rows.forEach(r => { counts[r._cls]++; if (vw.range) { const x = valueOf(r); if (x < lo[r._cls]) lo[r._cls] = x; if (x > hi[r._cls]) hi[r._cls] = x; } });
       let h = "";
       for (let k = n - 1; k >= 0; k--) h += `<div class="lg-row"><span class="lg-line" style="background:${classColor(k)}"></span> ${esc(classLabel(k))}${vw.range && counts[k] ? `: ${fmt(lo[k], 2)} to ${fmt(hi[k], 2)}` : ""} <span style="color:var(--gray-text)">(${fmt(100 * counts[k] / rows.length)} percent of segments)</span></div>`;
-      return h + `<p class="note">${esc(vw.note)}${vw.kind === "quarter" ? " When many segments share the same value they share a rank, so a quarter can hold more or fewer than a quarter of the segments." : ""}</p>`;
+      return h + `<p class="note">${esc(vw.note)}${vw.kind === "quarter" ? " When many segments share the same value they share a rank, so a class can hold more or fewer segments than its percentile range suggests." : ""}</p>`;
     }
 
     // ---------- charts ----------
@@ -448,11 +457,11 @@
       const vw = curView(), n = nClasses(), labs = [...Array(n).keys()].map(classLabel);
       const miles = Array(n).fill(0), segs = Array(n).fill(0);
       shown.forEach(r => { miles[r._cls] += r.miles; segs[r._cls]++; });
-      const what = state.color === "crit" ? "criticality quarter" : vw.kind === "quarter" ? "equity quarter" : vw.name.toLowerCase() + " class";
+      const what = state.color === "crit" ? "criticality " + critClasses().word : vw.kind === "quarter" ? "equity quarter" : vw.name.toLowerCase() + " class";
       const flt = state.hazard === "none" ? "" : " (segments in the hazard filter)";
       $("ch-a-title").textContent = "Miles by " + what;
       $("ch-a-sub").textContent = state.color === "crit"
-        ? "Street miles in each criticality quarter under the current weights" + flt + "."
+        ? "Street miles in each " + what + " under the current weights" + flt + "."
         : "Street miles in each " + what + flt + ", the same classes as the map legend.";
       Plotly.react("ch-a", [{type:"bar", x:labs, y:miles, marker:{color:labs.map((_, k) => classColor(k)), line:BAR_EDGE}, customdata:segs,
         hovertemplate:"%{y:.1f} miles (%{customdata} segments)<extra></extra>"}],
@@ -476,7 +485,7 @@
       {field:"name", headerName:"Street", minWidth:170, pinned:"left"}, {field:"class", headerName:"Road type", width:110},
       {field:"miles", headerName:"Miles", width:85, valueFormatter:p => fmt(p.value, 2)},
       {field:"score", headerName:"Score", width:90, sort:"desc"}, {field:"pctl", headerName:"Percentile", width:105},
-      {field:"cls", headerName:"Criticality quarter (0 to 3)", width:175},
+      {field:"cls", headerName:"Criticality class (0 to 3)", width:175},
       {field:"traffic", headerName:"Traffic sub-index", width:135}, {field:"detour", headerName:"Detour length sub-index", width:170},
       {field:"od", headerName:"Access sub-index", width:135}, {field:"equity", headerName:"Equity sub-index", width:135},
       {field:"AADT_Jenks_Score", headerName:"Traffic volume class (1 to 10)", width:190}, {field:"SLR_Diff_Length_Jenks_Score", headerName:"Detour class (1 to 10)", width:150},
@@ -496,8 +505,8 @@
       {field:"in_flood_zone", headerName:"Flood zone", width:100}, {field:"in_flood_zone_100", headerName:"100-yr flood", width:110},
       {field:"high_sev_fire", headerName:"High-sev. fire", width:115}, {field:"landslide_mean", headerName:"Landslide mean", width:125},
       {field:"criticality_score", headerName:"Published score", width:130}, {field:"src_objectid", headerName:"src_objectid", width:110},
-      // weights ride along hidden so an export records the weighting
-      {field:"normalization", hide:true}, ...SUBS.map(s => ({field:"wt_" + s.key, hide:true})),
+      // weights and class breaks ride along hidden so an export records the weighting
+      {field:"class_breaks", hide:true}, {field:"normalization", hide:true}, ...SUBS.map(s => ({field:"wt_" + s.key, hide:true})),
       ...SUBS.flatMap(s => s.vars.length > 1 ? s.vars.map(v => ({field:"wt_" + v.field, hide:true})) : []),
       ...ALL_VARS.map(f => ({field:"inv_" + f, hide:true}))];
     let gridApi = null;
@@ -505,7 +514,7 @@
     $("qf").addEventListener("input", e => { if (gridApi) gridApi.setGridOption("quickFilterText", e.target.value); });
     $("export").addEventListener("click", () => { if (gridApi) gridApi.exportDataAsCsv({allColumns:true, fileName:`PROTECT_criticality_${new Date().toISOString().slice(0,10)}.csv`}); });
     function tableRows(shown){
-      const w = {normalization:state.norm}; SUBS.forEach(s => { w["wt_" + s.key] = r2(state.sub[s.key]); if (s.vars.length > 1) s.vars.forEach(v => { w["wt_" + v.field] = r2(state.vars[s.key][v.field]); }); s.vars.forEach(v => { w["inv_" + v.field] = state.inv[s.key][v.field] ? 1 : 0; }); });
+      const w = {class_breaks:critClasses().pcts.join(" "), normalization:state.norm}; SUBS.forEach(s => { w["wt_" + s.key] = r2(state.sub[s.key]); if (s.vars.length > 1) s.vars.forEach(v => { w["wt_" + v.field] = r2(state.vars[s.key][v.field]); }); s.vars.forEach(v => { w["inv_" + v.field] = state.inv[s.key][v.field] ? 1 : 0; }); });
       return shown.map(r => Object.assign({}, r, {score:r2(r._score), pctl:r._pctl, cls:r._q, detour_mi:r.slr_diff_length_max == null ? null : r.slr_diff_length_max / MI,
         traffic:r2(r._sub.traffic), detour:r2(r._sub.detour), od:r2(r._sub.od), equity:r2(r._sub.equity)}, w));
     }
@@ -554,7 +563,7 @@
       if (r.high_sev_fire === 1) hz.push("probable high-severity fire"); if (r.landslide_mean != null) hz.push("landslide mean " + fmt(r.landslide_mean));
       let h = `<div style="font-size:12px;line-height:1.55;color:#003B71">`
         + `<div style="color:#5a6577">${esc(r.class || "street")} &middot; ${fmt(r.miles, 2)} mi</div>`
-        + `<div style="margin:.3rem 0">Criticality score <b style="font-size:15px;color:#0072CE">${critScore(r).toFixed(2)}</b> &middot; percentile ${fmt(r._pctl, 1)} &middot; quarter ${r._q == null ? "-" : r._q} of 0 to 3</div>`;
+        + `<div style="margin:.3rem 0">Criticality score <b style="font-size:15px;color:#0072CE">${critScore(r).toFixed(2)}</b> &middot; percentile ${fmt(r._pctl, 1)} &middot; ${critClasses().word} ${r._q == null ? "-" : r._q} of 0 to 3</div>`;
       SUBS.forEach(s => { h += `<div style="margin-top:.25rem"><b style="color:${s.color}">${s.label}</b> <span style="color:#5a6577">(weight ${state.sub[s.key].toFixed(2)})</span>: ${subScore(s.key, r).toFixed(2)}</div>`;
         s.vars.forEach(v => { h += `<div style="padding-left:.7rem;color:#3a5278">${esc(v.label)}${state.inv[s.key][v.field] ? " (inverted)" : ""}: ${r[v.field] == null ? "no data" : fmt(r[v.field], 1)}</div>`; });
         if (s.key === "detour") h += `<div style="padding-left:.7rem;color:#3a5278">Added detour: ${r.slr_diff_length_max == null ? "no data" : fmt(r.slr_diff_length_max / MI, 2) + " mi"}</div>`;
@@ -579,19 +588,19 @@
       const order = rows.map((r, i) => [r._score, i]).sort((a, b) => a[0] - b[0]), n = order.length;
       for (let i = 0; i < n; ) { let j = i; while (j + 1 < n && order[j + 1][0] - order[i][0] <= 1e-9) j++;
         const p = Math.round(10000 * (i + j + 2) / 2 / n) / 100; for (let k = i; k <= j; k++) rows[order[k][1]]._pctl = p; i = j + 1; }
-      critCuts = computeBreaks(r => r._score);
+      critCuts = computeBreaks(r => r._score, critClasses().pcts);
       cuts = state.color === "crit" ? critCuts : curView().kind === "quarter" ? computeBreaks(valueOf) : [];
       rows.forEach(r => { r._q = cutClass(critCuts, r._score); r._cls = classOf(r); });
       const hz = HAZARDS.find(h => h.v === state.hazard);
       const shown = rows.filter(r => hz.test(r));
       $("ls-wrap").style.display = state.hazard === "landslide" ? "" : "none";
       $("haz-note").innerHTML = state.hazard === "none" ? "Showing all segments."
-        : `Showing <b>${fmt(shown.length)}</b> of ${fmt(rows.length)} segments ${hz.what || `with a landslide susceptibility mean of ${state.ls} or more`} (${fmt(100 * shown.length / rows.length, 1)} percent). Scores and quarters still come from the whole network.`;
+        : `Showing <b>${fmt(shown.length)}</b> of ${fmt(rows.length)} segments ${hz.what || `with a landslide susceptibility mean of ${state.ls} or more`} (${fmt(100 * shown.length / rows.length, 1)} percent). Scores and classes still come from the whole network.`;
       $("legend").innerHTML = legendHTML();
-      const top = shown.filter(r => r._q === nClasses() - 1);   // KPIs read the criticality quarter whatever the map is colored by
+      const top = shown.filter(r => r._q === nClasses() - 1);   // KPIs read the criticality class whatever the map is colored by
       $("kpis").innerHTML = [[fmt(shown.length), state.hazard === "none" ? "street segments" : "segments in the filter"],
         [fmt(shown.reduce((s, r) => s + r.miles, 0)), "street miles"],
-        [fmt(top.length), "segments in the top criticality quarter"], [fmt(top.reduce((s, r) => s + r.miles, 0)), "miles in the top criticality quarter"],
+        [fmt(top.length), "segments in the " + critClasses().top], [fmt(top.reduce((s, r) => s + r.miles, 0)), "miles in the " + critClasses().top],
         [fmt(top.filter(r => r.in_flood_zone === 1 || r.high_sev_fire === 1).reduce((s, r) => s + r.miles, 0)), "of those miles in a flood zone or high-severity fire area"]]
         .map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
       if (layer) { setRenderer(); layer.definitionExpression = hz.where ? (typeof hz.where === "function" ? hz.where() : hz.where) : null; }
@@ -629,6 +638,7 @@
       data.then(fc => {
         setDefaults(); buildWeights(); syncControls();
         buttons("color-by", COLOR_BY, "color"); buttons("hazard", HAZARDS, "hazard");
+        $("cut-q").addEventListener("change", e => { state.cut = e.target.checked ? "quarter" : "p90"; schedule(); });
         $("ls").addEventListener("input", e => { state.ls = +e.target.value; $("ls-val").textContent = state.ls; schedule(); });
         $("reset").addEventListener("click", () => { setDefaults(); state.ls = 22; $("ls").value = 22; $("ls-val").textContent = 22; syncControls(); schedule(); });
         computeStats();
