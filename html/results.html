@@ -228,6 +228,8 @@
       header.band .tabs a{padding:.45rem .7rem;}
       .band-btn .lbl{display:none;}
       a.band-btn{display:none;}   /* the Guide link has no icon; on phones it lives in How to use and Pages */
+      a.band-btn.fb{display:inline-flex;}   /* the Feedback link stays: attendees open it on their phones */
+      a.band-btn.fb .lbl{display:inline;}
       .band-btn{padding:.22rem;}
       .charts{grid-template-columns:1fr;}
       .toolbar .qf{min-width:0;flex-basis:100%;}
@@ -267,6 +269,7 @@
         <span class="draft" id="draft-chip" tabindex="0" data-tip="Draft results for workshop review.">Draft</span>
         <button type="button" class="band-btn" id="help-btn" aria-haspopup="dialog"><span class="ic" aria-hidden="true">i</span><span class="lbl">How to use</span><span class="sr">How to use this page</span></button>
         <a class="band-btn" href="results-guide.html" title="One-page guide: how the scores were made and how to read the map"><span class="lbl">Guide</span><span class="sr">One-page printable guide</span></a>
+        <a class="band-btn fb" href="workshop-feedback.html" title="Workshop feedback: which assets and places concern you most, and why"><span class="lbl">Feedback</span><span class="sr">Open the Workshop feedback page</span></a>
         <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html" class="on" aria-current="page">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
@@ -282,7 +285,7 @@
         <li><b>Click anything on the map</b> for its scores, each with its class and the hazard that set it. Click a culvert to draw the land that drains to it; click anywhere else to clear it.</li>
         <li><b>Make room for the map.</b> Drag the panel's edge to resize it, or use the arrows in its blue header to fold it away. The full-screen button on the map hides everything else and floats the panel over the map.</li>
         <li><b>Scroll down</b> for charts, a searchable table you can export to CSV (click a row to find it on the map), how the numbers are made, and key numbers.</li>
-        <li><b>Leave a comment</b> on any road, culvert, bridge, path, or hub: open its popup and choose Add a workshop note.</li>
+        <li><b>Leave a comment</b> on any road, culvert, bridge, path, or hub: open its popup and choose Add a workshop note. The Feedback button in the blue bar opens the <a href="workshop-feedback.html">Workshop feedback</a> page.</li>
         <li><b>Take it with you.</b> The <a href="results-guide.html">one-page guide</a> covers how the scores were made and how to read the map; print it or save it as a PDF.</li>
         <li><b>Other pages</b> are under Pages, at the right of the blue bar.</li>
       </ol>
