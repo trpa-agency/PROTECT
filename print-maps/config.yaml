@@ -84,3 +84,35 @@ sheets:
     layout: Criticality - Lake Tahoe Basin - PROTECT
     legend: Road Criticality
     exports: [poster, screen]
+
+# Local copies of the network layers the print maps draw (localize_sources.py, Nov. 4, 2026), so a poster
+# export does not wait on services. export pulls each feature layer into vectors: (a file geodatabase) and each
+# image service into rasters: (a folder), clipped to extent: plus margin_km (extent = the union of the layouts'
+# map frames, Web Mercator). apply --aprx repoints the maps the layouts use: a feature layer whose service URL
+# matches a features: entry keeps its renderer and labels and reads the local copy; a map image layer listed
+# under map_image: is replaced by feature layers of its visible sublayers (the service's own renderer, same
+# scale range) or turned off; an image service listed under image_services: becomes a raster layer on the
+# local file with the same colorizer, transparency, and blend. Everything else (vector tile basemaps, the
+# local geodatabases) is left alone.
+local_sources:
+  vectors: C:\GIS\PROTECT_local\PROTECT_reference.gdb
+  rasters: C:\GIS\PROTECT_local\rasters
+  extent: {xmin: -13401888, ymin: 4666547, xmax: -13328115, ymax: 4781806, wkid: 3857}
+  margin_km: 8
+  features:                 # where: only these rows are pulled (the layer's own definition query stays on the layer)
+    - {url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/NHDPlus_High_Resolution_9March2023_view/FeatureServer/0", name: NHDPlusHR_Flowlines, where: "fcode = 46006"}
+    - {url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/NHDPlus_High_Resolution_9March2023_view/FeatureServer/1", name: NHDPlusHR_Waterbodies}
+    - {url: "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/4", name: TRPA_Boundary}
+    - {url: "https://maps.trpa.org/server/rest/services/Boundaries/MapServer/4", name: TRPA_Boundary}        # same data as FeatureServer/4
+    - {url: "https://maps.trpa.org/server/rest/services/Boundaries/FeatureServer/3", name: County}
+    - {url: "https://maps.trpa.org/server/rest/services/DataDownloader_Transportation/MapServer/0", name: Major_Highways}
+    - {url: "https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/1", name: Streams_Lakes_LiDAR}
+    - {url: "https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer/2", name: Lake_Tahoe_High_Water}
+  image_services: {}        # service name as the layer's connection carries it -> {url, template (raster function), cell_size (map
+                            # units), name (file)}. The Terrain multi-directional hillshade stays on the service by choice (Nov. 4,
+                            # 2026); pulling it would be "WorldElevation/Terrain": {url: https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer,
+                            # template: Multi-Directional_Hillshade, cell_size: 5, name: terrain_mdhillshade_5m.tif}, 24 tiles of 4,800 px
+  map_image:                # by service URL: convert (visible sublayers -> local feature layers) or off
+    "https://maps.trpa.org/server/rest/services/Streams_and_Flood_Zone/MapServer": convert
+    "https://maps.trpa.org/server/rest/services/Boundaries/MapServer": convert
+    "https://maps.trpa.org/server/rest/services/Transportation/MapServer": "off"   # only Corridors is on, and it draws at 1:85,000 and smaller only: never on the 36 x 48 sheets
