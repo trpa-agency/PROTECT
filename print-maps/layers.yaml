@@ -7,7 +7,8 @@
 # print_scale for the 36 x 48 in poster.
 #
 # Every map is set up once and finished and exported by hand in Pro: a plain run adds only what is
-# missing, and --replace rebuilds (see build_layers.py).
+# missing, and --replace rebuilds (see build_layers.py). When only a class break or a legend label changes
+# on the page, sync_breaks.py rewrites the bounds and labels of the built layers in place (symbols kept).
 
 source_gdb: ""             # blank = curated.gdb in the root config.yaml
 map: TRPA Standard Layers  # the template's map: its base cartography is what every copied map keeps
@@ -40,9 +41,12 @@ class_sets:
   vclass:                  # vClassRenderer: exactly 0 is not exposed (roads carry no sensitivity, V = E)
     min: -1
     classes: [[0.0005, gray, "Not exposed (0)"], [0.999, ice, Low], [1.999, orange, Medium], [3.1, brick, High]]
-  wfclass:                 # wfRenderer: Low 1 to under 2, Medium 2 to 2.5, High over 2.5
+  wfclass:                 # wfRenderer (revised Oct. 30, 2026): under 1 none, Low 1 to under 1.5, Medium 1.5 to 2, High over 2
     min: -1
-    classes: [[0.999, gray, None], [1.999, ice, Low], [2.5, orange, Medium], [3.1, brick, High]]
+    classes: [[0.999, gray, None], [1.499, ice, Low], [2.0, orange, Medium], [3.1, brick, High]]
+  dfclass:                 # dfRenderer (decision 34, Nov. 2, 2026): exactly 0 not exposed, Low under 1.5, Medium 1.5 to under 2, High 2 and over
+    min: -1
+    classes: [[0.0005, gray, "Not exposed (0)"], [1.499, ice, Low], [1.999, orange, Medium], [3.1, brick, High]]
   crit_quarter:            # critRenderer: C_class, the criticality percentile cut at 25, 50, and 75
     min: -0.5
     classes: [[0.5, crit0, "0: lowest quarter"], [1.5, crit1, "1"], [2.5, crit2, "2"], [3.5, crit3, "3: top quarter (most critical)"]]
@@ -133,11 +137,12 @@ layers:
       classes: [[1.5, ice, "1: over 40 to 60 percent of the cell prone"], [2.5, orange, "2: over 60 to 80 percent"], [3.5, brick, "3: over 80 percent, or a recorded landslide"]]
     alpha: [0.6, 0.5, 0.55]
 
-  # Overview, Debris flow: vulnerability on roads, culverts, and bridges. The page has no debris-flow surface;
-  # the upslope steepness term (E1) stands in, on the page's exposure-class breaks.
-  - {name: Bridges, group: Debris flow, dataset: Assets\Bridges, kind: point, marker: square, field: V_DFB_hist, classes: vclass, sizes: 11}
-  - {name: Culverts, group: Debris flow, dataset: Assets\Culverts, kind: point, field: V_DFC_hist, classes: vclass, sizes: [4, 5, 6, 7]}
-  - {name: Roads, group: Debris flow, dataset: Assets\Roads, kind: line, field: V_DFR_hist, classes: vclass}
+  # Overview, Debris flow: vulnerability on roads, culverts, and bridges, on the pair's own breaks (dfclass,
+  # decision 34). The page has no debris-flow surface; the upslope steepness term (E1) stands in, on the
+  # page's exposure-class breaks.
+  - {name: Bridges, group: Debris flow, dataset: Assets\Bridges, kind: point, marker: square, field: V_DFB_hist, classes: dfclass, sizes: 11}
+  - {name: Culverts, group: Debris flow, dataset: Assets\Culverts, kind: point, field: V_DFC_hist, classes: dfclass, sizes: [4, 5, 6, 7]}
+  - {name: Roads, group: Debris flow, dataset: Assets\Roads, kind: line, field: V_DFR_hist, classes: dfclass}
   - name: Upslope steepness
     group: Debris flow
     dataset: HazardSurfaces\Hazard_DebrisFlow_Slope
