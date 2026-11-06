@@ -489,9 +489,10 @@
       AVR:{roads:"V_AVR_hist"}};
     const OV_SRC = {paths:"paths_wildfire.geojson", culverts:"culverts_results.geojson", bridges:"bridges_results.geojson", hubs:"transit_wildfire.geojson"};
     const OV_LABEL = {roads:"Roads", paths:"Paths", culverts:"Culverts", bridges:"Bridges", hubs:"Transit hubs"};
+    // wildfire and debris flow fields take their pair's breaks (wfRenderer, dfRenderer), the rest the standard breaks
     const ovRend = fields => Object.fromEntries(Object.keys(OV_SYM).map(id => { const f = fields[id], sym = OV_SYM[id];
       if (!f) return [id, {type:"simple", symbol:sym(COL.gray, 0)}];
-      return [id, f === "V_class" ? vClassFieldRenderer(f, sym) : (f.startsWith("V_WF") ? wfRenderer : vClassRenderer)(f, sym)]; }));
+      return [id, f === "V_class" ? vClassFieldRenderer(f, sym) : (f.startsWith("V_WF") ? wfRenderer : f.startsWith("V_DF") ? dfRenderer : vClassRenderer)(f, sym)]; }));
     // criticality quarter 0 to 3 on roads, one blue hue
     const critRenderer = () => breaksRenderer("C_class", [{minValue:-0.5, maxValue:0.5, symbol:line(CRIT_RAMP[0], LINE_W[0])}, {minValue:0.5, maxValue:1.5, symbol:line(CRIT_RAMP[1], LINE_W[1])}, {minValue:1.5, maxValue:2.5, symbol:line(CRIT_RAMP[2], LINE_W[2])}, {minValue:2.5, maxValue:3.5, symbol:line(CRIT_RAMP[3], LINE_W[3])}]);
     // What "high criticality" means on the Overview (Nov. 2, 2026): the top quarter (C_class 3, the
