@@ -36,14 +36,19 @@ every page; never describe a flood model as purchased or pending. The **Results 
 Jekyll skips underscore directories, so nothing in it is served by Pages.
 
 **Draft gate (Nov. 6, 2026):** `html/gate.js`, loaded in the head of every page (`html/gate.js` from the
-root home), is a soft gate for pages still under review. Its `GATED` list (today: baseline assessment,
-criticality QA, results-simple, workshop punch list, climate inputs, storm events) names the pages that
-show a navy sign-in screen instead of their content, drop out of every Pages menu (a group left empty
-hides too), and lose their cards on `html/index.html` (an emptied card grid hides with its heading).
-Every menu ends with a Staff item: "Sign in to see drafts" or "Sign out". The staff passphrase is
-stored only as a SHA-256 hash (`HASH`); signing in keeps the hash in localStorage, and links to gated
-pages get an orange "draft" tag once signed in. Gate a page by adding its file name to `GATED`;
-release it by removing the name; rotate the passphrase by replacing `HASH` with
+root home), is a soft gate for pages still under review. Its `GATED` list (today: All pages
+`html/index.html`, baseline assessment, criticality QA, results-simple, workshop punch list, access to
+services, reference hub, climate inputs, historic hazards, storm events; public: Home, Results, Results
+guide, Criticality, Scoring rubrics, References, Workshop feedback) names the pages that show a navy
+sign-in screen instead of their content, drop out of every Pages menu (a group left empty hides too),
+and lose their cards on `html/index.html` and the root home (`a.page-card`, `a.tool`; an emptied card
+grid hides with its heading). Pages are matched by full URL resolved against the script's folder, so
+"index.html" in the list is All pages, never the public home. A padlock button sits just before
+`details.pages` in every header: closed lock = staff sign-in, orange open lock = signed in, click to
+sign out. The sign-in card also has a Request access mailto to gis@trpa.gov. The passphrase is stored
+only as a SHA-256 hash (`HASH`); signing in keeps the hash in localStorage, and gated links in the
+menu get an orange "draft" tag once signed in. Gate a page by adding its file name to `GATED`; release
+it by removing the name; rotate the passphrase by replacing `HASH` with
 `await protectGate.hash("new phrase")` from any page's console (a new hash signs everyone out).
 It is not security: the repo is public and the files are served regardless, so it keeps drafts out of
 sight for casual visitors and nothing more. Anything sensitive stays out of the repo, gated or not.

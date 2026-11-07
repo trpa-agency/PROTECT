@@ -2,15 +2,20 @@
  *
  * A soft gate for pages that are still under review. It keeps them out of the Pages menu and off
  * the index cards for anyone who has not signed in, and covers the page itself with a sign-in
- * screen. It is not security: GitHub Pages serves every file and the repo is public, so anyone
- * who opens the source or the repo can read a gated page. Nothing sensitive belongs here, gated
- * or not (see the NDOT rule in CLAUDE.md).
+ * screen. A padlock button beside Pages signs in (closed lock) or out (open lock). It is not
+ * security: GitHub Pages serves every file and the repo is public, so anyone who opens the source
+ * or the repo can read a gated page. Nothing sensitive belongs here, gated or not (see the NDOT
+ * rule in CLAUDE.md).
  *
- * To gate a page: add its file name to GATED and put <script src="gate.js"></script> in its head
- * (html/gate.js from the repo root). To release it: remove the name. To change the passphrase:
- * replace HASH with the SHA-256 hex of the new phrase. In any page's console:
+ * To gate a page: add its file name (relative to html/) to GATED and put
+ * <script src="gate.js"></script> in its head (html/gate.js from the repo root). To release it:
+ * remove the name. To change the passphrase: replace HASH with the SHA-256 hex of the new phrase.
+ * In any page's console:
  *   await protectGate.hash("new phrase")
  * Signing in stores the hash in localStorage, so a new passphrase signs everyone out.
+ *
+ * Pages are matched by full URL resolved against this script's folder, so "index.html" here is
+ * html/index.html (All pages) and never the public home at the repo root.
  *
  * Load this synchronously in <head>, before <body>, so a gated page never flashes its content.
  */
@@ -18,11 +23,15 @@
   "use strict";
 
   var GATED = [
+    "index.html",
     "baseline-assessment.html",
     "criticality-qa.html",
     "results-simple.html",
     "workshop-punchlist.html",
+    "od-services-index.html",
+    "reference-hub.html",
     "climate-data.html",
+    "historic-hazards.html",
     "tahoe-precip-events.html"
   ];
   var HASH = "26a7b98d6e6ba758f8fcb9283d0a31c274d0fe6c61d9718e0294fd3a9d07ca3a";
@@ -31,19 +40,25 @@
     "&body=" + encodeURIComponent("Hello,\n\nPlease send me the staff passphrase for the Connecting Tahoe draft pages.\n\nName:\nAgency:\nPage I was trying to open: ") +
     encodeURIComponent(location.href);
 
-  function base(href) {
-    if (!href) return "";
-    return href.split("/").pop().split(/[?#]/)[0];
+  // html/ is the folder this script lives in, whichever page loaded it
+  var scriptSrc = (document.currentScript && document.currentScript.src) || new URL("gate.js", location.href).href;
+  var HTML_DIR = new URL("./", scriptSrc).href;
+  var home = new URL("../index.html", HTML_DIR).href;
+
+  function norm(href) {
+    var u;
+    try { u = new URL(href, location.href); } catch (e) { return ""; }
+    var p = u.origin + u.pathname;
+    if (/\/$/.test(p)) p += "index.html";
+    return p;
   }
-  function isGated(href) { return GATED.indexOf(base(href)) !== -1; }
+  var gatedUrls = GATED.map(function (n) { return norm(HTML_DIR + n); });
+  function isGated(href) { return gatedUrls.indexOf(norm(href)) !== -1; }
   function read() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
   function write(v) { try { if (v === null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, v); } catch (e) {} }
 
   var unlocked = read() === HASH;
-  var here = base(location.pathname) || "index.html";
-  var src = (document.currentScript && document.currentScript.getAttribute("src")) || "gate.js";
-  var home = /^html\//.test(src) ? "index.html" : "../index.html";
-  var locked = !unlocked && isGated(here);
+  var locked = !unlocked && isGated(location.href);
 
   if (locked) document.documentElement.classList.add("gate-locked");
 
@@ -69,9 +84,19 @@
     "#gate .gate-err{color:#9C3E27;font-size:13px;min-height:18px;margin:10px 0 0}" +
     "#gate .gate-note{font-size:12px;color:#667;margin:18px 0 0}" +
     ".gate-hide{display:none !important}" +
+    ".gate-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;" +
+    "border:1px solid rgba(180,203,232,.55);border-radius:999px;background:none;color:#B4CBE8;cursor:pointer;vertical-align:middle;flex:0 0 auto}" +
+    ".gate-btn:hover{background:rgba(255,255,255,.1);border-color:#fff;color:#fff}" +
+    ".gate-btn.open{color:#E87722;border-color:#E87722}" +
+    ".gate-btn svg{width:14px;height:14px;display:block}" +
     "details.pages nav.menu a[data-gated]::after{content:'draft';font-size:.68em;font-weight:700;letter-spacing:.04em;text-transform:uppercase;" +
     "margin-left:.5em;padding:1px 5px;border-radius:3px;background:#E87722;color:#fff;vertical-align:middle}";
   document.head.appendChild(css);
+
+  var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  var UNLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.8"/></svg>';
 
   function sha256(text) {
     if (!(window.crypto && crypto.subtle)) return Promise.reject(new Error("nocrypto"));
@@ -86,7 +111,7 @@
       if (!isGated(a.getAttribute("href"))) return;
       var inMenu = !!a.closest("details.pages nav.menu");
       if (unlocked) { if (inMenu) a.setAttribute("data-gated", ""); return; }
-      if (inMenu || a.classList.contains("page-card")) a.classList.add("gate-hide");
+      if (inMenu || a.classList.contains("page-card") || a.classList.contains("tool")) a.classList.add("gate-hide");
       else if (a.closest(".checks span")) a.closest("span").classList.add("gate-hide");
     });
     // an index card grid with no visible card left, and the heading above it
@@ -104,33 +129,31 @@
     });
   }
 
-  function staffItem() {
-    var menu = document.querySelector("details.pages nav.menu");
-    if (!menu) return;
-    var g = document.createElement("div");
-    g.className = "g gate-g";
-    var b = document.createElement("b"); b.textContent = "Staff";
-    var a = document.createElement("a"); a.href = "#";
-    if (unlocked) {
-      a.textContent = "Sign out";
-      a.addEventListener("click", function (e) { e.preventDefault(); write(null); location.reload(); });
-    } else {
-      a.textContent = "Sign in to see drafts";
-      a.addEventListener("click", function (e) { e.preventDefault(); showGate(true); });
-    }
-    g.appendChild(b); g.appendChild(a);
-    menu.appendChild(g);
+  function lockButton() {
+    var pages = document.querySelector("details.pages");
+    if (!pages) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "gate-btn" + (unlocked ? " open" : "");
+    b.innerHTML = unlocked ? UNLOCK : LOCK;
+    var label = unlocked ? "Signed in: draft pages are shown. Sign out" : "Staff sign-in to see draft pages";
+    b.title = label;
+    b.setAttribute("aria-label", label);
+    b.addEventListener("click", function () {
+      if (unlocked) { write(null); location.reload(); } else showGate(true);
+    });
+    pages.parentNode.insertBefore(b, pages);
   }
 
-  function showGate(fromMenu) {
+  function showGate(fromButton) {
     if (document.getElementById("gate")) return;
     var wrap = document.createElement("div");
     wrap.id = "gate";
     wrap.setAttribute("role", "dialog");
     wrap.setAttribute("aria-modal", "true");
     wrap.setAttribute("aria-labelledby", "gate-h");
-    var title = fromMenu ? "Staff sign-in" : "Draft under review";
-    var text = fromMenu
+    var title = fromButton ? "Staff sign-in" : "Draft under review";
+    var text = fromButton
       ? "Sign in to see the pages that are still being reviewed. They stay hidden from everyone else."
       : "This page is not ready to share yet. Project staff can sign in to view it.";
     wrap.innerHTML =
@@ -143,11 +166,11 @@
       '<div class="gate-err" id="gate-err" aria-live="polite"></div>' +
       '<div class="gate-row"><button type="submit">Sign in</button>' +
       '<a class="gate-ask" href="' + MAIL + '">Request access</a>' +
-      '<a href="' + (fromMenu ? "#" : home) + '" id="gate-back">' + (fromMenu ? "Cancel" : "Back to home") + '</a></div>' +
-      '<p class="gate-note">Signing in stays on this browser until you sign out from the Pages menu.</p>' +
+      '<a href="' + (fromButton ? "#" : home) + '" id="gate-back">' + (fromButton ? "Cancel" : "Back to home") + '</a></div>' +
+      '<p class="gate-note">Signing in stays on this browser until you sign out with the lock beside Pages.</p>' +
       '</form>';
     document.body.appendChild(wrap);
-    if (fromMenu) {
+    if (fromButton) {
       document.documentElement.classList.add("gate-locked");
       wrap.querySelector("#gate-back").addEventListener("click", function (e) {
         e.preventDefault(); wrap.remove(); document.documentElement.classList.remove("gate-locked");
@@ -169,7 +192,7 @@
 
   function init() {
     hideLinks();
-    staffItem();
+    lockButton();
     if (locked) showGate(false);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
