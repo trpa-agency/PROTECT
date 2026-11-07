@@ -24,6 +24,7 @@
 
   var GATED = [
     "index.html",
+    "workshop-feedback.html",
     "baseline-assessment.html",
     "criticality-qa.html",
     "results-simple.html",
@@ -112,8 +113,9 @@
       if (!isGated(a.getAttribute("href"))) return;
       var inMenu = !!a.closest("details.pages nav.menu");
       if (unlocked) { if (inMenu) a.setAttribute("data-gated", ""); return; }
-      if (inMenu || a.classList.contains("page-card") || a.classList.contains("tool")) a.classList.add("gate-hide");
+      if (inMenu || a.classList.contains("page-card") || a.classList.contains("tool") || a.classList.contains("band-btn")) a.classList.add("gate-hide");
       else if (a.closest(".checks span")) a.closest("span").classList.add("gate-hide");
+      else if (a.closest(".tile")) a.closest(".tile").classList.add("gate-hide");
     });
     // an index card grid with no visible card left, and the heading above it
     var grids = document.querySelectorAll("section.card-grid");
