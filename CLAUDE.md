@@ -38,8 +38,8 @@ Jekyll skips underscore directories, so nothing in it is served by Pages.
 **Draft gate (Nov. 6, 2026):** `html/gate.js`, loaded in the head of every page (`html/gate.js` from the
 root home), is a soft gate for pages still under review. Its `GATED` list (today: All pages
 `html/index.html`, baseline assessment, criticality QA, results-simple, workshop punch list, access to
-services, reference hub, climate inputs, historic hazards, storm events; public: Home, Results, Results
-guide, Criticality, Scoring rubrics, References, Workshop feedback) names the pages that show a navy
+services, scoring rubrics, reference hub, climate inputs, historic hazards, storm events; public: Home,
+Results, Results guide, Criticality, References, Workshop feedback) names the pages that show a navy
 sign-in screen instead of their content, drop out of every Pages menu (a group left empty hides too),
 and lose their cards on `html/index.html` and the root home (`a.page-card`, `a.tool`; an emptied card
 grid hides with its heading). Pages are matched by full URL resolved against the script's folder, so

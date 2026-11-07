@@ -29,6 +29,7 @@
     "results-simple.html",
     "workshop-punchlist.html",
     "od-services-index.html",
+    "scoring-rubrics.html",
     "reference-hub.html",
     "climate-data.html",
     "historic-hazards.html",
