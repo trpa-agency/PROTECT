@@ -27,6 +27,9 @@
   ];
   var HASH = "26a7b98d6e6ba758f8fcb9283d0a31c274d0fe6c61d9718e0294fd3a9d07ca3a";
   var KEY = "protect-gate";
+  var MAIL = "mailto:gis@trpa.gov?subject=" + encodeURIComponent("Connecting Tahoe draft pages: passphrase request") +
+    "&body=" + encodeURIComponent("Hello,\n\nPlease send me the staff passphrase for the Connecting Tahoe draft pages.\n\nName:\nAgency:\nPage I was trying to open: ") +
+    encodeURIComponent(location.href);
 
   function base(href) {
     if (!href) return "";
@@ -50,19 +53,21 @@
     "html.gate-locked body>*:not(#gate){visibility:hidden}" +
     "#gate{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:24px;" +
     "background:#003B71;font-family:'Open Sans',Calibri,Arial,sans-serif;visibility:visible}" +
-    "#gate .card{background:#fff;color:#003B71;border-radius:8px;max-width:440px;width:100%;padding:28px 28px 24px;box-shadow:0 8px 32px rgba(0,0,0,.35)}" +
-    "#gate .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#0072CE;font-weight:700;margin:0 0 6px}" +
+    "#gate .gate-card{background:#fff;color:#003B71;border-radius:8px;max-width:440px;width:100%;padding:28px 28px 24px;box-shadow:0 8px 32px rgba(0,0,0,.35)}" +
+    "#gate .gate-eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#0072CE;font-weight:700;margin:0 0 6px}" +
     "#gate h2{margin:0 0 10px;font-size:22px;line-height:1.25}" +
     "#gate p{margin:0 0 16px;font-size:15px;line-height:1.5;color:#334}" +
     "#gate label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}" +
     "#gate input{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:9px 10px;border:1px solid #B4CBE8;border-radius:6px;color:#003B71}" +
     "#gate input:focus{outline:2px solid #0072CE;outline-offset:1px}" +
-    "#gate .row{display:flex;align-items:center;gap:14px;margin-top:14px}" +
-    "#gate button{font:inherit;font-size:15px;font-weight:700;color:#fff;background:#0072CE;border:0;border-radius:6px;padding:9px 18px;cursor:pointer}" +
+    "#gate .gate-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;margin-top:14px}" +
+    "#gate button{white-space:nowrap;font:inherit;font-size:15px;font-weight:700;color:#fff;background:#0072CE;border:0;border-radius:6px;padding:9px 18px;cursor:pointer}" +
     "#gate button:hover{background:#005fae}" +
     "#gate a{color:#0072CE;font-size:14px}" +
-    "#gate .err{color:#9C3E27;font-size:13px;min-height:18px;margin:10px 0 0}" +
-    "#gate .note{font-size:12px;color:#667;margin:18px 0 0}" +
+    "#gate .gate-ask{display:inline-block;white-space:nowrap;font-size:14px;font-weight:700;color:#0072CE;background:#fff;border:1px solid #0072CE;border-radius:6px;padding:8px 14px;text-decoration:none}" +
+    "#gate .gate-ask:hover{background:#eef5fc}" +
+    "#gate .gate-err{color:#9C3E27;font-size:13px;min-height:18px;margin:10px 0 0}" +
+    "#gate .gate-note{font-size:12px;color:#667;margin:18px 0 0}" +
     ".gate-hide{display:none !important}" +
     "details.pages nav.menu a[data-gated]::after{content:'draft';font-size:.68em;font-weight:700;letter-spacing:.04em;text-transform:uppercase;" +
     "margin-left:.5em;padding:1px 5px;border-radius:3px;background:#E87722;color:#fff;vertical-align:middle}";
@@ -129,16 +134,17 @@
       ? "Sign in to see the pages that are still being reviewed. They stay hidden from everyone else."
       : "This page is not ready to share yet. Project staff can sign in to view it.";
     wrap.innerHTML =
-      '<form class="card" autocomplete="off">' +
-      '<p class="eyebrow">PROTECT, Connecting Tahoe</p>' +
+      '<form class="gate-card" autocomplete="off">' +
+      '<p class="gate-eyebrow">PROTECT, Connecting Tahoe</p>' +
       '<h2 id="gate-h">' + title + '</h2>' +
       '<p>' + text + '</p>' +
       '<label for="gate-pw">Staff passphrase</label>' +
       '<input id="gate-pw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required />' +
-      '<div class="err" id="gate-err" aria-live="polite"></div>' +
-      '<div class="row"><button type="submit">Sign in</button>' +
+      '<div class="gate-err" id="gate-err" aria-live="polite"></div>' +
+      '<div class="gate-row"><button type="submit">Sign in</button>' +
+      '<a class="gate-ask" href="' + MAIL + '">Request access</a>' +
       '<a href="' + (fromMenu ? "#" : home) + '" id="gate-back">' + (fromMenu ? "Cancel" : "Back to home") + '</a></div>' +
-      '<p class="note">Signing in stays on this browser until you sign out from the Pages menu.</p>' +
+      '<p class="gate-note">Signing in stays on this browser until you sign out from the Pages menu.</p>' +
       '</form>';
     document.body.appendChild(wrap);
     if (fromMenu) {
