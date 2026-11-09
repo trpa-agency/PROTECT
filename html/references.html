@@ -126,13 +126,13 @@
       </div>
       <div class="header-meta">
         <span class="version">v0.1</span>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html" class="on" aria-current="page">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="vulnerability-assessment-feedback.html">Vulnerability assessment feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="vulnerability-assessment.html">Vulnerability assessment</a><a href="vulnerability-assessment-guide.html">Vulnerability assessment guide</a><a href="criticality-assessment.html">Criticality assessment</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html" class="on" aria-current="page">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
 
   <main>
-    <p class="lede">Plain definitions of the terms on these pages, every field in the <a href="results.html">Results</a> popups, tables, and exports, and where each dataset comes from.</p>
+    <p class="lede">Plain definitions of the terms on these pages, every field in the <a href="vulnerability-assessment.html">Vulnerability assessment</a> popups, tables, and exports, and where each dataset comes from.</p>
 
     <div class="finder">
       <input type="search" id="q" placeholder="Search terms, fields, and sources" aria-label="Search terms, fields, and sources" />
@@ -166,8 +166,8 @@
         <tr><td class="h">Class; Vulnerability class (highest pair)</td><td class="code"><code>V_class</code></td><td>The highest of the asset's pair classes, wildfire on its own breaks. Colors the Overview.</td><td>Low, Medium, High; blank not scored</td></tr>
         <tr><td class="h">Vulnerability with the stand-in pairs; Highest hazard, with stand-ins</td><td class="code"><code>V_max_all</code> <code>V_max_all_pair</code></td><td>The same two readings over every pair; equal to V_max and V_max_pair since decision 35 put debris flow in the combined class (kept for the export).</td><td>0 to 3; pair code</td></tr>
         <tr><td class="h">Flooding V, Wildfire V, Landslide V, Debris flow V, Avalanche V</td><td class="code"><code>V_&lt;pair&gt;_hist</code>, as in <code>V_FLR_hist</code>, <code>V_FLC_hist</code>, <code>V_WFAT_hist</code></td><td>That hazard's vulnerability score for the asset. For roads it equals the exposure score.</td><td>0 to 3; <code>_hist</code> is the historical horizon</td></tr>
-        <tr><td class="h">Criticality quarter (3 = top); Criticality percentile</td><td class="code"><code>C_class</code> <code>criticality_pctl</code></td><td>Percentile: the road's rank among all segments on the Criticality Index at default weights. Quarter: that percentile cut at 25, 50, and 75; culverts and bridges inherit their road's. Provisional until the network lane sets its rule.</td><td>Quarter 0 lowest to 3 top; percentile 0 to 100</td></tr>
-        <tr><td class="h">Top tenth</td><td class="code"><code>C_top10</code></td><td>1 when the criticality percentile is 90 or higher. A second reading of high criticality, kept beside the quarter; the Results page's High criticality switch picks which one the hotspots use.</td><td>0 or 1</td></tr>
+        <tr><td class="h">Criticality quarter (3 = top); Criticality percentile</td><td class="code"><code>C_class</code> <code>criticality_pctl</code></td><td>Percentile: the road's rank among all segments on the Criticality Assessment at default weights. Quarter: that percentile cut at 25, 50, and 75; culverts and bridges inherit their road's. Provisional until the network lane sets its rule.</td><td>Quarter 0 lowest to 3 top; percentile 0 to 100</td></tr>
+        <tr><td class="h">Top tenth</td><td class="code"><code>C_top10</code></td><td>1 when the criticality percentile is 90 or higher. A second reading of high criticality, kept beside the quarter; the Vulnerability Assessment page's High criticality switch picks which one the hotspots use.</td><td>0 or 1</td></tr>
         <tr><td class="h">Sensitivity data</td><td class="code"><code>S_source</code></td><td>Whether the sensitivity inputs were observed or defaulted.</td><td>full; partial (some defaults); default (all defaulted)</td></tr>
         <tr><td class="h">Road; Type, Road type, Facility class; Segment; Miles; Length (m)</td><td class="code"><code>name</code> <code>class</code> <code>src_objectid</code> <code>miles</code> <code>seg_len_m</code></td><td>Name and class from the street network or path inventory; the segment id is the join key across the results files.</td><td>Text; id; miles; meters</td></tr>
         <tr><td class="h">Length in class 1, 2, 3 (percent)</td><td class="code"><code>len_pct_c1</code> <code>len_pct_c2</code> <code>len_pct_c3</code></td><td>Share of the segment in each class: flood class (Flooding), burn likelihood (Wildfire), susceptibility (Landslide).</td><td>Percent of length</td></tr>
@@ -203,7 +203,7 @@
     </div>
 
     <!-- ===================== Sources ===================== -->
-    <h2 class="sec" id="sources">Sources <small>the datasets behind the Results page</small></h2>
+    <h2 class="sec" id="sources">Sources <small>the datasets behind the Vulnerability Assessment page</small></h2>
     <div class="head-row">
       <p class="lead">Who makes each dataset, what it feeds, and where to read its metadata. The <a href="reference-hub.html">Reference hub</a> tracks the wider data plan.</p>
       <button type="button" class="csv" id="sources-csv">Export CSV</button>
@@ -232,7 +232,7 @@
       ["Debris flow", "A fast slurry of mud, rock, and wood down a steep channel, most likely after intense rain on recently burned ground."],
       ["Default value", "The value the method assigns when a sensitivity input was not observed, such as an uninspected culvert. The record is then flagged partial or default."],
       ["Detour length", "The added distance of the shortest way around if a road segment closed."],
-      ["Drainage area", "All the ground that drains to a point, traced from the lidar elevation model. Clicking a culvert on the Results page draws it. Also called the contributing area."],
+      ["Drainage area", "All the ground that drains to a point, traced from the lidar elevation model. Clicking a culvert on the Vulnerability Assessment page draws it. Also called the contributing area."],
       ["Equity sub-index", "The criticality factor for neighborhood need: poverty, limited English, households without a vehicle, and disability, from census block groups."],
       ["Exposure", "How much of a hazard reaches an asset, scored 0 to 3."],
       ["FEMA flood zone", "Ground FEMA maps with a 1 percent (100-year) or 0.2 percent (500-year) chance of flooding in any year. Flood exposure scores them 3 and 2."],

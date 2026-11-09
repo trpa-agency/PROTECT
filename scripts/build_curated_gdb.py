@@ -101,7 +101,7 @@ DF_HAND_GATE = (" Also 1 for three bridges gated by hand (decision 34): the two 
                 "because the 25 m window misses the restored channel.")
 OD_ROUTE = ("Averaged over 100 stochastic assignment runs on travel time by road class "
             "(scripts/ra2ce_v2/od_stochastic_assignment.ipynb).")
-PAGES_ROADS = "results.html (road layer and table on every tab)"
+PAGES_ROADS = "vulnerability-assessment.html (road layer and table on every tab)"
 
 
 def road_v(e: str) -> str:
@@ -144,10 +144,10 @@ def across_pairs(pairs: str, all_pairs: str, used_class: str, used_max: str, tab
         Fld("V_max_all", "DOUBLE", "Score of the class-setting pair, all pairs",
             f"Score of the pair that sets V_class_all across all pairs, debris flow included ({pair_words(all_pairs)})." if df
             else f"Same as V_max, {same}.", units="score, 0 to 3",
-            used="results.html (Overview popups)", src=src("V_max_all"), how=how),
+            used="vulnerability-assessment.html (Overview popups)", src=src("V_max_all"), how=how),
         Fld("V_max_all_pair", "TEXT", "Pair with the highest score, all pairs",
             "Pair that V_max_all comes from." if df else f"Same as V_max_pair, {same}.", values=all_pairs,
-            used="results.html (Overview popups)", src=src("V_max_all_pair"), how=how, length=10),
+            used="vulnerability-assessment.html (Overview popups)", src=src("V_max_all_pair"), how=how, length=10),
     ]
 
 
@@ -157,7 +157,7 @@ def c_class_inherited(asset: str) -> Fld:
                values="0, 1, 2, 3 (3 is the top quarter)", src="Roads.C_class",
                how=f"looked up through parent_segment_id at build time; the analysis geodatabase does not store it on "
                    f"{asset}, and the Results and Scoring Rubrics pages look it up the same way",
-               used="results.html (asset tables); scoring-rubrics.html (vulnerability by criticality matrix)")
+               used="vulnerability-assessment.html (asset tables); scoring-rubrics.html (vulnerability by criticality matrix)")
 
 
 # ----------------------------------------------------------------------------------------
@@ -181,44 +181,44 @@ def roads_fields() -> list:
         Fld("src_objectid", "LONG", "Segment ID",
             "Unique ID of the street link, its OBJECTID in Streets_Network_Tahoe and the PROTECT_VA hosted layer. Joins "
             "the road score tables; culverts and bridges store it as parent_segment_id.",
-            values="unique", used=f"{PAGES_ROADS}; criticality-index.html (join key); scoring-rubrics.html (matrix); "
+            values="unique", used=f"{PAGES_ROADS}; criticality-assessment.html (join key); scoring-rubrics.html (matrix); "
                                f"score_exposure.py, score_vulnerability.py, and publish_results.py (join key)"),
         Fld("segment_id", "TEXT", "Overture segment ID",
             "Overture Maps segment ID. Not unique, because Overture segments are split into several links at "
             "intersections.",
-            used="od-services-index.html (popup, CSV export); workshop-feedback.html (asset ID on road notes); RA2CE v2 "
+            used="od-services-index.html (popup, CSV export); vulnerability-assessment-feedback.html (asset ID on road notes); RA2CE v2 "
                  "pipeline (link ID)", length=64),
         Fld("name", "TEXT", "Street name", "Street name from Overture (primary name). Null if the street has no name.",
-            used="results.html, criticality-index.html, od-services-index.html, and workshop-feedback.html (titles, "
+            used="vulnerability-assessment.html, criticality-assessment.html, od-services-index.html, and vulnerability-assessment-feedback.html (titles, "
                  "tables, search)", length=255),
         Fld("class", "TEXT", "Road class", "Overture road class.",
             values="trunk, primary, secondary, tertiary, unclassified, residential, living_street, service, unknown",
-            used="results.html (popups, tables, miles by road type); criticality-index.html; od-services-index.html; "
-                 "workshop-feedback.html", length=32),
+            used="vulnerability-assessment.html (popups, tables, miles by road type); criticality-assessment.html; od-services-index.html; "
+                 "vulnerability-assessment-feedback.html", length=32),
         Fld("In_Basin", "SHORT", "In basin",
             "1 if the link is inside the Lake Tahoe basin. Every link here is 1; the Workshop Feedback page filters on it.",
-            values="1", used="workshop-feedback.html (layer filter, read from PROTECT_VA)"),
+            values="1", used="vulnerability-assessment-feedback.html (layer filter, read from PROTECT_VA)"),
         Fld("seg_len_m", "DOUBLE", "Length (m)", "Link length measured from the geometry, rounded to 0.1 m.",
             units="meters", src="Vulnerability_roads.seg_len_m", how="joined on src_objectid",
-            used="results.html (road miles in KPIs, charts, and tables); criticality-index.html (miles); "
+            used="vulnerability-assessment.html (road miles in KPIs, charts, and tables); criticality-assessment.html (miles); "
                  "publish_results.py (summary)"),
         Fld("C_class", "SHORT", "Criticality class",
             "The criticality percentile cut into quarters at the 25th, 50th, and 75th percentiles.",
             values="0, 1, 2, 3 (3 is the top quarter)", src="Vulnerability_roads.C_class",
             how="joined on src_objectid",
-            used="results.html (line weight on every tab, tables, Overview matrix and hotspots); scoring-rubrics.html "
+            used="vulnerability-assessment.html (line weight on every tab, tables, Overview matrix and hotspots); scoring-rubrics.html "
                  "(matrix); publish_results.py (matrix, hotspots)"),
         Fld("C_top10", "SHORT", "Top tenth of criticality",
             "1 if the criticality percentile is 90 or higher: the top-tenth reading of high criticality, kept beside "
             "C_class so either can be shared.",
             values="0, 1 (1 is the top tenth)", src="Vulnerability_roads.C_top10", how="joined on src_objectid",
-            used="results.html (High criticality switch: hotspots, matrix, tables); publish_results.py (hotspots_top10)"),
+            used="vulnerability-assessment.html (High criticality switch: hotspots, matrix, tables); publish_results.py (hotspots_top10)"),
         Fld("criticality_pctl", "DOUBLE", "Criticality percentile", "Percentile rank of criticality_score, 0 to 100.",
-            units="percentile", used="results.html (popups); criticality-index.html; score_vulnerability.py (C_class)"),
+            units="percentile", used="vulnerability-assessment.html (popups); criticality-assessment.html; score_vulnerability.py (C_class)"),
         Fld("criticality_score", "DOUBLE", "Criticality score",
             "0.3 x traffic_subindex + 0.3 x detour_subindex + 0.3 x od_subindex + 0.1 x equity_subindex, calculated in "
             "scripts/Streets_Network_Clean.ipynb. The Criticality page recalculates it from its own weight sliders.",
-            units="weighted z-score", used="criticality-index.html; results.html (Overview); score_vulnerability.py"),
+            units="weighted z-score", used="criticality-assessment.html; vulnerability-assessment.html (Overview); score_vulnerability.py"),
         Fld("traffic_subindex", "DOUBLE", "Traffic sub-index",
             "AADT_Jenks_Score as a z-score (mean 0, population standard deviation).", units="z-score",
             used="criticality_score (weight 0.3)"),
@@ -232,31 +232,31 @@ def roads_fields() -> list:
             used="criticality_score (weight 0.1)"),
         Fld("AADT_Jenks_Score", "SHORT", "Traffic score (1 to 10)",
             "Estimated_2024_AADT_Filled grouped into 10 classes by Jenks natural breaks.", values="1 to 10",
-            used="criticality-index.html (traffic sub-index); traffic_subindex"),
+            used="criticality-assessment.html (traffic sub-index); traffic_subindex"),
         Fld("Estimated_2024_AADT_Filled", "LONG", "Average daily traffic (2024)",
             "Average annual daily traffic from StreetLight's 2024 estimates, matched to the link by best overlap (5 m "
             "buffer, at least half the link's length). Unmatched major roads take the highest value among the links they "
             "touch; other unmatched links are 0.",
             units="vehicles per day",
-            used="workshop-feedback.html (road note subtitle, read from PROTECT_VA); AADT_Jenks_Score"),
+            used="vulnerability-assessment-feedback.html (road note subtitle, read from PROTECT_VA); AADT_Jenks_Score"),
         Fld("SLR_Diff_Length_Jenks_Score", "SHORT", "Detour score (1 to 10)",
             "slr_diff_length_max grouped into 10 Jenks classes. Links with no value score 1.", values="1 to 10",
-            used="criticality-index.html (detour sub-index); detour_subindex"),
+            used="criticality-assessment.html (detour sub-index); detour_subindex"),
         Fld("slr_diff_length_max", "DOUBLE", "Detour length (m)",
             "Extra distance of the shortest detour if the link is closed, from RA2CE single-link redundancy on the "
             "corrected v2 network (scripts/ra2ce_v2). 0 where there is no detour, except on major roads, which take the "
             "highest value of their neighbors.", units="meters",
-            used="criticality-index.html (detour view); SLR_Diff_Length_Jenks_Score"),
+            used="criticality-assessment.html (detour view); SLR_Diff_Length_Jenks_Score"),
         Fld("OD_Traffic_Jenks_Score", "SHORT", "OD traffic score (1 to 10)",
             "OD_Traffic_Avg grouped into 10 Jenks classes.", values="1 to 10",
-            used="criticality-index.html (OD sub-index); od_subindex"),
+            used="criticality-assessment.html (OD sub-index); od_subindex"),
         Fld("OD_Traffic_Avg", "DOUBLE", "OD traffic, average of six", "Average of the six traffic_* fields.",
-            units="persons", used="criticality-index.html; OD_Traffic_Jenks_Score"),
+            units="persons", used="criticality-assessment.html; OD_Traffic_Jenks_Score"),
     ]
     for d, (label, rule) in TRAFFIC_DEST.items():
-        page = ("criticality-index.html (OD sub-index, destination toggles); od-services-index.html (Traffic ranking, "
+        page = ("criticality-assessment.html (OD sub-index, destination toggles); od-services-index.html (Traffic ranking, "
                 "via roads_od.json); OD_Traffic_Avg" if d in OD_PAGE_DEST
-                else "criticality-index.html (OD sub-index); OD_Traffic_Avg")
+                else "criticality-assessment.html (OD sub-index); OD_Traffic_Avg")
         f.append(Fld(f"traffic_{d}", "DOUBLE", f"Residents routed to {label}",
                      f"Residents routed over the link {rule}. {OD_ROUTE}", units="persons", used=page))
     for d in OD_PAGE_DEST:
@@ -271,40 +271,40 @@ def roads_fields() -> list:
         f.append(Fld(name, "DOUBLE", what + " (block group)",
                      f"{what} in the census block group the link touches (Block_Group_Layer). A link that touches several "
                      f"block groups takes the highest value, and one that touches none takes the nearest block group's.",
-                     units=unit, used="criticality-index.html (equity sub-index); equity_subindex"))
+                     units=unit, used="criticality-assessment.html (equity sub-index); equity_subindex"))
     f += across_pairs("FLR, LSR, WFR, DFR, AVR", "FLR, LSR, WFR, DFR, AVR",
-                      "results.html (Overview color and Priority view, hotspots, tables); scoring-rubrics.html; "
+                      "vulnerability-assessment.html (Overview color and Priority view, hotspots, tables); scoring-rubrics.html; "
                       "publish_results.py (summary)",
-                      "results.html (Overview popups)", "Vulnerability_roads", "src_objectid")
+                      "vulnerability-assessment.html (Overview popups)", "Vulnerability_roads", "src_objectid")
     # flooding
     f += [
         Fld("E_FLR_hist", "DOUBLE", "Flood exposure (FL-R)",
             "Highest flood class the link touches in Hazard_Flood_Class: 3 for a FEMA 1 percent zone, 2 for the 0.2 "
             "percent zone or within 10 m of a mapped stream, and 0 for neither.", values="0, 2, 3",
             src="Exposure_flood_roads.E_FLR_hist", how="joined on src_objectid",
-            used="results.html (Flooding tab color, popup, table, charts)"),
+            used="vulnerability-assessment.html (Flooding tab color, popup, table, charts)"),
         Fld("FLR_len_pct_c2", "DOUBLE", "Percent of length in flood class 2",
             "Percent of the link's length in flood class 2.", units="percent", src="Exposure_flood_roads.len_pct_c2",
-            how="joined on src_objectid; renamed from len_pct_c2", used="results.html (Flooding popup)"),
+            how="joined on src_objectid; renamed from len_pct_c2", used="vulnerability-assessment.html (Flooding popup)"),
         Fld("FLR_len_pct_c3", "DOUBLE", "Percent of length in flood class 3",
             "Percent of the link's length in flood class 3 (FEMA 1 percent zone).", units="percent",
             src="Exposure_flood_roads.len_pct_c3", how="joined on src_objectid; renamed from len_pct_c3",
-            used="results.html (Flooding popup)"),
+            used="vulnerability-assessment.html (Flooding popup)"),
         Fld("V_FLR_hist", "DOUBLE", "Flood vulnerability (FL-R)", road_v("E_FLR_hist"),
             values="0 (Low), 2 (Medium), 3 (High)", src="Vulnerability_roads.V_FLR_hist", how="joined on src_objectid",
-            used="results.html (Overview Flooding view, popups); scoring-rubrics.html (matrix)"),
+            used="vulnerability-assessment.html (Overview Flooding view, popups); scoring-rubrics.html (matrix)"),
     ]
     # landslide
     f += [
         Fld("E_LSR_hist", "DOUBLE", "Landslide exposure (LS-R)",
             "(0.50 x E_LSR_e1 + 0.20 x E_LSR_e2) / 0.70. E_LSR_e2 is 0 at the historical horizon, so this is 0.714 x "
             "E_LSR_e1.", values="0, 0.71, 1.43, 2.14", src="Exposure_landslide_roads.E_LSR_hist",
-            how="joined on src_objectid", used="results.html (Landslide tab color, popup, table, charts)"),
+            how="joined on src_objectid", used="vulnerability-assessment.html (Landslide tab color, popup, table, charts)"),
         Fld("E_LSR_e1", "DOUBLE", "Landslide susceptibility class (LS-R E1)",
             "Highest landslide class covering at least 25 percent of the link's length in Hazard_Landslide_Class "
             "(decision 36; the highest class touching the link before Nov. 3, 2026).", values="0 to 3",
             src="Exposure_landslide_roads.E_LSR_e1", how="joined on src_objectid",
-            used="results.html (Landslide popup, table, KPI); E_LSR_hist (weight 0.50)"),
+            used="vulnerability-assessment.html (Landslide popup, table, KPI); E_LSR_hist (weight 0.50)"),
         Fld("E_LSR_e2", "DOUBLE", "Precipitation change (LS-R E2)",
             "Cal-Adapt precipitation change. Always 0 at the historical horizon; the 2050 and 2080 columns will be added "
             "in December.", values="0", src="Exposure_landslide_roads.E_LSR_e2",
@@ -313,52 +313,52 @@ def roads_fields() -> list:
     f += [Fld(f"LSR_len_pct_c{k}", "DOUBLE", f"Percent of length in landslide class {k}",
               f"Percent of the link's length in landslide class {k}.", units="percent",
               src=f"Exposure_landslide_roads.len_pct_c{k}", how=f"joined on src_objectid; renamed from len_pct_c{k}",
-              used="results.html (Landslide popup and table)") for k in (1, 2, 3)]
+              used="vulnerability-assessment.html (Landslide popup and table)") for k in (1, 2, 3)]
     f += [Fld("V_LSR_hist", "DOUBLE", "Landslide vulnerability (LS-R)", road_v("E_LSR_hist"),
               values=V_BREAKS, src="Vulnerability_roads.V_LSR_hist", how="joined on src_objectid",
-              used="results.html (Overview Landslide view, popups); scoring-rubrics.html (matrix)")]
+              used="vulnerability-assessment.html (Overview Landslide view, popups); scoring-rubrics.html (matrix)")]
     # wildfire
     f += [
         Fld("E_WFR_hist", "DOUBLE", "Wildfire exposure (WF-R)", "0.70 x E_WFR_e1 + 0.30 x E_WFR_e2.",
             units="score, 0 to 3", src="Exposure_wildfire_roads.E_WFR_hist", how="joined on src_objectid",
-            used="results.html (Wildfire tab color, popup, table, charts, KPIs)"),
+            used="vulnerability-assessment.html (Wildfire tab color, popup, table, charts, KPIs)"),
         Fld("E_WFR_e1", "DOUBLE", "Burn probability class (WF-R E1)",
             "Highest burn probability class within 300 ft of the link (Hazard_Wildfire_BurnProb).",
             values="0 to 3", src="Exposure_wildfire_roads.E_WFR_e1", how="joined on src_objectid",
-            used="results.html (Wildfire popup, table); E_WFR_hist (weight 0.70)"),
+            used="vulnerability-assessment.html (Wildfire popup, table); E_WFR_hist (weight 0.70)"),
         Fld("E_WFR_e2", "DOUBLE", "Fire severity class (WF-R E2)",
             "Highest fire severity class that covers at least 25 percent of the 300 ft buffer around the link "
             "(Hazard_Wildfire_Severity).", values="0 to 3", src="Exposure_wildfire_roads.E_WFR_e2",
-            how="joined on src_objectid", used="results.html (Wildfire popup, table, KPI); E_WFR_hist (weight 0.30)"),
+            how="joined on src_objectid", used="vulnerability-assessment.html (Wildfire popup, table, KPI); E_WFR_hist (weight 0.30)"),
     ]
     f += [Fld(f"WFR_len_pct_c{k}", "DOUBLE", f"Percent of length in burn probability class {k}",
               f"Percent of the link's own length (not its 300 ft buffer) in burn probability class {k}.",
               units="percent", src=f"Exposure_wildfire_roads.len_pct_c{k}",
               how=f"joined on src_objectid; renamed from len_pct_c{k}",
-              used="results.html (Wildfire popup and table)") for k in (1, 2, 3)]
+              used="vulnerability-assessment.html (Wildfire popup and table)") for k in (1, 2, 3)]
     f += [Fld("V_WFR_hist", "DOUBLE", "Wildfire vulnerability (WF-R)", road_v("E_WFR_hist"),
               values=WF_BREAKS, src="Vulnerability_roads.V_WFR_hist", how="joined on src_objectid",
-              used="results.html (Overview Wildfire view, popups); scoring-rubrics.html (matrix)")]
+              used="vulnerability-assessment.html (Overview Wildfire view, popups); scoring-rubrics.html (matrix)")]
     # debris flow
     f += [
         Fld("E_DFR_hist", "DOUBLE", "Debris-flow exposure (DF-R)",
             f"{DF_E.format(p='E_DFR')} Roads are not gated. {DF_COMBINED}",
             units="score, 0 to 3", src="Exposure_debris_flow_roads.E_DFR_hist", how="joined on src_objectid",
-            used="results.html (Debris flow tab color, popup, table, chart)"),
+            used="vulnerability-assessment.html (Debris flow tab color, popup, table, chart)"),
         Fld("E_DFR_e1", "DOUBLE", "Upslope steepness score (DF-R E1)",
             "Highest upslope steepness score the link touches in Hazard_DebrisFlow_Slope; cells draining more than 3 sq mi "
             "score 0 there (decision 34), so a river crossing reads the hillslope beside it.",
             values="0 to 3 in half points", src="Exposure_debris_flow_roads.E_DFR_e1", how="joined on src_objectid",
-            used="results.html (Debris flow popup, table); E_DFR_hist (weight 0.40)"),
+            used="vulnerability-assessment.html (Debris flow popup, table); E_DFR_hist (weight 0.40)"),
         Fld("E_DFR_e3", "DOUBLE", "Fire severity class (DF-R E3)",
             "Highest fire severity class covering at least 25 percent of the 300 ft buffer around the link "
             "(Hazard_Wildfire_Severity), 0 where none does. It stands in for predicted soil burn severity, which is "
             "under contract.", values="0 to 3", src="Exposure_debris_flow_roads.E_DFR_e3",
             how="joined on src_objectid; renamed from E_e3 where the score table still uses the old name",
-            used="results.html (Debris flow popup and table); E_DFR_hist (weight 0.60)"),
+            used="vulnerability-assessment.html (Debris flow popup and table); E_DFR_hist (weight 0.60)"),
         Fld("V_DFR_hist", "DOUBLE", "Debris-flow vulnerability (DF-R)", road_v("E_DFR_hist"),
             values=DF_BREAKS, src="Vulnerability_roads.V_DFR_hist", how="joined on src_objectid",
-            used="results.html (Overview Debris flow view, popups); scoring-rubrics.html (matrix)"),
+            used="vulnerability-assessment.html (Overview Debris flow view, popups); scoring-rubrics.html (matrix)"),
     ]
     # avalanche
     f += [
@@ -366,44 +366,44 @@ def roads_fields() -> list:
             "Scored from av_tier and av_record. With no avalanche zone within 1,000 ft, tiers 0 to 3 score 0, 1, 1.5, "
             "and 2; with a zone, they score 1, 2, 2.5, and 3.", values="0, 1, 1.5, 2, 2.5, 3",
             src="Exposure_avalanche_roads.E_AVR_hist", how="joined on src_objectid",
-            used="results.html (Avalanche tab color, popup, table, charts)"),
+            used="vulnerability-assessment.html (Avalanche tab color, popup, table, charts)"),
         Fld("av_tier", "SHORT", "Uphill slope tier",
             "Slope tier covering the most uphill ground within 1,000 ft of the link (ties go to the higher tier). Uphill "
             "means 10 m cells at least one 20 m elevation band above the link's midpoint. Tier 0 is under 25 degrees; 1 "
             "is 25 to under 30 or over 50; 2 is 30 to under 35 or over 45 to 50; 3 is 35 to 45. Null where no ground is "
             "uphill, which scores as tier 0.", values="0, 1, 2, 3",
             src="Exposure_avalanche_roads.av_tier", how="joined on src_objectid",
-            used="results.html (Avalanche tier view, popup, table, chart)"),
+            used="vulnerability-assessment.html (Avalanche tier view, popup, table, chart)"),
         Fld("av_record", "SHORT", "Avalanche zone within 1,000 ft",
             "1 if a TRPA avalanche zone (Avalanche_Zones) is within 1,000 ft of the link.", values="0, 1",
             src="Exposure_avalanche_roads.av_record", how="joined on src_objectid",
-            used="results.html (Avalanche popup, table, chart, KPI)"),
+            used="vulnerability-assessment.html (Avalanche popup, table, chart, KPI)"),
         Fld("uphill_ha", "DOUBLE", "Uphill ground within 1,000 ft (ha)",
             "Area of the uphill ground that av_tier is taken from.", units="hectares",
             src="Exposure_avalanche_roads.uphill_ha", how="joined on src_objectid",
-            used="results.html (Avalanche popup, table)"),
+            used="vulnerability-assessment.html (Avalanche popup, table)"),
         Fld("V_AVR_hist", "DOUBLE", "Avalanche vulnerability (AV-R)", road_v("E_AVR_hist"),
             values=V_BREAKS, src="Vulnerability_roads.V_AVR_hist", how="joined on src_objectid",
-            used="results.html (Overview Avalanche view, popups); scoring-rubrics.html (matrix)"),
+            used="vulnerability-assessment.html (Overview Avalanche view, popups); scoring-rubrics.html (matrix)"),
     ]
     # screening flags the criticality and OD pages filter on
     f += [
         Fld("in_flood_zone", "SHORT", "In a FEMA flood zone (screening)",
             "1 if the link touches any FEMA flood zone, 100- or 500-year, including the lake's stillwater zone. Used as "
             "a page filter; the assessment's flood score is E_FLR_hist.", values="0, 1",
-            used="criticality-index.html (hazard filter); od-services-index.html (hazard filter, via roads_od.json)"),
+            used="criticality-assessment.html (hazard filter); od-services-index.html (hazard filter, via roads_od.json)"),
         Fld("in_flood_zone_100", "SHORT", "In a FEMA 100-year zone (screening)",
             "1 if the link touches a FEMA 100-year flood zone (FLOOD_YEAR '100-year flood').", values="0, 1",
-            used="criticality-index.html (hazard filter)"),
+            used="criticality-assessment.html (hazard filter)"),
         Fld("high_sev_fire", "SHORT", "In probable high-severity fire area (screening)",
             "1 if the link touches the probable high-severity fire area "
             "(ForestManagementZone_Identity_HighSeverityProbability, gridcode 1). Used as a page filter; the "
             "assessment's wildfire score is E_WFR_hist.", values="0, 1",
-            used="criticality-index.html (hazard filter); od-services-index.html (hazard filter)"),
+            used="criticality-assessment.html (hazard filter); od-services-index.html (hazard filter)"),
         Fld("landslide_mean", "DOUBLE", "Landslide susceptibility, average (screening)",
             "Average USGS 2024 landslide susceptibility over the 90 m cells the link crosses. Each cell holds the count "
             "of landslide-prone 10 m cells inside it, 0 to 81.", units="10 m cells per 90 m cell",
-            used="criticality-index.html (hazard filter); od-services-index.html (hazard filter at 22 or more, via "
+            used="criticality-assessment.html (hazard filter); od-services-index.html (hazard filter at 22 or more, via "
                  "roads_od.json)"),
     ]
     return f
@@ -417,38 +417,38 @@ def culverts_fields() -> list:
         Fld("culvert_id", "TEXT", "Culvert ID",
             "The jurisdiction and the agency's own asset ID, joined by a vertical bar.",
             values="<jurisdiction>|<agency ID>, unique",
-            used="results.html (popup titles, culvert table); workshop-feedback.html (asset ID); "
+            used="vulnerability-assessment.html (popup titles, culvert table); vulnerability-assessment-feedback.html (asset ID); "
                  "tahoe-precip-events.html; the scoring scripts (join key)", length=160),
         Fld("jurisdiction", "TEXT", "Jurisdiction", "Agency that provided the record.",
             values="Caltrans, City of South Lake Tahoe, Douglas County, El Dorado County, Placer County, Washoe County, "
                    "TRPA Legacy (provisional)",
-            used="results.html (popups, table, charts by jurisdiction); workshop-feedback.html; "
+            used="vulnerability-assessment.html (popups, table, charts by jurisdiction); vulnerability-assessment-feedback.html; "
                  "tahoe-precip-events.html; culvert_profile.py (condition rating scheme)", length=60),
         Fld("road_name", "TEXT", "Road", "Road over the culvert, as the agency recorded it. Null if not given.",
-            used="results.html (popups, table); workshop-feedback.html; tahoe-precip-events.html", length=254),
+            used="vulnerability-assessment.html (popups, table); vulnerability-assessment-feedback.html; tahoe-precip-events.html", length=254),
         Fld("parent_segment_id", "LONG", "Parent street link",
             "src_objectid of the nearest street link within 50 m (Roads). The culvert's criticality comes from this "
             "link.",
             how="stored as text in the analysis geodatabase; converted to an integer to match Roads.src_objectid",
-            used="results.html (criticality in the culvert table); scoring-rubrics.html (matrix); culvert_profile.py "
+            used="vulnerability-assessment.html (criticality in the culvert table); scoring-rubrics.html (matrix); culvert_profile.py "
                  "(breach lines, delineation set)"),
         Fld("crossing_id", "TEXT", "Crossing",
             "Crossing the culvert belongs to. Culverts within 10 m of each other on the same link form one crossing, "
             "whose drainage area is in CulvertWatersheds. A few crossings have no polygon there: those whose pour point "
             "was not found (scored on 25 m around the culvert instead), and those shared with a restricted-jurisdiction "
             "culvert, whose drainage area is withheld.", values="X plus five digits",
-            used="results.html (popup, table, drainage area on click); score_exposure.py (watershed sampling)",
+            used="vulnerability-assessment.html (popup, table, drainage area on click); score_exposure.py (watershed sampling)",
             length=12),
         Fld("barrels", "SHORT", "Barrels", "Number of culverts in the crossing. Null where the crossing includes a "
             "restricted-jurisdiction culvert, as are q_cap_crossing_cfs, the loading ratios, and ratio_review.",
             values="1 or more",
-            used="results.html (popup); culvert_profile.py (crossing capacity)"),
+            used="vulnerability-assessment.html (popup); culvert_profile.py (crossing capacity)"),
         Fld("material", "TEXT", "Material (as recorded)",
             "Pipe material as the agency recorded it, in words or as a code.",
             used="tahoe-precip-events.html (popup); culvert_profile.py (material_class)", length=60),
         Fld("material_class", "TEXT", "Material class", "Pipe material grouped into the same classes for every agency.",
             values="corrodible_metal, plastic, concrete, unknown",
-            used="results.html (popup); culvert_profile.py (inlet-control coefficients)", length=20),
+            used="vulnerability-assessment.html (popup); culvert_profile.py (inlet-control coefficients)", length=20),
         Fld("xsection_shape", "TEXT", "Cross-section shape (as recorded)",
             "Cross-section shape as the agency recorded it, in words or as a code.",
             used="culvert_profile.py (round versus box or arch, for d_eq_in and capacity)", length=80),
@@ -464,11 +464,11 @@ def culverts_fields() -> list:
         Fld("d_eq_in", "DOUBLE", "Equivalent diameter (in)",
             "span_in for round pipes. For other shapes, the diameter of a circle with area span x rise, which is the "
             "square root of (4 x span x rise / pi). Null where size is missing.", units="inches",
-            used="results.html (popup, table); workshop-feedback.html; scoring-rubrics.html; score_vulnerability.py "
+            used="vulnerability-assessment.html (popup, table); vulnerability-assessment-feedback.html; scoring-rubrics.html; score_vulnerability.py "
                  "(LS-C and DF-C S1)"),
         Fld("size_class", "TEXT", "Size class",
             "d_eq_in in four bands: small is 18 in. or less, medium over 18 to 36, large over 36 to 72, and major over "
-            "72.", values="small, medium, large, major", used="results.html (loading ratio chart by size)", length=10),
+            "72.", values="small, medium, large, major", used="vulnerability-assessment.html (loading ratio chart by size)", length=10),
         Fld("length_ft", "DOUBLE", "Length (ft)",
             "Pipe length as the agency recorded it. Not checked; a few very short or very long values are probably entry "
             "errors or whole pipe runs.", units="feet", how="set to null if 0 or less",
@@ -487,78 +487,78 @@ def culverts_fields() -> list:
         Fld("contrib_area_ac", "DOUBLE", "Drainage area (ac)",
             "Area of the full watershed draining to the crossing, including ground that drains through other crossings "
             "upstream.", units="acres",
-            used="results.html (popup, table); scoring-rubrics.html; score_exposure.py (DF-C E2)"),
+            used="vulnerability-assessment.html (popup, table); scoring-rubrics.html; score_exposure.py (DF-C E2)"),
         Fld("basin_slope_pct", "DOUBLE", "Basin slope (percent)", "Area-weighted average slope of the full watershed.",
             units="percent", used="scoring-rubrics.html; score_exposure.py (DF-C E1); score_vulnerability.py (FL-C S1)"),
         Fld("basin_landcover", "TEXT", "Main land cover", "Most common NLCD 2021 land cover group in the watershed.",
             values="forest, shrub, grass, developed, barren, water, wetland",
-            used="results.html (popup); score_vulnerability.py (FL-C S1)", length=20),
+            used="vulnerability-assessment.html (popup); score_vulnerability.py (FL-C S1)", length=20),
         Fld("q_method", "TEXT", "Flow method", "Method used to estimate the 100-year flow.",
             values="rational (under 1 sq mi), regression_CA (Gotvald 2012, Lahontan region), regression_NV (Thomas 1997, "
-                   "region 1), regression_needed, none (no watershed)", used="results.html (popup, table)", length=20),
+                   "region 1), regression_needed, none (no watershed)", used="vulnerability-assessment.html (popup, table)", length=20),
         Fld("q_event_100_cfs", "DOUBLE", "100-year flow (cfs)",
             "100-year peak flow at the crossing. Basins under 1 sq mi use the rational method with NOAA Atlas 14 "
             "rainfall intensity at the Kirpich time of concentration; larger basins use the USGS regional regression.",
-            units="cubic feet per second", used="results.html (popup, table)"),
+            units="cubic feet per second", used="vulnerability-assessment.html (popup, table)"),
         Fld("q_cap_crossing_cfs", "DOUBLE", "Crossing capacity (cfs)",
             "Flow the crossing can pass with water at the top of the opening (FHWA HDS-5 inlet control, 2 percent slope "
             "assumed), summed over all barrels. Null where a barrel is restricted-jurisdiction.",
-            units="cubic feet per second", used="results.html (popup, table)"),
+            units="cubic feet per second", used="vulnerability-assessment.html (popup, table)"),
         Fld("load_ratio_100", "DOUBLE", "Loading ratio, 100-year",
             "q_event_100_cfs divided by q_cap_crossing_cfs. Above 1, the 100-year flow is more than the crossing can "
             "pass. Null where size, watershed, or flow is missing, where size_suspect is 1, or where a barrel in the "
             "crossing is restricted-jurisdiction.", units="ratio",
-            used="results.html (popup, table, chart, KPIs); workshop-feedback.html; make_pro_maps.py; "
+            used="vulnerability-assessment.html (popup, table, chart, KPIs); vulnerability-assessment-feedback.html; make_pro_maps.py; "
                  "score_vulnerability.py (FL-C S2)"),
         Fld("cond_class", "SHORT", "Condition class",
             "Condition from the latest inspection, on one scale for every agency from 0 (good) to 3 (poor). It is the "
             "higher of the condition rating and the blockage class, or 1 where there is no rating.",
             values="0, 1, 2, 3",
-            used="results.html (popup, table); workshop-feedback.html; scoring-rubrics.html; score_vulnerability.py "
+            used="vulnerability-assessment.html (popup, table); vulnerability-assessment-feedback.html; scoring-rubrics.html; score_vulnerability.py "
                  "(condition indicators)"),
         Fld("cond_source", "TEXT", "Condition source",
             "Whether cond_class comes from a condition rating, from blockage alone, or is the default.",
             values="rated, blockage_only, default",
-            used="results.html (popup); workshop-feedback.html; score_vulnerability.py (default handling)", length=20),
+            used="vulnerability-assessment.html (popup); vulnerability-assessment-feedback.html; score_vulnerability.py (default handling)", length=20),
         Fld("blockage_pct", "DOUBLE", "Blockage (percent)", "Percent of the opening blocked at the latest inspection.",
             units="percent", used="tahoe-precip-events.html; score_vulnerability.py (FL-C S3, DF-C S2)"),
         Fld("tailwater_flag", "SHORT", "Tailwater flag",
             "1 if the pour point is below 6,230 ft, just above the lake's legal maximum of 6,229.1 ft, so a high lake "
             "can back water into the outlet. Adds 1 to E_FLC_hist, up to 3.", values="0, 1",
-            used="results.html (popup, flags); score_exposure.py (FL-C adjustment)"),
+            used="vulnerability-assessment.html (popup, flags); score_exposure.py (FL-C adjustment)"),
         Fld("on_stream", "SHORT", "On a mapped stream",
             "1 if the culvert is within 10 m of a stream or lake in the lidar-derived streams layer.", values="0, 1",
-            used="results.html (table flags)"),
+            used="vulnerability-assessment.html (table flags)"),
         Fld("size_suspect", "SHORT", "Size suspect",
             "1 if the recorded size is too small to be plausible for the drainage area: 24 in. or less on a mapped "
             "stream draining 100 acres or more, 24 in. or less draining 500 acres or more anywhere, or any size under 8 "
             "in. The loading ratio is left null and the record goes to the owner to confirm.", values="0, 1",
-            used="results.html (popup, owner-review filter, KPI)"),
+            used="vulnerability-assessment.html (popup, owner-review filter, KPI)"),
         Fld("ratio_review", "SHORT", "Ratio review",
             "1 if load_ratio_100 is over 20. The culvert is still scored and is listed for the owner to confirm. "
             "Null where the loading ratio is withheld for a restricted-jurisdiction barrel.",
-            values="0, 1", used="results.html (popup, owner-review filter)"),
+            values="0, 1", used="vulnerability-assessment.html (popup, owner-review filter)"),
         Fld("profile_completeness", "TEXT", "Profile completeness",
             "Whether size, drainage area, and condition are all known (full), some are (partial), or none are "
             "(default).", values="full, partial, default",
-            used="results.html (KPI for culverts with size, drainage, and condition all known)", length=10),
+            used="vulnerability-assessment.html (KPI for culverts with size, drainage, and condition all known)", length=10),
         c_class_inherited("culverts"),
     ]
     f += across_pairs("FLC, LSC, DFC", "FLC, LSC, DFC",
-                      "results.html (Overview color, popups); scoring-rubrics.html; publish_results.py (summary)",
-                      "results.html (Overview and Flooding popups)")
+                      "vulnerability-assessment.html (Overview color, popups); scoring-rubrics.html; publish_results.py (summary)",
+                      "vulnerability-assessment.html (Overview and Flooding popups)")
     f += [
         Fld("S_source", "TEXT", "Sensitivity data",
             "Whether the sensitivity indicators used recorded data (full), only defaults (default), or a mix (partial).",
-            values="full, partial, default", used="results.html (popups, culvert table)", length=10),
+            values="full, partial, default", used="vulnerability-assessment.html (popups, culvert table)", length=10),
         # flooding
         Fld("E_FLC_hist", "DOUBLE", "Flood exposure (FL-C)",
             "Highest flood class anywhere in the culvert's full watershed, or within 25 m of the culvert where no "
             "watershed was delineated. Raised by 1, up to 3, where tailwater_flag is 1.", values="0, 1, 2, 3",
-            used="results.html (popup, table, chart)"),
+            used="vulnerability-assessment.html (popup, table, chart)"),
         Fld("E_FLC_pt", "DOUBLE", "Flood exposure at the culvert",
             "Highest flood class within 25 m of the culvert, without the tailwater adjustment. For comparison with "
-            "E_FLC_hist.", values="0, 2, 3", used="results.html (Flooding popup)"),
+            "E_FLC_hist.", values="0, 2, 3", used="vulnerability-assessment.html (Flooding popup)"),
         Fld("S_FLC_s1", "DOUBLE", "Debris potential (FL-C S1)",
             "Debris potential from the draft methodology's matrix of basin slope (8 percent or less, over 8 to 16, over "
             "16) and land cover (water and snow, urban, shrubs, trees). 1 where slope or land cover is missing.",
@@ -574,23 +574,23 @@ def culverts_fields() -> list:
             values="1, 2, 3", used="S_FLC (weight 0.15)"),
         Fld("S_FLC", "DOUBLE", "Flood sensitivity (FL-C)",
             "(0.25 x S_FLC_s1 + 0.30 x S_FLC_s2 + 0.15 x S_FLC_s3) / 0.70.", units="score, 0 to 3",
-            used="results.html (Flooding popup); V_FLC_hist (weight 0.70)"),
+            used="vulnerability-assessment.html (Flooding popup); V_FLC_hist (weight 0.70)"),
         Fld("V_FLC_hist", "DOUBLE", "Flood vulnerability (FL-C)", "0.30 x E_FLC_hist + 0.70 x S_FLC.",
-            values=V_BREAKS, used="results.html (popups, table, KPI); scoring-rubrics.html (matrix)"),
+            values=V_BREAKS, used="vulnerability-assessment.html (popups, table, KPI); scoring-rubrics.html (matrix)"),
         # landslide
         Fld("E_LSC_hist", "DOUBLE", "Landslide exposure (LS-C)",
             "(0.50 x E_LSC_e1 + 0.20 x E_LSC_e2) / 0.70. E_LSC_e2 is 0 at the historical horizon.",
-            values="0, 0.71, 1.43, 2.14", used="results.html (Landslide color, popup)"),
+            values="0, 0.71, 1.43, 2.14", used="vulnerability-assessment.html (Landslide color, popup)"),
         Fld("E_LSC_e1", "DOUBLE", "Landslide susceptibility class (LS-C E1)",
             "Highest landslide class covering at least 25 percent of the culvert's watershed (decision 36; the highest "
             "class anywhere in it before Nov. 3, 2026), or of the 25 m buffer where there is no watershed.", values="0 to 3",
-            used="results.html (Landslide popup, KPI); E_LSC_hist (weight 0.50)"),
+            used="vulnerability-assessment.html (Landslide popup, KPI); E_LSC_hist (weight 0.50)"),
         Fld("E_LSC_e2", "DOUBLE", "Precipitation change (LS-C E2)",
             "Cal-Adapt precipitation change. Always 0 at the historical horizon.", values="0",
             used="E_LSC_hist (weight 0.20)"),
         Fld("E_LSC_pt", "DOUBLE", "Landslide exposure at the culvert",
             "E_LSC_hist with E1 taken within 25 m of the culvert instead of over the watershed.",
-            values="0, 0.71, 1.43, 2.14", used="results.html (Landslide popup)"),
+            values="0, 0.71, 1.43, 2.14", used="vulnerability-assessment.html (Landslide popup)"),
         Fld("S_LSC_s1", "DOUBLE", "Opening size score (LS-C S1)",
             "Score for d_eq_in: 3 under 24 in., 2.5 for 24 to under 36, 2 for 36 to under 60, 1.5 for 60 to under 84, "
             "and 1 for 84 or more. 2 where size is missing.", values="1 to 3 in half points",
@@ -601,25 +601,25 @@ def culverts_fields() -> list:
         Fld("S_LSC", "DOUBLE", "Landslide sensitivity (LS-C)", "(0.15 x S_LSC_s1 + 0.15 x S_LSC_s2) / 0.30.",
             units="score, 0 to 3", used="V_LSC_hist (weight 0.30)"),
         Fld("V_LSC_hist", "DOUBLE", "Landslide vulnerability (LS-C)", "0.70 x E_LSC_hist + 0.30 x S_LSC.",
-            values=V_BREAKS, used="results.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
+            values=V_BREAKS, used="vulnerability-assessment.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
         # debris flow
         Fld("E_DFC_hist", "DOUBLE", "Debris-flow exposure (DF-C)",
             f"{DF_E.format(p='E_DFC')} 0 where DF_gate is 1. {DF_COMBINED}",
-            units="score, 0 to 3", used="results.html (Debris flow color, popup, chart)"),
+            units="score, 0 to 3", used="vulnerability-assessment.html (Debris flow color, popup, chart)"),
         Fld("E_DFC_e1", "DOUBLE", "Basin slope score (DF-C E1)",
             "Score for basin_slope_pct: 3 over 30 percent, 2.5 over 25, 2 over 20, 1.5 over 15, 1 over 10, 0.5 over 5, "
             "and 0 otherwise.", values="0 to 3 in half points",
-            used="results.html (Debris flow popup); E_DFC_hist (weight 0.40)"),
+            used="vulnerability-assessment.html (Debris flow popup); E_DFC_hist (weight 0.40)"),
         Fld("E_DFC_e3", "DOUBLE", "Fire severity class (DF-C E3)",
             "Highest fire severity class covering at least 25 percent of the watershed (Hazard_Wildfire_Severity), 0 "
             "where none does; the 25 m buffer where no watershed was delineated. It stands in for predicted soil burn "
             "severity, which is under contract.", values="0 to 3",
-            used="results.html (Debris flow popup); E_DFC_hist (weight 0.60)"),
+            used="vulnerability-assessment.html (Debris flow popup); E_DFC_hist (weight 0.60)"),
         Fld("DF_option", "TEXT", "Debris-flow method", "Debris-flow scoring option used (rubric 4.2).",
-            values="1 (severity stand-in)", used="results.html (Debris flow popup); scoring-rubrics.html",
+            values="1 (severity stand-in)", used="vulnerability-assessment.html (Debris flow popup); scoring-rubrics.html",
             length=24),
         Fld("DF_gate", "SHORT", "Over the debris-flow area gate", DF_GATE, values="0, 1",
-            used="results.html (Debris flow popup); E_DFC_hist"),
+            used="vulnerability-assessment.html (Debris flow popup); E_DFC_hist"),
         Fld("S_DFC_s1", "DOUBLE", "Opening size score (DF-C S1)", "Same scale as S_LSC_s1 (decision 7).",
             values="1 to 3 in half points", used="S_DFC (weight 0.15)"),
         Fld("S_DFC_s2", "DOUBLE", "Condition and blockage score (DF-C S2)", "Same scale as S_FLC_s3.",
@@ -628,7 +628,7 @@ def culverts_fields() -> list:
             units="score, 0 to 3", used="V_DFC_hist (weight 0.30)"),
         Fld("V_DFC_hist", "DOUBLE", "Debris-flow vulnerability (DF-C)",
             "0.70 x E_DFC_hist + 0.30 x S_DFC. Not counted in V_max or V_class.", values=DF_BREAKS,
-            used="results.html (Overview and Debris flow popups); scoring-rubrics.html (matrix)"),
+            used="vulnerability-assessment.html (Overview and Debris flow popups); scoring-rubrics.html (matrix)"),
     ]
     return f
 
@@ -654,7 +654,7 @@ CONDITION_FIELDS = [
 WATERSHED_FIELDS = [
     Fld("crossing_id", "TEXT", "Crossing", "Crossing this drainage area belongs to (Culverts.crossing_id).",
         values="X plus five digits, unique",
-        used="results.html (drainage area on click); score_exposure.py (watershed sampling)", length=12),
+        used="vulnerability-assessment.html (drainage area on click); score_exposure.py (watershed sampling)", length=12),
     Fld("downstream_crossing_id", "TEXT", "Next crossing downstream",
         "Next crossing downstream. Null at an outlet, where the link to the next crossing was cut, or where the next "
         "crossing is withheld (restricted jurisdiction).",
@@ -664,11 +664,11 @@ WATERSHED_FIELDS = [
     Fld("area_ac", "DOUBLE", "Direct drainage area (ac)",
         "Area of this polygon, which covers the ground that drains to the crossing without passing through another "
         "crossing first.", units="acres", how="calculated from the geometry at build time",
-        used="results.html (drainage area popup, as the direct area)"),
+        used="vulnerability-assessment.html (drainage area popup, as the direct area)"),
     Fld("contrib_area_ac", "DOUBLE", "Full drainage area (ac)",
         "Area of this polygon plus every polygon upstream of it, which is the whole watershed at the crossing. Includes "
         "ground that drains through a withheld crossing.", units="acres", src="CulvertCrossings.contrib_area_ac",
-        how="joined on crossing_id", used="results.html (popup); score_exposure.py (DF-C E2, through Culverts)"),
+        how="joined on crossing_id", used="vulnerability-assessment.html (popup); score_exposure.py (DF-C E2, through Culverts)"),
 ]
 
 
@@ -678,22 +678,22 @@ WATERSHED_FIELDS = [
 def bridges_fields() -> list:
     f = [
         Fld("bridge_id", "TEXT", "NBI structure number", "NBI structure number (item 8), unique within the state.",
-            used="results.html (popups); workshop-feedback.html (asset ID); the scoring scripts (join key)", length=20),
-        Fld("state", "TEXT", "State", "State (NBI item 1).", values="CA, NV", used="results.html (table)", length=2),
+            used="vulnerability-assessment.html (popups); vulnerability-assessment-feedback.html (asset ID); the scoring scripts (join key)", length=20),
+        Fld("state", "TEXT", "State", "State (NBI item 1).", values="CA, NV", used="vulnerability-assessment.html (table)", length=2),
         Fld("owner", "TEXT", "Owner", "Owner, decoded from NBI item 22.",
-            used="results.html (popups); workshop-feedback.html", length=60),
+            used="vulnerability-assessment.html (popups); vulnerability-assessment-feedback.html", length=60),
         Fld("facility_carried", "TEXT", "Facility carried",
             "Road or facility on the bridge (NBI item 7). NBI's 'NO DATA ENTERED' placeholder is left as is.",
-            used="results.html (popup titles); workshop-feedback.html", length=40),
+            used="vulnerability-assessment.html (popup titles); vulnerability-assessment-feedback.html", length=40),
         Fld("feature_crossed", "TEXT", "Feature crossed",
             "Feature under the bridge (NBI item 6A). NBI's 'NO DATA ENTERED' placeholder is left as is.",
-            used="results.html (popup titles); workshop-feedback.html", length=40),
+            used="vulnerability-assessment.html (popup titles); vulnerability-assessment-feedback.html", length=40),
         Fld("year_built", "SHORT", "Year built", "Year built (NBI item 27).", units="year",
-            used="results.html (Flooding popup); workshop-feedback.html"),
+            used="vulnerability-assessment.html (Flooding popup); vulnerability-assessment-feedback.html"),
         Fld("parent_segment_id", "LONG", "Parent street link",
             "src_objectid of the nearest street link within 50 m (Roads).",
             how="stored as text in the analysis geodatabase; converted to an integer to match Roads.src_objectid",
-            used="results.html (criticality); scoring-rubrics.html (matrix)"),
+            used="vulnerability-assessment.html (criticality); scoring-rubrics.html (matrix)"),
         Fld("is_culvert_type", "SHORT", "NBI culvert type",
             "1 if NBI item 43B is 19, a culvert over 20 ft. These large culverts are scored as bridges.", values="0, 1",
             used="culvert_profile.py (inventory culverts within 25 m of one are not scored as culverts)"),
@@ -703,31 +703,31 @@ def bridges_fields() -> list:
             used="scoring-rubrics.html; score_vulnerability.py (span length: LS-B S3, DF-B S3)"),
         Fld("waterway_eval", "TEXT", "Waterway adequacy (NBI 71)", "Waterway adequacy appraisal (NBI item 71).",
             values="0 to 9, N (not over a waterway)",
-            used="results.html (Flooding popup); scoring-rubrics.html; score_exposure.py (FL-B E1)", length=1),
+            used="vulnerability-assessment.html (Flooding popup); scoring-rubrics.html; score_exposure.py (FL-B E1)", length=1),
         Fld("channel_cond", "TEXT", "Channel condition (NBI 61)",
             "Channel and channel protection condition (NBI item 61).",
             values="0 to 9, N", used="scoring-rubrics.html; score_vulnerability.py (FL-B S1)", length=1),
         Fld("scour_code", "TEXT", "Scour critical (NBI 113)", "Scour-critical code (NBI item 113).",
             values="0 to 9, N, U, T", used="scoring-rubrics.html; score_vulnerability.py (FL-B S2)", length=1),
-        Fld("scour_label", "TEXT", "Scour", "scour_code in words.", used="results.html (Flooding popup)", length=50),
+        Fld("scour_label", "TEXT", "Scour", "scour_code in words.", used="vulnerability-assessment.html (Flooding popup)", length=50),
         Fld("lowest_rating", "SHORT", "Lowest condition rating",
             "Lowest of the deck, superstructure, and substructure ratings (NBI items 58 to 60), or the culvert rating "
             "(item 62) for culverts.", values="0 to 9",
             used="scoring-rubrics.html; make_pro_maps.py; score_vulnerability.py (FL-B S4, LS-B S2, DF-B S2)"),
         Fld("bridge_condition_label", "TEXT", "Condition", "NBI overall bridge condition.",
-            values="Good, Fair, Poor", used="results.html (Flooding popup); workshop-feedback.html", length=10),
+            values="Good, Fair, Poor", used="vulnerability-assessment.html (Flooding popup); vulnerability-assessment-feedback.html", length=10),
         c_class_inherited("bridges"),
     ]
     f += across_pairs("FLB, LSB, DFB", "FLB, LSB, DFB",
-                      "results.html (Overview color, popups); scoring-rubrics.html; publish_results.py",
-                      "results.html (Overview popups)")
+                      "vulnerability-assessment.html (Overview color, popups); scoring-rubrics.html; publish_results.py",
+                      "vulnerability-assessment.html (Overview popups)")
     f += [
         Fld("S_source", "TEXT", "Sensitivity data",
             "Whether the sensitivity indicators used recorded data (full), only defaults (default), or a mix (partial), "
             "taking the least complete pair. A blank NBI item counts as a default.",
-            values="full, partial, default", used="results.html (popups)", length=10),
+            values="full, partial, default", used="vulnerability-assessment.html (popups)", length=10),
         Fld("E_FLB_hist", "DOUBLE", "Flood exposure (FL-B)", "(0.20 x E_FLB_e1 + 0.10 x E_FLB_e2) / 0.30.",
-            units="score, 0 to 3", used="results.html (Flooding color, popup)"),
+            units="score, 0 to 3", used="vulnerability-assessment.html (Flooding color, popup)"),
         Fld("E_FLB_e1", "DOUBLE", "Waterway adequacy score (FL-B E1)",
             "Score for waterway_eval (NBI item 71): 3 for codes 0 or 1, 2.5 for 2 or 3, 2 for 4 or 5, 1.5 for 6, 1 for 7 "
             "or 8, 0.5 for 9, 0 for N, and 1 if blank.", values="0 to 3 in half points",
@@ -749,16 +749,16 @@ def bridges_fields() -> list:
             values="1 to 3", used="S_FLB (weight 0.10)"),
         Fld("S_FLB", "DOUBLE", "Flood sensitivity (FL-B)",
             "(0.10 x S_FLB_s1 + 0.40 x S_FLB_s2 + 0.10 x S_FLB_s3 + 0.10 x S_FLB_s4) / 0.70.", units="score, 0 to 3",
-            used="results.html (Flooding popup); V_FLB_hist (weight 0.70)"),
+            used="vulnerability-assessment.html (Flooding popup); V_FLB_hist (weight 0.70)"),
         Fld("V_FLB_hist", "DOUBLE", "Flood vulnerability (FL-B)", "0.30 x E_FLB_hist + 0.70 x S_FLB.",
-            values=V_BREAKS, used="results.html (Overview and Flooding popups); scoring-rubrics.html (matrix)"),
+            values=V_BREAKS, used="vulnerability-assessment.html (Overview and Flooding popups); scoring-rubrics.html (matrix)"),
         Fld("E_LSB_hist", "DOUBLE", "Landslide exposure (LS-B)",
             "(0.50 x E_LSB_e1 + 0.20 x E_LSB_e2) / 0.70. E_LSB_e2 is 0 at the historical horizon.",
-            values="0, 0.71, 1.43, 2.14", used="results.html (Landslide color, popup)"),
+            values="0, 0.71, 1.43, 2.14", used="vulnerability-assessment.html (Landslide color, popup)"),
         Fld("E_LSB_e1", "DOUBLE", "Landslide class within 25 m (LS-B E1)",
             "Highest landslide class covering at least 25 percent of the 25 m buffer around the bridge "
             "(Hazard_Landslide_Class; decision 36).", values="0 to 3",
-            used="results.html (Landslide popup, KPI); E_LSB_hist (weight 0.50)"),
+            used="vulnerability-assessment.html (Landslide popup, KPI); E_LSB_hist (weight 0.50)"),
         Fld("E_LSB_e2", "DOUBLE", "Precipitation change (LS-B E2)",
             "Cal-Adapt precipitation change. Always 0 at the historical horizon.", values="0",
             used="E_LSB_hist (weight 0.20)"),
@@ -774,10 +774,10 @@ def bridges_fields() -> list:
             "(0.10 x S_LSB_s1 + 0.10 x S_LSB_s2 + 0.10 x S_LSB_s3) / 0.30.", units="score, 0 to 3",
             used="V_LSB_hist (weight 0.30)"),
         Fld("V_LSB_hist", "DOUBLE", "Landslide vulnerability (LS-B)", "0.70 x E_LSB_hist + 0.30 x S_LSB.",
-            values=V_BREAKS, used="results.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
+            values=V_BREAKS, used="vulnerability-assessment.html (Overview and Landslide popups); scoring-rubrics.html (matrix)"),
         Fld("E_DFB_hist", "DOUBLE", "Debris-flow exposure (DF-B)",
             f"{DF_E.format(p='E_DFB')} 0 where DF_gate is 1. {DF_COMBINED}",
-            units="score, 0 to 3", used="results.html (Debris flow color, popup)"),
+            units="score, 0 to 3", used="vulnerability-assessment.html (Debris flow color, popup)"),
         Fld("E_DFB_e1", "DOUBLE", "Upslope steepness score (DF-B E1)",
             "Highest upslope steepness score within 25 m of the bridge (Hazard_DebrisFlow_Slope).",
             values="0 to 3 in half points", used="E_DFB_hist (weight 0.40)"),
@@ -786,12 +786,12 @@ def bridges_fields() -> list:
             "(Hazard_Wildfire_Severity), 0 where none does. It stands in for predicted soil burn severity, which is "
             "under contract.", values="0 to 3", used="E_DFB_hist (weight 0.60)"),
         Fld("DF_option", "TEXT", "Debris-flow method", "Debris-flow scoring option used (rubric 4.2).",
-            values="1 (severity stand-in)", used="results.html (Debris flow popup); scoring-rubrics.html",
+            values="1 (severity stand-in)", used="vulnerability-assessment.html (Debris flow popup); scoring-rubrics.html",
             length=24),
         Fld("DF_gate", "SHORT", "Over the debris-flow area gate",
             DF_GATE + " Read as the largest contributing area within 25 m of the bridge (2 m flow accumulation)." + DF_HAND_GATE,
             values="0, 1",
-            used="results.html (Debris flow popup); E_DFB_hist"),
+            used="vulnerability-assessment.html (Debris flow popup); E_DFB_hist"),
         Fld("S_DFB_s1", "DOUBLE", "Span type score (DF-B S1)", "Same scale as S_FLB_s3.", values="1, 3",
             used="S_DFB (weight 0.10)"),
         Fld("S_DFB_s2", "DOUBLE", "Condition score (DF-B S2)", "Same scale as S_FLB_s4.", values="1 to 3",
@@ -803,7 +803,7 @@ def bridges_fields() -> list:
             used="V_DFB_hist (weight 0.30)"),
         Fld("V_DFB_hist", "DOUBLE", "Debris-flow vulnerability (DF-B)",
             "0.70 x E_DFB_hist + 0.30 x S_DFB. Not counted in V_max or V_class.", values=DF_BREAKS,
-            used="results.html (Overview and Debris flow popups); scoring-rubrics.html (matrix)"),
+            used="vulnerability-assessment.html (Overview and Debris flow popups); scoring-rubrics.html (matrix)"),
     ]
     return f
 
@@ -815,23 +815,23 @@ def paths_fields() -> list:
             "OBJECTID of the facility in the TRPA Transportation service (layer 3). Joins the path score tables.",
             values="unique", src=f"{vt}.at_id (Transportation/MapServer/3.OBJECTID)",
             how="stored as text in the score tables; converted to an integer",
-            used="results.html (Wildfire and Overview path layers); workshop-feedback.html (asset ID); the scoring "
+            used="vulnerability-assessment.html (Wildfire and Overview path layers); vulnerability-assessment-feedback.html (asset ID); the scoring "
                  "scripts (join key)"),
         Fld("name", "TEXT", "Name", "Facility name.", src="Transportation/MapServer/3.NAME", how="renamed from NAME",
-            used="results.html (popups); workshop-feedback.html", length=30),
+            used="vulnerability-assessment.html (popups); vulnerability-assessment-feedback.html", length=30),
         Fld("class", "TEXT", "Facility class", "Facility class, such as Class 1 shared-use path or Class 2 bike lane.",
             src="Transportation/MapServer/3.CLASS", how="renamed from CLASS",
-            used="results.html (popups); workshop-feedback.html", length=20),
+            used="vulnerability-assessment.html (popups); vulnerability-assessment-feedback.html", length=20),
         Fld("maint_jurs", "TEXT", "Maintaining jurisdiction", "Jurisdiction that maintains the facility.",
             src="Transportation/MapServer/3.MAINT_JURS", how="renamed from MAINT_JURS",
-            used="workshop-feedback.html (asset card)", length=100),
+            used="vulnerability-assessment-feedback.html (asset card)", length=100),
         Fld("miles", "DOUBLE", "Miles (as published)", "Length as published in the service.", units="miles",
-            src="Transportation/MapServer/3.MILES", how="renamed from MILES", used="workshop-feedback.html (asset card)"),
+            src="Transportation/MapServer/3.MILES", how="renamed from MILES", used="vulnerability-assessment-feedback.html (asset card)"),
         Fld("seg_len_m", "DOUBLE", "Length (m)", "Length measured from the geometry.", units="meters",
-            src=f"{vt}.seg_len_m", how="joined on at_id", used="results.html (path miles in KPIs and charts)"),
+            src=f"{vt}.seg_len_m", how="joined on at_id", used="vulnerability-assessment.html (path miles in KPIs and charts)"),
     ]
-    f += across_pairs("FLAT, WFAT", "FLAT, WFAT", "results.html (Overview color, popups); publish_results.py (summary)",
-                      "results.html (Overview popups)", vt, "at_id")
+    f += across_pairs("FLAT, WFAT", "FLAT, WFAT", "vulnerability-assessment.html (Overview color, popups); publish_results.py (summary)",
+                      "vulnerability-assessment.html (Overview popups)", vt, "at_id")
     f += [
         Fld("S_source", "TEXT", "Sensitivity data",
             "Always default, because the FL-AT sensitivity indicators use the draft methodology's default values.",
@@ -845,22 +845,22 @@ def paths_fields() -> list:
             values="2", src=f"{vt}.S_FLAT", how="joined on at_id", used="V_FLAT_hist (weight 0.30)"),
         Fld("V_FLAT_hist", "DOUBLE", "Flood vulnerability (FL-AT)", "0.70 x E_FLAT_hist + 0.30 x S_FLAT.",
             values=V_BREAKS, src=f"{vt}.V_FLAT_hist", how="joined on at_id",
-            used="results.html (Overview Flooding view)"),
+            used="vulnerability-assessment.html (Overview Flooding view)"),
         Fld("E_WFAT_hist", "DOUBLE", "Wildfire exposure (WF-AT)", "0.70 x E_WFAT_e1 + 0.30 x E_WFAT_e2.",
             units="score, 0 to 3", src=f"{vt}.E_WFAT_hist", how="joined on at_id",
-            used="results.html (Wildfire color, popup, KPI)"),
+            used="vulnerability-assessment.html (Wildfire color, popup, KPI)"),
         Fld("E_WFAT_e1", "DOUBLE", "Burn probability class (WF-AT E1)",
             "Highest burn probability class within 300 ft of the path (Hazard_Wildfire_BurnProb).", values="0 to 3",
             src="Exposure_wildfire_active_transport.E_WFAT_e1", how="joined on at_id",
-            used="results.html (Wildfire popup); E_WFAT_hist (weight 0.70)"),
+            used="vulnerability-assessment.html (Wildfire popup); E_WFAT_hist (weight 0.70)"),
         Fld("E_WFAT_e2", "DOUBLE", "Fire severity class (WF-AT E2)",
             "Highest fire severity class that covers at least 25 percent of the 300 ft buffer around the path "
             "(Hazard_Wildfire_Severity).", values="0 to 3", src="Exposure_wildfire_active_transport.E_WFAT_e2",
-            how="joined on at_id", used="results.html (Wildfire popup); E_WFAT_hist (weight 0.30)"),
+            how="joined on at_id", used="vulnerability-assessment.html (Wildfire popup); E_WFAT_hist (weight 0.30)"),
         Fld("V_WFAT_hist", "DOUBLE", "Wildfire vulnerability (WF-AT)",
             "Equal to E_WFAT_hist, because wildfire on paths has no sensitivity score.",
             values=WF_BREAKS, src=f"{vt}.V_WFAT_hist", how="joined on at_id",
-            used="results.html (Overview Wildfire view)"),
+            used="vulnerability-assessment.html (Overview Wildfire view)"),
     ]
     return f
 
@@ -870,9 +870,9 @@ def hubs_fields() -> list:
     f = [Fld("tc_id", "LONG", "Hub ID", "FID of the hub in the Transit_Hubs hosted layer. Joins the hub score tables.",
              values="unique", src=f"{vt}.tc_id (Transit_Hubs/FeatureServer/0.FID)",
              how="stored as text in the score tables; converted to an integer",
-             used="results.html (hub popup title, 'Transit hub {tc_id}'); the scoring scripts (join key)")]
-    f += across_pairs("FLTC, WFTC", "FLTC, WFTC", "results.html (Overview color, popups); publish_results.py (summary)",
-                      "results.html (Overview popups)", vt, "tc_id")
+             used="vulnerability-assessment.html (hub popup title, 'Transit hub {tc_id}'); the scoring scripts (join key)")]
+    f += across_pairs("FLTC, WFTC", "FLTC, WFTC", "vulnerability-assessment.html (Overview color, popups); publish_results.py (summary)",
+                      "vulnerability-assessment.html (Overview popups)", vt, "tc_id")
     f += [
         Fld("S_source", "TEXT", "Sensitivity data",
             "Always full, because the transit hub pairs have no sensitivity indicators.", values="full",
@@ -882,21 +882,21 @@ def hubs_fields() -> list:
             src=f"{vt}.E_FLTC_hist", how="joined on tc_id", used="V_FLTC_hist"),
         Fld("V_FLTC_hist", "DOUBLE", "Flood vulnerability (FL-TC)",
             "Equal to E_FLTC_hist, because transit hubs have no sensitivity score.",
-            values=V_BREAKS, src=f"{vt}.V_FLTC_hist", how="joined on tc_id", used="results.html (Overview)"),
+            values=V_BREAKS, src=f"{vt}.V_FLTC_hist", how="joined on tc_id", used="vulnerability-assessment.html (Overview)"),
         Fld("E_WFTC_hist", "DOUBLE", "Wildfire exposure (WF-TC)", "0.70 x E_WFTC_e1 + 0.30 x E_WFTC_e2.",
             units="score, 0 to 3", src=f"{vt}.E_WFTC_hist", how="joined on tc_id",
-            used="results.html (Wildfire color, popup, KPI)"),
+            used="vulnerability-assessment.html (Wildfire color, popup, KPI)"),
         Fld("E_WFTC_e1", "DOUBLE", "Burn probability class (WF-TC E1)",
             "Highest burn probability class within 300 ft of the hub (Hazard_Wildfire_BurnProb).", values="0 to 3",
             src="Exposure_wildfire_transit_centers.E_WFTC_e1", how="joined on tc_id",
-            used="results.html (Wildfire popup); E_WFTC_hist (weight 0.70)"),
+            used="vulnerability-assessment.html (Wildfire popup); E_WFTC_hist (weight 0.70)"),
         Fld("E_WFTC_e2", "DOUBLE", "Fire severity class (WF-TC E2)",
             "Highest fire severity class that covers at least 25 percent of the 300 ft buffer around the hub "
             "(Hazard_Wildfire_Severity).", values="0 to 3", src="Exposure_wildfire_transit_centers.E_WFTC_e2",
-            how="joined on tc_id", used="results.html (Wildfire popup); E_WFTC_hist (weight 0.30)"),
+            how="joined on tc_id", used="vulnerability-assessment.html (Wildfire popup); E_WFTC_hist (weight 0.30)"),
         Fld("V_WFTC_hist", "DOUBLE", "Wildfire vulnerability (WF-TC)",
             "Equal to E_WFTC_hist, because transit hubs have no sensitivity score.",
-            values=WF_BREAKS, src=f"{vt}.V_WFTC_hist", how="joined on tc_id", used="results.html (Overview)"),
+            values=WF_BREAKS, src=f"{vt}.V_WFTC_hist", how="joined on tc_id", used="vulnerability-assessment.html (Overview)"),
     ]
     return f
 
@@ -909,7 +909,7 @@ def surface_fields(label_text: str, values: str, used: str, half_points: bool = 
     f = [Fld("hz_class", "DOUBLE" if half_points else "SHORT", "Hazard class", label_text, values=values, used=used)]
     if label:
         f.append(Fld("label", "TEXT", "Class label", "The class described in words.",
-                     used="results.html (surface popups)", how=label_how, length=80))
+                     used="vulnerability-assessment.html (surface popups)", how=label_how, length=80))
     return f
 
 
@@ -928,10 +928,10 @@ AVALANCHE_FIELDS = [
 
 RECORD_FIELDS = {
     "Avalanche_Zones": [
-        Fld("Name", "TEXT", "Zone name", "Name of the avalanche zone.", used="results.html (Avalanche zone popup)",
+        Fld("Name", "TEXT", "Zone name", "Name of the avalanche zone.", used="vulnerability-assessment.html (Avalanche zone popup)",
             length=50),
         Fld("Frequency", "TEXT", "Frequency", "Avalanche frequency recorded for the zone.",
-            used="results.html (Avalanche zone popup)", length=10),
+            used="vulnerability-assessment.html (Avalanche zone popup)", length=10),
     ],
     "FEMA_Flood_Zones": [
         Fld("FLOOD_ZONE", "TEXT", "FEMA zone", "FEMA flood zone designation.",
@@ -943,7 +943,7 @@ RECORD_FIELDS = {
     "Landslide_Inventory_Polygons": None,   # filled below (shared with points)
     "Fire_Perimeters": [
         Fld("YEAR_", "SHORT", "Fire year", "Year of the fire.", units="year",
-            used="historic-hazards.html (color ramp, year filter, table); workshop-feedback.html (context popup)"),
+            used="historic-hazards.html (color ramp, year filter, table); vulnerability-assessment-feedback.html (context popup)"),
         Fld("FIRE_NAME", "TEXT", "Fire name", "Name of the fire.", used="historic-hazards.html (popup, table)",
             length=34),
         Fld("GIS_ACRES", "DOUBLE", "Acres", "Mapped fire area.", units="acres",
@@ -1046,7 +1046,7 @@ def datasets(cfg: dict, restricted: bool) -> list:
     gdb, hz = Path(cfg["paths"]["analysis_gdb"]).name, Path(ex["hazards_gdb"]).name
     rows_public = ("NDOT rows are left out because they are restricted, as in the published results." if not restricted
                    else "All jurisdictions, including NDOT. Restricted: keep on TRPA storage.")
-    flood_used = ("score_exposure.py (FL-C, FL-B, FL-R, FL-AT, and FL-TC exposure); results.html (Flooding tab surface, "
+    flood_used = ("score_exposure.py (FL-C, FL-B, FL-R, FL-AT, and FL-TC exposure); vulnerability-assessment.html (Flooding tab surface, "
                   "published as flood_surface.geojson)")
     hist = "Scores are for the historical horizon."
     return [
@@ -1060,8 +1060,8 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "All 18,285 links.", "src_objectid",
                 "Culverts.parent_segment_id and Bridges.parent_segment_id (relationship classes Road_has_Culverts and "
                 "Road_has_Bridges)",
-                "results.html (every tab); criticality-index.html; od-services-index.html (via roads_od.json); "
-                "workshop-feedback.html (same links, read from the PROTECT_VA hosted layer); scoring-rubrics.html "
+                "vulnerability-assessment.html (every tab); criticality-assessment.html; od-services-index.html (via roads_od.json); "
+                "vulnerability-assessment-feedback.html (same links, read from the PROTECT_VA hosted layer); scoring-rubrics.html "
                 "(matrix)", roads_fields()),
         Dataset("Culverts", "Assets", "POINT", "Culverts with their profile and scores",
                 f"Every culvert scored for FL-C, LS-C, and DF-C. These are culverts on a street link that are not part "
@@ -1075,7 +1075,7 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "culvert_id",
                 "CulvertCondition.culvert_id (Culvert_has_Condition, one to many); CulvertWatersheds.crossing_id "
                 "(Watershed_has_Culverts); Roads.src_objectid via parent_segment_id (Road_has_Culverts)",
-                "results.html (Overview, Flooding, Landslide, and Debris flow tabs); workshop-feedback.html; "
+                "vulnerability-assessment.html (Overview, Flooding, Landslide, and Debris flow tabs); vulnerability-assessment-feedback.html; "
                 "scoring-rubrics.html; tahoe-precip-events.html (its own embedded copy)", culverts_fields()),
         Dataset("CulvertCondition", "", "", "Culvert inspection records",
                 "One row per inspection of a culvert in this geodatabase. Culverts.cond_class comes from the latest "
@@ -1094,7 +1094,7 @@ def datasets(cfg: dict, restricted: bool) -> list:
                  "downstream links that point to a withheld crossing are set to null." if not restricted
                  else "All crossings."),
                 "crossing_id", "Culverts.crossing_id (Watershed_has_Culverts)",
-                "score_exposure.py (culvert exposure, highest class in the watershed); results.html (drainage area on "
+                "score_exposure.py (culvert exposure, highest class in the watershed); vulnerability-assessment.html (drainage area on "
                 "click, published per crossing under watersheds/)", WATERSHED_FIELDS),
         Dataset("Bridges", "Assets", "POINT", "NBI bridges and large culverts with their scores",
                 f"The 40 National Bridge Inventory structures inside the TRPA boundary (five are large culverts), with "
@@ -1102,7 +1102,7 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 f"{gdb}/{a['bridges_fc']}, built by scripts/build_bridges.py from {a['nbi_basin_fc']} and scored by "
                 f"score_exposure.py and score_vulnerability.py", a["bridges_fc"], "All 40 structures.", "bridge_id",
                 "Roads.src_objectid via parent_segment_id (Road_has_Bridges)",
-                "results.html (Overview, Flooding, Landslide, and Debris flow tabs); workshop-feedback.html; "
+                "vulnerability-assessment.html (Overview, Flooding, Landslide, and Debris flow tabs); vulnerability-assessment-feedback.html; "
                 "scoring-rubrics.html; make_pro_maps.py", bridges_fields()),
         Dataset("ActiveTransportation", "Assets", "POLYLINE", "Existing paths and bike facilities with their scores",
                 f"Existing active transportation facilities with their FL-AT and WF-AT scores. Geometry and names come "
@@ -1110,12 +1110,12 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 f"{ex['active_transport_layer']}, joined with {gdb}/Vulnerability_active_transport and "
                 f"Exposure_wildfire_active_transport on at_id", "Vulnerability_active_transport",
                 "The 216 facilities that have scores.", "at_id", "",
-                "results.html (Overview and Wildfire path layers); workshop-feedback.html (asset cards)", paths_fields()),
+                "vulnerability-assessment.html (Overview and Wildfire path layers); vulnerability-assessment-feedback.html (asset cards)", paths_fields()),
         Dataset("TransitHubs", "Assets", "POINT", "Transit hubs with their scores",
                 f"The eight transit hubs, with their FL-TC and WF-TC scores. {hist}",
                 f"{ex['transit_centers_layer']}, joined with {gdb}/Vulnerability_transit_centers and "
                 f"Exposure_wildfire_transit_centers on tc_id", "Vulnerability_transit_centers", "All eight hubs.",
-                "tc_id", "", "results.html (Overview and Wildfire hub layers)", hubs_fields()),
+                "tc_id", "", "vulnerability-assessment.html (Overview and Wildfire hub layers)", hubs_fields()),
         Dataset("Hazard_Flood_Class", "HazardSurfaces", "POLYGON", "Flood exposure classes",
                 "The flood surface every flood pair is scored against. FEMA 1 percent annual chance zones are class 3; "
                 "the 0.2 percent zone and a 10 m buffer around lidar-derived streams are class 2. The lake's own 1 "
@@ -1132,11 +1132,11 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "Clipped to the basin's bounding box plus about 500 m.",
                 f"{hz}/{ex['wildfire']['bp_fc']}, built by score_exposure.py --hazard wildfire --build",
                 ex["wildfire"]["bp_fc"], "All polygons.", "", "",
-                "score_exposure.py (WF-R, WF-AT, and WF-TC E1); results.html (Wildfire tab surface and 300 ft "
+                "score_exposure.py (WF-R, WF-AT, and WF-TC E1); vulnerability-assessment.html (Wildfire tab surface and 300 ft "
                 "footprint)",
                 surface_fields("Annual burn probability class.",
                                "1 (over 0 to 0.5 percent), 2 (over 0.5 to 1 percent), 3 (over 1 percent)",
-                               "score_exposure.py (wildfire E1); results.html (Wildfire tab surface)")),
+                               "score_exposure.py (wildfire E1); vulnerability-assessment.html (Wildfire tab surface)")),
         Dataset("Hazard_Wildfire_Severity", "HazardSurfaces", "POLYGON",
                 "Fire severity classes (wildfire E2, debris-flow E3)",
                 "TRPA's most-likely fire severity, which combines the Regional Resource Kit 2023 severity probabilities "
@@ -1144,10 +1144,10 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "contract arrives, and in place of predicted soil burn severity for debris-flow E3.",
                 f"{hz}/{ex['wildfire']['e2_fc']}, built by score_exposure.py --hazard wildfire --build from "
                 f"Fire/MapServer/3", ex["wildfire"]["e2_fc"], "All polygons.", "", "",
-                "score_exposure.py (wildfire E2, debris-flow E3); results.html (Wildfire tab surface and 300 ft "
+                "score_exposure.py (wildfire E2, debris-flow E3); vulnerability-assessment.html (Wildfire tab surface and 300 ft "
                 "footprint)",
                 surface_fields("Most-likely fire severity class.", "1 (Low), 2 (Moderate), 3 (High)",
-                               "score_exposure.py (wildfire E2, debris-flow E3); results.html (Wildfire tab surface)")),
+                               "score_exposure.py (wildfire E2, debris-flow E3); vulnerability-assessment.html (Wildfire tab surface)")),
         Dataset("Hazard_Landslide_Class", "HazardSurfaces", "POLYGON", "Landslide susceptibility classes (landslide E1)",
                 "USGS 2024 landslide susceptibility (Mirus and others, doi 10.5066/P13KAGU3), which counts the "
                 "landslide-prone 10 m cells in each 90 m cell. Classed on the share of the cell that is prone: 3 over "
@@ -1155,11 +1155,11 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "points buffered 50 m) are class 3.",
                 f"{hz}/{ex['landslide']['class_fc']}, built by score_exposure.py --hazard landslide --build",
                 ex["landslide"]["class_fc"], "All polygons.", "", "",
-                "score_exposure.py (LS-C, LS-B, and LS-R E1); results.html (Landslide tab surface)",
+                "score_exposure.py (LS-C, LS-B, and LS-R E1); vulnerability-assessment.html (Landslide tab surface)",
                 surface_fields("Landslide susceptibility class.",
                                "1 (over 40 to 60 percent of the 90 m cell landslide-prone), 2 (over 60 to 80 percent), "
                                "3 (over 80 percent, or a recorded landslide)",
-                               "score_exposure.py (landslide E1); results.html (Landslide tab surface)",
+                               "score_exposure.py (landslide E1); vulnerability-assessment.html (Landslide tab surface)",
                                label_how=LANDSLIDE_LABEL_HOW)),
         Dataset("Hazard_DebrisFlow_Slope", "HazardSurfaces", "POLYGON", "Upslope steepness scores (debris-flow E1)",
                 "Average slope of the ground upslope of each 2 m cell (slope-weighted flow accumulation divided by flow "
@@ -1191,7 +1191,7 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "TRPA's mapped avalanche zones. AV-R uses them as the avalanche record (decision 18); accident databases "
                 "are not used.",
                 ex["avalanche"]["zones_layer"], "Avalanche_Zones/MapServer/0", "All zones.", "", "",
-                "score_exposure.py (av_record, zones within 1,000 ft); results.html (Avalanche tab zones)",
+                "score_exposure.py (av_record, zones within 1,000 ft); vulnerability-assessment.html (Avalanche tab zones)",
                 RECORD_FIELDS["Avalanche_Zones"]),
         Dataset("FEMA_Flood_Zones", "HazardSources", "POLYGON", "FEMA flood zones",
                 "FEMA flood hazard zones. They are the source of flood classes 2 and 3 and of the street flood flags. "
@@ -1221,7 +1221,7 @@ def datasets(cfg: dict, restricted: bool) -> list:
                 "the Nevada side are missing. Shown for context; not used in scoring.",
                 cfg["curated"]["fire_perimeters_layer"], "California_Historic_Fire_Perimeters/FeatureServer/0",
                 "Perimeters that intersect the TRPA boundary, matching the count on the Historic Hazards page.", "", "",
-                "historic-hazards.html (map, popup, table); workshop-feedback.html (context layer)",
+                "historic-hazards.html (map, popup, table); vulnerability-assessment-feedback.html (context layer)",
                 RECORD_FIELDS["Fire_Perimeters"]),
         Dataset("Earthquakes", "HazardSources", "POINT", "Historic earthquakes (USGS ComCat)",
                 "Earthquakes of magnitude 2.5 or more since 1900, in the area the Historic Hazards page queries. Shown "

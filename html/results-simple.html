@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Results, simple view | PROTECT | TRPA</title>
+  <title>Vulnerability Assessment, simple view | PROTECT | TRPA</title>
   <meta name="description" content="Draft vulnerability assessment results for the Lake Tahoe Region transportation network: an overview by asset and criticality, and one tab per hazard." />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <script src="gate.js"></script>
@@ -182,7 +182,7 @@
       <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
       <div class="header-text">
         <div class="agency">Tahoe Regional Planning Agency</div>
-        <h1>Results</h1>
+        <h1>Vulnerability Assessment</h1>
         <div class="header-sub">PROTECT Task 3.2 &middot; Draft vulnerability assessment results, simple view</div>
       </div>
       <div class="right">
@@ -192,11 +192,11 @@
     </div>
   </header>
   <nav class="sitenav" aria-label="Site"><div class="inner">
-    <span class="g"><b>Results</b><a href="results.html" class="on">Results</a></span>
-    <span class="g"><b>Components</b><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a></span>
+    <span class="g"><b>Results</b><a href="vulnerability-assessment.html" class="on">Vulnerability assessment</a></span>
+    <span class="g"><b>Components</b><a href="criticality-assessment.html">Criticality assessment</a><a href="od-services-index.html">Access to services</a></span>
     <span class="g"><b>Method and data</b><a href="scoring-rubrics.html">Scoring rubrics</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a></span>
     <span class="g"><b>Evidence</b><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></span>
-    <span class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="workshop-feedback.html">Feedback</a></span>
+    <span class="g"><b>Workshop</b><a href="workshop-punchlist.html">Punch list</a><a href="vulnerability-assessment-feedback.html">Feedback</a></span>
   </div></nav>
   <nav class="tabs" aria-label="Results by hazard"><div class="inner" id="tabs">
     <a href="#overview" data-mode="overview">Overview</a>
@@ -380,7 +380,7 @@
       colorBy:[
         {value:"prio", label:"Priority", renderer:{roads:priorityRenderer("V_class", false), paths:priorityRenderer("V_class", true)}, legend:legendRows(VC_LEG.slice(0,3), "lg-line") + `<div class="lg-row"><span class="lg-line" style="background:#5a6577;height:1px"></span> thin: lowest criticality quarter</div><div class="lg-row"><span class="lg-line" style="background:#5a6577;height:5px"></span> thick: top criticality quarter</div>`,
           note:"Color is the vulnerability class; line weight is how much the road matters to the network. Every road is shown; Hotspots only narrows the map to thick red.", noteTip:"Vulnerability class from the highest scored pair (debris flow included since decision 35). Criticality class: the criticality percentile cut into quarters."},
-        {value:"crit", label:"Criticality", roadsOnly:true, field:{roads:"C_class"}, legend:legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line"), note:"Criticality from the Criticality Index at its default weights, cut into quarters at the 25th, 50th and 75th percentiles, the same classes as the Criticality app. Other assets are hidden in this view and return with any other button."},
+        {value:"crit", label:"Criticality", roadsOnly:true, field:{roads:"C_class"}, legend:legendRows([[CRIT_RAMP[3],"3: top quarter (most critical)"],[CRIT_RAMP[2],"2"],[CRIT_RAMP[1],"1"],[CRIT_RAMP[0],"0: lowest quarter"]], "lg-line"), note:"Criticality from the Criticality Assessment at its default weights, cut into quarters at the 25th, 50th and 75th percentiles, the same classes as the Criticality app. Other assets are hidden in this view and return with any other button."},
         {value:"FLR", label:"Flooding", field:{roads:"V_FLR_hist", paths:"V_FLAT_hist"}, legend:legendRows(VC_LEG, "lg-line")},
         {value:"WFR", label:"Wildfire", renderer:{roads:wfRenderer("V_WFR_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k])), paths:wfRenderer("V_WFAT_hist", (c,k) => line(c, [1.2,1.8,2.4,3][k], true))}, legend:legendRows(WF_LEG, "lg-line"), note:WF_NOTE},
         {value:"LSR", label:"Landslide", field:{roads:"V_LSR_hist"}, legend:legendRows(VC_LEG, "lg-line")},
@@ -783,7 +783,7 @@
     }
 
     // ---------- workshop notes: link out and read back ----------
-    const FEEDBACK_URL = "workshop-feedback.html";
+    const FEEDBACK_URL = "vulnerability-assessment-feedback.html";
     const STATION_OF = {overview:"any", flood:"flood", wildfire:"fire", landslide:"slide", debris_flow:"debris", avalanche:"avy"};
     const NOTE_TYPES = {roads:"road", culverts:"culvert", bridges:"bridge", paths:"trail", hubs:"transit"};
     function noteLink(layerId, a, loc){
@@ -846,11 +846,11 @@
       current = name;
       const mode = MODES[name];
       document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.mode === name));
-      document.title = mode.title + " | Results, simple view | PROTECT | TRPA";
+      document.title = mode.title + " | Vulnerability Assessment, simple view | PROTECT | TRPA";
       $("banner").innerHTML = esc(mode.banner) + (mode.bannerTip ? tip(mode.bannerTip) : "");
       $("lead").innerHTML = mode.lead;
       $("notes").innerHTML = mode.notes.map(n => "<li>" + n + "</li>").join("");
-      $("foot").innerHTML = "Draft v0.2, simple view of <a href=\"results.html\">Results</a>. Criticality from the latest clean street layer (<code>roads_criticality.json</code>). " + mode.foot + " Internal review draft.";
+      $("foot").innerHTML = "Draft v0.2, simple view of <a href=\"vulnerability-assessment.html\">Vulnerability Assessment</a>. Criticality from the latest clean street layer (<code>roads_criticality.json</code>). " + mode.foot + " Internal review draft.";
       $("table-title").textContent = mode.table.title; $("table-lead").textContent = mode.table.lead;
       $("ch-a-title").textContent = mode.charts[0].title; $("ch-a-sub").textContent = mode.charts[0].sub;
       $("ch-b-title").textContent = mode.charts[1].title; $("ch-b-sub").textContent = mode.charts[1].sub;
