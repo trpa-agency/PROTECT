@@ -24,7 +24,7 @@
 
   var GATED = [
     "index.html",
-    "workshop-feedback.html",
+    "vulnerability-assessment-feedback.html",
     "baseline-assessment.html",
     "criticality-qa.html",
     "results-simple.html",
@@ -35,6 +35,11 @@
     "climate-data.html",
     "historic-hazards.html",
     "tahoe-precip-events.html"
+  ];
+  // Public pages that are still drafts: always listed, with a Draft pill in the Pages menu.
+  var DRAFT = [
+    "vulnerability-assessment.html",
+    "vulnerability-assessment-guide.html"
   ];
   var HASH = "26a7b98d6e6ba758f8fcb9283d0a31c274d0fe6c61d9718e0294fd3a9d07ca3a";
   var KEY = "protect-gate";
@@ -56,6 +61,8 @@
   }
   var gatedUrls = GATED.map(function (n) { return norm(HTML_DIR + n); });
   function isGated(href) { return gatedUrls.indexOf(norm(href)) !== -1; }
+  var draftUrls = DRAFT.map(function (n) { return norm(HTML_DIR + n); });
+  function isDraft(href) { return draftUrls.indexOf(norm(href)) !== -1; }
   function read() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
   function write(v) { try { if (v === null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, v); } catch (e) {} }
 
@@ -91,8 +98,11 @@
     ".gate-btn:hover{background:rgba(255,255,255,.1);border-color:#fff;color:#fff}" +
     ".gate-btn.open{color:#E87722;border-color:#E87722}" +
     ".gate-btn svg{width:14px;height:14px;display:block}" +
-    "details.pages nav.menu a[data-gated]::after{content:'draft';font-size:.68em;font-weight:700;letter-spacing:.04em;text-transform:uppercase;" +
-    "margin-left:.5em;padding:1px 5px;border-radius:3px;background:#E87722;color:#fff;vertical-align:middle}";
+    // room for the longest label plus its pill on one line; (0,2,2) beats each page's own details.pages .menu
+    "details.pages nav.menu{width:320px;max-width:calc(100vw - 24px)}" +
+    "details.pages nav.menu .gate-pill{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;line-height:1.3;" +
+    "margin-left:.45em;padding:1px 5px;border-radius:3px;background:#E87722;color:#fff;vertical-align:1px}" +
+    "details.pages nav.menu .gate-pill.pub{background:#0072CE}";
   document.head.appendChild(css);
 
   var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -107,12 +117,21 @@
     });
   }
 
+  function pill(a, cls) {
+    if (a.querySelector(".gate-pill")) return;
+    var sp = document.createElement("span");
+    sp.className = "gate-pill" + (cls ? " " + cls : "");
+    sp.textContent = "Draft";
+    a.appendChild(sp);
+  }
+
   function hideLinks() {
     var links = document.querySelectorAll("a[href]");
     Array.prototype.forEach.call(links, function (a) {
-      if (!isGated(a.getAttribute("href"))) return;
       var inMenu = !!a.closest("details.pages nav.menu");
-      if (unlocked) { if (inMenu) a.setAttribute("data-gated", ""); return; }
+      if (inMenu && isDraft(a.getAttribute("href"))) { pill(a, "pub"); return; }
+      if (!isGated(a.getAttribute("href"))) return;
+      if (unlocked) { if (inMenu) pill(a); return; }
       if (inMenu || a.classList.contains("page-card") || a.classList.contains("tool") || a.classList.contains("band-btn")) a.classList.add("gate-hide");
       else if (a.closest(".checks span")) a.closest("span").classList.add("gate-hide");
       else if (a.closest(".tile")) a.closest(".tile").classList.add("gate-hide");

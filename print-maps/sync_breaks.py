@@ -1,7 +1,7 @@
 """sync_breaks.py - put the page's class breaks on the print layers already built in the Pro project.
 
 build_layers.py builds the Results layers once from layers.yaml and keeps what is there, so a break or a
-legend label changed on results.html after a build (the Oct. 30 wildfire breaks; the Nov. 2 debris flow
+legend label changed on vulnerability-assessment.html after a build (the Oct. 30 wildfire breaks; the Nov. 2 debris flow
 breaks, decision 34) never reaches the project. This rewrites, in place, the class bounds, labels, and
 minimum break of every class-breaks layer whose field layers.yaml classes, in every map (the template
 map and each copied print map), and keeps the symbols as finished by hand. Unique-value layers (V_class)

@@ -227,7 +227,7 @@
       </div>
       <div class="right">
         <span class="chip">v0.5 draft</span>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html" class="on" aria-current="page">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="vulnerability-assessment-feedback.html">Vulnerability assessment feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="vulnerability-assessment.html">Vulnerability assessment</a><a href="vulnerability-assessment-guide.html">Vulnerability assessment guide</a><a href="criticality-assessment.html" class="on" aria-current="page">Criticality assessment</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -253,7 +253,7 @@
         </details>
         <div class="grp"><h3>Streets, colored by</h3>
           <div class="cb" id="color-by"></div>
-          <label class="lyr"><input type="checkbox" class="sw" id="cut-q" /> Use criticality quarters<i class="i" tabindex="0" data-tip="Off: overall criticality breaks at the 25th, 50th, and 90th percentiles, so the top class is the most critical tenth. On: it breaks at the 25th, 50th, and 75th, the quarters on the Results page. The map, charts, table, and key numbers follow.">i</i></label>
+          <label class="lyr"><input type="checkbox" class="sw" id="cut-q" /> Use criticality quarters<i class="i" tabindex="0" data-tip="Off: overall criticality breaks at the 25th, 50th, and 90th percentiles, so the top class is the most critical tenth. On: it breaks at the 25th, 50th, and 75th, the quarters on the Vulnerability Assessment page. The map, charts, table, and key numbers follow.">i</i></label>
           <div id="legend"></div>
         </div>
         <div class="grp"><h3>Filter by hazard</h3>
@@ -293,8 +293,8 @@
         <li><b>Access to critical services:</b> residents of 2,201 hexagons routed by travel time to basin exits, law enforcement, medical facilities, emergency shelters, schools, and fresh food locations, averaged over 100 routing runs with small random variation in travel time so near-equal routes share the trips. The mean across the six destination types is grouped into 10 Jenks classes for the score. The map's access view shows the mean itself, in residents routed.</li>
         <li><b>Equity:</b> for each segment, the highest count among the census block groups it crosses of households below the poverty line, residents who speak English less than well, households with no vehicle, and residents with a disability; the four are weighted equally by default.</li>
         <li><b>Combining:</b> each variable is converted to a z-score across all segments: its distance from the mean, in standard deviations.<i class="i" tabindex="0" data-tip="Min-max scaling (0 to 1) was considered and set aside. Z-score is the method, and with the default weights it reproduces the published criticality_score.">i</i> A sub-index is the weighted sum of its variables, and the score is the weighted sum of the sub-indices. Weights are rebalanced to total 1 as a slider moves. Invert flips a variable so that lower values score higher.</li>
-        <li><b>Classes and colors:</b> each segment is ranked against every other under the current weights and cut at the 25th, 50th, and 90th percentiles: criticality class 0 (lowest) to 3 (the most critical tenth). The Use criticality quarters switch cuts at the 25th, 50th, and 75th instead, the same rule the Results page uses. When many segments share the same value they share a rank, so a class can hold more or fewer segments than its percentile range suggests. The traffic, detour length, and access views color the map by the input itself at fixed breaks (stated in each legend), because those inputs are class scores that sit at the lowest class on most segments, and rank quarters would collapse to two colors. Colors run dark (lowest) to bright (highest) on the Phosphor thermal ramp, drawn on a dark basemap so the most critical roads stand out. A hazard filter changes what is shown, never the scores or the classes.</li>
-        <li><b>Hazards:</b> FEMA flood zones (100- and 500-year), areas with a higher probability of high-severity wildfire, and the USGS landslide susceptibility mean along the segment. Hazard exposure is kept separate from criticality; the Results page reads the two together.</li>
+        <li><b>Classes and colors:</b> each segment is ranked against every other under the current weights and cut at the 25th, 50th, and 90th percentiles: criticality class 0 (lowest) to 3 (the most critical tenth). The Use criticality quarters switch cuts at the 25th, 50th, and 75th instead, the same rule the Vulnerability Assessment page uses. When many segments share the same value they share a rank, so a class can hold more or fewer segments than its percentile range suggests. The traffic, detour length, and access views color the map by the input itself at fixed breaks (stated in each legend), because those inputs are class scores that sit at the lowest class on most segments, and rank quarters would collapse to two colors. Colors run dark (lowest) to bright (highest) on the Phosphor thermal ramp, drawn on a dark basemap so the most critical roads stand out. A hazard filter changes what is shown, never the scores or the classes.</li>
+        <li><b>Hazards:</b> FEMA flood zones (100- and 500-year), areas with a higher probability of high-severity wildfire, and the USGS landslide susceptibility mean along the segment. Hazard exposure is kept separate from criticality; the Vulnerability Assessment page reads the two together.</li>
       </ul>
     </details>
 
@@ -343,7 +343,7 @@
 
     // four map classes on the Phosphor thermal ramp (joshuastevens.net/phosphor, OKLab), sampled at four
     // even steps, which land on its 1st, 3rd, 5th, and 7th control colors: dark (lowest) to bright (highest).
-    // Same ramp as CRIT_RAMP on results.html; keep the two in step.
+    // Same ramp as CRIT_RAMP on vulnerability-assessment.html; keep the two in step.
     const RAMP = ["#042333", "#6E4694", "#F37D4D", "#E8FA5B"];
     const COLOR_BY = [{v:"crit", label:"Overall criticality"}, ...SUBS.map(s => ({v:s.key, label:s.label}))];
     // How each "colored by" view cuts segments into its four classes. Overall criticality and equity
@@ -356,13 +356,13 @@
     // tertiles 15 and 105). A value is class k when it is below breaks[k]; above the last break, class 3.
     const QUARTER_NAMES = ["0: lowest quarter, least critical", "1", "2", "3: top quarter, most critical"];
     // Overall criticality's four classes: the 90th percentile starts the top class by default (Nov. 3, 2026),
-    // with the middle class widened to 50 to 90; the switch returns to quarters, the Results page's C_class.
+    // with the middle class widened to 50 to 90; the switch returns to quarters, the Vulnerability Assessment page's C_class.
     const CRIT_CLASSES = {
       p90:{pcts:[25, 50, 90], word:"class", top:"top tenth of criticality",
         labels:["0: under 25th percentile", "1: 25th to 50th percentile", "2: 50th to 90th percentile", "3: 90th percentile and up"],
         note:"Overall criticality score under the current weights, ranked against every segment and cut at the 25th, 50th, and 90th percentiles. Brighter is more critical."},
       quarter:{pcts:[25, 50, 75], word:"quarter", top:"top criticality quarter", labels:QUARTER_NAMES,
-        note:"Overall criticality score under the current weights, ranked against every segment and cut into quarters at the 25th, 50th, and 75th percentiles (the Results page's criticality quarter). Brighter is more critical."}};
+        note:"Overall criticality score under the current weights, ranked against every segment and cut into quarters at the 25th, 50th, and 75th percentiles (the Vulnerability Assessment page's criticality quarter). Brighter is more critical."}};
     const critClasses = () => CRIT_CLASSES[state.cut];
     const VIEWS = {
       crit:{name:"Overall criticality score", kind:"quarter", unit:"quarter", get labels(){ return critClasses().labels; }, get note(){ return critClasses().note; }},
@@ -419,7 +419,7 @@
     }
 
     // ---------- classes and legend ----------
-    // Classes 0 to 3 from a percentile rank cut at pcts: quarters by default, the Results page rule
+    // Classes 0 to 3 from a percentile rank cut at pcts: quarters by default, the Vulnerability Assessment page rule
     // (C_class). Tied segments share the average rank of their group (as criticality_pctl does on the
     // clean layer), so a classed input that ties on most segments lands in one class by its rank, not in
     // the top one. Map breaks sit halfway between distinct values, never on a tied value, so the
@@ -652,7 +652,7 @@
           popupTemplate:{title:"{name}", outFields:["*"], content:[new CustomContent({outFields:["*"], creator:e => { const d = document.createElement("div"); d.innerHTML = popupHTML(e.graphic.attributes); return d; }})]}});
         map.add(layer, 1); map.reorder(bound, 2);
         applyAll();
-      }).catch(err => { $("empty").style.display = ""; $("empty").textContent = "The street data did not load (" + err.message + "). Serve the repository root, for example python -m http.server, and open html/criticality-index.html."; });
+      }).catch(err => { $("empty").style.display = ""; $("empty").textContent = "The street data did not load (" + err.message + "). Serve the repository root, for example python -m http.server, and open html/criticality-assessment.html."; });
     });
   })();
   </script>

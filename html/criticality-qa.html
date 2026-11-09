@@ -160,7 +160,7 @@
       </div>
       <div class="right">
         <span class="chip">v0.1 draft</span>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="vulnerability-assessment-feedback.html">Vulnerability assessment feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="vulnerability-assessment.html">Vulnerability assessment</a><a href="vulnerability-assessment-guide.html">Vulnerability assessment guide</a><a href="criticality-assessment.html">Criticality assessment</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -205,7 +205,7 @@
       <ul class="notes">
         <li>Cut the quarters only among segments above the floor, so the 13,000 segments at the lowest class on every input sit in quarter 0 and the rest split into three.</li>
         <li>Call the top tenth "High" instead of the top quarter, which keeps the major roads and drops most one-step residential streets.</li>
-        <li>Keep the quarters and read criticality with the hazard: the Results page's hotspots need both a high vulnerability class and the top criticality quarter.</li>
+        <li>Keep the quarters and read criticality with the hazard: the Vulnerability Assessment page's hotspots need both a high vulnerability class and the top criticality quarter.</li>
         <li>Note that fixing an error does not shrink the top quarter: it always holds a quarter of the segments, so when about 190 wrongly ranked stubs and forest roads left it on Oct. 30, the next residential streets in line took their place (residential segments in the top quarter went from 1,571 to 1,712).</li>
       </ul>
     </details>
@@ -225,7 +225,7 @@
 
     <details class="block"><summary>How the checks work</summary>
       <ul class="notes">
-        <li>The checks run on the published criticality table, <code>roads_criticality.json</code>, with the default weights (traffic 0.3, detour 0.3, access 0.3, equity 0.1). Quarters are the Results page rule: percentile 75 and up is the top quarter.</li>
+        <li>The checks run on the published criticality table, <code>roads_criticality.json</code>, with the default weights (traffic 0.3, detour 0.3, access 0.3, equity 0.1). Quarters are the Vulnerability Assessment page rule: percentile 75 and up is the top quarter.</li>
         <li>Two segments touch when they share an endpoint. A "stub" is a segment of 16 m or less, below what the traffic join's minimum overlap can reach.</li>
         <li>A segment can fail several checks; the table lists all of them, and the map colors it by the first open one.</li>
         <li>Re-run <code>python scripts/criticality_qa.py</code> after every criticality rebuild; it writes <code>criticality_qa.json</code>, which this page reads.</li>
@@ -416,7 +416,7 @@
         const all = new GeoJSONLayer({url:URL.createObjectURL(new Blob([JSON.stringify(gj)], {type:"application/geo+json"})), title:"All streets",
           renderer:{type:"simple", symbol:{type:"simple-line", color:[90,101,119,0.35], width:0.6}}, outFields:["*"],
           popupTemplate:{title:e => esc(e.graphic.attributes.name || "(no name)"), content:e => { const a = e.graphic.attributes;
-            return `${esc(a.class || "no class")} &middot; ${Math.round(a.seg_len_m)} m &middot; segment ${esc(a.src_objectid)}<br><span style="color:#5a6577">No check flags this segment${state.cats.size < Object.keys(Q.categories).length ? " among the checks shown" : ""}. Its scores are on the <a href="criticality-index.html">Criticality</a> page.</span>`; }}});
+            return `${esc(a.class || "no class")} &middot; ${Math.round(a.seg_len_m)} m &middot; segment ${esc(a.src_objectid)}<br><span style="color:#5a6577">No check flags this segment${state.cats.size < Object.keys(Q.categories).length ? " among the checks shown" : ""}. Its scores are on the <a href="criticality-assessment.html">Criticality assessment</a> page.</span>`; }}});
         map.add(all, 1);
         $("tg-all").addEventListener("change", e => { all.visible = e.target.checked; });
         $("foot").textContent = `Draft v0.1. Checks generated ${q.meta.generated} by scripts/criticality_qa.py from the criticality table of ${q.meta.source}; geometry from roads_geometry.geojson. Internal review draft.`;
