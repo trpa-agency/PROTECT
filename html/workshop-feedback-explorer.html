@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feedback Explorer | PROTECT | TRPA</title>
+  <meta name="description" content="Explore the Workshop 1 feedback: every note, flooded area, and station answer participants sent, after duplicate and test records were removed, on a map with filters and tables." />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- AG Grid loads BEFORE the ArcGIS SDK (ArcGIS's AMD loader otherwise swallows UMD globals) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+
+  <!-- ArcGIS Maps SDK -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --trpa-blue:#0072CE;--trpa-navy:#003B71;--trpa-earth:#B47E00;--trpa-forest:#4A6118;
+      --trpa-brick:#9C3E27;--trpa-orange:#E87722;--trpa-purple:#7B6A8A;--trpa-ice:#B4CBE8;
+      --gray-text:#5a6577;--gray-muted:#8a93a2;--gray-border:#DDDDDD;--page-bg:#f4f6f9;--white:#fff;
+      /* concern ramp, as on the feedback page: 1 = greatest concern */
+      --flood-seen:#0E7C86;
+      --c1:#9C3E27;--c2:#E87722;--c3:#B47E00;--c0:#8a93a2;
+      --font:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    [hidden]{display:none !important;}
+    html,body{height:100%;font-family:var(--font);color:var(--trpa-navy);background:var(--page-bg);overflow:hidden;}
+    body{display:flex;flex-direction:column;height:100vh;height:100dvh;font-size:14px;line-height:1.45;}
+    a{color:var(--trpa-blue);}
+    :focus-visible{outline:2px solid var(--trpa-blue);outline-offset:2px;}
+
+    /* Header: the suite's navy band, compact for an app page */
+    header.app-header{flex:0 0 auto;background:var(--trpa-navy);color:#fff;z-index:20;}
+    .header-content{width:100%;padding:.55rem 1.1rem .6rem;display:flex;align-items:center;gap:1rem;}
+    .header-logo{flex-shrink:0;line-height:0;} .header-logo img{height:42px;width:auto;display:block;}
+    .header-text{flex:1;min-width:0;}
+    header .agency{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--trpa-ice);margin-bottom:1px;}
+    header h1{font-size:1.12rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;}
+    header .header-sub{font-size:.76rem;color:var(--trpa-ice);margin-top:1px;opacity:.95;}
+    header .right{flex-shrink:0;display:flex;align-items:center;gap:.8rem;font-size:.76rem;flex-wrap:wrap;justify-content:flex-end;}
+    header .badge{background:var(--trpa-blue);color:#fff;font-weight:700;padding:.16rem .55rem;border-radius:999px;font-size:.68rem;}
+    header .right a{color:var(--trpa-ice);text-decoration:none;font-weight:600;white-space:nowrap;} header .right a:hover{color:#fff;}
+
+    /* Body: side panel + map */
+    #appBody{flex:1 1 auto;display:flex;min-height:0;}
+    #sidePanel{flex:0 0 clamp(320px,27vw,400px);background:var(--white);border-right:1px solid var(--gray-border);display:flex;flex-direction:column;min-height:0;}
+    #panelScroll{flex:1 1 auto;min-height:0;overflow-y:auto;padding:.85rem 1rem 1rem;display:flex;flex-direction:column;gap:1.05rem;}
+    #panelFooter{flex:0 0 auto;padding:.5rem 1rem .6rem;border-top:1px solid var(--gray-border);background:var(--white);display:flex;align-items:center;gap:.5rem;}
+    .foot-status{flex:1;font-size:.7rem;color:var(--gray-text);line-height:1.4;}
+    body.panel-collapsed #sidePanel{display:none;}
+    #panelToggle{flex:0 0 18px;border:none;border-right:1px solid var(--gray-border);background:var(--white);cursor:pointer;color:var(--gray-muted);padding:0;}
+    #panelToggle:hover{background:var(--page-bg);color:var(--trpa-blue);}
+
+    .panel-sec{display:flex;flex-direction:column;gap:.5rem;}
+    .lead{font-size:.8rem;line-height:1.45;color:var(--gray-text);}
+    .sec-title{display:flex;align-items:center;gap:.45rem;margin:0;font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gray-text);}
+    .sec-count{font-weight:600;color:var(--trpa-blue);text-transform:none;letter-spacing:0;font-size:.7rem;}
+    .sec-tool{margin-left:auto;border:1px solid var(--gray-border);background:#fff;cursor:pointer;color:var(--gray-text);min-height:26px;padding:.15rem .6rem;border-radius:999px;font-family:var(--font);font-size:.68rem;font-weight:600;letter-spacing:0;text-transform:none;}
+    .sec-tool:hover{color:var(--trpa-blue);border-color:var(--trpa-blue);background:var(--page-bg);}
+    .fine{font-size:.7rem;color:var(--gray-text);line-height:1.4;}
+
+    /* KPI tiles: TRPA Blue top border, as on the suite */
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;}
+    .kpi{border:1px solid var(--gray-border);border-top:3px solid var(--trpa-blue);border-radius:6px;padding:.35rem .4rem .4rem;background:#fff;text-align:center;}
+    .kpi b{display:block;font-size:1.2rem;line-height:1.15;font-weight:700;color:var(--trpa-navy);font-variant-numeric:tabular-nums;}
+    .kpi span{font-size:.64rem;font-weight:600;color:var(--gray-text);line-height:1.2;display:block;}
+    .kpi.flood{border-top-color:var(--flood-seen);}
+
+    /* Notes by hazard: horizontal bars stacked by concern */
+    .clegend{display:flex;flex-wrap:wrap;gap:.2rem .7rem;font-size:.7rem;color:var(--gray-text);}
+    .clegend span{display:inline-flex;align-items:center;gap:.3rem;}
+    .clegend i{width:15px;height:15px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:.6rem;font-weight:700;}
+    .hbars{display:flex;flex-direction:column;gap:.15rem;}
+    .hbar{display:grid;grid-template-columns:5.6rem 1fr 1.6rem;align-items:center;gap:.45rem;padding:.2rem .3rem;border:none;background:transparent;border-radius:5px;cursor:pointer;font-family:var(--font);text-align:left;color:var(--trpa-navy);min-height:28px;}
+    .hbar:hover{background:var(--page-bg);}
+    .hbar.on{background:#e8f1fb;box-shadow:inset 3px 0 0 var(--trpa-blue);}
+    .hbars.filtering .hbar:not(.on) .track{opacity:.35;}
+    .hbar .lbl{font-size:.74rem;font-weight:600;display:flex;align-items:center;gap:.3rem;white-space:nowrap;}
+    .hbar .n{font-size:.72rem;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;}
+    .track{display:flex;gap:2px;height:14px;}
+    .seg{height:100%;min-width:3px;}
+    .seg:first-child{border-radius:0;} .seg:last-child{border-radius:0 4px 4px 0;}
+    .hdot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+    #tip{position:fixed;z-index:1500;pointer-events:none;background:var(--trpa-navy);color:#fff;font-size:.72rem;padding:.3rem .55rem;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:240px;line-height:1.35;}
+
+    /* filters */
+    .chips{display:flex;flex-wrap:wrap;gap:.3rem;}
+    .chips button{border:1.5px solid var(--gray-border);background:#fff;color:var(--gray-text);cursor:pointer;min-height:26px;font-family:var(--font);font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:999px;display:inline-flex;align-items:center;gap:.3rem;transition:all 120ms;}
+    .chips button i{width:8px;height:8px;border-radius:50%;background:var(--c,var(--gray-muted));display:inline-block;}
+    .chips button small{font-size:.64rem;color:var(--gray-muted);font-weight:600;}
+    .chips button.on{border-color:var(--c,var(--trpa-blue));color:var(--trpa-navy);background:color-mix(in srgb,var(--c,var(--trpa-blue)) 12%,#fff);}
+    .chips button:hover{border-color:var(--c,var(--trpa-blue));}
+    .field{display:flex;flex-direction:column;gap:.22rem;font-size:.72rem;font-weight:600;color:var(--gray-text);}
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;}
+    input.plain,select.plain{font-family:var(--font);font-size:.8rem;color:var(--trpa-navy);background:#fff;border:1.5px solid var(--gray-border);border-radius:6px;padding:.32rem .6rem;width:100%;min-height:32px;}
+    input:focus,select:focus{outline:none;border-color:var(--trpa-blue);}
+
+    /* the selected note or area */
+    .card{border:1.5px solid var(--trpa-blue);border-radius:8px;padding:.7rem .8rem;background:#f7fafd;display:flex;flex-direction:column;gap:.45rem;}
+    .card.empty{border-style:dashed;border-color:var(--gray-border);background:#fff;color:var(--gray-text);font-size:.78rem;}
+    .card.area{border-color:var(--flood-seen);background:#f2f9f9;}
+    .card-head{display:flex;align-items:flex-start;gap:.5rem;}
+    .card-head h3{font-size:.92rem;font-weight:700;flex:1;line-height:1.3;}
+    .type{display:inline-block;font-size:.66rem;font-weight:700;color:#fff;background:var(--trpa-navy);padding:.08rem .45rem;border-radius:999px;margin-bottom:.2rem;}
+    .card.area .type{background:var(--flood-seen);}
+    .card-sub{font-size:.72rem;color:var(--gray-text);line-height:1.4;}
+    .card-x{border:none;background:transparent;cursor:pointer;color:var(--gray-muted);font-size:1.1rem;line-height:1;padding:0 .2rem;border-radius:999px;}
+    .card-x:hover{color:var(--trpa-brick);background:#fff;}
+    .issue{font-size:.84rem;line-height:1.45;color:var(--trpa-navy);border-left:3px solid var(--cc,var(--gray-border));padding:.1rem 0 .1rem .6rem;}
+    .issue.blank{color:var(--gray-muted);font-style:italic;}
+    .meta{display:flex;flex-wrap:wrap;gap:.3rem .8rem;font-size:.72rem;color:var(--gray-text);} .meta b{color:var(--trpa-navy);}
+    .cbadge{display:inline-flex;align-items:center;justify-content:center;min-width:1.3rem;height:1.3rem;padding:0 .35rem;border-radius:999px;font-size:.68rem;font-weight:700;color:#fff;background:var(--c0);flex:0 0 auto;}
+    .cbadge.c1{background:var(--c1);} .cbadge.c2{background:var(--c2);} .cbadge.c3{background:var(--c3);}
+    .flag{display:inline-block;font-size:.66rem;font-weight:700;color:var(--trpa-brick);background:#F7E6E1;padding:.05rem .45rem;border-radius:999px;}
+    .others{list-style:none;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;background:#fff;}
+    .others li{display:flex;gap:.5rem;align-items:flex-start;padding:.35rem .55rem;font-size:.74rem;border-top:1px solid var(--gray-border);cursor:pointer;}
+    .others li:first-child{border-top:none;} .others li:hover{background:var(--page-bg);}
+    .others small{display:block;color:var(--gray-text);font-size:.68rem;}
+
+    /* map + drawer */
+    #mapWrap{flex:1 1 auto;position:relative;display:flex;flex-direction:column;min-width:0;}
+    #viewDiv{flex:1 1 auto;min-height:0;position:relative;}
+    .map-btn{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;border:none;background:var(--trpa-navy);color:#fff;font-family:var(--font);font-size:.74rem;font-weight:700;padding:.35rem .85rem;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;min-height:30px;}
+    .map-btn:hover{background:var(--trpa-blue);}
+    body.drawer-collapsed #drawerBody{display:none;}
+    #drawer{flex:0 0 auto;height:38%;min-height:160px;display:flex;flex-direction:column;background:var(--white);border-top:1px solid var(--gray-border);box-shadow:0 -2px 8px rgba(0,59,113,.08);z-index:10;}
+    body.drawer-collapsed #drawer{height:auto;min-height:0;}
+    .drawer-head{display:flex;align-items:center;gap:.6rem;padding:.25rem .8rem;border-bottom:1px solid var(--gray-border);flex-wrap:wrap;}
+    .dtabs{display:flex;gap:.1rem;flex-wrap:wrap;}
+    .dtabs button{border:none;background:transparent;cursor:pointer;font-family:var(--font);font-size:.72rem;font-weight:700;min-height:32px;letter-spacing:.04em;text-transform:uppercase;color:var(--gray-text);padding:.4rem .7rem;border-bottom:2px solid transparent;}
+    .dtabs button.active{color:var(--trpa-blue);border-bottom-color:var(--trpa-blue);}
+    .drawer-head .d-count{font-size:.74rem;color:var(--trpa-navy);font-weight:600;}
+    .drawer-head .spacer{flex:1;}
+    .d-txt{border:1px solid var(--gray-border);background:#fff;cursor:pointer;color:var(--gray-text);font-family:var(--font);min-height:28px;font-size:.7rem;font-weight:700;padding:.25rem .65rem;border-radius:999px;white-space:nowrap;}
+    .d-txt:hover{color:var(--trpa-blue);border-color:var(--trpa-blue);}
+    #drawerBody{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+    #grid{flex:1 1 auto;min-height:0;width:100%;}
+    .ag-theme-quartz{--ag-font-family:var(--font);--ag-font-size:12px;--ag-header-background-color:var(--trpa-navy);--ag-header-foreground-color:#fff;--ag-row-hover-color:#eef4fb;--ag-selected-row-background-color:#e8f1fb;--ag-border-color:var(--gray-border);--ag-wrapper-border-radius:0;--ag-header-height:32px;}
+    .ag-theme-quartz .ag-header-cell-text{font-weight:700;}
+    .ag-theme-quartz .ag-row{cursor:pointer;}
+    .ag-theme-quartz .ag-cell-wrap-text{line-height:1.4;padding-top:5px;padding-bottom:5px;word-break:normal;}
+
+    /* no data yet */
+    .nodata{border:1.5px dashed var(--trpa-blue);border-radius:8px;padding:.8rem .9rem;background:#f7fafd;font-size:.8rem;line-height:1.5;display:flex;flex-direction:column;gap:.5rem;}
+    .nodata code{background:#eef1f5;padding:1px 5px;border-radius:3px;font-size:.74rem;}
+    .btn{border:1.5px solid var(--trpa-blue);background:var(--trpa-blue);color:#fff;border-radius:6px;font-family:var(--font);font-size:.76rem;font-weight:700;padding:.35rem .75rem;cursor:pointer;min-height:30px;align-self:flex-start;}
+    .btn:hover{background:var(--trpa-navy);border-color:var(--trpa-navy);}
+    .btn.outline{background:#fff;color:var(--trpa-blue);} .btn.outline:hover{background:#e8f1fb;}
+
+    dialog.about{border:none;border-radius:10px;max-width:min(620px,calc(100vw - 2rem));padding:0;box-shadow:0 10px 40px rgba(0,43,85,.35);color:var(--trpa-navy);}
+    dialog.about::backdrop{background:rgba(0,30,60,.45);}
+    dialog.about .dh{background:var(--trpa-navy);color:#fff;padding:.6rem 1rem;display:flex;align-items:center;font-weight:700;}
+    dialog.about .dh button{margin-left:auto;border:none;background:transparent;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;}
+    dialog.about .db{padding:.9rem 1.1rem 1rem;font-size:.84rem;line-height:1.5;}
+    dialog.about p{margin-bottom:.6rem;} dialog.about ul{margin:0 0 .6rem 1.1rem;} dialog.about li{margin-bottom:.3rem;}
+    dialog.about code{background:#eef1f5;padding:1px 5px;border-radius:3px;font-size:.78rem;}
+
+    @media (max-width:900px){
+      header .right a{display:none;}
+      #appBody{flex-direction:column;}
+      header .agency, header .header-sub, header .badge{display:none;}
+      #sidePanel{flex:0 0 auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--gray-border);}
+      #panelToggle{display:none;}
+      #drawer{height:32%;min-height:110px;}
+      .kpis{grid-template-columns:repeat(2,1fr);}
+    }
+  </style>
+  <style>
+    /* Pages menu in the header (same markup as every page) */
+    details.pages{position:relative;display:inline-block;}
+    details.pages > summary{list-style:none;cursor:pointer;font:600 .78rem 'Open Sans',sans-serif;color:#fff;border:1px solid rgba(180,203,232,.55);border-radius:999px;padding:.22rem .75rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
+    details.pages > summary::-webkit-details-marker{display:none;}
+    details.pages > summary::after{content:"";border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #B4CBE8;}
+    details.pages[open] > summary,details.pages > summary:hover{background:rgba(255,255,255,.1);border-color:#fff;}
+    details.pages .menu{position:absolute;right:0;top:calc(100% + 9px);background:#fff;color:#003B71;border:1px solid #DDDDDD;border-radius:8px;box-shadow:0 8px 24px rgba(0,43,85,.25);padding:.6rem .4rem .5rem;width:250px;z-index:1200;text-align:left;}
+    details.pages .menu .g{padding:.15rem .5rem .35rem;}
+    details.pages .menu .g + .g{border-top:1px solid #eef0f3;padding-top:.4rem;}
+    details.pages .menu b{display:block;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a6577;margin-bottom:.1rem;}
+    details.pages .menu a{display:block;padding:.2rem .4rem;margin:0 -.4rem;border-radius:4px;color:#003B71 !important;text-decoration:none;font-size:.84rem;font-weight:600;opacity:1;}
+    details.pages .menu a:hover{background:#eef4fb;color:#0072CE !important;}
+    details.pages .menu a.on{color:#0072CE !important;}
+    details.pages .menu a.on::after{content:" (this page)";font-weight:400;font-size:.72rem;color:#5a6577;}
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <a class="header-logo" href="https://www.trpa.gov" target="_blank" rel="noopener"><img src="trpa-logo-color.png" alt="TRPA" /></a>
+      <div class="header-text">
+        <div class="agency">Tahoe Regional Planning Agency</div>
+        <h1>Feedback Explorer</h1>
+        <div class="header-sub">PROTECT Workshop 1 &middot; What participants told us, by hazard, asset, and person</div>
+      </div>
+      <div class="right">
+        <span class="badge">Workshop 1</span>
+        <a href="#" id="aboutLink">About this page</a>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+      </div>
+    </div>
+  </header>
+
+  <div id="appBody">
+    <aside id="sidePanel" aria-label="Explorer panel">
+      <div id="panelScroll">
+        <p class="lead">Every note, flooded area, and station answer sent at Workshop 1, after duplicate and test records were removed. Filter by hazard, concern, asset, or person; click a marker or a table row to read the note.</p>
+
+        <div class="nodata" id="noData" hidden>
+          <b>The feedback data is not loaded.</b>
+          <span>It holds participant names, so it is not published with the site. Run <code>scripts/export_feedback_explorer.py</code>, then open this page through the repo-root preview server, or open the file here.</span>
+          <button class="btn" id="openBtn2">Open data file</button>
+        </div>
+
+        <section class="panel-sec" id="sumSec">
+          <h2 class="sec-title">Shown now <button class="sec-tool" id="resetBtn" hidden>Clear filters</button></h2>
+          <div class="kpis">
+            <div class="kpi"><b id="kNotes">-</b><span>Notes</span></div>
+            <div class="kpi"><b id="kPeople">-</b><span>People</span></div>
+            <div class="kpi"><b id="kAssets">-</b><span>Assets and places</span></div>
+            <div class="kpi flood"><b id="kAreas">-</b><span>Flooded areas</span></div>
+          </div>
+        </section>
+
+        <section class="panel-sec">
+          <h2 class="sec-title">Notes by hazard and concern</h2>
+          <div class="clegend" id="cLegend"></div>
+          <div class="hbars" id="hBars" role="group" aria-label="Notes by hazard; click a hazard to filter"></div>
+          <p class="fine">A note tagged with two hazards counts once under each. Click a hazard to filter.</p>
+        </section>
+
+        <section class="panel-sec">
+          <h2 class="sec-title">Concern</h2>
+          <div class="chips" id="fConcern"></div>
+          <h2 class="sec-title">Asset or place</h2>
+          <div class="chips" id="fType"></div>
+          <div class="frow">
+            <label class="field">Person<select class="plain" id="fWho"><option value="">Everyone</option></select></label>
+            <label class="field">Search<input type="search" class="plain" id="fQ" placeholder="Word in a note or name" /></label>
+          </div>
+        </section>
+
+        <section class="panel-sec">
+          <h2 class="sec-title">Selected</h2>
+          <div id="card" class="card empty">Click a marker, a flooded area, or a table row.</div>
+        </section>
+      </div>
+      <div id="panelFooter">
+        <div class="foot-status" id="dataStatus">Loading feedback…</div>
+        <button class="sec-tool" id="openBtn" title="Open PROTECT_workshop_feedback_explorer.json from your computer">Open data file</button>
+        <input id="openFile" type="file" accept=".json,application/json" hidden />
+      </div>
+    </aside>
+    <button id="panelToggle" title="Show or hide the panel" aria-label="Show or hide the panel">&lsaquo;</button>
+
+    <div id="mapWrap">
+      <div id="viewDiv"><button class="map-btn" id="zoomAll" hidden>Zoom to what is shown</button></div>
+      <div id="drawer">
+        <div class="drawer-head">
+          <div class="dtabs" id="dtabs">
+            <button data-v="notes" class="active">Notes</button>
+            <button data-v="assets">By asset</button>
+            <button data-v="stations">Station answers</button>
+            <button data-v="areas">Flooded areas</button>
+          </div>
+          <span class="d-count" id="dCount"></span>
+          <span class="spacer"></span>
+          <button class="d-txt" id="exportBtn" title="Download this table as a CSV">Export CSV</button>
+          <button class="d-txt" id="drawerToggle" title="Collapse or expand the table" aria-expanded="true">Hide table</button>
+        </div>
+        <div id="drawerBody"><div id="grid" class="ag-theme-quartz"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <dialog class="about" id="about">
+    <div class="dh">About this page<button id="aboutX" aria-label="Close">&times;</button></div>
+    <div class="db">
+      <p>This page shows what participants sent from the <a href="workshop-feedback.html">Workshop feedback</a> page at Workshop 1 on Nov. 9, 2026, for the data team and the Tahoe Resilience Improvement Plan (TRIP).</p>
+      <ul>
+        <li><b>Cleaned records.</b> When two people sent from the same browser, the later send repeated the earlier person's notes and flooded areas. Each repeat was removed and the copy from the person who wrote it kept. Test notes were removed too.</li>
+        <li><b>Concern.</b> 1 is Greatest Concern, 2 Somewhat Concerned, 3 Just Adding a Note. Blank means the person did not pick one. The marker on the map shows the number.</li>
+        <li><b>Hazards.</b> The hazards a person tagged on the note. A note with no hazard counts under Any hazard.</li>
+        <li><b>By asset.</b> Notes grouped by the asset or pinned place, with how many people flagged it and their highest concern.</li>
+        <li><b>Tables.</b> Each table filters with the panel and exports to CSV.</li>
+      </ul>
+      <p class="fine">Data: <code>outputs/PROTECT_workshop_feedback_explorer.json</code>, written by <code>scripts/export_feedback_explorer.py</code> from the reviewed feedback geodatabase. It holds names, so it stays off the public site. Internal review draft.</p>
+    </div>
+  </dialog>
+
+  <div id="tip" hidden></div>
+
+  <script>
+  (function () {
+    // ───────────────────────── Config ─────────────────────────
+    // The data file stays in outputs/ (gitignored): the repo-root preview server reaches it at ../outputs/.
+    const DATA_URL = "../outputs/PROTECT_workshop_feedback_explorer.json";
+    const SVC = "https://maps.trpa.org/server/rest/services";
+    // Hazard labels and colors as on the feedback page (workshop-feedback.html HAZARDS). Keep in step.
+    const HAZARDS = [
+      { k: "flood", s: "Flooding", color: "#0072CE" }, { k: "fire", s: "Wildfire", color: "#9C3E27" },
+      { k: "slide", s: "Landslide", color: "#B47E00" }, { k: "debris", s: "Debris flow", color: "#7B6A8A" },
+      { k: "avy", s: "Avalanche", color: "#4A6118" }, { k: "any", s: "Any hazard", color: "#5a6577" }
+    ];
+    const HZ = Object.fromEntries(HAZARDS.map(h => [h.k, h]));
+    const CONCERN = { 1: "Greatest Concern", 2: "Somewhat Concerned", 3: "Just Adding a Note", 0: "Not given" };
+    const CCOL = { 1: "#9C3E27", 2: "#E87722", 3: "#B47E00", 0: "#8a93a2" };
+    const TYPES = [
+      { k: "road", s: "Roads" }, { k: "culvert", s: "Culverts" }, { k: "bridge", s: "Bridges" }, { k: "transit", s: "Transit" },
+      { k: "trail", s: "Paths" }, { k: "pin", s: "Pinned places" }, { k: "area", s: "Flooded areas", c: "#0E7C86" }
+    ];
+    const TYPE_ONE = { road: "Road segment", culvert: "Culvert", bridge: "Bridge", transit: "Transit", trail: "Bike or pedestrian path", pin: "Place (pin)" };
+
+    // ───────────────────────── Helpers ─────────────────────────
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const MONTHS = ["Jan.", "Feb.", "March", "April", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."];
+    const apDate = (s) => { if (!s) return ""; const d = new Date(s); return `${MONTHS[d.getMonth()]} ${d.getDate()}`; };
+    const apTime = (s) => { if (!s) return ""; const d = new Date(s); let h = d.getHours(); const m = String(d.getMinutes()).padStart(2, "0"); const ap = h < 12 ? "a.m." : "p.m."; h = h % 12 || 12; return `${h}:${m} ${ap}`; };
+    const apWhen = (s) => s ? `${apDate(s)}, ${apTime(s)}` : "";
+    const KEEP_CAPS = new Set(["US", "SR", "CA", "NV", "NBI", "TART", "TTD", "FEMA", "II", "III", "IV", "USFS"]);
+    const properCase = (s) => String(s || "").replace(/[A-Za-z][A-Za-z']*/g, w => w.length > 1 && w === w.toUpperCase() && !KEEP_CAPS.has(w) ? w[0] + w.slice(1).toLowerCase() : w).replace(/^./, c => c.toUpperCase());
+    const shownSub = (sub) => String(sub || "").split(" · ").filter(p => p && !/^segment /.test(p)).map(p => p.replace(/^./, c => c.toUpperCase())).join(" · ");
+    const cOf = (n) => n.concern || 0;
+    const hzOf = (n) => n.hazards && n.hazards.length ? n.hazards : ["any"];
+    const assetText = (n) => n.type === "pin" ? "Pinned place" : properCase(n.asset || n.asset_id || "");
+    const typeText = (n) => n.type === "transit" && /transit center/i.test(n.detail || "") ? "Transit hub" : (n.type_label || TYPE_ONE[n.type] || n.type);
+    const bubble = (c) => {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="26" viewBox="0 0 24 26"><path d="M4 1.5h16a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h-5.5L12 23.5 9.5 17.5H4A2.5 2.5 0 0 1 1.5 15V4A2.5 2.5 0 0 1 4 1.5z" fill="${CCOL[c]}" stroke="#ffffff" stroke-width="1.6"/><text x="12" y="13.4" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#ffffff">${c || "–"}</text></svg>`;
+      return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
+    };
+    const tip = $("tip");
+    function showTip(e, html) { tip.innerHTML = html; tip.hidden = false; const x = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8), y = Math.max(8, e.clientY - tip.offsetHeight - 10); tip.style.left = x + "px"; tip.style.top = y + "px"; }
+    const hideTip = () => { tip.hidden = true; };
+
+    // ───────────────────────── State ─────────────────────────
+    let D = null, sendOf = {};
+    const F = { haz: new Set(), concern: new Set(), type: new Set(), who: "", q: "" };
+    let sel = null, tab = "notes", gridApi = null;
+    let view = null, noteLayer = null, areaLayer = null, hlLayer = null, Graphic = null;
+
+    function passCommon(name, text) {
+      if (F.who && name !== F.who) return false;
+      if (F.q && !text.toLowerCase().includes(F.q.toLowerCase())) return false;
+      return true;
+    }
+    function noteText(n) { return [n.name, n.asset, n.asset_id, n.detail, n.issue, typeText(n)].join(" "); }
+    function notesShown(ignoreHaz) {
+      if (!D) return [];
+      return D.notes.filter(n => (ignoreHaz || !F.haz.size || hzOf(n).some(h => F.haz.has(h)))
+        && (!F.concern.size || F.concern.has(cOf(n))) && (!F.type.size || F.type.has(n.type)) && passCommon(n.name, noteText(n)));
+    }
+    function areasShown() {
+      if (!D) return [];
+      return D.areas.filter(a => (!F.haz.size || F.haz.has("flood")) && !F.concern.size && (!F.type.size || F.type.has("area"))
+        && passCommon(a.name, [a.name, a.reporter, a.when, a.notes].join(" ")));
+    }
+    function stationsShown() {
+      if (!D) return [];
+      return D.stations.filter(s => (!F.haz.size || F.haz.has(s.station)) && passCommon(s.name, [s.name, s.expected, s.tool].join(" ")));
+    }
+    const filtering = () => F.haz.size || F.concern.size || F.type.size || F.who || F.q;
+
+    // ───────────────────────── Panel ─────────────────────────
+    function renderKpis(notes, areas) {
+      $("kNotes").textContent = notes.length;
+      $("kPeople").textContent = new Set([...notes.map(n => n.name), ...areas.map(a => a.name)]).size;
+      $("kAssets").textContent = new Set(notes.map(n => n.key)).size;
+      $("kAreas").textContent = areas.length;
+      $("resetBtn").hidden = !filtering();
+    }
+    $("cLegend").innerHTML = [1, 2, 3, 0].map(c => `<span><i style="background:${CCOL[c]}">${c || "–"}</i>${CONCERN[c]}</span>`).join("");
+    function renderBars() {
+      // counts ignore the hazard filter, so every hazard stays clickable; the chosen ones are highlighted
+      const notes = notesShown(true), rows = HAZARDS.map(h => {
+        const these = notes.filter(n => hzOf(n).includes(h.k));
+        return { h, total: these.length, by: [1, 2, 3, 0].map(c => [c, these.filter(n => cOf(n) === c).length]) };
+      });
+      const max = Math.max(1, ...rows.map(r => r.total));
+      const box = $("hBars"); box.classList.toggle("filtering", F.haz.size > 0);
+      box.innerHTML = rows.map(r => `<button class="hbar${F.haz.has(r.h.k) ? " on" : ""}" data-h="${r.h.k}" aria-pressed="${F.haz.has(r.h.k)}" aria-label="${r.h.s}: ${r.total} notes">
+          <span class="lbl"><i class="hdot" style="background:${r.h.color}"></i>${r.h.s}</span>
+          <span class="track" style="width:${(r.total / max * 100).toFixed(1)}%">${r.by.filter(b => b[1]).map(b => `<span class="seg" data-c="${b[0]}" data-n="${b[1]}" style="flex:${b[1]};background:${CCOL[b[0]]}"></span>`).join("")}</span>
+          <span class="n">${r.total}</span></button>`).join("");
+      box.querySelectorAll(".hbar").forEach(b => {
+        b.onclick = () => { const k = b.dataset.h; F.haz.has(k) ? F.haz.delete(k) : F.haz.add(k); refresh(); };
+        b.querySelectorAll(".seg").forEach(s => {
+          s.onmousemove = (e) => showTip(e, `<b>${esc(HZ[b.dataset.h].s)}</b><br>${esc(CONCERN[s.dataset.c])}: ${s.dataset.n} note${s.dataset.n === "1" ? "" : "s"}`);
+          s.onmouseleave = hideTip;
+        });
+      });
+    }
+    function renderChips() {
+      const all = D ? D.notes : [];
+      const chip = (id, items, set) => {
+        $(id).innerHTML = items.map(it => `<button data-k="${it.k}" class="${set.has(it.k) ? "on" : ""}" style="--c:${it.c}" aria-pressed="${set.has(it.k)}"><i></i>${esc(it.s)} <small>${it.n}</small></button>`).join("");
+        $(id).querySelectorAll("button").forEach(b => b.onclick = () => { const k = isNaN(+b.dataset.k) ? b.dataset.k : +b.dataset.k; set.has(k) ? set.delete(k) : set.add(k); refresh(); });
+      };
+      chip("fConcern", [1, 2, 3, 0].map(c => ({ k: c, s: CONCERN[c], c: CCOL[c], n: all.filter(n => cOf(n) === c).length })).filter(x => x.n), F.concern);
+      chip("fType", TYPES.map(t => ({ ...t, c: t.c || "#003B71", n: t.k === "area" ? (D ? D.areas.length : 0) : all.filter(n => n.type === t.k).length })).filter(x => x.n), F.type);
+    }
+    function renderWho() {
+      const names = [...new Set([...D.notes.map(n => n.name), ...D.areas.map(a => a.name), ...D.stations.map(s => s.name)].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      $("fWho").innerHTML = `<option value="">Everyone</option>` + names.map(n => `<option>${esc(n)}</option>`).join("");
+    }
+    $("fWho").onchange = () => { F.who = $("fWho").value; refresh(); };
+    let qT; $("fQ").oninput = () => { clearTimeout(qT); qT = setTimeout(() => { F.q = $("fQ").value.trim(); refresh(); }, 200); };
+    $("resetBtn").onclick = () => { F.haz.clear(); F.concern.clear(); F.type.clear(); F.who = ""; F.q = ""; $("fWho").value = ""; $("fQ").value = ""; refresh(); };
+
+    function renderCard() {
+      const c = $("card");
+      if (!sel) { c.className = "card empty"; c.textContent = "Click a marker, a flooded area, or a table row."; return; }
+      if (sel.kind === "area") {
+        const a = sel.item, s = sendOf[a.send];
+        c.className = "card area";
+        c.innerHTML = `<div class="card-head"><div style="flex:1"><span class="type">Flooding seen</span><h3>${esc(a.when ? properCase(a.when) : "Flooded area")}</h3></div><button class="card-x" title="Clear" aria-label="Clear">&times;</button></div>
+          <p class="issue${a.notes ? "" : " blank"}" style="--cc:#0E7C86">${a.notes ? esc(a.notes) : "No description given."}</p>
+          <div class="meta"><span>From <b>${esc(a.name || "no name")}</b></span>${a.reporter ? `<span>Who saw it: <b>${esc(a.reporter)}</b></span>` : ""}${a.acres != null ? `<span>About <b>${(+a.acres).toFixed(1)} acres</b></span>` : ""}${s ? `<span>Sent ${apWhen(s.sent)}</span>` : ""}</div>`;
+      } else {
+        const n = sel.item, s = sendOf[n.send], cc = cOf(n);
+        const same = D.notes.filter(o => o.key === n.key && o.id !== n.id);
+        c.className = "card";
+        c.innerHTML = `<div class="card-head"><div style="flex:1"><span class="type">${esc(typeText(n))}</span><h3>${esc(assetText(n))}</h3>${n.detail || n.type === "pin" ? `<div class="card-sub">${esc(n.type === "pin" ? `${(+n.lat).toFixed(5)}, ${(+n.lon).toFixed(5)}` : shownSub(n.detail))}</div>` : ""}</div><button class="card-x" title="Clear" aria-label="Clear">&times;</button></div>
+          <div class="meta"><span class="cbadge c${cc}">${cc || "–"}</span><span><b>${esc(CONCERN[cc])}</b></span>${hzOf(n).map(h => `<span><i class="hdot" style="background:${HZ[h] ? HZ[h].color : "#5a6577"}"></i>${esc(HZ[h] ? HZ[h].s : h)}</span>`).join("")}${n.missing ? `<span class="flag">Missing from the map</span>` : ""}</div>
+          <p class="issue${n.issue ? "" : " blank"}" style="--cc:${CCOL[cc]}">${n.issue ? esc(n.issue) : "No description given."}</p>
+          <div class="meta"><span>From <b>${esc(n.name || "no name")}</b></span>${n.noted ? `<span>Noted ${apWhen(n.noted)}</span>` : ""}${s ? `<span>Sent ${apTime(s.sent)}</span>` : ""}</div>
+          ${same.length ? `<h2 class="sec-title" style="margin-top:.2rem">Other notes on this ${n.type === "pin" ? "place" : "asset"} <span class="sec-count">${same.length}</span></h2>
+          <ul class="others">${same.map(o => `<li data-id="${o.id}"><span class="cbadge c${cOf(o)}">${cOf(o) || "–"}</span><span>${esc(o.issue || "No description")}<small>${esc(o.name || "no name")}</small></span></li>`).join("")}</ul>` : ""}`;
+        c.querySelectorAll(".others li").forEach(li => li.onclick = () => selectNote(D.notes.find(o => o.id === +li.dataset.id), true));
+      }
+      c.querySelector(".card-x").onclick = () => { sel = null; renderCard(); drawHighlight(); if (gridApi) gridApi.deselectAll(); };
+    }
+
+    // ───────────────────────── Map ─────────────────────────
+    function areaGeom(a) { return { type: "polygon", rings: a.rings, spatialReference: { wkid: 4326 } }; }
+    function drawMap() {
+      if (!noteLayer || !D) return;
+      noteLayer.removeAll(); areaLayer.removeAll();
+      areaLayer.addMany(areasShown().filter(a => a.rings).map(a => new Graphic({ geometry: areaGeom(a), attributes: { kind: "area", id: a.id },
+        symbol: { type: "simple-fill", color: [14, 124, 134, 0.28], outline: { color: [14, 124, 134, 1], width: 2 } } })));
+      // concern 1 draws on top
+      const ns = notesShown().filter(n => n.lon != null).sort((a, b) => (cOf(b) || 4) - (cOf(a) || 4));
+      noteLayer.addMany(ns.map(n => new Graphic({ geometry: { type: "point", longitude: n.lon, latitude: n.lat }, attributes: { kind: "note", id: n.id },
+        symbol: { type: "picture-marker", url: bubble(cOf(n)), width: "20px", height: "21.7px", yoffset: "10px" } })));
+      drawHighlight();
+    }
+    function drawHighlight() {
+      if (!hlLayer) return; hlLayer.removeAll();
+      if (!sel) return;
+      if (sel.kind === "area") hlLayer.add(new Graphic({ geometry: areaGeom(sel.item), symbol: { type: "simple-fill", color: [0, 0, 0, 0], outline: { color: [0, 114, 206, 1], width: 3.5 } } }));
+      else hlLayer.add(new Graphic({ geometry: { type: "point", longitude: sel.item.lon, latitude: sel.item.lat },
+        symbol: { type: "simple-marker", style: "circle", size: 30, color: [0, 114, 206, 0.15], outline: { color: [0, 114, 206, 1], width: 2.5 } } }));
+    }
+    function zoomShown() {
+      if (!view) return;
+      const g = [...noteLayer.graphics.toArray(), ...areaLayer.graphics.toArray()];
+      if (g.length) view.goTo(g.length === 1 ? { target: g, zoom: 15 } : g, { duration: 500 }).then(() => { if (g.length > 1 && view.zoom > 16) view.zoom = 16; }).catch(() => {});
+    }
+    $("zoomAll").onclick = zoomShown;
+    function zoomSel() {
+      if (!view || !sel) return;
+      if (sel.kind === "area") view.goTo({ target: new Graphic({ geometry: areaGeom(sel.item) }) }, { duration: 500 }).then(() => { view.zoom = Math.min(view.zoom - 0.6, 17); }).catch(() => {});
+      else view.goTo({ center: [sel.item.lon, sel.item.lat], zoom: Math.max(view.zoom, 14) }, { duration: 500 }).catch(() => {});
+    }
+    function selectNote(n, zoom) { if (!n) return; sel = { kind: "note", item: n }; renderCard(); $("card").scrollIntoView({ block: "nearest", behavior: "smooth" }); drawHighlight(); if (zoom) zoomSel(); syncGridSel(); }
+    function selectArea(a, zoom) { if (!a) return; sel = { kind: "area", item: a }; renderCard(); $("card").scrollIntoView({ block: "nearest", behavior: "smooth" }); drawHighlight(); if (zoom) zoomSel(); syncGridSel(); }
+
+    // ───────────────────────── Tables ─────────────────────────
+    const concernStyle = (p) => { const c = p.data && p.data._c; return c == null ? null : { color: c ? "#fff" : "#003B71", backgroundColor: c ? CCOL[c] : "#eef1f5", fontWeight: 700, textAlign: "center" }; };
+    const wrap = { wrapText: true, autoHeight: true };
+    const COLS = {
+      notes: [
+        { field: "who", headerName: "Person", width: 130 },
+        { field: "concern", headerName: "Concern", width: 108, cellStyle: concernStyle, valueFormatter: p => p.data._c ? `${p.data._c}` : "-", headerTooltip: "1 Greatest Concern, 2 Somewhat Concerned, 3 Just Adding a Note" },
+        { field: "hazards", headerName: "Hazards", width: 140, ...wrap },
+        { field: "type", headerName: "Type", width: 120 },
+        { field: "asset", headerName: "Asset or place", width: 210, ...wrap },
+        { field: "issue", headerName: "Issue description", flex: 1, minWidth: 260, ...wrap },
+        { field: "noted", headerName: "Noted", width: 150, valueFormatter: p => apWhen(p.value), sort: null }
+      ],
+      assets: [
+        { field: "asset", headerName: "Asset or place", width: 230, ...wrap },
+        { field: "type", headerName: "Type", width: 120 },
+        { field: "n", headerName: "Notes", width: 100, type: "numericColumn", sort: "desc" },
+        { field: "people", headerName: "People", width: 170, ...wrap },
+        { field: "concern", headerName: "Highest concern", width: 160, cellStyle: concernStyle, valueFormatter: p => p.data._c ? `${p.data._c}` : "-" },
+        { field: "hazards", headerName: "Hazards", width: 140, ...wrap },
+        { field: "issues", headerName: "What they said", flex: 1, minWidth: 280, ...wrap }
+      ],
+      stations: [
+        { field: "who", headerName: "Person", width: 140 },
+        { field: "station", headerName: "Station", width: 120 },
+        { field: "expected", headerName: "Do the results match what you expected?", flex: 1, minWidth: 260, ...wrap },
+        { field: "tool", headerName: "What should the tool show?", flex: 1, minWidth: 220, ...wrap }
+      ],
+      areas: [
+        { field: "who", headerName: "Person", width: 130 },
+        { field: "reporter", headerName: "Who saw it", width: 150 },
+        { field: "when", headerName: "When it happened", width: 150 },
+        { field: "notes", headerName: "What happened", flex: 1, minWidth: 260, ...wrap },
+        { field: "acres", headerName: "Acres", width: 90, type: "numericColumn", valueFormatter: p => p.value == null ? "" : (+p.value).toFixed(1) }
+      ]
+    };
+    const hzText = (n) => hzOf(n).map(h => HZ[h] ? HZ[h].s : h).join(", ");
+    function rowsFor(t) {
+      if (t === "notes") return notesShown().map(n => ({ _id: n.id, _c: cOf(n), who: n.name || "", concern: n.concern == null ? "" : n.concern, hazards: hzText(n), type: typeText(n), asset: assetText(n), issue: n.issue || "", noted: n.noted }));
+      if (t === "assets") {
+        const by = {};
+        notesShown().forEach(n => { (by[n.key] = by[n.key] || []).push(n); });
+        return Object.values(by).map(ns => {
+          const cs = ns.map(cOf).filter(Boolean), top = cs.length ? Math.min(...cs) : 0;
+          return { _id: ns[0].id, _c: top, asset: assetText(ns[0]), type: typeText(ns[0]), n: ns.length, people: [...new Set(ns.map(n => n.name || "no name"))].join(", "),
+            concern: top || "", hazards: [...new Set(ns.flatMap(hzOf))].map(h => HZ[h] ? HZ[h].s : h).join(", "),
+            issues: ns.filter(n => n.issue).map(n => `${n.issue} (${n.name || "no name"})`).join(" | ") };
+        });
+      }
+      if (t === "stations") return stationsShown().map(s => ({ _sid: s.id, who: s.name || "", station: s.label || s.station, expected: s.expected || "", tool: s.tool || "" }));
+      return areasShown().map(a => ({ _aid: a.id, who: a.name || "", reporter: a.reporter || "", when: a.when || "", notes: a.notes || "", acres: a.acres }));
+    }
+    function renderGrid() {
+      const rows = rowsFor(tab), label = { notes: "notes", assets: "assets and places", stations: "station answers", areas: "flooded areas" }[tab];
+      $("dCount").textContent = `${rows.length} ${rows.length === 1 ? label.replace(/s$/, "").replace(/ and place$/, "") : label}`;
+      if (!gridApi) {
+        gridApi = agGrid.createGrid($("grid"), {
+          columnDefs: COLS[tab], rowData: rows, rowSelection: "single", animateRows: false, suppressCellFocus: true,
+          defaultColDef: { sortable: true, resizable: true, filter: true },
+          overlayNoRowsTemplate: '<span style="color:#5a6577">Nothing matches the filters.</span>',
+          getRowId: (p) => String(p.data._id ?? p.data._aid ?? p.data._sid),
+          onRowClicked: (e) => {
+            const d = e.data;
+            if (d._aid != null) selectArea(D.areas.find(a => a.id === d._aid), true);
+            else if (d._id != null) selectNote(D.notes.find(n => n.id === d._id), true);
+          }
+        });
+      } else {
+        gridApi.setGridOption("columnDefs", COLS[tab]);
+        gridApi.setGridOption("rowData", rows);
+      }
+      syncGridSel();
+    }
+    function syncGridSel() {
+      if (!gridApi) return;
+      gridApi.deselectAll();
+      if (!sel) return;
+      const id = sel.kind === "area" ? (tab === "areas" ? sel.item.id : null)
+        : tab === "notes" ? sel.item.id : tab === "assets" ? (rowsFor("assets").find(r => D.notes.some(n => n.key === sel.item.key && n.id === r._id)) || {})._id : null;
+      if (id == null) return;
+      const node = gridApi.getRowNode(String(id));
+      if (node) { node.setSelected(true); gridApi.ensureNodeVisible(node); }
+    }
+    $("dtabs").querySelectorAll("button").forEach(b => b.onclick = () => {
+      tab = b.dataset.v; $("dtabs").querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+      if (document.body.classList.contains("drawer-collapsed")) setDrawer(true); else renderGrid();
+    });
+    $("exportBtn").onclick = () => { if (gridApi) gridApi.exportDataAsCsv({ fileName: `PROTECT_feedback_${tab}.csv`, columnKeys: COLS[tab].map(c => c.field) }); };
+    function setDrawer(open) {
+      document.body.classList.toggle("drawer-collapsed", !open);
+      $("drawerToggle").textContent = open ? "Hide table" : "Show table"; $("drawerToggle").setAttribute("aria-expanded", String(open));
+      try { localStorage.setItem("protectFbx.drawer", open ? "1" : "0"); } catch {}
+      if (open) setTimeout(renderGrid, 30);
+    }
+    $("drawerToggle").onclick = () => setDrawer(document.body.classList.contains("drawer-collapsed"));
+    $("panelToggle").onclick = () => { const c = document.body.classList.toggle("panel-collapsed"); $("panelToggle").innerHTML = c ? "&rsaquo;" : "&lsaquo;"; };
+    $("aboutLink").onclick = (e) => { e.preventDefault(); $("about").showModal(); };
+    $("aboutX").onclick = () => $("about").close();
+    $("about").addEventListener("click", (e) => { if (e.target === $("about")) $("about").close(); });
+
+    // ───────────────────────── Load ─────────────────────────
+    function refresh() {
+      if (!D) return;
+      if (sel && sel.kind === "note" && !notesShown().includes(sel.item)) sel = null;
+      if (sel && sel.kind === "area" && !areasShown().includes(sel.item)) sel = null;
+      renderKpis(notesShown(), areasShown()); renderBars(); renderChips(); renderCard(); drawMap();
+      if (!document.body.classList.contains("drawer-collapsed")) renderGrid();
+    }
+    function useData(d, from) {
+      if (!d || !Array.isArray(d.notes)) throw new Error("Not a feedback explorer file (no notes list).");
+      D = { sends: d.sends || [], notes: d.notes, stations: d.stations || [], areas: d.areas || [], built: d.built };
+      sendOf = Object.fromEntries(D.sends.map(s => [s.send, s]));
+      $("noData").hidden = true; $("zoomAll").hidden = false;
+      $("dataStatus").textContent = `${D.notes.length} notes, ${D.areas.length} flooded areas, and ${D.stations.length} station answers from ${D.sends.length} sends. ${from}${D.built ? `, built ${apWhen(D.built).replace(/\.$/, "")}` : ""}.`;
+      renderWho(); refresh(); setTimeout(zoomShown, 300);
+    }
+    function noData(msg) {
+      $("noData").hidden = false; $("dataStatus").textContent = msg;
+      renderBars(); renderChips();
+    }
+    const openFile = () => $("openFile").click();
+    $("openBtn").onclick = openFile; $("openBtn2").onclick = openFile;
+    $("openFile").onchange = async () => {
+      const f = $("openFile").files[0]; if (!f) return;
+      try { useData(JSON.parse(await f.text()), `Opened ${f.name}`); } catch (e) { noData(`That file did not load: ${e.message}`); }
+      $("openFile").value = "";
+    };
+    let drawerOpen = true; try { drawerOpen = localStorage.getItem("protectFbx.drawer") !== "0"; } catch {}
+    if (!drawerOpen) setDrawer(false);
+    renderGrid();
+    fetch(DATA_URL, { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(d => useData(d, "Read from outputs/"))
+      .catch(() => noData("No data file found next to the page. Open it with the button."));
+
+    require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/widgets/Home", "esri/widgets/LayerList", "esri/widgets/Expand"],
+      function (Map, MapView, FeatureLayer, GraphicsLayer, G, Home, LayerList, Expand) {
+        Graphic = G;
+        const fill = (rgb, a, oa) => ({ type: "simple", symbol: { type: "simple-fill", color: [...rgb, a], outline: { color: [...rgb, oa], width: 0.5 } } });
+        const ctx = [
+          new FeatureLayer({ url: SVC + "/Streams_and_Flood_Zone/MapServer/0", title: "Flood zones (FEMA)", visible: false, opacity: 0.55, renderer: fill([0, 114, 206], 0.35, 0.8), popupEnabled: false }),
+          new FeatureLayer({ url: SVC + "/Avalanche_Zones/MapServer/0", title: "Avalanche zones", visible: false, opacity: 0.6, renderer: fill([74, 97, 24], 0.4, 0.9), popupEnabled: false }),
+          new FeatureLayer({ url: "https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0", title: "Past fire perimeters (CAL FIRE)", visible: false, opacity: 0.5, renderer: fill([156, 62, 39], 0.25, 0.9), definitionExpression: "YEAR_ >= 2000", popupEnabled: false }),
+          new FeatureLayer({ url: SVC + "/Boundaries/FeatureServer/4", title: "TRPA boundary", renderer: { type: "simple", symbol: { type: "simple-fill", color: [0, 0, 0, 0], outline: { color: [0, 59, 113, 0.9], width: 1.2, style: "dash" } } }, popupEnabled: false, listMode: "hide" })
+        ];
+        areaLayer = new GraphicsLayer({ title: "Flooding seen" });
+        noteLayer = new GraphicsLayer({ title: "Notes (number = concern)" });
+        hlLayer = new GraphicsLayer({ title: "Selected", listMode: "hide" });
+        const map = new Map({ basemap: "gray-vector", layers: [...ctx, areaLayer, hlLayer, noteLayer] });
+        view = new MapView({ container: "viewDiv", map, center: [-120.04, 39.09], zoom: 10, popup: { autoOpenEnabled: false }, constraints: { snapToZoom: false } });
+        view.when(() => {
+          view.ui.add(new Home({ view }), "top-left");
+          view.ui.add(new Expand({ view, content: new LayerList({ view }), expandIcon: "layers", expandTooltip: "Layers" }), "top-right");
+          drawMap(); if (D) zoomShown();
+          view.on("click", async (e) => {
+            const r = await view.hitTest(e, { include: [noteLayer, areaLayer] });
+            const g = (r.results.find(x => x.graphic && x.graphic.layer === noteLayer) || r.results.find(x => x.graphic && x.graphic.layer === areaLayer) || {}).graphic;
+            if (!g) return;
+            if (g.attributes.kind === "area") selectArea(D.areas.find(a => a.id === g.attributes.id), false);
+            else selectNote(D.notes.find(n => n.id === g.attributes.id), false);
+          });
+          view.on("pointer-move", (e) => {
+            view.hitTest(e, { include: [noteLayer, areaLayer] }).then(r => {
+              const g = r.results.length && r.results[0].graphic;
+              view.container.style.cursor = g ? "pointer" : "default";
+              if (g && g.attributes.kind === "note") { const n = D.notes.find(x => x.id === g.attributes.id); showTip(e.native, `<b>${esc(assetText(n))}</b><br>${esc(CONCERN[cOf(n)])} &middot; ${esc(n.name || "no name")}`); }
+              else if (g) { const a = D.areas.find(x => x.id === g.attributes.id); showTip(e.native, `<b>Flooding seen</b><br>${esc(a.when || "")} &middot; ${esc(a.name || "no name")}`); }
+              else hideTip();
+            });
+          });
+          view.container.addEventListener("mouseleave", hideTip);
+          window.FBX = { view, get data() { return D; } };   // for debugging in the console
+        }).catch(err => console.warn("Map failed to load:", err));
+      });
+  })();
+  </script>
+</body>
+</html>
