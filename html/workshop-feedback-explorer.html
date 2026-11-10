@@ -203,7 +203,7 @@
       <div class="right">
         <span class="badge">Workshop 1</span>
         <a href="#" id="aboutLink">About this page</a>
-        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+        <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a><a href="workshop-feedback-explorer.html" class="on" aria-current="page">Feedback explorer</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
       </div>
     </div>
   </header>
@@ -214,9 +214,8 @@
         <p class="lead">Every note, flooded area, and station answer sent at Workshop 1, after duplicate and test records were removed. Filter by hazard, concern, asset, or person; click a marker or a table row to read the note.</p>
 
         <div class="nodata" id="noData" hidden>
-          <b>The feedback data is not loaded.</b>
-          <span>It holds participant names, so it is not published with the site. Run <code>scripts/export_feedback_explorer.py</code>, then open this page through the repo-root preview server, or open the file here.</span>
-          <button class="btn" id="openBtn2">Open data file</button>
+          <b>The feedback data did not load.</b>
+          <span>Reload the page. If it still does not load, the data file has not been published yet.</span>
         </div>
 
         <section class="panel-sec" id="sumSec">
@@ -254,8 +253,6 @@
       </div>
       <div id="panelFooter">
         <div class="foot-status" id="dataStatus">Loading feedback…</div>
-        <button class="sec-tool" id="openBtn" title="Open PROTECT_workshop_feedback_explorer.json from your computer">Open data file</button>
-        <input id="openFile" type="file" accept=".json,application/json" hidden />
       </div>
     </aside>
     <button id="panelToggle" title="Show or hide the panel" aria-label="Show or hide the panel">&lsaquo;</button>
@@ -291,7 +288,7 @@
         <li><b>By asset.</b> Notes grouped by the asset or pinned place, with how many people flagged it and their highest concern.</li>
         <li><b>Tables.</b> Each table filters with the panel and exports to CSV.</li>
       </ul>
-      <p class="fine">Data: <code>outputs/PROTECT_workshop_feedback_explorer.json</code>, written by <code>scripts/export_feedback_explorer.py</code> from the reviewed feedback geodatabase. It holds names, so it stays off the public site. Internal review draft.</p>
+      <p class="fine">Data: <code>data/processed/results/workshop_feedback.json</code>, written by <code>scripts/export_feedback_explorer.py</code> from the reviewed feedback geodatabase. Internal review draft.</p>
     </div>
   </dialog>
 
@@ -300,8 +297,8 @@
   <script>
   (function () {
     // ───────────────────────── Config ─────────────────────────
-    // The data file stays in outputs/ (gitignored): the repo-root preview server reaches it at ../outputs/.
-    const DATA_URL = "../outputs/PROTECT_workshop_feedback_explorer.json";
+    // Written by scripts/export_feedback_explorer.py beside the other published results (served by Pages)
+    const DATA_URL = "../data/processed/results/workshop_feedback.json";
     const SVC = "https://maps.trpa.org/server/rest/services";
     // Hazard labels and colors as on the feedback page (workshop-feedback.html HAZARDS). Keep in step.
     const HAZARDS = [
@@ -592,19 +589,12 @@
       $("noData").hidden = false; $("dataStatus").textContent = msg;
       renderBars(); renderChips();
     }
-    const openFile = () => $("openFile").click();
-    $("openBtn").onclick = openFile; $("openBtn2").onclick = openFile;
-    $("openFile").onchange = async () => {
-      const f = $("openFile").files[0]; if (!f) return;
-      try { useData(JSON.parse(await f.text()), `Opened ${f.name}`); } catch (e) { noData(`That file did not load: ${e.message}`); }
-      $("openFile").value = "";
-    };
     let drawerOpen = true; try { drawerOpen = localStorage.getItem("protectFbx.drawer") !== "0"; } catch {}
     if (!drawerOpen) setDrawer(false);
     renderGrid();
     fetch(DATA_URL, { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(d => useData(d, "Read from outputs/"))
-      .catch(() => noData("No data file found next to the page. Open it with the button."));
+      .then(d => useData(d, "Cleaned extract"))
+      .catch(() => noData("The feedback data did not load."));
 
     require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/widgets/Home", "esri/widgets/LayerList", "esri/widgets/Expand"],
       function (Map, MapView, FeatureLayer, GraphicsLayer, G, Home, LayerList, Expand) {

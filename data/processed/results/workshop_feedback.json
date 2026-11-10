@@ -1,0 +1,926 @@
+{
+ "built": "2026-11-10T14:01:29",
+ "source": "PROTECT_workshop_feedback.gdb",
+ "sends": [
+  {
+   "send": 20,
+   "name": "CLST",
+   "round": "Workshop 1",
+   "sent": "2026-11-09T13:09:41"
+  },
+  {
+   "send": 21,
+   "name": "USFS",
+   "round": "Workshop 1",
+   "sent": "2026-11-09T13:12:12"
+  },
+  {
+   "send": 22,
+   "name": "Cara Moore and David",
+   "round": "Workshop 1",
+   "sent": "2026-11-09T13:13:09"
+  },
+  {
+   "send": 23,
+   "name": "Sarah",
+   "round": "Workshop 1",
+   "sent": "2026-11-09T13:21:04"
+  },
+  {
+   "send": 24,
+   "name": "David",
+   "round": "Workshop 1",
+   "sent": "2026-11-09T13:28:44"
+  },
+  {
+   "send": 25,
+   "name": "David",
+   "round": "Workshop 1",
+   "sent": "2026-11-09T13:29:26"
+  },
+  {
+   "send": 26,
+   "name": "Rory Lepore",
+   "round": "Workshop 1",
+   "sent": "2026-11-09T13:32:18"
+  }
+ ],
+ "notes": [
+  {
+   "id": 1,
+   "send": 20,
+   "name": "CLST",
+   "key": "culvert:TRPA Legacy (provisional)|3014",
+   "type": "culvert",
+   "type_label": "Culvert",
+   "asset_id": "TRPA Legacy (provisional)|3014",
+   "asset": "Culvert at unnamed road",
+   "detail": "TRPA Legacy (provisional) · condition not rated",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 1,
+   "issue": "Outlet is undermined. Major drop",
+   "missing": 0,
+   "noted": "2026-11-09T13:07:35",
+   "lon": -120.153174,
+   "lat": 39.074813
+  },
+  {
+   "id": 2,
+   "send": 20,
+   "name": "CLST",
+   "key": "bridge:25C0018",
+   "type": "bridge",
+   "type_label": "Bridge",
+   "asset_id": "25C0018",
+   "asset": "UPPER TRUCKEE RD over UPPER TRUCKEE RIVER",
+   "detail": "County · built 1942 · Fair condition · NBI 25C0018",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 1,
+   "issue": "Another old bridge, key community connection. On National Highway bridge registry",
+   "missing": 0,
+   "noted": "2026-11-09T12:58:25",
+   "lon": -120.019189,
+   "lat": 38.796381
+  },
+  {
+   "id": 3,
+   "send": 20,
+   "name": "CLST",
+   "key": "bridge:25C0019",
+   "type": "bridge",
+   "type_label": "Bridge",
+   "asset_id": "25C0019",
+   "asset": "UPPER TRUCKEE RD over ECHO CREEK",
+   "detail": "County · built 1951 · Fair condition · NBI 25C0019",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 1,
+   "issue": "Old bridge, approaching useful life, if it goes out, community is at risk",
+   "missing": 0,
+   "noted": "2026-11-09T12:57:50",
+   "lon": -120.02752,
+   "lat": 38.84546
+  },
+  {
+   "id": 4,
+   "send": 20,
+   "name": "CLST",
+   "key": "bridge:25C0082",
+   "type": "bridge",
+   "type_label": "Bridge",
+   "asset_id": "25C0082",
+   "asset": "FALLEN LEAF ROAD over GLEN ALPINE CREEK",
+   "detail": "County · built 1966 · Fair condition · NBI 25C0082",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 1,
+   "issue": "If this bridge floods, there's no way out for this community. On federal register of National Highway bridge program",
+   "missing": 0,
+   "noted": "2026-11-09T12:57:00",
+   "lon": -120.070968,
+   "lat": 38.879936
+  },
+  {
+   "id": 6,
+   "send": 20,
+   "name": "CLST",
+   "key": "culvert:El Dorado County|267",
+   "type": "culvert",
+   "type_label": "Culvert",
+   "asset_id": "El Dorado County|267",
+   "asset": "Culvert at Crossing Chimmey Wy. 50 feet south west of Apache Ave.",
+   "detail": "El Dorado County · 30 in · 100-year flow is 263 percent of capacity · condition not rated",
+   "hazards": [
+    "flood",
+    "debris"
+   ],
+   "concern": 1,
+   "issue": "concerned - flooding and debris flow concern",
+   "missing": 0,
+   "noted": "2026-11-04T09:59:37",
+   "lon": -120.014608,
+   "lat": 38.851914
+  },
+  {
+   "id": 8,
+   "send": 20,
+   "name": "CLST",
+   "key": "pin:-120.001973,38.919979",
+   "type": "pin",
+   "type_label": "Place (pin)",
+   "asset_id": "-120.001973,38.919979",
+   "asset": "Pinned place",
+   "detail": "38.919979, -120.001973",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 2,
+   "issue": "Storm drain gets clogged during storms",
+   "missing": 0,
+   "noted": "2026-11-04T10:09:52",
+   "lon": -120.001973,
+   "lat": 38.919979
+  },
+  {
+   "id": 9,
+   "send": 20,
+   "name": "CLST",
+   "key": "pin:-120.164327,39.0712",
+   "type": "pin",
+   "type_label": "Place (pin)",
+   "asset_id": "-120.164327,39.0712",
+   "asset": "Pinned place",
+   "detail": "39.0712, -120.164327",
+   "hazards": [
+    "flood"
+   ],
+   "concern": null,
+   "issue": "Looking to remove dam here. On USFS land. Culverts through this neighborhood are in rough shape.",
+   "missing": 0,
+   "noted": "2026-11-09T13:06:08",
+   "lon": -120.164327,
+   "lat": 39.0712
+  },
+  {
+   "id": 10,
+   "send": 20,
+   "name": "CLST",
+   "key": "pin:-119.992313,38.922447",
+   "type": "pin",
+   "type_label": "Place (pin)",
+   "asset_id": "-119.992313,38.922447",
+   "asset": "Bridge that isn't showing up",
+   "detail": "38.922447, -119.992313",
+   "hazards": [
+    "flood"
+   ],
+   "concern": null,
+   "issue": "Risk for having foundation undermined. Permitting holding things up. Needs immediate attention",
+   "missing": 0,
+   "noted": "2026-11-09T13:04:23",
+   "lon": -119.992313,
+   "lat": 38.922447
+  },
+  {
+   "id": 19,
+   "send": 21,
+   "name": "USFS",
+   "key": "pin:-119.96236,38.908865",
+   "type": "pin",
+   "type_label": "Place (pin)",
+   "asset_id": "-119.96236,38.908865",
+   "asset": "Pinned place",
+   "detail": "38.908865, -119.96236",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 3,
+   "issue": "Wildlife crossing proposed - will replace culverts with these projects",
+   "missing": 0,
+   "noted": "2026-11-09T13:11:04",
+   "lon": -119.96236,
+   "lat": 38.908865
+  },
+  {
+   "id": 20,
+   "send": 21,
+   "name": "USFS",
+   "key": "pin:-119.969382,38.90377",
+   "type": "pin",
+   "type_label": "Place (pin)",
+   "asset_id": "-119.969382,38.90377",
+   "asset": "Pinned place",
+   "detail": "38.90377, -119.969382",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 3,
+   "issue": "Wildlife crossing proposed - will replace culverts with these projects",
+   "missing": 0,
+   "noted": "2026-11-09T13:10:42",
+   "lon": -119.969382,
+   "lat": 38.90377
+  },
+  {
+   "id": 23,
+   "send": 22,
+   "name": "Cara Moore and David",
+   "key": "road:src:12704",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:12704",
+   "asset": "Route 50",
+   "detail": "trunk road · 0.92 mi · vulnerability High · segment 12704",
+   "hazards": [
+    "avy"
+   ],
+   "concern": 1,
+   "issue": "Increased risk with climate change and fire",
+   "missing": 0,
+   "noted": "2026-11-09T13:02:50",
+   "lon": -120.027454,
+   "lat": 38.82054
+  },
+  {
+   "id": 25,
+   "send": 22,
+   "name": "Cara Moore and David",
+   "key": "culvert:Caltrans|190895200191",
+   "type": "culvert",
+   "type_label": "Culvert",
+   "asset_id": "Caltrans|190895200191",
+   "asset": "Culvert at SR-89.0 PM 1.91 (Placer (PLA))",
+   "detail": "Caltrans · 61 in · 100-year flow is 335 percent of capacity · condition not rated",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 2,
+   "issue": "",
+   "missing": 0,
+   "noted": "2026-11-09T10:30:16",
+   "lon": -120.156761,
+   "lat": 39.080273
+  },
+  {
+   "id": 26,
+   "send": 22,
+   "name": "Cara Moore and David",
+   "key": "road:src:3022",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:3022",
+   "asset": "Lake Tahoe North Shore Scenic Byway;Lake Tahoe - Eastshore Drive",
+   "detail": "primary road · 0.17 mi · vulnerability High · segment 3022",
+   "hazards": [
+    "avy"
+   ],
+   "concern": 3,
+   "issue": "Marlette Lake access and radio tower could be critical -Carson City",
+   "missing": 0,
+   "noted": "2026-11-09T13:13:06",
+   "lon": -119.929442,
+   "lat": 39.154328
+  },
+  {
+   "id": 27,
+   "send": 22,
+   "name": "Cara Moore and David",
+   "key": "culvert:TRPA Legacy (provisional)|2894010315",
+   "type": "culvert",
+   "type_label": "Culvert",
+   "asset_id": "TRPA Legacy (provisional)|2894010315",
+   "asset": "Culvert at 13N28",
+   "detail": "TRPA Legacy (provisional) · condition not rated",
+   "hazards": [
+    "avy"
+   ],
+   "concern": null,
+   "issue": "Whole thing and multiple cars have been hit. Concerned about current assessment. Spring warming can be an issue. No mitigation, or minimization. Change the bridge a little. Shut it down - Seth",
+   "missing": 0,
+   "noted": "2026-11-09T13:06:39",
+   "lon": -120.100166,
+   "lat": 38.946565
+  },
+  {
+   "id": 28,
+   "send": 23,
+   "name": "Sarah",
+   "key": "culvert:TRPA Legacy (provisional)|ROW2112",
+   "type": "culvert",
+   "type_label": "Culvert",
+   "asset_id": "TRPA Legacy (provisional)|ROW2112",
+   "asset": "Culvert at unnamed road",
+   "detail": "TRPA Legacy (provisional), vulnerability High",
+   "hazards": [
+    "debris"
+   ],
+   "concern": 1,
+   "issue": "There's a culvert in this area that always turns into a sinkhole.",
+   "missing": 0,
+   "noted": "2026-11-09T12:58:38",
+   "lon": -119.955133,
+   "lat": 38.925234
+  },
+  {
+   "id": 29,
+   "send": 23,
+   "name": "Sarah",
+   "key": "road:src:14366",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:14366",
+   "asset": "Garbage Dump Road",
+   "detail": "service road · 0.50 mi · vulnerability High · segment 14366",
+   "hazards": [
+    "debris",
+    "flood"
+   ],
+   "concern": 2,
+   "issue": "This road is critical to access the two substations serving south lake tahoe.",
+   "missing": 0,
+   "noted": "2026-11-09T13:20:55",
+   "lon": -119.990522,
+   "lat": 38.872379
+  },
+  {
+   "id": 30,
+   "send": 23,
+   "name": "Sarah",
+   "key": "bridge:25 0010",
+   "type": "bridge",
+   "type_label": "Bridge",
+   "asset_id": "25 0010",
+   "asset": "US HIGHWAY 50 over UPPER TRUCKEE RIVER",
+   "detail": "State highway agency · built 1995 · Good condition · NBI 25 0010",
+   "hazards": [
+    "flood",
+    "debris"
+   ],
+   "concern": 2,
+   "issue": "A 100-year or 500-year event could create scour and damage. The co-benefit is improved lake clarity, which is tied to the channel restoration project in Johnson Meadow.",
+   "missing": 0,
+   "noted": "2026-11-09T13:05:15",
+   "lon": -119.990589,
+   "lat": 38.922353
+  },
+  {
+   "id": 31,
+   "send": 23,
+   "name": "Sarah",
+   "key": "culvert:El Dorado County|1562",
+   "type": "culvert",
+   "type_label": "Culvert",
+   "asset_id": "El Dorado County|1562",
+   "asset": "Culvert at Crossing Pioneer Trail, ~100 feet north of Golden Bear",
+   "detail": "El Dorado County, vulnerability Medium",
+   "hazards": [],
+   "concern": 3,
+   "issue": "This will be upgraded to facilitate wildlife crossing concerns.",
+   "missing": 0,
+   "noted": "2026-11-09T13:17:37",
+   "lon": -119.969434,
+   "lat": 38.90354
+  },
+  {
+   "id": 35,
+   "send": 24,
+   "name": "David",
+   "key": "road:src:11625",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:11625",
+   "asset": "River Road",
+   "detail": "primary road · 0.12 mi · vulnerability High · segment 11625",
+   "hazards": [
+    "avy"
+   ],
+   "concern": null,
+   "issue": "Avalanche all the way to Tahoe City",
+   "missing": 0,
+   "noted": "2026-11-09T13:17:33",
+   "lon": -120.194944,
+   "lat": 39.184489
+  },
+  {
+   "id": 36,
+   "send": 24,
+   "name": "David",
+   "key": "road:src:14434",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:14434",
+   "asset": "Trooper Gary Gifford Highway",
+   "detail": "trunk road · 1.43 mi · vulnerability High · segment 14434",
+   "hazards": [
+    "avy"
+   ],
+   "concern": null,
+   "issue": "Cut slope on Spooner",
+   "missing": 0,
+   "noted": "2026-11-09T13:16:17",
+   "lon": -119.918449,
+   "lat": 39.084807
+  },
+  {
+   "id": 37,
+   "send": 24,
+   "name": "David",
+   "key": "road:src:2542",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:2542",
+   "asset": "Emerald Bay Road",
+   "detail": "primary road · 0.71 mi · vulnerability High · segment 2542",
+   "hazards": [
+    "avy"
+   ],
+   "concern": null,
+   "issue": "Long slide path off Jakes - Hit the highway at some point?",
+   "missing": 0,
+   "noted": "2026-11-09T13:14:42",
+   "lon": -120.098338,
+   "lat": 38.971313
+  },
+  {
+   "id": 48,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:12117",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:12117",
+   "asset": "Mount Rose Highway",
+   "detail": "primary road · 0.87 mi · vulnerability High · segment 12117",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 1,
+   "issue": "This hairpin is a big priority for treatment",
+   "missing": 0,
+   "noted": "2026-11-09T13:15:47",
+   "lon": -119.931973,
+   "lat": 39.263422
+  },
+  {
+   "id": 49,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:11517",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:11517",
+   "asset": "Luther Pass Road",
+   "detail": "primary road · 0.72 mi · vulnerability High · segment 11517",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 1,
+   "issue": "Heavy fuels to be thinned around road.",
+   "missing": 0,
+   "noted": "2026-11-04T10:24:24",
+   "lon": -120.006429,
+   "lat": 38.786146
+  },
+  {
+   "id": 50,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:12206",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:12206",
+   "asset": "Tahoe Boulevard",
+   "detail": "primary road · 0.56 mi · vulnerability High · segment 12206",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 2,
+   "issue": "This needs to be a priority for treatment.",
+   "missing": 0,
+   "noted": "2026-11-09T13:16:37",
+   "lon": -119.997666,
+   "lat": 39.245825
+  },
+  {
+   "id": 51,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:15184",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:15184",
+   "asset": "Hidden Woods Drive",
+   "detail": "residential road · 0.11 mi · vulnerability High · segment 15184",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 2,
+   "issue": "This whole area needs to be retreated.",
+   "missing": 0,
+   "noted": "2026-11-09T13:13:04",
+   "lon": -119.942959,
+   "lat": 39.034628
+  },
+  {
+   "id": 52,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:3988",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:3988",
+   "asset": "Route 50",
+   "detail": "trunk road · 0.09 mi · vulnerability Low · segment 3988",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 2,
+   "issue": "Extremely concerned that there are a lot of dead trees in this location. unburned slash piles",
+   "missing": 0,
+   "noted": "2026-11-04T10:27:01",
+   "lon": -120.030334,
+   "lat": 38.813056
+  },
+  {
+   "id": 53,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:11482",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:11482",
+   "asset": "Ward Creek Boulevard",
+   "detail": "unclassified road · 0.43 mi · vulnerability High · segment 11482",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "Need for treatment along this segment.",
+   "missing": 0,
+   "noted": "2026-11-09T13:21:02",
+   "lon": -120.184378,
+   "lat": 39.138812
+  },
+  {
+   "id": 54,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:5449",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:5449",
+   "asset": "Marlene Street",
+   "detail": "residential road · 0.11 mi · vulnerability Medium · segment 5449",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "\"The Worm\" recently treated this area, 90% brush removal. Not particularly worried about this area.",
+   "missing": 0,
+   "noted": "2026-11-09T13:15:08",
+   "lon": -119.973155,
+   "lat": 39.270427
+  },
+  {
+   "id": 55,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:1388",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:1388",
+   "asset": "Unnamed road",
+   "detail": "service road · 0.70 mi · vulnerability High · segment 1388",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "Remove, private road",
+   "missing": 0,
+   "noted": "2026-11-09T13:10:01",
+   "lon": -119.934716,
+   "lat": 38.964321
+  },
+  {
+   "id": 56,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:15670",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:15670",
+   "asset": "Echo Drive",
+   "detail": "unclassified road · 0.21 mi · vulnerability High · segment 15670",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "Recent work completed",
+   "missing": 0,
+   "noted": "2026-11-09T13:08:55",
+   "lon": -119.931082,
+   "lat": 38.974821
+  },
+  {
+   "id": 57,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:1439",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:1439",
+   "asset": "Kingsbury Grade",
+   "detail": "primary road · 0.06 mi · vulnerability Low · segment 1439",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "Neighborhoods on both sides of Kingsbury has recent work completed",
+   "missing": 0,
+   "noted": "2026-11-09T13:08:21",
+   "lon": -119.926584,
+   "lat": 38.967826
+  },
+  {
+   "id": 58,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:14012",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:14012",
+   "asset": "Prospector Trail",
+   "detail": "residential road · 0.09 mi · vulnerability Medium · segment 14012",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "Highlight main roads, not neighborhoods",
+   "missing": 0,
+   "noted": "2026-11-09T13:06:23",
+   "lon": -119.983545,
+   "lat": 38.901768
+  },
+  {
+   "id": 59,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:8821",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:8821",
+   "asset": "Pioneer Trail",
+   "detail": "secondary road · 0.23 mi · vulnerability High · segment 8821",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "Fire Hydrants were recently added here by STPUD",
+   "missing": 0,
+   "noted": "2026-11-09T13:05:26",
+   "lon": -119.969455,
+   "lat": 38.901538
+  },
+  {
+   "id": 60,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:11579",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:11579",
+   "asset": "Cathedral Road",
+   "detail": "residential road · 0.32 mi · vulnerability High · segment 11579",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "Work was recently completed here. Data needs to be updated",
+   "missing": 0,
+   "noted": "2026-11-09T13:03:17",
+   "lon": -120.067893,
+   "lat": 38.910172
+  },
+  {
+   "id": 61,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:9412",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:9412",
+   "asset": "Zuni Street",
+   "detail": "residential road · 0.23 mi · vulnerability Medium · segment 9412",
+   "hazards": [
+    "fire"
+   ],
+   "concern": 3,
+   "issue": "This whole neighborhood needs to be orange, or none of it.",
+   "missing": 0,
+   "noted": "2026-11-09T13:02:10",
+   "lon": -120.040015,
+   "lat": 38.87212
+  },
+  {
+   "id": 62,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:6846",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:6846",
+   "asset": "Unnamed road",
+   "detail": "service road · 0.12 mi · vulnerability Low · segment 6846",
+   "hazards": [
+    "fire"
+   ],
+   "concern": null,
+   "issue": "High school currently not showing as high vunerability",
+   "missing": 0,
+   "noted": "2026-11-09T13:20:22",
+   "lon": -120.119237,
+   "lat": 39.192666
+  },
+  {
+   "id": 63,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:5709",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:5709",
+   "asset": "Lake Tahoe North Shore Scenic Byway;Lake Tahoe - Eastshore Drive",
+   "detail": "primary road · 0.64 mi · vulnerability High · segment 5709",
+   "hazards": [
+    "fire"
+   ],
+   "concern": null,
+   "issue": "This section of highway is priority",
+   "missing": 0,
+   "noted": "2026-11-09T13:18:15",
+   "lon": -119.929058,
+   "lat": 39.206962
+  },
+  {
+   "id": 64,
+   "send": 26,
+   "name": "Rory Lepore",
+   "key": "road:src:15644",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:15644",
+   "asset": "Kingsbury Grade",
+   "detail": "primary road · 0.04 mi · vulnerability Low · segment 15644",
+   "hazards": [
+    "fire"
+   ],
+   "concern": null,
+   "issue": "Kingsbury in general needs to be a priority.",
+   "missing": 0,
+   "noted": "2026-11-09T13:09:19",
+   "lon": -119.929253,
+   "lat": 38.968479
+  }
+ ],
+ "stations": [
+  {
+   "id": 1,
+   "send": 20,
+   "name": "CLST",
+   "station": "flood",
+   "label": "Flooding",
+   "expected": "CSLT has a lot of issues with drainage. Probably needs a ton of culverts replaced",
+   "tool": "Will work with City to get this list"
+  },
+  {
+   "id": 2,
+   "send": 21,
+   "name": "USFS",
+   "station": "flood",
+   "label": "Flooding",
+   "expected": "Aquatic species passage analysis - results will come in next season for all crossings.",
+   "tool": "Should feed into culvert discussion."
+  },
+  {
+   "id": 3,
+   "send": 26,
+   "name": "Rory Lepore",
+   "station": "fire",
+   "label": "Wildfire",
+   "expected": "This isn't giving credit for things we've done.",
+   "tool": ""
+  }
+ ],
+ "areas": [
+  {
+   "id": 1,
+   "send": 20,
+   "name": "CLST",
+   "area_id": "fa:mw9qw7e2",
+   "when": "most storms",
+   "notes": "Lots of stormwater drainage issues and resulting flooding.",
+   "acres": 9.27,
+   "reporter": "Tara Styer",
+   "rings": [
+    [
+     [
+      -120.01322502344811,
+      38.90645877953392
+     ],
+     [
+      -120.01189402315158,
+      38.906204779009514
+     ],
+     [
+      -120.01202302327275,
+      38.90594977951542
+     ],
+     [
+      -120.01202302388579,
+      38.90454277954003
+     ],
+     [
+      -120.01184702349147,
+      38.903188779351005
+     ],
+     [
+      -120.01328302390306,
+      38.903343779301856
+     ],
+     [
+      -120.01324802346164,
+      38.904405778992164
+     ],
+     [
+      -120.01322502344811,
+      38.90645877953392
+     ]
+    ]
+   ]
+  },
+  {
+   "id": 3,
+   "send": 20,
+   "name": "CLST",
+   "area_id": "fa:mw2fd5j8",
+   "when": "Most storms",
+   "notes": "Storm drain clogged",
+   "acres": 0.36,
+   "reporter": "Kira Richardson",
+   "rings": [
+    [
+     [
+      -120.00177202396179,
+      38.92009177672909
+     ],
+     [
+      -120.00174702353313,
+      38.91995277692346
+     ],
+     [
+      -120.00183802335451,
+      38.919746777212595
+     ],
+     [
+      -120.00232702297079,
+      38.91993077722639
+     ],
+     [
+      -120.00198302351627,
+      38.920210776863506
+     ],
+     [
+      -120.00177202396179,
+      38.92009177672909
+     ]
+    ]
+   ]
+  }
+ ]
+}
