@@ -346,3 +346,15 @@ curated:
   earthquakes_url: https://earthquake.usgs.gov/fdsnws/event/1/query
   earthquakes_box: [38.7, 39.4, -120.3, -119.8]   # lat min, lat max, lon min, lon max: the box html/historic-hazards.html queries
   earthquakes_min_mag: 2.5
+
+# scripts/extract_workshop_feedback.py - the Workshop Feedback sends (html/workshop-feedback.html) unpacked into a review
+# geodatabase: FeedbackSends, FeedbackNotes (points), FeedbackStationAnswers, FeedbackFloodAreas (polygons), CSV copies beside it.
+# Read only: the script only queries these services. If the signed-in account cannot read a private parent, point the URL
+# at its public read view (..._read/FeatureServer); the rows are the same.
+feedback:
+  notes_service: https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_notes_read/FeatureServer
+  areas_service: https://services5.arcgis.com/fXXSUzHD5JjcOt1v/arcgis/rest/services/PROTECT_Workshop_Feedback_flood_areas_v2_read/FeatureServer   # blank = skip the flooded areas
+  gdb: outputs/PROTECT_workshop_feedback.gdb     # repo-relative, gitignored: it holds participant names
+  explorer_json: outputs/PROTECT_workshop_feedback_explorer.json   # export_feedback_explorer.py; read by html/workshop-feedback-explorer.html (gitignored, never on Pages)
+  timezone: America/Los_Angeles                  # sent_local and noted_local
+  wgs84_to_target: WGS_1984_(ITRF00)_To_NAD_1983 # notes and areas arrive in WGS84; written in output.target_epsg
