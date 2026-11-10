@@ -2,12 +2,11 @@
 
 Reads outputs/PROTECT_workshop_feedback.gdb (extract_workshop_feedback.py, then reviewed by hand: duplicate
 notes and areas carried forward between sends on one browser, and test records, removed Nov. 10, 2026) and
-writes outputs/PROTECT_workshop_feedback_explorer.json: the sends, notes, station answers, and flooded areas,
-with geometry in WGS84.
+writes data/processed/results/workshop_feedback.json (config feedback.explorer_json): the sends, notes, station
+answers, and flooded areas, with geometry in WGS84.
 
-The file holds participant names, so it stays in outputs/ (gitignored, never served by GitHub Pages). The
-explorer reads it through the repo-root preview server (.claude/launch.json protect-root, port 8012), or from
-the page's Open data file button anywhere else.
+The file is published with the site (data/processed/results/ is served by GitHub Pages). It carries
+participant names, which are not confidential. Commit it after each rerun so the page shows the new data.
 
 Run from arcgispro-py3:
 
@@ -66,7 +65,7 @@ def main() -> int:
     fc = load_cfg()["feedback"]
     log = get_logger("export_feedback_explorer")
     gdb = Path(fc["gdb"]); gdb = gdb if gdb.is_absolute() else REPO / gdb
-    out = Path(fc.get("explorer_json") or gdb.with_name(f"{gdb.stem}_explorer.json"))
+    out = Path(fc.get("explorer_json") or "data/processed/results/workshop_feedback.json")
     out = out if out.is_absolute() else REPO / out
     guard_exists([str(out)], args.overwrite, log)
 
