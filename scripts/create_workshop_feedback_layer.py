@@ -1,4 +1,4 @@
-"""Create (or check) the ArcGIS Online services that html/workshop-feedback.html sends to.
+"""Create (or check) the ArcGIS Online services that html/vulnerability-assessment-feedback.html sends to.
 
 Layout, following the EIP Funding Priorities picks survey (maps repo, eip/funding-priorities.html),
 for each of two services:
@@ -66,7 +66,7 @@ FIELDS = [
 ]
 TABLE_DEF = {
     "name": "notes", "type": "Table", "displayField": "reviewer_name", "objectIdField": "OBJECTID",
-    "description": "One row per send from html/workshop-feedback.html",
+    "description": "One row per send from html/vulnerability-assessment-feedback.html",
     "fields": [{"name": "OBJECTID", "type": "esriFieldTypeOID", "alias": "OBJECTID", "nullable": False, "editable": False}] + FIELDS,
     "capabilities": "Create,Query,Update,Delete,Editing", "hasAttachments": False,
     "indexes": [{"name": "key_idx", "fields": "reviewer_key", "isAscending": True, "isUnique": False}],
@@ -92,7 +92,7 @@ AREA_FIELDS = [
 TAHOE_EXTENT = {"xmin": -13392000, "ymin": 4688000, "xmax": -13331000, "ymax": 4770000, "spatialReference": {"wkid": 102100, "latestWkid": 3857}}
 AREA_DEF = {
     "name": "flood_areas", "type": "Feature Layer", "geometryType": "esriGeometryPolygon", "displayField": "observed_when", "objectIdField": "OBJECTID",
-    "description": "Areas participants drew on html/workshop-feedback.html where they have seen flooding",
+    "description": "Areas participants drew on html/vulnerability-assessment-feedback.html where they have seen flooding",
     "fields": [{"name": "OBJECTID", "type": "esriFieldTypeOID", "alias": "OBJECTID", "nullable": False, "editable": False}] + AREA_FIELDS,
     "capabilities": "Create,Query,Update,Delete,Editing", "hasAttachments": False, "extent": TAHOE_EXTENT,
     "indexes": [{"name": "key_idx", "fields": "reviewer_key", "isAscending": True, "isUnique": False}],
