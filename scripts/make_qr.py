@@ -1,4 +1,4 @@
-"""Make the QR code SVGs the printable Results guide uses.
+"""Make the QR code SVGs the printable Vulnerability Assessment Guide uses.
 
 No third-party libraries (the arcgispro-py3 env has none for QR codes). Byte mode,
 error correction level M, versions 1 to 6 (up to 106 bytes), best-of-eight mask.
@@ -19,8 +19,10 @@ SITE = "https://trpa-agency.github.io/PROTECT/html/"
 FILL = "#003B71"  # TRPA Navy
 
 CODES = {
-    "results": SITE + "results.html",
-    "workshop-feedback": SITE + "workshop-feedback.html",
+    # Renamed Nov. 8, 2026; the old results.html and workshop-feedback.html are redirect stubs,
+    # so codes already printed with the old URLs still land on these pages.
+    "vulnerability-assessment": SITE + "vulnerability-assessment.html",
+    "vulnerability-assessment-feedback": SITE + "vulnerability-assessment-feedback.html",
 }
 
 # Level M: version -> (total codewords, ec codewords per block, blocks). v1-6 have equal blocks.

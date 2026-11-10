@@ -6,6 +6,7 @@
   <title>Origin Destination Index for Services &middot; PROTECT</title>
   <meta name="description" content="Which Lake Tahoe roads people use to reach emergency shelters, medical facilities, law enforcement, schools, fresh food, and the way out of the basin, scored from RA2CE-routed origin-destination trips on the street network."/>
   <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+  <script src="gate.js"></script>
 
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css"/>
   <script>
@@ -568,7 +569,7 @@
   <div class="hdr-r">
     <span id="feat-count">Loading&hellip;</span>
     <div class="live-badge"><div class="live-dot"></div>Live</div>
-    <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="workshop-feedback.html">Workshop feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="results.html">Results</a><a href="results-guide.html">Results guide</a><a href="criticality-index.html">Criticality</a><a href="od-services-index.html" class="on" aria-current="page">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
+    <details class="pages" id="pages"><summary>Pages</summary><nav class="menu" aria-label="Site"><div class="g"><a href="../index.html">Home</a><a href="index.html">All pages</a></div><div class="g"><b>Engagement</b><a href="vulnerability-assessment-feedback.html">Vulnerability assessment feedback</a></div><div class="g"><b>Lessons from past emergencies</b><a href="baseline-assessment.html">Baseline assessment</a></div><div class="g"><b>Resilience plan (TRIP)</b><a href="vulnerability-assessment.html">Vulnerability assessment</a><a href="vulnerability-assessment-guide.html">Vulnerability assessment guide</a><a href="criticality-assessment.html">Criticality assessment</a><a href="od-services-index.html" class="on" aria-current="page">Access to services</a><a href="scoring-rubrics.html">Scoring rubrics</a></div><div class="g"><b>TRIP data and evidence</b><a href="references.html">References</a><a href="reference-hub.html">Reference hub</a><a href="climate-data.html">Climate inputs</a><a href="historic-hazards.html">Historic hazards</a><a href="tahoe-precip-events.html">Storm events</a></div></nav></details>
   </div>
 </div>
 
@@ -884,7 +885,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
   //  (scripts/ra2ce_v2/od_stochastic_assignment.ipynb, joined to the
   //  clean street layer by scripts/Streets_Network_Clean.ipynb).
   // ═══════════════════════════════════════════════════════
-  const SRC = `<div class="src">Source: the clean street layer, the same data as the Criticality Index. Trips are routed by travel time on the corrected RA2CE network of Overture streets and averaged over 100 randomized runs.</div>`;
+  const SRC = `<div class="src">Source: the clean street layer, the same data as the Criticality Assessment. Trips are routed by travel time on the corrected RA2CE network of Overture streets and averaged over 100 randomized runs.</div>`;
 
   const INFO = {
     od: {
@@ -1152,7 +1153,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GeoJSONLayer","esri/layers
   });
     addFullscreen(view, document.querySelector(".app-body"), document.querySelector(".main-area"), {panel:document.querySelector(".left-panel")});
 
-  // The clean street layer, as the Criticality Index reads it: one geometry file and the trip table
+  // The clean street layer, as the Criticality Assessment reads it: one geometry file and the trip table
   // (scripts/publish_results.py), joined on src_objectid. OBJECTID keeps the src_objectid value.
   const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(`${url.split("/").pop()}: ${r.status}`); return r.json(); });
   async function loadAllFeatures() {

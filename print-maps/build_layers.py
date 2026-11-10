@@ -7,7 +7,7 @@
     python print-maps/build_layers.py --lyrx      # also save each Results layer as print-maps/layers/<name>.lyrx
 
 Run with ArcGIS Pro's Python on the server, with the project closed in Pro (the save needs it).
-The project is project.aprx in print-maps/config.yaml. layers.yaml mirrors html/results.html: the
+The project is project.aprx in print-maps/config.yaml. layers.yaml mirrors html/vulnerability-assessment.html: the
 datasets (PROTECT_curated.gdb), fields, class breaks, colors, and legend labels of each view.
 Renderers are written as CIM: exact breaks or values and a gray default symbol for nulls ("not
 scored", as the page draws them), because the class-break API reclassifies fields that hold only

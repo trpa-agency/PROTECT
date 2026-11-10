@@ -1,5 +1,5 @@
 # layers.yaml - the print maps set up in the Pro project by build_layers.py (Oct. 30, 2026)
-# Mirrors html/results.html: the same datasets (PROTECT_curated.gdb carries the fields publish_results.py
+# Mirrors html/vulnerability-assessment.html: the same datasets (PROTECT_curated.gdb carries the fields publish_results.py
 # publishes, public jurisdictions only), fields, class breaks, colors (COL), and legend labels as the
 # page's Overview views (highest vulnerability, and each hazard's vulnerability on every asset it scores),
 # its hazard surfaces, and the Criticality view. Change a break or a color on the page, change it here too.
@@ -18,7 +18,7 @@ show_group: Overview       # in TRPA Standard Layers itself, this subgroup is on
 hide_after_build: [Hazards, Bridge, Culvert, Road]   # the template's unscored layers, superseded by Results
 print_scale: 2.0
 
-colors:                    # results.html COL and CRIT_RAMP
+colors:                    # vulnerability-assessment.html COL and CRIT_RAMP
   ice: "#B4CBE8"
   blue: "#0072CE"
   navy: "#003B71"
