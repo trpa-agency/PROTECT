@@ -29,6 +29,10 @@ password in this file). Settings are in the config.yaml feedback: block.
 
     python scripts/extract_workshop_feedback.py               # fails if the geodatabase exists
     python scripts/extract_workshop_feedback.py --overwrite   # rebuild from the services
+    python scripts/extract_workshop_feedback.py --gdb C:/temp/new.gdb   # write elsewhere (the reviewed gdb stays as it is)
+
+The configured gdb has been reviewed by hand (duplicates and test records removed). To add new sends to it, extract
+to another --gdb and run scripts/clean_workshop_feedback.py, which appends only the sends it does not have yet.
 """
 
 from __future__ import annotations
@@ -328,12 +332,13 @@ def summarize(sends, notes, stations, areas, log) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Unpack Workshop Feedback sends into a review geodatabase (read only).")
     ap.add_argument("--overwrite", action="store_true", help="replace the geodatabase and CSVs if they exist")
+    ap.add_argument("--gdb", help="write to this geodatabase instead of config feedback.gdb")
     args = ap.parse_args()
     cfg = load_cfg()
     fc = cfg["feedback"]
     log = get_logger("extract_workshop_feedback")
     tz = fc.get("timezone", "America/Los_Angeles")
-    gdb = Path(fc["gdb"])
+    gdb = Path(args.gdb or fc["gdb"])
     gdb = gdb if gdb.is_absolute() else REPO / gdb
 
     from arcgis.gis import GIS
