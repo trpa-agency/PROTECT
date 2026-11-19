@@ -1,5 +1,5 @@
 {
- "built": "2026-11-10T14:01:29",
+ "built": "2026-11-19T13:00:25",
  "source": "PROTECT_workshop_feedback.gdb",
  "sends": [
   {
@@ -43,6 +43,36 @@
    "name": "Rory Lepore",
    "round": "Workshop 1",
    "sent": "2026-11-09T13:32:18"
+  },
+  {
+   "send": 27,
+   "name": "Dinaldo Palaroah",
+   "round": "Workshop 1",
+   "sent": "2026-11-13T12:16:26"
+  },
+  {
+   "send": 28,
+   "name": "Dinaldo Palaroah",
+   "round": "Workshop 1",
+   "sent": "2026-11-13T12:23:09"
+  },
+  {
+   "send": 29,
+   "name": "Savannah Tabor",
+   "round": "Workshop 1",
+   "sent": "2026-11-13T12:29:02"
+  },
+  {
+   "send": 30,
+   "name": "Unknown",
+   "round": "Workshop 1",
+   "sent": "2026-11-13T12:30:31"
+  },
+  {
+   "send": 31,
+   "name": "Cara Moore",
+   "round": "Workshop 1",
+   "sent": "2026-11-13T12:31:44"
   }
  ],
  "notes": [
@@ -806,6 +836,106 @@
    "noted": "2026-11-09T13:09:19",
    "lon": -119.929253,
    "lat": 38.968479
+  },
+  {
+   "id": 65,
+   "send": 27,
+   "name": "Dinaldo Palaroah",
+   "key": "road:src:2067",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:2067",
+   "asset": "Nahane Drive",
+   "detail": "residential road · 0.13 mi · vulnerability Medium · segment 2067",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 1,
+   "issue": "Entire Subdivision Nahane Dr to Kekin St.",
+   "missing": 0,
+   "noted": "2026-11-13T12:16:18",
+   "lon": -120.029294,
+   "lat": 38.836497
+  },
+  {
+   "id": 66,
+   "send": 27,
+   "name": "Dinaldo Palaroah",
+   "key": "road:src:17117",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:17117",
+   "asset": "North Upper Truckee Road",
+   "detail": "secondary road · 0.26 mi · vulnerability Medium · segment 17117",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 1,
+   "issue": "N upper truckeed @ Osgood Creek",
+   "missing": 0,
+   "noted": "2026-11-13T12:15:08",
+   "lon": -120.035385,
+   "lat": 38.85382
+  },
+  {
+   "id": 69,
+   "send": 28,
+   "name": "Dinaldo Palaroah",
+   "key": "road:src:14205",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:14205",
+   "asset": "Echo View Drive",
+   "detail": "residential road · 0.24 mi · vulnerability Medium · segment 14205",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 2,
+   "issue": "Flooding Concern Sawmill Rd @ Echo View DR",
+   "missing": 0,
+   "noted": "2026-11-13T12:23:05",
+   "lon": -120.023329,
+   "lat": 38.88081
+  },
+  {
+   "id": 70,
+   "send": 30,
+   "name": "Unknown",
+   "key": "road:src:11321",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:11321",
+   "asset": "Colorado Avenue",
+   "detail": "residential road · 0.05 mi · vulnerability Low · segment 11321",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 1,
+   "issue": "Colorado Ave Floods +1",
+   "missing": 0,
+   "noted": "2026-11-13T12:30:29",
+   "lon": -120.000702,
+   "lat": 38.92725
+  },
+  {
+   "id": 71,
+   "send": 31,
+   "name": "Cara Moore",
+   "key": "road:src:7398",
+   "type": "road",
+   "type_label": "Road segment",
+   "asset_id": "src:7398",
+   "asset": "Pioneer Trail",
+   "detail": "secondary road · 0.06 mi · vulnerability Medium · segment 7398",
+   "hazards": [
+    "flood"
+   ],
+   "concern": 2,
+   "issue": "This area of Pioneer floods frequently",
+   "missing": 0,
+   "noted": "2026-11-13T12:31:42",
+   "lon": -119.955205,
+   "lat": 38.924102
   }
  ],
  "stations": [
@@ -834,6 +964,24 @@
    "station": "fire",
    "label": "Wildfire",
    "expected": "This isn't giving credit for things we've done.",
+   "tool": ""
+  },
+  {
+   "id": 4,
+   "send": 27,
+   "name": "Dinaldo Palaroah",
+   "station": "avy",
+   "label": "Avalanche",
+   "expected": "Model should consider all main roads outside the basin as well. 267 to gardnerville or 89 to truckee since damage to those would impact the basin",
+   "tool": ""
+  },
+  {
+   "id": 6,
+   "send": 29,
+   "name": "Savannah Tabor",
+   "station": "fire",
+   "label": "Wildfire",
+   "expected": "Missing Forest Service roads - not used in evacuations but they are used in fighting fire",
    "tool": ""
   }
  ],
